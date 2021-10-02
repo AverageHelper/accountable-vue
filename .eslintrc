@@ -1,0 +1,126 @@
+{
+	"root": true,
+	"ignorePatterns": ["dist", "node_modules", "src/version.ts"],
+
+	"extends": [
+		"strictest/eslint",
+		"strictest/promise",
+		"strictest/typescript-eslint",
+		"strictest/unicorn",
+		"eslint:recommended",
+		"plugin:jest/recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking",
+		"plugin:prettier/recommended"
+	],
+	"plugins": ["prettier", "unicorn", "promise", "@typescript-eslint"],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"project": "./tsconfig.prod.json",
+		"tsconfigRootDir": "./"
+	},
+	"env": {
+		"node": true
+	},
+	"rules": {
+		"prettier/prettier": "warn",
+		"no-constant-condition": "warn",
+		"no-console": "warn",
+		"no-dupe-else-if": "warn",
+		"consistent-return": "off", // TS handles this
+		"no-duplicate-imports": "off", // typescript-eslint handles this
+		"@typescript-eslint/no-duplicate-imports": "error",
+		"@typescript-eslint/no-implicit-any-catch": "error",
+		"@typescript-eslint/no-empty-interface": "off",
+		"@typescript-eslint/require-await": "warn",
+		"@typescript-eslint/no-inferrable-types": "off",
+		"@typescript-eslint/explicit-member-accessibility": [
+			"error",
+			{ "accessibility": "no-public", "overrides": { "properties": "off" } }
+		],
+		"@typescript-eslint/explicit-function-return-type": [
+			"error",
+			{ "allowConciseArrowFunctionExpressionsStartingWithVoid": true }
+		],
+		"@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
+		"@typescript-eslint/array-type": ["warn", { "default": "generic" }],
+		"@typescript-eslint/dot-notation": "off",
+		"@typescript-eslint/consistent-type-imports": "warn",
+		"new-cap": "off", // Many decorators do not follow normal function conventions
+		"unicorn/catch-error-name": ["warn", { "name": "error" }]
+	},
+
+	"overrides": [
+		{
+			"files": ["src/**/*.vue"],
+			"parser": "vue-eslint-parser",
+			"parserOptions": {
+				"parser": "@typescript-eslint/parser",
+				"project": "./tsconfig.prod.json",
+				"tsconfigRootDir": ".",
+				"extraFileExtensions": [".vue"],
+				"plugins": ["@typescript-eslint"]
+			},
+			"extends": [
+				"@vue/typescript/recommended",
+				"plugin:vue/vue3-recommended",
+				// "@vue/prettier/recommended",
+				// "@vue/prettier/@typescript-eslint",
+				"eslint:recommended",
+				"plugin:@typescript-eslint/recommended",
+				"plugin:@typescript-eslint/recommended-requiring-type-checking"
+			],
+			"rules": {
+				"no-undef": "off", // TypeScript does this for us
+				"quotes": ["warn", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
+				"keyword-spacing": "warn",
+				"vue/no-unused-components": "warn",
+				"vue/component-name-in-template-casing": ["error", "PascalCase"],
+				"vue/custom-event-name-casing": "warn",
+				"vue/match-component-file-name": [
+					"warn",
+					{
+						"extensions": ["vue"],
+						"shouldMatchCase": true
+					}
+				],
+				"vue/html-self-closing": [
+					"warn",
+					{
+						"html": {
+							"void": "always"
+						}
+					}
+				],
+				"vue/max-attributes-per-line": "off",
+				"vue/html-indent": "off",
+				"vue/singleline-html-element-content-newline": "off",
+				"@typescript-eslint/no-floating-promises": "warn",
+				"@typescript-eslint/no-misused-promises": "off",
+				"@typescript-eslint/prefer-regexp-exec": "off",
+				"@typescript-eslint/no-unused-vars": "warn"
+			}
+		},
+		{
+			"files": ["src/**/*.test.ts", "tests/**/*.ts", "**/__mocks__/**/*.ts"],
+			"extends": ["plugin:prettier/recommended"],
+			"plugins": ["prettier", "@typescript-eslint"],
+			"parser": "@typescript-eslint/parser",
+			"parserOptions": {
+				"project": "./tsconfig.test.json",
+				"tsconfigRootDir": "."
+			},
+			"env": {
+				"jest": true
+			},
+			"rules": {
+				"prettier/prettier": "warn",
+				"max-nested-callbacks": "off" // Unit tests involve a lot of nested callbacks
+			}
+		},
+		{
+			"files": ["*.js"],
+			"parser": "null"
+		}
+	]
+}

@@ -1,0 +1,185 @@
+@use "colors.scss" as *;
+
+html {
+	font-family: $fontFamily;
+	color: color($label);
+	background-color: color($background);
+	font-size: 16px;
+	font-weight: 300;
+	font-style: normal;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-webkit-overflow-scrolling: touch;
+	-moz-osx-font-smoothing: grayscale;
+	text-size-adjust: auto;
+}
+
+input,
+textarea {
+	font-family: $fontFamily;
+	color: color($label);
+	background-color: color($search-field);
+	border-color: color($separator);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 700;
+	line-height: 1.2;
+	margin-bottom: 0;
+	margin-top: 0.75em;
+	margin-bottom: 0.5em;
+	color: color($label);
+	transition: color $color-transition-duration;
+}
+
+h1 {
+	font-size: 2.2rem;
+}
+
+h2 {
+	font-size: 1.8rem;
+}
+
+h3 {
+	font-size: 1.4rem;
+	font-weight: 600;
+}
+
+h4 {
+	font-size: 1.2rem;
+	font-weight: 600;
+}
+
+h5 {
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+
+h6 {
+	font-size: 1rem;
+	font-weight: 800;
+}
+
+.subtext {
+	font-size: 0.9em;
+	color: color($secondary-label);
+	margin: 0.7em 0;
+}
+
+p {
+	margin-top: 0;
+	margin-bottom: 1.2rem;
+	color: color($label);
+	transition: color $color-transition-duration;
+}
+
+ul,
+ol {
+	margin-top: 0.5rem;
+	margin-bottom: 1.5rem;
+}
+
+ul ul,
+ul ol,
+ol ul,
+ol ol {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+table {
+	margin-top: 1.5rem;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+table td,
+table th {
+	padding: 0;
+}
+
+blockquote {
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
+}
+
+code {
+	background-color: color($cloud);
+	vertical-align: bottom;
+	padding: 2px 4px;
+	border-radius: 4px;
+	color: color($label-code);
+	transition-property: color, background-color;
+	transition-duration: $color-transition-duration;
+}
+
+textarea {
+	line-height: 1.5em;
+	font-size: 1rem;
+	border: 0;
+}
+
+.disclaimer {
+	padding: 1em 0.5em 0.5em;
+	font-size: 0.85em;
+	margin-bottom: 0;
+}
+
+.float--right {
+	float: right;
+}
+
+.float--left {
+	float: left;
+}
+
+.clearfix {
+	&::after {
+		display: block;
+		content: "";
+		clear: both;
+	}
+}
+
+.section-icon {
+	text-align: center;
+	width: 5em;
+	height: 5em;
+	margin: 1em auto -0.5em;
+	display: block;
+	color: color($gray4);
+	&.icon {
+		text-align: center;
+		width: 5em;
+		height: 5em;
+		margin: 1em auto -0.5em;
+		display: block;
+	}
+	.icon {
+		width: auto;
+		height: auto;
+	}
+}
+
+.icon {
+	height: 1.3em;
+	width: 1.3em;
+	vertical-align: middle;
+	margin-right: 0.3em;
+	display: inline-block;
+
+	&--double-width {
+		width: 3em;
+	}
+
+	&--small {
+		height: 1em;
+		width: 1em;
+		vertical-align: center;
+	}
+}

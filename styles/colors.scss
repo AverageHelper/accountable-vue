@@ -1,0 +1,126 @@
+//
+//  Import and use:
+//
+//  <style lang="scss">
+//  @use "styles/colors" as *;
+//  ...
+//  color($<colorName>)
+//  ...
+//
+//  To add or change a color:
+//
+//  1. Name it. SASS variables ensure we always use the right names,
+//      else things don't compile! :)
+//  2. Define its default (light) appearance using CSS varables in root.scss
+//  3. Define its themed (dark) appearance in our @media query.
+//  4. ???
+//  5. Profit
+//
+
+//  -- Named Color Keys --
+
+// Backgrounds
+$background: background;
+$secondary-background: secondary-background;
+$secondary-overlay: secondary-overlay; // Like background, with a bit of transparence
+$navbar-background: navbar-background;
+$sidenav-background: sidenav-background;
+$unread-count: unread-count;
+$alert-info: alert-info;
+$alert-success: alert-success;
+$alert-warning: alert-warning;
+$alert-failure: alert-failure;
+$status-success: status-success;
+$status-warning: status-warning;
+$new-item-background: new-item-background;
+$onboard-admin-blue: onboard-admin-blue;
+$onboard-admin-green: onboard-admin-green;
+$onboard-admin-yellow: onboard-admin-yellow;
+
+// Buttons
+$button-background: button-background;
+$button-border: button-border;
+$send-button: send-button;
+
+// Text
+$label: label;
+$label-code: label-code;
+$label-light: label-light; // A label that retains its dark contrast against a light background
+$label-dark: label-dark; // A label that retains its light contrast against a dark background
+$secondary-label: secondary-label;
+$secondary-label-dark: secondary-label-dark; // A label that retains its contrast against a dark background
+$control-label: control-label; // a slightly lighter label color for controls
+$text-field: text-field;
+$input-background: input-background;
+$inverse-label: inverse-label;
+$search-field: search-field;
+$link: link;
+
+// Separators and accents
+$separator: separator;
+$medium-separator: medium-separator;
+$subtle-separator: subtle-separator;
+$subtle-separator-dark: subtle-separator-dark;
+$fill: fill; // appropriate for filling thin and small shapes, such as the track of a slider.
+$secondary-fill: secondary-fill; // appropriate for filling medium-size shapes, like a control background.
+$sidenav-glow: sidenav-glow;
+$heavy-shadow: heavy-shadow;
+$item-shadow: item-shadow;
+$new-item-border: new-item-border;
+$tab-item: tab-item;
+
+// Grayscale
+$black: black;
+$gray: gray; // Most visible
+$gray2: gray2;
+$gray3: gray3;
+$gray4: gray4;
+$gray5: gray5;
+$gray6: gray6;
+$cloud: cloud; // Least visible
+$white: white;
+
+// Grayscale that is always light
+$cloud-light: cloud-light;
+$gray6-light: gray6-light;
+$gray5-light: gray5-light;
+$gray4-light: gray4-light;
+$gray3-light: gray3-light;
+$gray2-light: gray2-light;
+$gray-light: gray-light;
+
+// Grayscale that is always dark
+$cloud-dark: cloud-dark;
+$gray6-dark: gray6-dark;
+$gray5-dark: gray5-dark;
+$gray4-dark: gray4-dark;
+$gray3-dark: gray3-dark;
+$gray2-dark: gray2-dark;
+$gray-dark: gray-dark;
+
+// Simple Colors
+$blue: blue;
+$blue-transparent: blue-transparent;
+$green: green;
+$green-transparent: green-transparent;
+$orange: orange;
+$red: red;
+$yellow: yellow;
+$purple: purple;
+$blue-highlight: blue-highlight;
+$green-highlight: green-highlight;
+$red-highlight: red-highlight;
+
+// Transparent options
+$clear: clear;
+$transparent: clear;
+$transparent-white: clear;
+$transparent-black: clear;
+$transparent-gray: transparent-gray;
+
+// Go to root.scss to define the color values
+
+// Get the named color with the proper theme.
+@function color($colorName) {
+	@return var(--#{$colorName});
+}

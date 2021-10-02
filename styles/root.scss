@@ -1,0 +1,169 @@
+:root {
+	// --- Default / Light Colors ---
+
+	--background: #fff;
+	--secondary-background: #f2f2f2;
+	--secondary-overlay: rgba(255, 255, 255, 0.8);
+	--navbar-background: #212122;
+	--sidenav-background: #505050;
+	--unread-count: #ff6562;
+	--alert-info: rgba(37, 169, 224, 0.8);
+	--alert-success: rgba(12, 175, 110, 0.8);
+	--alert-warning: rgba(255, 142, 36, 0.8);
+	--alert-failure: rgba(255, 101, 98, 0.8);
+	--status-success: rgba(12, 175, 110, 0.2);
+	--status-warning: rgba(255, 101, 98, 0.2);
+	--new-item-background: rgba(255, 211, 1, 0.1);
+	--onboard-admin-blue: rgba(38, 135, 183, 0.85);
+	--onboard-admin-green: rgba(12, 175, 110, 0.85);
+	--onboard-admin-yellow: rgba(255, 196, 1, 0.85);
+
+	--button-background: rgba(204, 204, 204, 0.2);
+	--button-border: rgba(204, 204, 204, 0.4);
+	--send-button: rgba(38, 135, 183, 0.23);
+
+	--label: #333;
+	--label-code: #3b3b3b;
+	--label-light: #333;
+	--label-dark: #f8f8f8;
+	--secondary-label: #79797c;
+	--secondary-label-dark: #9999a0;
+	--control-label: #444;
+	--text-field: #fff;
+	--input-background: rgba(0, 0, 0, 0.025);
+	--inverse-label: #f8f8f8;
+	--search-field: #fff;
+	--link: #2687b7;
+
+	--separator: #ccc;
+	--medium-separator: #dfdfdf;
+	--subtle-separator: #f2f2f2;
+	--subtle-separator-dark: #323233;
+	--fill: #fff;
+	--secondary-fill: #f8f8f8;
+	--sidenav-glow: #444;
+	--heavy-shadow: #666666;
+	--item-shadow: rgba(204, 204, 204, 0.87);
+	--new-item-border: #ffd301;
+	--tab-item: #666666;
+
+	--white: #fff;
+	--cloud: #f8f8f8;
+	--gray6: #f2f2f2;
+	--gray5: #e8e8e8;
+	--gray4: #cccccc;
+	--gray3: #aaaaaa;
+	--gray2: #666666;
+	--gray: #333333;
+	--black: #000;
+
+	--cloud-light: #f8f8f8;
+	--gray6-light: #f2f2f2;
+	--gray5-light: #e8e8e8;
+	--gray4-light: #cccccc;
+	--gray3-light: #aaaaaa;
+	--gray2-light: #666666;
+	--gray-light: #333333;
+
+	--cloud-dark: #2b2b2c;
+	--gray6-dark: #1c1c1e;
+	--gray5-dark: #2c2c2e;
+	--gray4-dark: #3a3a3c;
+	--gray3-dark: #48484a;
+	--gray2-dark: #636366;
+	--gray-dark: #8e8e93;
+
+	--blue: #2687b7;
+	--blue-transparent: rgba(37, 134, 182, 0.1);
+	--green: #42b983; // #0caf6e;
+	--green-transparent: rgba(12, 175, 110, 0.1);
+	--orange: #ff8e24;
+	--red: #ff6562;
+	--yellow: #ffd301;
+	--purple: purple;
+	--blue-highlight: #0291c5;
+	--green-highlight: #0dba75;
+	--red-highlight: #ff6966;
+
+	--clear: rgba(0, 0, 0, 0);
+	--transparent-gray: rgba(0, 0, 0, 0.38);
+}
+
+//  Applying Colors Dynamically
+
+:root {
+	// animate color transitions
+	transition: color $color-transition-duration, background-color $color-transition-duration,
+		border-color, $color-transition-duration;
+
+	--color-scheme: "default";
+	scrollbar-color: dark;
+
+	@media only screen and (prefers-color-scheme: dark) {
+		--color-scheme: "dark";
+		scrollbar-color: light;
+
+		// -- Dark Colors --
+
+		--background: #181818;
+		--secondary-background: #2b2b2c;
+		--secondary-overlay: rgba(33, 33, 34, 0.8);
+		--navbar-background: #212122;
+		--sidenav-background: #444444;
+		--unread-count: #fc3e3b;
+		--alert-success: rgba(10, 165, 103, 0.8);
+		--alert-warning: rgba(253, 158, 43, 0.8);
+		--alert-failure: rgba(252, 71, 65, 0.8);
+		--status-success: rgba(10, 165, 103, 0.2);
+		--status-warning: rgba(252, 71, 65, 0.2);
+		--new-item-background: rgba(254, 213, 51, 0.1);
+
+		--button-background: rgba(58, 58, 60, 0.2);
+		--button-border: rgba(58, 58, 60, 0.4);
+		--send-button: rgba(45, 155, 210, 0.23);
+
+		--label: #f8f8f8;
+		--label-code: #e0dfdf;
+		--secondary-label: #9999a0;
+		--control-label: #eee;
+		--text-field: #212122;
+		--input-background: rgba(0, 0, 0, 0.2);
+		--inverse-label: #333;
+		--search-field: #2b2b2c;
+		--link: #2c98ce;
+
+		--separator: #3a3a3c;
+		--medium-separator: #3a3a3c;
+		--subtle-separator: #323233;
+		--fill: #3a3a3c;
+		--secondary-fill: #2b2b2c;
+		--sidenav-glow: #414141;
+		--heavy-shadow: rgba(0, 0, 0, 0.2);
+		--item-shadow: rgba(58, 58, 60, 0.3);
+		--new-item-border: #fed634;
+		--tab-item: #949494;
+
+		--white: #fff;
+		--cloud: #2b2b2c;
+		--gray6: #1c1c1e;
+		--gray5: #2c2c2e;
+		--gray4: #3a3a3c;
+		--gray3: #48484a;
+		--gray2: #636366;
+		--gray: #8e8e93;
+		--black: #000;
+
+		--blue: #2b95ca;
+		--green: #0aa567;
+		--orange: #fd9e2b;
+		--red: #fc4741;
+		--yellow: #fed634;
+		--purple: #be60ef;
+		--blue-highlight: #359fd4;
+		--green-highlight: #0bb772;
+		--red-highlight: #fc5f59;
+
+		--clear: rgba(0, 0, 0, 0);
+		--transparent-gray: rgba(0, 0, 0, 0.38);
+	}
+}
