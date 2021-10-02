@@ -13,7 +13,7 @@ export class Account implements AccountRecord {
 
 	constructor(record?: Partial<AccountRecord>) {
 		this.id = record?.id ?? uuid();
-		this.title = record?.title ?? "";
+		this.title = record?.title ?? `Account ${Math.floor(Math.random() * 10) + 1}`;
 		this.notes = record?.notes ?? null;
 	}
 

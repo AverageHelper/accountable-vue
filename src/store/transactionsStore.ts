@@ -12,6 +12,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account);
 		},
 		async saveTransaction(transaction: Transaction, account: Account) {
+			await new Promise(resolve => setTimeout(resolve, 1000));
 			await putTransaction(transaction, account);
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account);
 		},

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import NavAction from "./NavAction.vue";
+import AccountListItem from "./AccountListItem.vue";
+
 import { Account } from "../model/Account";
 import { ref, computed } from "vue";
 import { useAccountsStore } from "../store";
@@ -17,11 +20,19 @@ async function create() {
 </script>
 
 <template>
-	<h1>Accounts</h1>
+	<NavAction>
+		<div v-if="isSaving">...</div>
+		<button v-else :disabled="isSaving" @click="create">+</button>
+	</NavAction>
 
-	<p>We have {{ accounts.length }} accounts</p>
-	<button :disabled="isSaving" @click="create">Create account</button>
-	<span v-if="isSaving">Loading...</span>
+	<ul>
+		<li v-for="account in accounts" :key="account.id">
+			<AccountListItem :account="account" />
+		</li>
+		<li>
+			<p>We have {{ accounts.length }} accounts.</p>
+		</li>
+	</ul>
 </template>
 
 <style scoped lang="scss">
@@ -31,8 +42,10 @@ a {
 	color: color($green);
 }
 
-label {
-	margin: 0 0.5em;
-	font-weight: bold;
+ul {
+	list-style: none;
+	padding: 0;
+	max-width: 36em;
+	margin: 0 auto;
 }
 </style>

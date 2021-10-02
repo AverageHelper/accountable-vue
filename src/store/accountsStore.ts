@@ -11,6 +11,7 @@ export const useAccountsStore = defineStore("accounts", {
 			this.accounts = await getAllAccounts();
 		},
 		async saveAccount(account: Account) {
+			await new Promise(resolve => setTimeout(resolve, 1000));
 			await putAccount(account);
 			this.accounts[account.id] = account;
 		},

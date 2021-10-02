@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import AccountsList from "./components/AccountsList.vue";
+import Accounts from "./components/Accounts.vue";
+import Navbar from "./components/Navbar.vue";
 </script>
 
 <template>
-	<img alt="Vue logo" src="./assets/logo.png" />
-	<AccountsList />
+	<Navbar title="Accounts" />
+	<main class="content">
+		<Accounts />
+	</main>
 </template>
 
 <style lang="scss">
-@use "styles/colors" as *;
 @import "styles/setup";
 
-#app {
-	text-align: center;
-	margin-top: 60px;
+html,
+body {
+	padding: 0;
+	margin: 0;
+}
+
+main.content {
+	margin: 1em;
 }
 </style>
