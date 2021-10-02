@@ -1,4 +1,10 @@
+import { createPinia } from "pinia";
 import { createApp } from "vue";
+import { bootstrap } from "./db/wrapper";
 import App from "./App.vue";
 
-createApp(App).mount("#app");
+bootstrap();
+
+createApp(App) //
+	.use(createPinia())
+	.mount("#app");

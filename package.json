@@ -1,10 +1,11 @@
 {
-	"name": "vite-app",
+	"name": "accountable-vue",
 	"version": "0.0.0",
-	"description": "A Vue template that includes strong type-safety, linting, and dynamic colors.",
+	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
 		"start": "npm run dev",
 		"test": "jest",
+		"test:watch": "npm run test -- --watch",
 		"dev": "vite",
 		"build": "npm run export-version && npm run lint && vue-tsc --noEmit && vite build",
 		"serve": "vite preview",
@@ -13,10 +14,14 @@
 		"export-version": "genversion ./src/version.ts -es"
 	},
 	"dependencies": {
+		"lowdb": "^3.0.0",
+		"pinia": "^2.0.0-rc.10",
+		"uuid": "^8.3.2",
 		"vue": "^3.2.16"
 	},
 	"devDependencies": {
 		"@types/jest": "^27.0.2",
+		"@types/uuid": "^8.3.1",
 		"@typescript-eslint/eslint-plugin": "^4.32.0",
 		"@typescript-eslint/parser": "^4.32.0",
 		"@vitejs/plugin-vue": "^1.9.2",
