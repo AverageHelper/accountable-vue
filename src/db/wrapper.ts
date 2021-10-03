@@ -63,7 +63,7 @@ export async function getTransactionsForAccount(
 	const records = db.data.transactions[account.id] ?? {};
 	const result: Dictionary<Transaction> = {};
 	Object.entries(records).forEach(([id, record]) => {
-		result[id] = new Transaction(record);
+		result[id] = new Transaction(account.id, record);
 	});
 	return result;
 }

@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import Navbar from "./components/Navbar.vue";
+
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import Navbar from "./components/Navbar.vue";
 
 const route = useRoute();
 
 const title = computed<string>(() => {
-	const titleGetter = route.meta.title;
-	if (typeof titleGetter === "string") {
-		return titleGetter;
+	const titleOrGetter = route.meta.title;
+	if (titleOrGetter === undefined) {
+		return "Home";
 	}
-	return titleGetter();
+	if (typeof titleOrGetter === "string") {
+		return titleOrGetter;
+	}
+	return titleOrGetter();
 });
 </script>
 
@@ -20,10 +24,16 @@ const title = computed<string>(() => {
 		<keep-alive>
 			<router-view />
 		</keep-alive>
+		<!-- <router-view v-slot="{ Component }">
+			<keep-alive>
+				<component :is="Component" />
+			</keep-alive>
+		</router-view> -->
 	</main>
 </template>
 
 <style lang="scss">
+@use "styles/colors" as *;
 @import "styles/setup";
 
 html,
@@ -34,5 +44,9 @@ body {
 
 main.content {
 	margin: 1em;
+}
+
+a {
+	color: color($green);
 }
 </style>

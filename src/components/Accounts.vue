@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AccountListItem from "./AccountListItem.vue";
+import List from "./List.vue";
 import NavAction from "./NavAction.vue";
 import PlainButton from "./PlainButton.vue";
 
@@ -10,12 +11,17 @@ import { useAccountsStore } from "../store";
 const accounts = useAccountsStore();
 
 const allAccounts = computed(() => Object.values(accounts.items));
+const numberOfAccounts = computed(() => Object.keys(allAccounts.value).length);
 const isSaving = ref(false);
 
 async function create() {
 	isSaving.value = true;
 	const newAccount = new Account();
-	await accounts.saveAccount(newAccount);
+	try {
+		await accounts.saveAccount(newAccount);
+	} catch {
+		// nop for now
+	}
 	isSaving.value = false;
 }
 </script>
@@ -27,31 +33,23 @@ async function create() {
 		</PlainButton>
 	</NavAction>
 
-	<ul>
+	<List>
 		<li v-for="account in allAccounts" :key="account.id">
 			<AccountListItem :account="account" />
 		</li>
 		<li>
-			<p class="footer">We have {{ allAccounts.length }} accounts.</p>
+			<p class="footer">
+				{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
+			</p>
 		</li>
-	</ul>
+	</List>
 </template>
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-a {
-	color: color($green);
-}
-
-ul {
-	list-style: none;
-	padding: 0;
-	max-width: 36em;
-	margin: 0 auto;
-}
-
 .footer {
 	color: color($secondary-label);
+	user-select: none;
 }
 </style>

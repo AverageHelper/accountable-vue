@@ -1,17 +1,39 @@
 <script setup lang="ts">
+import type { Transaction } from "../model/Transaction";
 import { Account } from "../model/Account";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
+import { useTransactionsStore } from "../store";
 
 const props = defineProps({
 	account: { type: Account, required: true },
 });
 
+const transactions = useTransactionsStore();
 const accountRoute = computed(() => `/accounts/${props.account.id}`);
+const theseTransactions = computed<Dictionary<Transaction> | undefined>(
+	() => transactions.transactionsForAccount[props.account.id]
+);
+
+const numberOfTransactions = computed<number | null>(() => {
+	if (theseTransactions.value === undefined) {
+		return null;
+	}
+	return Object.keys(theseTransactions.value).length;
+});
+
+onMounted(async () => {
+	if (theseTransactions.value === undefined) {
+		await transactions.getTransactionsForAccount(props.account);
+	}
+});
 </script>
 
 <template>
 	<router-link class="account-list-item" :to="accountRoute">
 		<span class="title">{{ account.title }}</span>
+
+		<span v-if="numberOfTransactions === null">...</span>
+		<span v-else class="count">{{ numberOfTransactions }}</span>
 	</router-link>
 </template>
 
@@ -19,8 +41,11 @@ const accountRoute = computed(() => `/accounts/${props.account.id}`);
 @use "styles/colors" as *;
 
 .account-list-item {
-	display: block;
-	padding: 0.75em 0.5em;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.75em;
 	margin-bottom: 0.5em;
 	text-decoration: none;
 	color: color($label);
@@ -28,6 +53,16 @@ const accountRoute = computed(() => `/accounts/${props.account.id}`);
 
 	.title {
 		font-weight: bold;
+	}
+
+	.count {
+		font-weight: bold;
+		background-color: color($gray);
+		color: color($inverse-label);
+		border-radius: 1em;
+		padding: 0 0.5em;
+		min-width: 1em;
+		text-align: center;
 	}
 }
 </style>

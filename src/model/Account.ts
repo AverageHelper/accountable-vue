@@ -7,6 +7,7 @@ export interface AccountRecord extends Identifiable<UUID> {
 }
 
 export class Account implements AccountRecord {
+	public readonly objectType = "Account";
 	public readonly id;
 	public readonly title;
 	public readonly notes;

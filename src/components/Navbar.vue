@@ -43,7 +43,7 @@ nav {
 
 	h1 {
 		color: inherit;
-		margin: 0;
+		margin: 0 44pt;
 		user-select: none;
 	}
 

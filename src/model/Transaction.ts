@@ -9,23 +9,27 @@ export interface TransactionRecord extends Identifiable<UUID> {
 	title: string | null;
 	notes: string | null;
 	isReconciled: boolean;
+	accountId: string;
 }
 
 export class Transaction implements TransactionRecord {
+	public readonly objectType = "Transaction";
 	public readonly id;
 	public readonly amount;
 	public readonly date;
 	public readonly title;
 	public readonly notes;
 	public readonly isReconciled;
+	public readonly accountId;
 
-	constructor(record?: Partial<TransactionRecord>) {
+	constructor(accountId: string, record?: Partial<Omit<TransactionRecord, "accountId">>) {
 		this.id = record?.id ?? uuid();
 		this.amount = record?.amount ?? 0;
 		this.date = record?.date ?? new Date();
-		this.title = record?.title ?? null;
+		this.title = record?.title ?? `Transaction ${Math.floor(Math.random() * 10) + 1}`;
 		this.notes = record?.notes ?? null;
 		this.isReconciled = record?.isReconciled ?? false;
+		this.accountId = accountId;
 	}
 
 	get type(): TransactionRecordType {
@@ -45,6 +49,7 @@ export class Transaction implements TransactionRecord {
 			title: this.title,
 			notes: this.notes,
 			isReconciled: this.isReconciled,
+			accountId: this.accountId,
 		};
 	}
 }
