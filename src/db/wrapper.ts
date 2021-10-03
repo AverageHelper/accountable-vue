@@ -1,55 +1,57 @@
-import type { AccountRecord } from "../model/Account";
-import type { Adapter } from "lowdb";
-import type { TransactionRecord } from "../model/Transaction";
+import type { AccountRecordParams } from "../model/Account";
+import type { CollectionReference, Firestore } from "firebase/firestore";
+import type { TransactionRecordParams } from "../model/Transaction";
 import { Account } from "../model/Account";
 import { Transaction } from "../model/Transaction";
-import { Low, JSONFile, Memory } from "lowdb";
-// import { resolve } from "path";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
 
-interface Data {
-	/** All accounts */
-	accounts: Dictionary<AccountRecord>;
-	/** All transactions by account ID */
-	transactions: Dictionary<Dictionary<TransactionRecord>>;
-}
+let db: Firestore;
 
-let db: Low<Data>;
-
-export function bootstrap(adapter?: Adapter<Data>): void {
+export function bootstrap(): void {
 	if (db !== undefined) {
 		throw new TypeError("db has already been instantiated");
 	}
-	// const file = resolve(__dirname, "../../db.json");
-	db = new Low<Data>(adapter ?? new Memory<Data>());
-}
 
-const defaultData: () => Data = () => ({
-	accounts: {},
-	transactions: {},
-});
+	const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+	const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+	if (apiKey === undefined || !apiKey) {
+		throw new TypeError("No value found for environment key VITE_FIREBASE_API_KEY");
+	}
+	if (projectId === undefined || !apiKey) {
+		throw new TypeError("No value found for environment key VITE_FIREBASE_PROJECT_ID");
+	}
+
+	const firebaseApp = initializeApp({
+		apiKey,
+		projectId,
+	});
+	db = getFirestore(firebaseApp);
+}
 
 // ** Accounts
 
 export async function getAllAccounts(): Promise<Dictionary<Account>> {
-	await db.read();
-	db.data ??= defaultData();
+	const path = `accounts`;
+	const snap = await getDocs<AccountRecordParams>(
+		collection(db, path) as CollectionReference<AccountRecordParams>
+	);
 
-	const records = db.data.accounts ?? {};
 	const result: Dictionary<Account> = {};
-	Object.entries(records).forEach(([id, record]) => {
-		result[id] = new Account(record);
+	snap.docs.forEach(doc => {
+		const record = doc.data();
+		result[doc.id] = new Account(doc.id, record);
 	});
 	return result;
 }
 
-export async function putAccount(account: Account): Promise<void> {
-	await db.read();
-	db.data ??= defaultData();
-
-	const record = account.toRecord();
-	db.data.accounts[account.id] = record;
-
-	await db.write();
+export async function createAccount(record: AccountRecordParams): Promise<Account> {
+	const path = `accounts`;
+	const ref = await addDoc<AccountRecordParams>(
+		collection(db, path) as CollectionReference<AccountRecordParams>,
+		record
+	);
+	return new Account(ref.id, record);
 }
 
 // ** Transactions
@@ -57,25 +59,27 @@ export async function putAccount(account: Account): Promise<void> {
 export async function getTransactionsForAccount(
 	account: Account
 ): Promise<Dictionary<Transaction>> {
-	await db.read();
-	db.data ??= defaultData();
+	const path = `accounts/${account.id}/transactions`;
+	const snap = await getDocs<TransactionRecordParams>(
+		collection(db, path) as CollectionReference<TransactionRecordParams>
+	);
 
-	const records = db.data.transactions[account.id] ?? {};
 	const result: Dictionary<Transaction> = {};
-	Object.entries(records).forEach(([id, record]) => {
-		result[id] = new Transaction(account.id, record);
+	snap.docs.forEach(doc => {
+		const record = doc.data();
+		result[doc.id] = new Transaction(account.id, doc.id, record);
 	});
 	return result;
 }
 
-export async function putTransaction(transaction: Transaction, account: Account): Promise<void> {
-	await db.read();
-	db.data ??= defaultData();
-
-	const record = transaction.toRecord();
-	const transactions = db.data.transactions[account.id] ?? {};
-	transactions[transaction.id] = record;
-	db.data.transactions[account.id] = transactions;
-
-	await db.write();
+export async function createTransaction(
+	account: Account,
+	record: TransactionRecordParams
+): Promise<Transaction> {
+	const path = `accounts/${account.id}/transactions`;
+	const ref = await addDoc<TransactionRecordParams>(
+		collection(db, path) as CollectionReference<TransactionRecordParams>,
+		record
+	);
+	return new Transaction(account.id, ref.id, record);
 }

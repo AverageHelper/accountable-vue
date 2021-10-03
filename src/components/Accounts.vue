@@ -16,9 +16,8 @@ const isSaving = ref(false);
 
 async function create() {
 	isSaving.value = true;
-	const newAccount = new Account();
 	try {
-		await accounts.saveAccount(newAccount);
+		await accounts.createAccount(Account.defaultRecord());
 	} catch {
 		// nop for now
 	}

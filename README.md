@@ -1,24 +1,40 @@
-# Vue 3 + TypeScript + Vite + _Sprinkles_
+# Accountable
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A Vue app for managing monetary assets. All data is encrypted client-side and stored in a Firebase instance that you control.
 
-## Fancy
+Note: DO NOT FORGET YOUR PASSWORD. Even if I could retrieve your encrypted data from your own Firestore instance (I can't) I cannot decrypt your data that you encrypted with your own password.
 
-- Semantic colors for dark mode support. (Remember to use the `color()` function in your SCSS)
-- Strong TypeScript and ESLint checks for excellent type safety.
-- Tabs instead of spaces everywhere for maximum accessibility and indentation choice.
-- A version.ts file to get the project version at runtime without having to read package.json. (Run `npm run build` or `npm run export-version` to generate this)
-- Support for Jest unit tests. (Create a .test.ts file next to a source file you want to test)
+## Setup
 
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+- Clone the repository
+- Set up a [Firebase](https://firebase.google.com/) project and [get your "Web API Key" and "Project ID"](https://console.firebase.google.com/project/_/settings/general)
+- Save these values to a .env file at the root of the project
 
 ```sh
+# .env
+
+VITE_FIREBASE_API_KEY={your API key here}
+VITE_FIREBASE_PROJECT_ID={your project ID here}
+```
+
+Install dependencies and run!
+
+```sh
+$ cd accountable-vue
 $ npm install
 $ npm start
 ```
 
-## Type Support For `.vue` Imports in TS
+Vite will give your a URL to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's `.vue` type support plugin by running `Volar: Switch TS Plugin on/off` from VSCode command palette.
+## Contributing
+
+This project is entirely open source. Do with it what you will. If you're willing to help me improve this project, consider [filing an issue](https://github.com/AverageHelper/accountable-vue/issues/new/choose).
+
+🧐 If you're feeling especially fantastic you might consider contributing to the project directly:
+
+- Fork this project.
+- Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+- Submit a PR. (GitHub will ping me for you, so no need to @ me)
+
+I don't have all the time in the world, so PRs are especially appreciated.

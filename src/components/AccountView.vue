@@ -4,8 +4,8 @@ import NavAction from "./NavAction.vue";
 import PlainButton from "./PlainButton.vue";
 import TransactionListItem from "./TransactionListItem.vue";
 
-import { computed, ref } from "vue";
 import { Transaction } from "../model/Transaction";
+import { computed, ref } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
 
 const props = defineProps({
@@ -15,19 +15,17 @@ const props = defineProps({
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
+const account = computed(() => accounts.items[props.accountId]);
 const theseTransactions = computed<Dictionary<Transaction> | undefined>(
 	() => transactions.transactionsForAccount[props.accountId]
 );
 const numberOfTransactions = computed(() => Object.keys(theseTransactions.value ?? {}).length);
 const isSaving = ref(false);
 
-const account = computed(() => accounts.items[props.accountId]);
-
 async function create() {
 	isSaving.value = true;
-	const newTransaction = new Transaction(props.accountId);
 	try {
-		await transactions.saveTransaction(newTransaction, account.value);
+		await transactions.createTransaction(account.value, Transaction.defaultRecord({}));
 	} catch {
 		// nop for now
 	}

@@ -1,6 +1,6 @@
-import type { Account } from "../model/Account";
+import type { Account, AccountRecordParams } from "../model/Account";
 import { defineStore } from "pinia";
-import { getAllAccounts, putAccount } from "../db/wrapper";
+import { getAllAccounts, createAccount } from "../db/wrapper";
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
@@ -10,10 +10,10 @@ export const useAccountsStore = defineStore("accounts", {
 		async getAccounts() {
 			this.items = await getAllAccounts();
 		},
-		async saveAccount(account: Account) {
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			await putAccount(account);
+		async createAccount(record: AccountRecordParams): Promise<Account> {
+			const account = await createAccount(record);
 			this.items[account.id] = account;
+			return account;
 		},
 	},
 });

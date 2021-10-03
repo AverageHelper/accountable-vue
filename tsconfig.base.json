@@ -18,6 +18,7 @@
 		"noImplicitReturns": true,
 		"noPropertyAccessFromIndexSignature": true,
 		"noUncheckedIndexedAccess": true,
+		"useUnknownInCatchVariables": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,

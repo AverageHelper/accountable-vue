@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import Navbar from "./components/Navbar.vue";
 
-import { computed } from "vue";
+import { bootstrap } from "./db/wrapper";
+import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 
+const bootstrapError = ref<Error | null>(null);
 const title = computed<string>(() => {
 	const titleOrGetter = route.meta.title;
 	if (titleOrGetter === undefined) {
@@ -16,19 +18,34 @@ const title = computed<string>(() => {
 	}
 	return titleOrGetter();
 });
+
+onMounted(() => {
+	try {
+		bootstrap();
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			bootstrapError.value = error;
+		} else {
+			bootstrapError.value = new Error(JSON.stringify(error));
+		}
+	}
+});
 </script>
 
 <template>
 	<Navbar :title="title" />
 	<main class="content">
-		<keep-alive>
-			<router-view />
-		</keep-alive>
-		<!-- <router-view v-slot="{ Component }">
+		<div v-if="bootstrapError" class="error">{{ bootstrapError }}</div>
+		<template v-else>
 			<keep-alive>
-				<component :is="Component" />
+				<router-view />
 			</keep-alive>
-		</router-view> -->
+			<!-- <router-view v-slot="{ Component }">
+				<keep-alive>
+					<component :is="Component" />
+				</keep-alive>
+			</router-view> -->
+		</template>
 	</main>
 </template>
 
@@ -44,6 +61,10 @@ body {
 
 main.content {
 	margin: 1em;
+
+	.error {
+		color: color($red);
+	}
 }
 
 a {

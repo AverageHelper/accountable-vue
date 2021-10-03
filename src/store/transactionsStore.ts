@@ -1,7 +1,7 @@
 import type { Account } from "../model/Account";
-import type { Transaction } from "../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import { defineStore } from "pinia";
-import { getTransactionsForAccount, putTransaction } from "../db/wrapper";
+import { getTransactionsForAccount, createTransaction } from "../db/wrapper";
 
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
@@ -11,10 +11,13 @@ export const useTransactionsStore = defineStore("transactions", {
 		async getTransactionsForAccount(account: Account) {
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account);
 		},
-		async saveTransaction(transaction: Transaction, account: Account) {
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			await putTransaction(transaction, account);
+		async createTransaction(
+			account: Account,
+			record: TransactionRecordParams
+		): Promise<Transaction> {
+			const transaction = await createTransaction(account, record);
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account);
+			return transaction;
 		},
 	},
 });

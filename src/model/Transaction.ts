@@ -1,9 +1,8 @@
-import type { Identifiable, UUID } from "./utility/Identifiable";
-import { uuid } from "./utility/Identifiable";
+import type { Identifiable } from "./utility/Identifiable";
 
 export type TransactionRecordType = "expense" | "income" | "zero";
 
-export interface TransactionRecord extends Identifiable<UUID> {
+export interface TransactionRecord extends Identifiable<string> {
 	amount: number;
 	date: Date;
 	title: string | null;
@@ -11,6 +10,8 @@ export interface TransactionRecord extends Identifiable<UUID> {
 	isReconciled: boolean;
 	accountId: string;
 }
+
+export type TransactionRecordParams = Omit<TransactionRecord, "id" | "accountId">;
 
 export class Transaction implements TransactionRecord {
 	public readonly objectType = "Transaction";
@@ -22,13 +23,14 @@ export class Transaction implements TransactionRecord {
 	public readonly isReconciled;
 	public readonly accountId;
 
-	constructor(accountId: string, record?: Partial<Omit<TransactionRecord, "accountId">>) {
-		this.id = record?.id ?? uuid();
-		this.amount = record?.amount ?? 0;
-		this.date = record?.date ?? new Date();
-		this.title = record?.title ?? `Transaction ${Math.floor(Math.random() * 10) + 1}`;
-		this.notes = record?.notes ?? null;
-		this.isReconciled = record?.isReconciled ?? false;
+	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
+		this.id = id;
+		const defaultRecord = Transaction.defaultRecord(record);
+		this.amount = record?.amount ?? defaultRecord.amount;
+		this.date = record?.date ?? defaultRecord.date;
+		this.title = record?.title ?? defaultRecord.title;
+		this.notes = record?.notes ?? defaultRecord.notes;
+		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
 		this.accountId = accountId;
 	}
 
@@ -39,6 +41,16 @@ export class Transaction implements TransactionRecord {
 			return "expense";
 		}
 		return "zero";
+	}
+
+	static defaultRecord(record?: Partial<TransactionRecordParams>): TransactionRecordParams {
+		return {
+			amount: record?.amount ?? 0,
+			date: record?.date ?? new Date(),
+			title: record?.title ?? `Transaction ${Math.floor(Math.random() * 10) + 1}`,
+			notes: record?.notes ?? null,
+			isReconciled: record?.isReconciled ?? false,
+		};
 	}
 
 	toRecord(): TransactionRecord {
