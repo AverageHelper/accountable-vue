@@ -1,12 +1,60 @@
 import type { AccountRecordParams } from "../model/Account";
-import type { CollectionReference, Firestore } from "firebase/firestore";
+import type { CollectionReference, Firestore, Timestamp } from "firebase/firestore";
+import type { EPackage } from "./cryption";
 import type { TransactionRecordParams } from "../model/Transaction";
 import { Account } from "../model/Account";
 import { Transaction } from "../model/Transaction";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
+import {
+	getFirestore,
+	collection,
+	addDoc,
+	getDocs,
+	deleteField,
+	serverTimestamp,
+	increment as firestoreIncrement,
+	arrayUnion as firestoreArrayUnion,
+	arrayRemove as firestoreArrayRemove,
+} from "firebase/firestore";
+
+// ** Firebase Setup
 
 let db: Firestore;
+
+interface AccountRecordPackageMetadata {
+	objectType: "Account";
+}
+type AccountRecordPackage = EPackage<AccountRecordPackageMetadata>;
+
+interface TransactionRecordPackageMetadata {
+	objectType: "Transaction";
+	createdAt: Date;
+}
+type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
+
+function accountsCollection(): CollectionReference<AccountRecordParams> {
+	const path = `accounts`;
+	return collection(db, path) as CollectionReference<AccountRecordParams>;
+}
+
+function transactionsCollection(accountId: string): CollectionReference<TransactionRecordParams> {
+	const path = `accounts/${accountId}/transactions`;
+	return collection(db, path) as CollectionReference<TransactionRecordParams>;
+}
+
+export { Timestamp };
+export const DELETE = deleteField();
+export const TIMESTAMP = serverTimestamp() as unknown as Timestamp;
+export function increment(step: number): number {
+	return firestoreIncrement(step) as unknown as number;
+}
+export function arrayUnion<T>(...elements: Array<T>): Array<T> {
+	return firestoreArrayUnion(...elements) as unknown as Array<T>;
+}
+export function arrayRemove<T>(...elements: Array<T>): Array<T> {
+	return firestoreArrayRemove(elements) as unknown as Array<T>;
+}
+export const merge = { merge: true };
 
 /**
  * Bootstrap our Firebase app using either environment variables or provided params.
@@ -32,13 +80,10 @@ export function bootstrap(params?: { apiKey?: string; projectId?: string }): voi
 	db = getFirestore(firebaseApp);
 }
 
-// ** Accounts
+// ** Account Records
 
 export async function getAllAccounts(): Promise<Dictionary<Account>> {
-	const path = `accounts`;
-	const snap = await getDocs<AccountRecordParams>(
-		collection(db, path) as CollectionReference<AccountRecordParams>
-	);
+	const snap = await getDocs(accountsCollection());
 
 	const result: Dictionary<Account> = {};
 	snap.docs.forEach(doc => {
@@ -49,23 +94,16 @@ export async function getAllAccounts(): Promise<Dictionary<Account>> {
 }
 
 export async function createAccount(record: AccountRecordParams): Promise<Account> {
-	const path = `accounts`;
-	const ref = await addDoc<AccountRecordParams>(
-		collection(db, path) as CollectionReference<AccountRecordParams>,
-		record
-	);
+	const ref = await addDoc(accountsCollection(), record);
 	return new Account(ref.id, record);
 }
 
-// ** Transactions
+// ** Transaction Records
 
 export async function getTransactionsForAccount(
 	account: Account
 ): Promise<Dictionary<Transaction>> {
-	const path = `accounts/${account.id}/transactions`;
-	const snap = await getDocs<TransactionRecordParams>(
-		collection(db, path) as CollectionReference<TransactionRecordParams>
-	);
+	const snap = await getDocs(transactionsCollection(account.id));
 
 	const result: Dictionary<Transaction> = {};
 	snap.docs.forEach(doc => {
@@ -79,10 +117,6 @@ export async function createTransaction(
 	account: Account,
 	record: TransactionRecordParams
 ): Promise<Transaction> {
-	const path = `accounts/${account.id}/transactions`;
-	const ref = await addDoc<TransactionRecordParams>(
-		collection(db, path) as CollectionReference<TransactionRecordParams>,
-		record
-	);
+	const ref = await addDoc(transactionsCollection(account.id), record);
 	return new Transaction(account.id, ref.id, record);
 }

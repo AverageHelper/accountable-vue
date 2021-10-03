@@ -4,7 +4,7 @@ export type TransactionRecordType = "expense" | "income" | "zero";
 
 export interface TransactionRecord extends Identifiable<string> {
 	amount: number;
-	date: Date;
+	createdAt: Date;
 	title: string | null;
 	notes: string | null;
 	isReconciled: boolean;
@@ -17,7 +17,7 @@ export class Transaction implements TransactionRecord {
 	public readonly objectType = "Transaction";
 	public readonly id;
 	public readonly amount;
-	public readonly date;
+	public readonly createdAt;
 	public readonly title;
 	public readonly notes;
 	public readonly isReconciled;
@@ -27,7 +27,7 @@ export class Transaction implements TransactionRecord {
 		this.id = id;
 		const defaultRecord = Transaction.defaultRecord(record);
 		this.amount = record?.amount ?? defaultRecord.amount;
-		this.date = record?.date ?? defaultRecord.date;
+		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
 		this.title = record?.title ?? defaultRecord.title;
 		this.notes = record?.notes ?? defaultRecord.notes;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
@@ -46,7 +46,7 @@ export class Transaction implements TransactionRecord {
 	static defaultRecord(record?: Partial<TransactionRecordParams>): TransactionRecordParams {
 		return {
 			amount: record?.amount ?? 0,
-			date: record?.date ?? new Date(),
+			createdAt: record?.createdAt ?? new Date(),
 			title: record?.title ?? `Transaction ${Math.floor(Math.random() * 10) + 1}`,
 			notes: record?.notes ?? null,
 			isReconciled: record?.isReconciled ?? false,
@@ -57,7 +57,7 @@ export class Transaction implements TransactionRecord {
 		return {
 			id: this.id,
 			amount: this.amount,
-			date: this.date,
+			createdAt: this.createdAt,
 			title: this.title,
 			notes: this.notes,
 			isReconciled: this.isReconciled,
