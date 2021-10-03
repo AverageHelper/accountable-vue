@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import Accounts from "./components/Accounts.vue";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import Navbar from "./components/Navbar.vue";
+
+const route = useRoute();
+
+const title = computed<string>(() => {
+	const titleGetter = route.meta.title;
+	if (typeof titleGetter === "string") {
+		return titleGetter;
+	}
+	return titleGetter();
+});
 </script>
 
 <template>
-	<Navbar title="Accounts" />
+	<Navbar :title="title" />
 	<main class="content">
-		<Accounts />
+		<keep-alive>
+			<router-view />
+		</keep-alive>
 	</main>
 </template>
 

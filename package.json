@@ -17,7 +17,8 @@
 		"lowdb": "^3.0.0",
 		"pinia": "^2.0.0-rc.10",
 		"uuid": "^8.3.2",
-		"vue": "^3.2.16"
+		"vue": "^3.2.16",
+		"vue-router": "^4.0.11"
 	},
 	"devDependencies": {
 		"@types/jest": "^27.0.2",

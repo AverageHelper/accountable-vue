@@ -4,16 +4,16 @@ import { getAllAccounts, putAccount } from "../db/wrapper";
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
-		accounts: {} as Dictionary<Account>,
+		items: {} as Dictionary<Account>,
 	}),
 	actions: {
 		async getAccounts() {
-			this.accounts = await getAllAccounts();
+			this.items = await getAllAccounts();
 		},
 		async saveAccount(account: Account) {
 			await new Promise(resolve => setTimeout(resolve, 1000));
 			await putAccount(account);
-			this.accounts[account.id] = account;
+			this.items[account.id] = account;
 		},
 	},
 });
