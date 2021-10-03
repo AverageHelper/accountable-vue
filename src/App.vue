@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Navbar from "./components/Navbar.vue";
 
-import { bootstrap } from "./db/wrapper";
+import { bootstrap } from "./transport/wrapper";
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 

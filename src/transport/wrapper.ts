@@ -8,18 +8,18 @@ import { initializeApp } from "firebase/app";
 
 let db: Firestore;
 
-export function bootstrap(): void {
+export function bootstrap(params?: { apiKey?: string; projectId?: string }): void {
 	if (db !== undefined) {
 		throw new TypeError("db has already been instantiated");
 	}
 
-	const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-	const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+	const apiKey = params?.apiKey ?? import.meta.env.VITE_FIREBASE_API_KEY;
+	const projectId = params?.projectId ?? import.meta.env.VITE_FIREBASE_PROJECT_ID;
 	if (apiKey === undefined || !apiKey) {
-		throw new TypeError("No value found for environment key VITE_FIREBASE_API_KEY");
+		throw new TypeError("No value found for environment variable VITE_FIREBASE_API_KEY");
 	}
 	if (projectId === undefined || !apiKey) {
-		throw new TypeError("No value found for environment key VITE_FIREBASE_PROJECT_ID");
+		throw new TypeError("No value found for environment variable VITE_FIREBASE_PROJECT_ID");
 	}
 
 	const firebaseApp = initializeApp({

@@ -1,6 +1,6 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import { defineStore } from "pinia";
-import { getAllAccounts, createAccount } from "../db/wrapper";
+import { getAllAccounts, createAccount } from "../transport/wrapper";
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({

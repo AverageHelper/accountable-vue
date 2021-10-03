@@ -1,7 +1,7 @@
 import type { Account } from "../model/Account";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import { defineStore } from "pinia";
-import { getTransactionsForAccount, createTransaction } from "../db/wrapper";
+import { getTransactionsForAccount, createTransaction } from "../transport/wrapper";
 
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
