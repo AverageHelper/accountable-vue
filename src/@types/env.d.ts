@@ -9,10 +9,6 @@ declare module "*.vue" {
 }
 
 // See https://vitejs.dev/guide/env-and-mode.html
-type EnvKey =
-	| "FIREBASE_API_KEY" // VITE_FIREBASE_API_KEY
-	| "FIREBASE_PROJECT_ID"; // VITE_FIREBASE_PROJECT_ID
-
 interface ImportMetaEnv extends Readonly<Record<string, string>> {
 	readonly VITE_FIREBASE_API_KEY: string | undefined;
 	readonly VITE_FIREBASE_PROJECT_ID: string | undefined;

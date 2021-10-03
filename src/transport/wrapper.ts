@@ -8,11 +8,17 @@ import { initializeApp } from "firebase/app";
 
 let db: Firestore;
 
+/**
+ * Bootstrap our Firebase app using either environment variables or provided params.
+ *
+ * @param params Values to use instead of environment variables to instantiate Firebase.
+ */
 export function bootstrap(params?: { apiKey?: string; projectId?: string }): void {
 	if (db !== undefined) {
 		throw new TypeError("db has already been instantiated");
 	}
 
+	// VITE_ env variables get type definitions in env.d.ts
 	const apiKey = params?.apiKey ?? import.meta.env.VITE_FIREBASE_API_KEY;
 	const projectId = params?.projectId ?? import.meta.env.VITE_FIREBASE_PROJECT_ID;
 	if (apiKey === undefined || !apiKey) {
@@ -22,10 +28,7 @@ export function bootstrap(params?: { apiKey?: string; projectId?: string }): voi
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_PROJECT_ID");
 	}
 
-	const firebaseApp = initializeApp({
-		apiKey,
-		projectId,
-	});
+	const firebaseApp = initializeApp({ apiKey, projectId });
 	db = getFirestore(firebaseApp);
 }
 
