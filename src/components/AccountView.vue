@@ -7,11 +7,13 @@ import TransactionListItem from "./TransactionListItem.vue";
 import { Transaction } from "../model/Transaction";
 import { computed, ref } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
+import { useToast } from "vue-toastification";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
 });
 
+const toast = useToast();
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
@@ -26,8 +28,14 @@ async function create() {
 	isSaving.value = true;
 	try {
 		await transactions.createTransaction(account.value, Transaction.defaultRecord({}));
-	} catch {
-		// nop for now
+	} catch (error: unknown) {
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else {
+			message = JSON.stringify(error);
+		}
+		toast.error(message);
 	}
 	isSaving.value = false;
 }

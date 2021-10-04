@@ -29,7 +29,7 @@ const transaction = computed(() => theseTransactions.value[props.transactionId])
 
 	{{ transaction.title }}
 	{{ transaction.amount }}
-	{{ transaction.date }}
+	{{ transaction.createdAt }}
 </template>
 
 <style scoped lang="scss">

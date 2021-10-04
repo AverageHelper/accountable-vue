@@ -7,13 +7,16 @@ Note: DO NOT FORGET YOUR PASSWORD. Even if I could retrieve your encrypted data 
 ## Setup
 
 - Clone the repository
-- Set up a [Firebase](https://firebase.google.com/) project and [get your "Web API Key" and "Project ID"](https://console.firebase.google.com/project/_/settings/general)
+- Set up a [Firebase](https://firebase.google.com/) project
+- Under "Your apps" select the Web platform and register a Firebase app
+- Copy your app's `apiKey`, `projectId`, and `authDomain`
 - Save these values to a .env file at the root of the project
 
 ```sh
 # .env
 
 VITE_FIREBASE_API_KEY={your API key here}
+VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
 VITE_FIREBASE_PROJECT_ID={your project ID here}
 ```
 

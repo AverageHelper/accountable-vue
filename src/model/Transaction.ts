@@ -1,4 +1,6 @@
 import type { Identifiable } from "./utility/Identifiable";
+import isString from "lodash/isString";
+import isBoolean from "lodash/isBoolean";
 
 export type TransactionRecordType = "expense" | "income" | "zero";
 
@@ -51,6 +53,26 @@ export class Transaction implements TransactionRecord {
 			notes: record?.notes ?? null,
 			isReconciled: record?.isReconciled ?? false,
 		};
+	}
+
+	static isRecord(toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
+		return (
+			(typeof toBeDetermined === "object" &&
+				toBeDetermined !== null &&
+				toBeDetermined !== undefined &&
+				Boolean(toBeDetermined) &&
+				!Array.isArray(toBeDetermined) &&
+				"amount" in toBeDetermined &&
+				"createdAt" in toBeDetermined &&
+				"title" in toBeDetermined &&
+				"notes" in toBeDetermined &&
+				"isReconciled" in toBeDetermined &&
+				(toBeDetermined as TransactionRecordParams).title === null) ||
+			(isString((toBeDetermined as TransactionRecordParams).title) &&
+				(toBeDetermined as TransactionRecordParams).notes === null) ||
+			(isString((toBeDetermined as TransactionRecordParams).notes) &&
+				isBoolean((toBeDetermined as TransactionRecordParams).isReconciled))
+		);
 	}
 
 	toRecord(): TransactionRecord {

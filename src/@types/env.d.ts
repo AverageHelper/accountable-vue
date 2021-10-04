@@ -11,6 +11,7 @@ declare module "*.vue" {
 // See https://vitejs.dev/guide/env-and-mode.html
 interface ImportMetaEnv extends Readonly<Record<string, string>> {
 	readonly VITE_FIREBASE_API_KEY: string | undefined;
+	readonly VITE_FIREBASE_AUTH_DOMAIN: string | undefined;
 	readonly VITE_FIREBASE_PROJECT_ID: string | undefined;
 }
 

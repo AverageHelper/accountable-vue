@@ -1,14 +1,23 @@
 import type { AccountRecordParams } from "../model/Account";
-import type { CollectionReference, Firestore, Timestamp } from "firebase/firestore";
-import type { EPackage } from "./cryption";
+import type { EPackage, KeyMaterial } from "./cryption";
 import type { TransactionRecordParams } from "../model/Transaction";
+import { decrypt, encrypt } from "./cryption";
 import { Account } from "../model/Account";
 import { Transaction } from "../model/Transaction";
 import { initializeApp } from "firebase/app";
+import type {
+	CollectionReference,
+	DocumentReference,
+	Firestore,
+	Timestamp,
+} from "firebase/firestore";
 import {
 	getFirestore,
 	collection,
+	doc,
 	addDoc,
+	setDoc,
+	getDoc,
 	getDocs,
 	deleteField,
 	serverTimestamp,
@@ -32,14 +41,19 @@ interface TransactionRecordPackageMetadata {
 }
 type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
 
-function accountsCollection(): CollectionReference<AccountRecordParams> {
-	const path = `accounts`;
-	return collection(db, path) as CollectionReference<AccountRecordParams>;
+function authRef(): DocumentReference<KeyMaterial> {
+	const path = "auth/key";
+	return doc(db, path) as DocumentReference<KeyMaterial>;
 }
 
-function transactionsCollection(accountId: string): CollectionReference<TransactionRecordParams> {
+function accountsCollection(): CollectionReference<AccountRecordPackage> {
+	const path = `accounts`;
+	return collection(db, path) as CollectionReference<AccountRecordPackage>;
+}
+
+function transactionsCollection(accountId: string): CollectionReference<TransactionRecordPackage> {
 	const path = `accounts/${accountId}/transactions`;
-	return collection(db, path) as CollectionReference<TransactionRecordParams>;
+	return collection(db, path) as CollectionReference<TransactionRecordPackage>;
 }
 
 export { Timestamp };
@@ -61,62 +75,101 @@ export const merge = { merge: true };
  *
  * @param params Values to use instead of environment variables to instantiate Firebase.
  */
-export function bootstrap(params?: { apiKey?: string; projectId?: string }): void {
+export function bootstrap(params?: {
+	apiKey?: string;
+	authDomain?: string;
+	projectId?: string;
+}): void {
 	if (db !== undefined) {
 		throw new TypeError("db has already been instantiated");
 	}
 
 	// VITE_ env variables get type definitions in env.d.ts
 	const apiKey = params?.apiKey ?? import.meta.env.VITE_FIREBASE_API_KEY;
+	const authDomain = params?.authDomain ?? import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 	const projectId = params?.projectId ?? import.meta.env.VITE_FIREBASE_PROJECT_ID;
+
 	if (apiKey === undefined || !apiKey) {
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_API_KEY");
 	}
-	if (projectId === undefined || !apiKey) {
+	if (authDomain === undefined || !authDomain) {
+		throw new TypeError("No value found for environment variable VITE_FIREBASE_AUTH_DOMAIN");
+	}
+	if (projectId === undefined || !projectId) {
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_PROJECT_ID");
 	}
 
-	const firebaseApp = initializeApp({ apiKey, projectId });
+	const firebaseApp = initializeApp({ apiKey, authDomain, projectId });
 	db = getFirestore(firebaseApp);
+}
+
+// ** Auth
+
+export async function getAuthMaterial(): Promise<KeyMaterial | null> {
+	const snap = await getDoc(authRef());
+	return snap.data() ?? null;
+}
+
+export async function setAuthMaterial(data: KeyMaterial): Promise<void> {
+	await setDoc(authRef(), data);
 }
 
 // ** Account Records
 
-export async function getAllAccounts(): Promise<Dictionary<Account>> {
+export async function getAllAccounts(key: string): Promise<Dictionary<Account>> {
 	const snap = await getDocs(accountsCollection());
 
 	const result: Dictionary<Account> = {};
-	snap.docs.forEach(doc => {
-		const record = doc.data();
+	for (const doc of snap.docs) {
+		const pkg = doc.data();
+		const record = decrypt(pkg, key);
+		if (!Account.isRecord(record)) {
+			throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
+		}
 		result[doc.id] = new Account(doc.id, record);
-	});
+	}
 	return result;
 }
 
-export async function createAccount(record: AccountRecordParams): Promise<Account> {
-	const ref = await addDoc(accountsCollection(), record);
+export async function createAccount(record: AccountRecordParams, key: string): Promise<Account> {
+	const meta: AccountRecordPackageMetadata = {
+		objectType: "Account",
+	};
+	const pkg = encrypt(record, meta, key);
+	const ref = await addDoc(accountsCollection(), pkg);
 	return new Account(ref.id, record);
 }
 
 // ** Transaction Records
 
 export async function getTransactionsForAccount(
-	account: Account
+	account: Account,
+	key: string
 ): Promise<Dictionary<Transaction>> {
 	const snap = await getDocs(transactionsCollection(account.id));
 
 	const result: Dictionary<Transaction> = {};
-	snap.docs.forEach(doc => {
-		const record = doc.data();
+	for (const doc of snap.docs) {
+		const pkg = doc.data();
+		const record = decrypt(pkg, key);
+		if (!Transaction.isRecord(record)) {
+			throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
+		}
 		result[doc.id] = new Transaction(account.id, doc.id, record);
-	});
+	}
 	return result;
 }
 
 export async function createTransaction(
 	account: Account,
-	record: TransactionRecordParams
+	record: TransactionRecordParams,
+	key: string
 ): Promise<Transaction> {
-	const ref = await addDoc(transactionsCollection(account.id), record);
+	const meta: TransactionRecordPackageMetadata = {
+		objectType: "Transaction",
+		createdAt: record.createdAt,
+	};
+	const pkg = encrypt(record, meta, key);
+	const ref = await addDoc(transactionsCollection(account.id), pkg);
 	return new Transaction(account.id, ref.id, record);
 }

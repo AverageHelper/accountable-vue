@@ -1,4 +1,5 @@
 import type { Identifiable } from "./utility/Identifiable";
+import isString from "lodash/isString";
 
 export interface AccountRecord extends Identifiable<string> {
 	title: string;
@@ -29,6 +30,23 @@ export class Account implements AccountRecord {
 			notes: record?.notes ?? null,
 			createdAt: record?.createdAt ?? new Date(),
 		};
+	}
+
+	static isRecord(toBeDetermined: unknown): toBeDetermined is AccountRecordParams {
+		return (
+			(typeof toBeDetermined === "object" &&
+				toBeDetermined !== null &&
+				toBeDetermined !== undefined &&
+				Boolean(toBeDetermined) &&
+				!Array.isArray(toBeDetermined) &&
+				"createdAt" in toBeDetermined &&
+				"title" in toBeDetermined &&
+				"notes" in toBeDetermined &&
+				(toBeDetermined as AccountRecordParams).title === null) ||
+			(isString((toBeDetermined as AccountRecordParams).title) &&
+				(toBeDetermined as AccountRecordParams).notes === null) ||
+			isString((toBeDetermined as AccountRecordParams).notes)
+		);
 	}
 
 	toRecord(): AccountRecord {

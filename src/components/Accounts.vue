@@ -7,8 +7,10 @@ import PlainButton from "./PlainButton.vue";
 import { Account } from "../model/Account";
 import { ref, computed } from "vue";
 import { useAccountsStore } from "../store";
+import { useToast } from "vue-toastification";
 
 const accounts = useAccountsStore();
+const toast = useToast();
 
 const allAccounts = computed(() => Object.values(accounts.items));
 const numberOfAccounts = computed(() => Object.keys(allAccounts.value).length);
@@ -18,8 +20,14 @@ async function create() {
 	isSaving.value = true;
 	try {
 		await accounts.createAccount(Account.defaultRecord());
-	} catch {
-		// nop for now
+	} catch (error: unknown) {
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else {
+			message = JSON.stringify(error);
+		}
+		toast.error(message);
 	}
 	isSaving.value = false;
 }
