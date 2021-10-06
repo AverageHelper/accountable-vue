@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import PlainButton from "./PlainButton.vue";
-import { APP_ROOT } from "../router";
+
+import { APP_ROOTS } from "../router";
 import { computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import SideMenu from "./SideMenu.vue";
 
 defineProps({
 	title: { type: String, required: true },
@@ -10,7 +12,7 @@ defineProps({
 
 const router = useRouter();
 const route = useRoute();
-const isRoute = computed(() => route.path === APP_ROOT);
+const isRoute = computed(() => APP_ROOTS.includes(route.path));
 
 function goBack() {
 	router.back();
@@ -19,15 +21,19 @@ function goBack() {
 
 <template>
 	<nav>
-		<aside class="back">
+		<aside class="leading-actions actions-container">
 			<PlainButton v-show="!isRoute" @click="goBack">
 				<span>&lt;</span>
 			</PlainButton>
+			<div id="nav-actions-leading" class="actions-container" />
 		</aside>
 
 		<h1>{{ title }}</h1>
 
-		<aside id="nav-actions" />
+		<aside class="trailing-actions actions-container">
+			<div id="nav-actions-trailing" class="actions-container" />
+			<SideMenu />
+		</aside>
 	</nav>
 </template>
 
@@ -47,11 +53,8 @@ nav {
 		user-select: none;
 	}
 
-	aside {
+	.actions-container {
 		$margin: 0.75em;
-
-		position: absolute;
-		top: 0;
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;
@@ -60,14 +63,18 @@ nav {
 		min-width: 2.8em;
 		margin: $margin 1em;
 		color: inherit;
+	}
 
-		&.back {
-			left: 0;
-		}
+	.leading-actions {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
 
-		&#nav-actions {
-			right: 0;
-		}
+	.trailing-actions {
+		position: absolute;
+		top: 0;
+		right: 0;
 	}
 }
 </style>

@@ -28,6 +28,7 @@ async function create() {
 			message = JSON.stringify(error);
 		}
 		toast.error(message);
+		console.error(error);
 	}
 	isSaving.value = false;
 }

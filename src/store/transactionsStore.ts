@@ -11,23 +11,25 @@ export const useTransactionsStore = defineStore("transactions", {
 	actions: {
 		async getTransactionsForAccount(account: Account) {
 			const authStore = useAuthStore();
+			const uid = authStore.uid;
 			const key = authStore.pKey?.value;
-			if (key === undefined) {
+			if (key === undefined || uid === null) {
 				throw new Error("No decryption key");
 			}
-			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account, key);
+			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, key);
 		},
 		async createTransaction(
 			account: Account,
 			record: TransactionRecordParams
 		): Promise<Transaction> {
 			const authStore = useAuthStore();
+			const uid = authStore.uid;
 			const key = authStore.pKey?.value;
-			if (key === undefined) {
+			if (key === undefined || uid === null) {
 				throw new Error("No decryption key");
 			}
-			const transaction = await createTransaction(account, record, key);
-			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account, key);
+			const transaction = await createTransaction(uid, account, record, key);
+			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, key);
 			return transaction;
 		},
 	},

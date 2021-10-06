@@ -10,19 +10,21 @@ export const useAccountsStore = defineStore("accounts", {
 	actions: {
 		async getAccounts() {
 			const authStore = useAuthStore();
+			const uid = authStore.uid;
 			const key = authStore.pKey?.value;
-			if (key === undefined) {
+			if (key === undefined || uid === null) {
 				throw new Error("No decryption key");
 			}
-			this.items = await getAllAccounts(key);
+			this.items = await getAllAccounts(uid, key);
 		},
 		async createAccount(record: AccountRecordParams): Promise<Account> {
 			const authStore = useAuthStore();
+			const uid = authStore.uid;
 			const key = authStore.pKey?.value;
-			if (key === undefined) {
+			if (key === undefined || uid === null) {
 				throw new Error("No decryption key");
 			}
-			const account = await createAccount(record, key);
+			const account = await createAccount(uid, record, key);
 			this.items[account.id] = account;
 			return account;
 		},

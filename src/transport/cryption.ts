@@ -1,6 +1,8 @@
 import AES from "crypto-js/aes";
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
+import atob from "atob-lite";
+import btoa from "btoa-lite";
 
 /**
  * Encryption materials that live on Firestore.
@@ -19,26 +21,30 @@ export interface EPackage<M> {
 export type DEKMaterial = CryptoJS.lib.CipherParams;
 
 export class HashStore {
-	#value: Buffer;
+	// #innerValue: Buffer;
+	#innerValue: string;
 
 	constructor(value: string) {
-		this.#value = Buffer.from(value, "base64");
+		// this.#innerValue = Buffer.from(value, "base64");
+		this.#innerValue = btoa(value);
 	}
 
 	get value(): Readonly<string> {
-		return this.#value.toString("base64");
+		// return this.#innerValue.toString("base64");
+		return atob(this.#innerValue);
 	}
 
 	/** Overwrites the buffer with random data for _maximum paranoia_ */
 	destroy(): void {
-		const length = this.#value.length;
+		const length = this.#innerValue.length;
 		let result = "";
 		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		const charactersLength = characters.length;
 		for (let i = 0; i < length; i++) {
 			result += characters.charAt(Math.floor(Math.random() * charactersLength));
 		}
-		this.#value = Buffer.from(result);
+		// this.#innerValue = Buffer.from(result);
+		this.#innerValue = result;
 	}
 }
 
@@ -61,7 +67,7 @@ export function derivePKey(password: string, salt: string): string {
 
 export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
 	// To make password de-derivation harder
-	const passSalt = await random(32);
+	const passSalt = btoa(await random(32));
 	// To encrypt data
 	const dek = await random(256);
 

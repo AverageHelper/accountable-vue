@@ -25,6 +25,7 @@ import {
 	arrayUnion as firestoreArrayUnion,
 	arrayRemove as firestoreArrayRemove,
 } from "firebase/firestore";
+import atob from "atob-lite";
 
 // ** Firebase Setup
 
@@ -41,18 +42,21 @@ interface TransactionRecordPackageMetadata {
 }
 type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
 
-function authRef(): DocumentReference<KeyMaterial> {
-	const path = "auth/key";
+function authRef(uid: string): DocumentReference<KeyMaterial> {
+	const path = `users/${uid}/keys/main`;
 	return doc(db, path) as DocumentReference<KeyMaterial>;
 }
 
-function accountsCollection(): CollectionReference<AccountRecordPackage> {
-	const path = `accounts`;
+function accountsCollection(uid: string): CollectionReference<AccountRecordPackage> {
+	const path = `users/${uid}/accounts`;
 	return collection(db, path) as CollectionReference<AccountRecordPackage>;
 }
 
-function transactionsCollection(accountId: string): CollectionReference<TransactionRecordPackage> {
-	const path = `accounts/${accountId}/transactions`;
+function transactionsCollection(
+	uid: string,
+	accountId: string
+): CollectionReference<TransactionRecordPackage> {
+	const path = `users/${uid}/accounts/${accountId}/transactions`;
 	return collection(db, path) as CollectionReference<TransactionRecordPackage>;
 }
 
@@ -105,19 +109,25 @@ export function bootstrap(params?: {
 
 // ** Auth
 
-export async function getAuthMaterial(): Promise<KeyMaterial | null> {
-	const snap = await getDoc(authRef());
-	return snap.data() ?? null;
+export async function getAuthMaterial(uid: string): Promise<KeyMaterial | null> {
+	const snap = await getDoc(authRef(uid));
+	const material = snap.data() ?? null;
+	if (material === null) return null;
+
+	return {
+		...material,
+		passSalt: atob(material.passSalt),
+	};
 }
 
-export async function setAuthMaterial(data: KeyMaterial): Promise<void> {
-	await setDoc(authRef(), data);
+export async function setAuthMaterial(uid: string, data: KeyMaterial): Promise<void> {
+	await setDoc(authRef(uid), data);
 }
 
 // ** Account Records
 
-export async function getAllAccounts(key: string): Promise<Dictionary<Account>> {
-	const snap = await getDocs(accountsCollection());
+export async function getAllAccounts(uid: string, key: string): Promise<Dictionary<Account>> {
+	const snap = await getDocs(accountsCollection(uid));
 
 	const result: Dictionary<Account> = {};
 	for (const doc of snap.docs) {
@@ -131,22 +141,27 @@ export async function getAllAccounts(key: string): Promise<Dictionary<Account>> 
 	return result;
 }
 
-export async function createAccount(record: AccountRecordParams, key: string): Promise<Account> {
+export async function createAccount(
+	uid: string,
+	record: AccountRecordParams,
+	key: string
+): Promise<Account> {
 	const meta: AccountRecordPackageMetadata = {
 		objectType: "Account",
 	};
 	const pkg = encrypt(record, meta, key);
-	const ref = await addDoc(accountsCollection(), pkg);
+	const ref = await addDoc(accountsCollection(uid), pkg);
 	return new Account(ref.id, record);
 }
 
 // ** Transaction Records
 
 export async function getTransactionsForAccount(
+	uid: string,
 	account: Account,
 	key: string
 ): Promise<Dictionary<Transaction>> {
-	const snap = await getDocs(transactionsCollection(account.id));
+	const snap = await getDocs(transactionsCollection(uid, account.id));
 
 	const result: Dictionary<Transaction> = {};
 	for (const doc of snap.docs) {
@@ -161,6 +176,7 @@ export async function getTransactionsForAccount(
 }
 
 export async function createTransaction(
+	uid: string,
 	account: Account,
 	record: TransactionRecordParams,
 	key: string
@@ -170,6 +186,6 @@ export async function createTransaction(
 		createdAt: record.createdAt,
 	};
 	const pkg = encrypt(record, meta, key);
-	const ref = await addDoc(transactionsCollection(account.id), pkg);
+	const ref = await addDoc(transactionsCollection(uid, account.id), pkg);
 	return new Transaction(account.id, ref.id, record);
 }

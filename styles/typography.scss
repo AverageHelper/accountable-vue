@@ -153,11 +153,12 @@ textarea {
 	margin: 1em auto -0.5em;
 	display: block;
 	color: color($gray4);
+
 	&.icon {
 		text-align: center;
 		width: 5em;
 		height: 5em;
-		margin: 1em auto -0.5em;
+		// margin: 1em auto -0.5em;
 		display: block;
 	}
 	.icon {
@@ -170,7 +171,7 @@ textarea {
 	height: 1.3em;
 	width: 1.3em;
 	vertical-align: middle;
-	margin-right: 0.3em;
+	// margin-right: 0.3em;
 	display: inline-block;
 
 	&--double-width {
