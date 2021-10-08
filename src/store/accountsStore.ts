@@ -8,6 +8,9 @@ export const useAccountsStore = defineStore("accounts", {
 		items: {} as Dictionary<Account>,
 	}),
 	actions: {
+		clearCache() {
+			this.items = {};
+		},
 		async getAccounts() {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;

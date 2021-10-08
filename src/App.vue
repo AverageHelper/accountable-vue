@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
 
 import { bootstrap } from "./transport/wrapper";
@@ -35,8 +36,8 @@ onMounted(() => {
 <template>
 	<Navbar :title="title" />
 	<main class="content">
-		<div v-if="bootstrapError" class="error">{{ bootstrapError }}</div>
-		<template v-else>
+		<ErrorNotice :error="bootstrapError" />
+		<template v-if="!bootstrapError">
 			<keep-alive>
 				<router-view />
 			</keep-alive>

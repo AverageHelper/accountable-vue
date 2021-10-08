@@ -63,6 +63,19 @@ export const useAuthStore = defineStore("auth", {
 			const auth = getAuth();
 			await signOut(auth);
 			this.uid = null;
+			console.log("Cleared user ID");
+
+			const [{ useAccountsStore }, { useTransactionsStore }] = await Promise.all([
+				import("./accountsStore"),
+				import("./transactionsStore"),
+			]);
+			const accounts = useAccountsStore();
+			const transactions = useTransactionsStore();
+
+			accounts.clearCache();
+			console.log("Cleared accounts cache");
+			transactions.clearCache();
+			console.log("Cleared transactions cache");
 		},
 	},
 });

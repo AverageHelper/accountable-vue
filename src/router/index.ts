@@ -24,10 +24,8 @@ export const APP_ROOTS = ["/accounts", "/login"];
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
 	if (auth.uid !== null) {
-		console.log("onlyIfLoggedIn uid:", auth.uid);
 		next();
 	} else {
-		console.log("onlyIfLoggedIn not logged in");
 		next("/login");
 	}
 };
@@ -55,10 +53,8 @@ export const router = createRouter({
 			beforeEnter(from, to, next): void {
 				const auth = useAuthStore();
 				if (auth.uid !== null) {
-					console.log("beforeEnter uid:", auth.uid);
 					next("/accounts");
 				} else {
-					console.log("beforeEnter not logged in");
 					next();
 				}
 			},

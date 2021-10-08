@@ -4,6 +4,13 @@ import forge from "node-forge";
 import atob from "atob-lite";
 import btoa from "btoa-lite";
 
+class DecryptionError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "DecryptionError";
+	}
+}
+
 /**
  * Encryption materials that live on Firestore.
  * This data is useless without the user's password.
@@ -21,30 +28,26 @@ export interface EPackage<M> {
 export type DEKMaterial = CryptoJS.lib.CipherParams;
 
 export class HashStore {
-	// #innerValue: Buffer;
-	#innerValue: string;
+	private _hashedValue: string;
 
 	constructor(value: string) {
-		// this.#innerValue = Buffer.from(value, "base64");
-		this.#innerValue = btoa(value);
+		this._hashedValue = btoa(value);
 	}
 
 	get value(): Readonly<string> {
-		// return this.#innerValue.toString("base64");
-		return atob(this.#innerValue);
+		return atob(this._hashedValue);
 	}
 
 	/** Overwrites the buffer with random data for _maximum paranoia_ */
 	destroy(): void {
-		const length = this.#innerValue.length;
+		const length = this._hashedValue.length;
 		let result = "";
 		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		const charactersLength = characters.length;
 		for (let i = 0; i < length; i++) {
 			result += characters.charAt(Math.floor(Math.random() * charactersLength));
 		}
-		// this.#innerValue = Buffer.from(result);
-		this.#innerValue = result;
+		this._hashedValue = result;
 	}
 }
 
@@ -87,7 +90,8 @@ export async function newDataEncryptionKeyMaterial(password: string): Promise<Ke
  * @returns An object that can be stored in Firestore.
  */
 export function encrypt<M>(data: unknown, metadata: M, dek: string): EPackage<M> {
-	const ciphertext = AES.encrypt(JSON.stringify(data), dek).toString(CryptoJS.format.Hex);
+	const plaintext = JSON.stringify(data);
+	const ciphertext = btoa(AES.encrypt(plaintext, dek).toString());
 
 	return { ciphertext, metadata };
 }
@@ -100,8 +104,20 @@ export function encrypt<M>(data: unknown, metadata: M, dek: string): EPackage<M>
  * @returns The original data.
  */
 export function decrypt<M>(pkg: EPackage<M>, dek: string): unknown {
-	const ciphertext = pkg.ciphertext;
-	const plaintext = AES.decrypt(ciphertext, dek).toString();
+	const { ciphertext } = pkg;
+	const plaintext = AES.decrypt(atob(ciphertext), dek).toString(CryptoJS.enc.Utf8);
 
-	return JSON.parse(plaintext) as unknown;
+	if (!plaintext) {
+		throw new DecryptionError("Result was empty");
+	}
+
+	try {
+		return JSON.parse(plaintext) as unknown;
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			throw new DecryptionError(`JSON parse failed: ${error.message}: '${plaintext}'`);
+		} else {
+			throw new DecryptionError(`JSON parse failed: ${JSON.stringify(error)}: '${plaintext}'`);
+		}
+	}
 }

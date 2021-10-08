@@ -9,6 +9,9 @@ export const useTransactionsStore = defineStore("transactions", {
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>,
 	}),
 	actions: {
+		clearCache() {
+			this.transactionsForAccount = {};
+		},
 		async getTransactionsForAccount(account: Account) {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;

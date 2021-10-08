@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import List from "./List.vue";
-import Menu from "../icons/Menu.vue";
+import MenuIcon from "../icons/Menu.vue";
 import PlainButton from "./PlainButton.vue";
 import { ref, computed } from "vue";
 import { useAuthStore } from "../store/authStore";
@@ -18,7 +18,7 @@ function close() {
 
 <template>
 	<PlainButton v-if="hasItems" @click="isMenuOpen = !isMenuOpen">
-		<Menu />
+		<MenuIcon />
 	</PlainButton>
 
 	<teleport to="body">
