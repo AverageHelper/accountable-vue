@@ -3,6 +3,7 @@ import CryptoJS from "crypto-js";
 import forge from "node-forge";
 import atob from "atob-lite";
 import btoa from "btoa-lite";
+import isString from "lodash/isString";
 
 class DecryptionError extends Error {
 	constructor(message: string) {
@@ -18,6 +19,8 @@ class DecryptionError extends Error {
 export interface KeyMaterial {
 	dekMaterial: string;
 	passSalt: string;
+	oldDekMaterial?: string;
+	oldPassSalt?: string;
 }
 
 export interface EPackage<M> {
@@ -64,34 +67,66 @@ async function random(byteCount: number): Promise<string> {
 	});
 }
 
-export function derivePKey(password: string, salt: string): string {
-	return forge.pkcs5.pbkdf2(password, salt, ITERATIONS, 256);
+export function derivePKey(password: string, salt: string): HashStore {
+	return new HashStore(forge.pkcs5.pbkdf2(password, atob(salt), ITERATIONS, 256));
 }
 
-export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
+export function deriveDEK(pKey: HashStore, dekMaterial: string): HashStore {
+	const dekObject = decrypt({ ciphertext: dekMaterial }, pKey);
+	if (!isString(dekObject)) throw new TypeError("Decrypted key is malformatted");
+
+	return new HashStore(atob(dekObject));
+}
+
+async function newDataEncryptionKeyMaterialForDEK(
+	password: string,
+	dek: HashStore
+): Promise<KeyMaterial> {
 	// To make password de-derivation harder
 	const passSalt = btoa(await random(32));
-	// To encrypt data
-	const dek = await random(256);
 
 	// To encrypt the dek
 	const pKey = derivePKey(password, passSalt);
-	const dekMaterial = AES.encrypt(dek, pKey).ciphertext.toString();
+	const dekObject = btoa(dek.value);
+	const dekMaterial = encrypt(dekObject, null, pKey).ciphertext;
 
 	return { dekMaterial, passSalt };
+}
+
+export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
+	// To encrypt data
+	const dek = new HashStore(await random(256));
+	return newDataEncryptionKeyMaterialForDEK(password, dek);
+}
+
+export async function newMaterialFromOldKey(
+	oldPassword: string,
+	newPassword: string,
+	oldKey: KeyMaterial
+): Promise<KeyMaterial> {
+	const oldPKey = derivePKey(oldPassword, oldKey.passSalt);
+	const dek = deriveDEK(oldPKey, oldKey.dekMaterial);
+	const newPKey = await newDataEncryptionKeyMaterialForDEK(newPassword, dek);
+
+	return {
+		dekMaterial: newPKey.dekMaterial,
+		passSalt: newPKey.passSalt,
+		oldDekMaterial: oldKey.dekMaterial,
+		oldPassSalt: oldKey.passSalt,
+	};
 }
 
 /**
  * Serializes data to be stored in untrusted environments.
  *
- * @param dek The data en/decryption key.
  * @param data The data to encrypt.
  * @param metadata Metadata to be stored in plaintext about the data.
+ * @param dek The data en/decryption key.
  * @returns An object that can be stored in Firestore.
  */
-export function encrypt<M>(data: unknown, metadata: M, dek: string): EPackage<M> {
+export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
 	const plaintext = JSON.stringify(data);
-	const ciphertext = btoa(AES.encrypt(plaintext, dek).toString());
+	const ciphertext = AES.encrypt(plaintext, dek.value).toString();
 
 	return { ciphertext, metadata };
 }
@@ -99,13 +134,13 @@ export function encrypt<M>(data: unknown, metadata: M, dek: string): EPackage<M>
 /**
  * Deserializes encrypted data.
  *
- * @param dek The data en/decryption key.
  * @param pkg The object that was stored in Firestore.
+ * @param dek The data en/decryption key.
  * @returns The original data.
  */
-export function decrypt<M>(pkg: EPackage<M>, dek: string): unknown {
+export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashStore): unknown {
 	const { ciphertext } = pkg;
-	const plaintext = AES.decrypt(atob(ciphertext), dek).toString(CryptoJS.enc.Utf8);
+	const plaintext = AES.decrypt(ciphertext, dek.value).toString(CryptoJS.enc.Utf8);
 
 	if (!plaintext) {
 		throw new DecryptionError("Result was empty");

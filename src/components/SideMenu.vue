@@ -25,6 +25,9 @@ function close() {
 		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close" />
 		<List v-show="isMenuOpen" class="side-menu">
 			<li v-if="isLoggedIn">
+				<router-link to="/settings" @click="close">Settings</router-link>
+			</li>
+			<li v-if="isLoggedIn">
 				<router-link to="/logout" @click="close">Log out</router-link>
 			</li>
 		</List>

@@ -1,0 +1,19 @@
+form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-width: 36em;
+	margin: 0 auto;
+
+	button {
+		margin: 1em 0;
+	}
+
+	input {
+		text-align: center;
+	}
+
+	p {
+		margin-top: 1em;
+	}
+}

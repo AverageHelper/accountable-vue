@@ -21,6 +21,7 @@
 		"lodash": "^4.17.21",
 		"node-forge": "^0.10.0",
 		"pinia": "^2.0.0-rc.10",
+		"source-map-support": "^0.5.20",
 		"vue": "^3.2.16",
 		"vue-router": "^4.0.11",
 		"vue-toastification": "^2.0.0-rc.1"
@@ -32,6 +33,7 @@
 		"@types/jest": "^27.0.2",
 		"@types/lodash": "^4.14.175",
 		"@types/node-forge": "^0.10.5",
+		"@types/source-map-support": "^0.5.4",
 		"@typescript-eslint/eslint-plugin": "^4.32.0",
 		"@typescript-eslint/parser": "^4.32.0",
 		"@vitejs/plugin-vue": "^1.9.2",

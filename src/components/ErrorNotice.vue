@@ -17,5 +17,6 @@ defineProps({
 
 .error {
 	color: color($red);
+	word-wrap: break-word;
 }
 </style>

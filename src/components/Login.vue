@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { FirebaseError } from "firebase/app";
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
 import { useAuthStore } from "../store/authStore";
 
-const toast = useToast();
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
@@ -70,27 +67,10 @@ async function submit() {
 				break;
 		}
 
+		await nextTick();
 		await router.replace("/accounts");
 	} catch (error: unknown) {
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else if (error instanceof FirebaseError) {
-			message = error.code;
-		} else {
-			message = JSON.stringify(error);
-		}
-
-		if (message.includes("auth/invalid-email")) {
-			toast.error("That doesn't quite look like an email address");
-		} else if (message.includes("auth/wrong-password") || message.includes("auth/user-not-found")) {
-			toast.error("Incorrect email address or password.");
-		} else if (message.includes("auth/email-already-in-use")) {
-			toast.error("Someone already has an account with that email.");
-		} else {
-			toast.error(message);
-		}
-		console.error(error);
+		auth.handleAuthError(error);
 	}
 	isLoading.value = false;
 }
@@ -98,13 +78,28 @@ async function submit() {
 
 <template>
 	<form @submit.prevent="submit">
-		<input ref="emailField" v-model="email" placeholder="email" required />
-		<input v-model="password" type="password" placeholder="password" required />
+		<input
+			ref="emailField"
+			v-model="email"
+			type="text"
+			placeholder="email"
+			autocomplete="username"
+			required
+		/>
+		<input
+			v-model="password"
+			type="password"
+			placeholder="password"
+			:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
+			required
+		/>
 		<input
 			v-if="isSignupMode"
 			v-model="passwordRepeat"
 			type="password"
 			placeholder="password again"
+			autocomplete="new-password"
+			:required="isSignupMode"
 		/>
 		<button type="submit" :disabled="isLoading">{{
 			isSignupMode ? "Create an account" : "Log in"
@@ -119,25 +114,3 @@ async function submit() {
 		</p>
 	</form>
 </template>
-
-<style scoped lang="scss">
-form {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	max-width: 36em;
-	margin: 0 auto;
-
-	button {
-		margin: 1em 0;
-	}
-
-	input {
-		text-align: center;
-	}
-
-	p {
-		margin-top: 1em;
-	}
-}
-</style>

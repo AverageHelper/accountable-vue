@@ -3,6 +3,7 @@ import Accounts from "../components/Accounts.vue";
 import AccountView from "../components/AccountView.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
+import Settings from "../components/Settings.vue";
 import TransactionView from "../components/TransactionView.vue";
 import { createRouter, createWebHistory, useRoute } from "vue-router";
 import { useAccountsStore, useTransactionsStore } from "../store";
@@ -58,6 +59,12 @@ export const router = createRouter({
 					next();
 				}
 			},
+		},
+		{
+			path: "/settings",
+			beforeEnter: onlyIfLoggedIn,
+			component: Settings,
+			meta: { title: "Settings" },
 		},
 		{
 			path: "/accounts",

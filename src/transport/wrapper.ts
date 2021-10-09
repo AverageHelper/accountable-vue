@@ -1,5 +1,5 @@
 import type { AccountRecordParams } from "../model/Account";
-import type { EPackage, KeyMaterial } from "./cryption";
+import type { EPackage, HashStore, KeyMaterial } from "./cryption";
 import type { TransactionRecordParams } from "../model/Transaction";
 import { decrypt, encrypt } from "./cryption";
 import { Account } from "../model/Account";
@@ -25,7 +25,6 @@ import {
 	arrayUnion as firestoreArrayUnion,
 	arrayRemove as firestoreArrayRemove,
 } from "firebase/firestore";
-import atob from "atob-lite";
 
 // ** Firebase Setup
 
@@ -74,6 +73,10 @@ export function arrayRemove<T>(...elements: Array<T>): Array<T> {
 }
 export const merge = { merge: true };
 
+export function isWrapperInstantiated(): boolean {
+	return db !== undefined;
+}
+
 /**
  * Bootstrap our Firebase app using either environment variables or provided params.
  *
@@ -84,7 +87,7 @@ export function bootstrap(params?: {
 	authDomain?: string;
 	projectId?: string;
 }): void {
-	if (db !== undefined) {
+	if (isWrapperInstantiated()) {
 		throw new TypeError("db has already been instantiated");
 	}
 
@@ -114,10 +117,7 @@ export async function getAuthMaterial(uid: string): Promise<KeyMaterial | null> 
 	const material = snap.data() ?? null;
 	if (material === null) return null;
 
-	return {
-		...material,
-		passSalt: atob(material.passSalt),
-	};
+	return material;
 }
 
 export async function setAuthMaterial(uid: string, data: KeyMaterial): Promise<void> {
@@ -126,13 +126,13 @@ export async function setAuthMaterial(uid: string, data: KeyMaterial): Promise<v
 
 // ** Account Records
 
-export async function getAllAccounts(uid: string, key: string): Promise<Dictionary<Account>> {
+export async function getAllAccounts(uid: string, dek: HashStore): Promise<Dictionary<Account>> {
 	const snap = await getDocs(accountsCollection(uid));
 
 	const result: Dictionary<Account> = {};
 	for (const doc of snap.docs) {
 		const pkg = doc.data();
-		const record = decrypt(pkg, key);
+		const record = decrypt(pkg, dek);
 		if (!Account.isRecord(record)) {
 			throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
 		}
@@ -144,12 +144,12 @@ export async function getAllAccounts(uid: string, key: string): Promise<Dictiona
 export async function createAccount(
 	uid: string,
 	record: AccountRecordParams,
-	key: string
+	dek: HashStore
 ): Promise<Account> {
 	const meta: AccountRecordPackageMetadata = {
 		objectType: "Account",
 	};
-	const pkg = encrypt(record, meta, key);
+	const pkg = encrypt(record, meta, dek);
 	const ref = await addDoc(accountsCollection(uid), pkg);
 	return new Account(ref.id, record);
 }
@@ -159,14 +159,14 @@ export async function createAccount(
 export async function getTransactionsForAccount(
 	uid: string,
 	account: Account,
-	key: string
+	dek: HashStore
 ): Promise<Dictionary<Transaction>> {
 	const snap = await getDocs(transactionsCollection(uid, account.id));
 
 	const result: Dictionary<Transaction> = {};
 	for (const doc of snap.docs) {
 		const pkg = doc.data();
-		const record = decrypt(pkg, key);
+		const record = decrypt(pkg, dek);
 		if (!Transaction.isRecord(record)) {
 			throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
 		}
@@ -179,13 +179,13 @@ export async function createTransaction(
 	uid: string,
 	account: Account,
 	record: TransactionRecordParams,
-	key: string
+	dek: HashStore
 ): Promise<Transaction> {
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
 		createdAt: record.createdAt,
 	};
-	const pkg = encrypt(record, meta, key);
+	const pkg = encrypt(record, meta, dek);
 	const ref = await addDoc(transactionsCollection(uid, account.id), pkg);
 	return new Transaction(account.id, ref.id, record);
 }

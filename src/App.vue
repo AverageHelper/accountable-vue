@@ -2,11 +2,13 @@
 import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
 
-import { bootstrap } from "./transport/wrapper";
+import { bootstrap, isWrapperInstantiated } from "./transport/wrapper";
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthStore } from "./store/authStore";
 
 const route = useRoute();
+const auth = useAuthStore();
 
 const bootstrapError = ref<Error | null>(null);
 const title = computed<string>(() => {
@@ -21,8 +23,11 @@ const title = computed<string>(() => {
 });
 
 onMounted(() => {
+	if (isWrapperInstantiated()) return;
+
 	try {
 		bootstrap();
+		auth.watchAuthState();
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			bootstrapError.value = error;
