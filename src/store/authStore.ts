@@ -20,11 +20,14 @@ import {
 	updatePassword,
 } from "firebase/auth";
 
+type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
+
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
 		email: null as string | null,
 		uid: null as string | null,
 		pKey: null as HashStore | null,
+		loginProcessState: null as LoginProcessState | null,
 		authStateWatcher: null as null | Unsubscribe,
 	}),
 	actions: {
@@ -66,15 +69,23 @@ export const useAuthStore = defineStore("auth", {
 			console.log("Cleared transactions cache");
 		},
 		async login(email: string, password: string) {
-			const auth = getAuth();
-			const { user } = await signInWithEmailAndPassword(auth, email, password);
+			try {
+				const auth = getAuth();
+				this.loginProcessState = "AUTHENTICATING";
+				const { user } = await signInWithEmailAndPassword(auth, email, password);
 
-			// Get the salt and dek material from Firestore
-			const material = await this.getDekMaterial();
+				// Get the salt and dek material from Firestore
+				this.loginProcessState = "FETCHING_KEYS";
+				const material = await this.getDekMaterial();
 
-			// Derive a pKey from the password, and remember it
-			this.pKey = derivePKey(password, material.passSalt);
-			this.onSignedIn(user);
+				// Derive a pKey from the password, and remember it
+				this.loginProcessState = "DERIVING_PKEY";
+				this.pKey = derivePKey(password, material.passSalt);
+				this.onSignedIn(user);
+			} finally {
+				// In any event, error or not:
+				this.loginProcessState = null;
+			}
 		},
 		async getDekMaterial(): Promise<KeyMaterial> {
 			const auth = getAuth();
@@ -86,14 +97,22 @@ export const useAuthStore = defineStore("auth", {
 			return material;
 		},
 		async createVault(email: string, password: string) {
-			const auth = getAuth();
-			const { user } = await createUserWithEmailAndPassword(auth, email, password);
+			try {
+				const auth = getAuth();
+				this.loginProcessState = "AUTHENTICATING";
+				const { user } = await createUserWithEmailAndPassword(auth, email, password);
 
-			const material = await newDataEncryptionKeyMaterial(password);
-			await setAuthMaterial(user.uid, material);
+				this.loginProcessState = "GENERATING_KEYS";
+				const material = await newDataEncryptionKeyMaterial(password);
+				await setAuthMaterial(user.uid, material);
 
-			this.pKey = derivePKey(password, material.passSalt);
-			this.onSignedIn(user);
+				this.loginProcessState = "DERIVING_PKEY";
+				this.pKey = derivePKey(password, material.passSalt);
+				this.onSignedIn(user);
+			} finally {
+				// In any event, error or not:
+				this.loginProcessState = null;
+			}
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
 			const auth = getAuth();

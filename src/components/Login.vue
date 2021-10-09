@@ -15,6 +15,7 @@ const isLoading = ref(false);
 const mode = ref<"login" | "signup">("login");
 const isSignupMode = computed(() => mode.value === "signup");
 const isLoginMode = computed(() => mode.value === "login");
+const loginProcessState = computed(() => auth.loginProcessState);
 
 const emailField = ref<HTMLInputElement | null>(null);
 
@@ -104,6 +105,11 @@ async function submit() {
 		<button type="submit" :disabled="isLoading">{{
 			isSignupMode ? "Create an account" : "Log in"
 		}}</button>
+		<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
+		<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
+		<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
+		<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from password...</span>
+
 		<p v-if="isLoginMode"
 			>Need to create an account?
 			<a href="#" @click="enterSignupMode">Create one here.</a>
