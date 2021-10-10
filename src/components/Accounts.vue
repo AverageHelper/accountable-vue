@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import AccountListItem from "./AccountListItem.vue";
+import ActionButton from "./ActionButton.vue";
 import ErrorNotice from "./ErrorNotice.vue";
 import List from "./List.vue";
 import NavAction from "./NavAction.vue";
-import PlainButton from "./PlainButton.vue";
 import ReloadIcon from "../icons/Reload.vue";
 
 import { Account } from "../model/Account";
@@ -64,12 +64,12 @@ onMounted(async () => {
 
 <template>
 	<NavAction>
-		<PlainButton v-if="loadError" @click="load">
+		<ActionButton v-if="loadError" @click="load">
 			<ReloadIcon />
-		</PlainButton>
-		<PlainButton v-else-if="!isLoading" :disabled="isSaving" @click="create">
+		</ActionButton>
+		<ActionButton v-else-if="!isLoading" :disabled="isSaving" @click="create">
 			<span>+</span>
-		</PlainButton>
+		</ActionButton>
 	</NavAction>
 
 	<ErrorNotice :error="loadError" />

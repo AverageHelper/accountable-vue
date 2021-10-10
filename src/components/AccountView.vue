@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import ActionButton from "./ActionButton.vue";
 import List from "./List.vue";
 import NavAction from "./NavAction.vue";
-import PlainButton from "./PlainButton.vue";
+import EditButton from "./EditButton.vue";
 import TransactionListItem from "./TransactionListItem.vue";
 
 import { Transaction } from "../model/Transaction";
@@ -43,9 +44,14 @@ async function create() {
 
 <template>
 	<NavAction>
-		<PlainButton :disabled="isSaving" @click="create">
+		<EditButton>
+			<template #modal>
+				<h1>Edit {{ account.title }}</h1>
+			</template>
+		</EditButton>
+		<ActionButton :disabled="isSaving" @click="create">
 			<span>+</span>
-		</PlainButton>
+		</ActionButton>
 	</NavAction>
 
 	<List>

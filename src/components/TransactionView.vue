@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import NavAction from "./NavAction.vue";
-import PlainButton from "./PlainButton.vue";
+import EditButton from "./EditButton.vue";
+import { toTitleCase } from "../filters/toTitleCase";
 
 import type { Transaction } from "../model/Transaction";
 import { computed } from "vue";
@@ -22,9 +23,11 @@ const transaction = computed(() => theseTransactions.value[props.transactionId])
 
 <template>
 	<NavAction>
-		<PlainButton>
-			<span>Edit</span>
-		</PlainButton>
+		<EditButton>
+			<template #modal>
+				<h1>Edit {{ transaction.title ?? toTitleCase(transaction.type) }}</h1>
+			</template>
+		</EditButton>
 	</NavAction>
 
 	{{ transaction.title }}

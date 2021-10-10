@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActionButton from "./ActionButton.vue";
+import TextField from "./TextField.vue";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -79,44 +81,57 @@ async function submit() {
 
 <template>
 	<form @submit.prevent="submit">
-		<input
+		<TextField
 			ref="emailField"
 			v-model="email"
-			type="text"
-			placeholder="email"
+			label="email"
+			placeholder="john.doe@example.com"
 			autocomplete="username"
+			:shows-required="false"
 			required
 		/>
-		<input
+		<TextField
 			v-model="password"
 			type="password"
-			placeholder="password"
+			label="password"
+			placeholder="********"
 			:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
+			:shows-required="false"
 			required
 		/>
-		<input
+		<TextField
 			v-if="isSignupMode"
 			v-model="passwordRepeat"
 			type="password"
-			placeholder="password again"
+			label="password again"
+			placeholder="********"
 			autocomplete="new-password"
+			:shows-required="false"
 			:required="isSignupMode"
 		/>
-		<button type="submit" :disabled="isLoading">{{
+		<ActionButton class="submit" type="submit" kind="bordered" :disabled="isLoading">{{
 			isSignupMode ? "Create an account" : "Log in"
-		}}</button>
+		}}</ActionButton>
 		<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
 		<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
 		<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
 		<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from password...</span>
 
-		<p v-if="isLoginMode"
-			>Need to create an account?
-			<a href="#" @click="enterSignupMode">Create one here.</a>
-		</p>
-		<p v-if="isSignupMode"
-			>Already have an account?
-			<a href="#" @click="enterLoginMode">Log in here.</a>
-		</p>
+		<div v-if="!isLoading">
+			<p v-if="isLoginMode"
+				>Need to create an account?
+				<a href="#" @click="enterSignupMode">Create one here.</a>
+			</p>
+			<p v-if="isSignupMode"
+				>Already have an account?
+				<a href="#" @click="enterLoginMode">Log in here.</a>
+			</p>
+		</div>
 	</form>
 </template>
+
+<style scoped lang="scss">
+.submit {
+	margin: 1em 0;
+}
+</style>

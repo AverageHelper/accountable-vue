@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlainButton from "./PlainButton.vue";
+import ActionButton from "./ActionButton.vue";
 
 import { APP_ROOTS } from "../router";
 import { computed } from "vue";
@@ -22,9 +22,9 @@ function goBack() {
 <template>
 	<nav>
 		<aside class="leading-actions actions-container">
-			<PlainButton v-show="!isRoute" @click="goBack">
+			<ActionButton v-show="!isRoute" @click="goBack">
 				<span>&lt;</span>
-			</PlainButton>
+			</ActionButton>
 			<div id="nav-actions-leading" class="actions-container" />
 		</aside>
 

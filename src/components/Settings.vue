@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActionButton from "./ActionButton.vue";
+import TextField from "./TextField.vue";
 import { ref } from "vue";
 import { useAuthStore } from "../store/authStore";
 
@@ -31,27 +33,41 @@ async function submitNewPassword() {
 <template>
 	<form @submit.prevent="submitNewPassword">
 		<h2>Change Password</h2>
-		<input
+		<TextField
 			v-model="currentPassword"
 			type="password"
-			placeholder="current password"
+			label="current password"
+			placeholder="********"
 			autocomplete="current-password"
+			:shows-required="false"
 			required
 		/>
-		<input
+		<TextField
 			v-model="newPassword"
 			type="password"
-			placeholder="new password"
+			label="new password"
+			placeholder="************"
 			autocomplete="new-password"
+			:shows-required="false"
 			required
 		/>
-		<input
+		<TextField
 			v-model="newPasswordRepeat"
 			type="password"
-			placeholder="new password again"
+			label="new password again"
+			placeholder="************"
 			autocomplete="new-password"
+			:shows-required="false"
 			required
 		/>
-		<button type="submit" :disabled="isLoading">Change password</button>
+		<ActionButton class="submit" type="submit" kind="bordered" :disabled="isLoading"
+			>Change password</ActionButton
+		>
 	</form>
 </template>
+
+<style scoped lang="scss">
+.submit {
+	margin: 1em 0;
+}
+</style>

@@ -11,10 +11,10 @@ export type AccountRecordParams = Omit<AccountRecord, "id">;
 
 export class Account implements AccountRecord {
 	public readonly objectType = "Account";
-	public readonly id;
-	public readonly title;
-	public readonly notes;
-	public readonly createdAt;
+	public readonly id: string;
+	public readonly title: string;
+	public readonly notes: string | null;
+	public readonly createdAt: Date;
 
 	constructor(id: string, record?: Partial<AccountRecordParams>) {
 		this.id = id;

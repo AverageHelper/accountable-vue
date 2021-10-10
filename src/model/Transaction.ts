@@ -17,13 +17,13 @@ export type TransactionRecordParams = Omit<TransactionRecord, "id" | "accountId"
 
 export class Transaction implements TransactionRecord {
 	public readonly objectType = "Transaction";
-	public readonly id;
-	public readonly amount;
-	public readonly createdAt;
-	public readonly title;
-	public readonly notes;
-	public readonly isReconciled;
-	public readonly accountId;
+	public readonly id: string;
+	public readonly amount: number;
+	public readonly createdAt: Date;
+	public readonly title: string | null;
+	public readonly notes: string | null;
+	public readonly isReconciled: boolean;
+	public readonly accountId: string;
 
 	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
 		this.id = id;
