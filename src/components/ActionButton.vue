@@ -4,17 +4,21 @@ import type { PropType } from "vue";
 type ActionButtonType = "button" | "submit" | "reset";
 type ActionButtonKind = "plain" | "bordered" | "bordered-destructive";
 
-defineEmits(["click"]);
+const emit = defineEmits(["click"]);
 
 defineProps({
 	type: { type: String as PropType<ActionButtonType>, default: "button" },
 	kind: { type: String as PropType<ActionButtonKind>, default: "plain" },
 	disabled: { type: Boolean, default: false },
 });
+
+function onClick(event: Event): void {
+	emit("click", event);
+}
 </script>
 
 <template>
-	<button :class="`kind--${kind}`" :disabled="disabled" @click="$emit('click')">
+	<button :class="`kind--${kind}`" :disabled="disabled" @click="onClick">
 		<slot />
 	</button>
 </template>

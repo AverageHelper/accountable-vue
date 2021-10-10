@@ -45,8 +45,8 @@ async function create() {
 	isSaving.value = false;
 }
 
-async function goBack() {
-	await router.push("/accounts");
+function goBack() {
+	router.back();
 }
 </script>
 

@@ -110,7 +110,7 @@ async function deleteAccount() {
 			v-if="!isCreatingAccount && numberOfTransactions === 0"
 			kind="bordered-destructive"
 			:disabled="isLoading"
-			@click="deleteAccount"
+			@click.prevent="deleteAccount"
 			>Delete {{ ogAccount?.title ?? "Account" }}</ActionButton
 		>
 		<p v-if="isLoading">Saving...</p>

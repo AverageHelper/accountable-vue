@@ -45,7 +45,6 @@ export const useAccountsStore = defineStore("accounts", {
 					const dek = deriveDEK(pKey, dekMaterial);
 
 					snap.docChanges().forEach(change => {
-						console.debug(`Account ${change.doc.id} ${change.type}`);
 						switch (change.type) {
 							case "removed":
 								delete this.items[change.doc.id];
@@ -90,6 +89,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
+			// Don't delete if we have transactions
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
 			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
@@ -98,9 +98,7 @@ export const useAccountsStore = defineStore("accounts", {
 				throw new Error("Cannot delete an account that has transactions.");
 			}
 
-			console.log(`Deleting account ${account.id}`);
 			await deleteAccount(uid, account);
-			console.log("Deleted account.");
 		},
 	},
 });

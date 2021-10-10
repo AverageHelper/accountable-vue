@@ -200,7 +200,6 @@ export async function updateAccount(uid: string, account: Account, dek: HashStor
 
 export async function deleteAccount(uid: string, account: Account): Promise<void> {
 	await deleteDoc(accountRef(uid, account.id));
-	// TODO: Make sure this handles transactions
 }
 
 // ** Transaction Records
