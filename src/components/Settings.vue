@@ -60,14 +60,6 @@ async function submitNewPassword() {
 			:shows-required="false"
 			required
 		/>
-		<ActionButton class="submit" type="submit" kind="bordered" :disabled="isLoading"
-			>Change password</ActionButton
-		>
+		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Change password</ActionButton>
 	</form>
 </template>
-
-<style scoped lang="scss">
-.submit {
-	margin: 1em 0;
-}
-</style>

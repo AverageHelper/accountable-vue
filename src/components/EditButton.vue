@@ -4,6 +4,10 @@ import EditIcon from "../icons/Edit.vue";
 import Modal from "./Modal.vue";
 import { ref } from "vue";
 
+defineProps({
+	disabled: { type: Boolean, default: false },
+});
+
 const isOpen = ref(false);
 
 function closeModal() {
@@ -12,12 +16,14 @@ function closeModal() {
 </script>
 
 <template>
-	<ActionButton @click="isOpen = !isOpen">
-		<EditIcon class="icon" />
+	<ActionButton :disabled="disabled" @click="isOpen = !isOpen">
+		<slot name="icon">
+			<EditIcon class="icon" />
+		</slot>
 	</ActionButton>
 
 	<Modal :open="isOpen" :close-modal="closeModal">
-		<slot name="modal" />
+		<slot name="modal" :on-finished="closeModal" />
 	</Modal>
 </template>
 

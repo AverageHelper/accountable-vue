@@ -3,15 +3,16 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import XIcon from "../icons/X.vue";
-import { onBeforeUnmount } from "vue";
+import { toRefs, onBeforeUnmount } from "vue";
 
 const props = defineProps({
 	open: { type: Boolean, required: true },
 	closeModal: { type: Function as PropType<() => void>, required: true },
 });
+const { closeModal } = toRefs(props);
 
 onBeforeUnmount(() => {
-	props.closeModal();
+	closeModal.value();
 });
 </script>
 

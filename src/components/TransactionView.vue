@@ -4,21 +4,22 @@ import EditButton from "./EditButton.vue";
 import { toTitleCase } from "../filters/toTitleCase";
 
 import type { Transaction } from "../model/Transaction";
-import { computed } from "vue";
+import { computed, toRefs } from "vue";
 import { useTransactionsStore } from "../store";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
 	transactionId: { type: String, required: true },
 });
+const { accountId, transactionId } = toRefs(props);
 
 const transactions = useTransactionsStore();
 
 const theseTransactions = computed<Dictionary<Transaction> | undefined>(
-	() => transactions.transactionsForAccount[props.accountId]
+	() => transactions.transactionsForAccount[accountId.value]
 );
 
-const transaction = computed(() => theseTransactions.value[props.transactionId]);
+const transaction = computed(() => theseTransactions.value[transactionId.value]);
 </script>
 
 <template>

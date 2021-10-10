@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import type { Transaction } from "../model/Transaction";
 import { Account } from "../model/Account";
-import { computed, onMounted } from "vue";
+import { computed, toRefs, onMounted } from "vue";
 import { useTransactionsStore } from "../store";
 
 const props = defineProps({
 	account: { type: Account, required: true },
 });
+const { account } = toRefs(props);
 
 const transactions = useTransactionsStore();
-const accountRoute = computed(() => `/accounts/${props.account.id}`);
+const accountRoute = computed(() => `/accounts/${account.value.id}`);
 const theseTransactions = computed<Dictionary<Transaction> | undefined>(
-	() => transactions.transactionsForAccount[props.account.id]
+	() => transactions.transactionsForAccount[account.value.id]
 );
 
 const numberOfTransactions = computed<number | null>(() => {
@@ -23,7 +24,7 @@ const numberOfTransactions = computed<number | null>(() => {
 
 onMounted(async () => {
 	if (theseTransactions.value === undefined) {
-		await transactions.getTransactionsForAccount(props.account);
+		await transactions.getTransactionsForAccount(account.value);
 	}
 });
 </script>

@@ -1,28 +1,67 @@
-import type { HashStore } from "../transport/cryption";
 import type { Account, AccountRecordParams } from "../model/Account";
+import type { HashStore } from "../transport/cryption";
+import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { deriveDEK } from "../transport/cryption";
-import { getAllAccounts, createAccount } from "../transport/wrapper";
+import {
+	createAccount,
+	updateAccount,
+	deleteAccount,
+	watchAllAccounts,
+	accountFromSnapshot,
+} from "../transport/wrapper";
 import { useAuthStore } from "./authStore";
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
 		items: {} as Dictionary<Account>,
+		loadError: null as Error | null,
+		accountsWatcher: null as Unsubscribe | null,
 	}),
 	actions: {
 		clearCache() {
 			this.items = {};
 		},
-		async getAccounts() {
+		watchAccounts(force: boolean = false) {
+			if (this.accountsWatcher && !force) return;
+
+			if (this.accountsWatcher) {
+				this.accountsWatcher();
+				this.accountsWatcher = null;
+			}
+
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
-			this.items = await getAllAccounts(uid, dek);
+			this.accountsWatcher = watchAllAccounts(
+				uid,
+				async snap => {
+					this.loadError = null;
+					const authStore = useAuthStore();
+					const { dekMaterial } = await authStore.getDekMaterial();
+					const dek = deriveDEK(pKey, dekMaterial);
+
+					snap.docChanges().forEach(change => {
+						console.debug(`Account ${change.doc.id} ${change.type}`);
+						switch (change.type) {
+							case "removed":
+								delete this.items[change.doc.id];
+								break;
+
+							case "added":
+							case "modified":
+								this.items[change.doc.id] = accountFromSnapshot(change.doc, dek);
+								break;
+						}
+					});
+				},
+				error => {
+					this.loadError = error;
+				}
+			);
 		},
 		async createAccount(record: AccountRecordParams): Promise<Account> {
 			const authStore = useAuthStore();
@@ -33,9 +72,35 @@ export const useAccountsStore = defineStore("accounts", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			const account = await createAccount(uid, record, dek);
-			this.items[account.id] = account;
-			return account;
+			return await createAccount(uid, record, dek);
+		},
+		async updateAccount(account: Account): Promise<void> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+			await updateAccount(uid, account, dek);
+		},
+		async deleteAccount(account: Account): Promise<void> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			if (uid === null) throw new Error("Sign in first");
+
+			const { useTransactionsStore } = await import("./transactionsStore");
+			const transactions = useTransactionsStore();
+			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
+			const transactionCount = Object.keys(accountTransactions).length;
+			if (transactionCount !== 0) {
+				throw new Error("Cannot delete an account that has transactions.");
+			}
+
+			console.log(`Deleting account ${account.id}`);
+			await deleteAccount(uid, account);
+			console.log("Deleted account.");
 		},
 	},
 });

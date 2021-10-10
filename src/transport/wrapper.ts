@@ -1,14 +1,19 @@
 import type { AccountRecordParams } from "../model/Account";
 import type { EPackage, HashStore, KeyMaterial } from "./cryption";
 import type { TransactionRecordParams } from "../model/Transaction";
-import { decrypt, encrypt } from "./cryption";
+import type { Unsubscribe } from "firebase/auth";
 import { Account } from "../model/Account";
-import { Transaction } from "../model/Transaction";
+import { decrypt, encrypt } from "./cryption";
 import { initializeApp } from "firebase/app";
+import { Transaction } from "../model/Transaction";
+import { useJobQueue, forgetJobQueue } from "@averagehelper/job-queue";
 import type {
 	CollectionReference,
 	DocumentReference,
 	Firestore,
+	FirestoreError,
+	QuerySnapshot,
+	QueryDocumentSnapshot,
 	Timestamp,
 } from "firebase/firestore";
 import {
@@ -17,8 +22,10 @@ import {
 	doc,
 	addDoc,
 	setDoc,
+	deleteDoc,
 	getDoc,
 	getDocs,
+	onSnapshot,
 	deleteField,
 	serverTimestamp,
 	increment as firestoreIncrement,
@@ -49,6 +56,11 @@ function authRef(uid: string): DocumentReference<KeyMaterial> {
 function accountsCollection(uid: string): CollectionReference<AccountRecordPackage> {
 	const path = `users/${uid}/accounts`;
 	return collection(db, path) as CollectionReference<AccountRecordPackage>;
+}
+
+function accountRef(uid: string, accountId: string): DocumentReference<AccountRecordPackage> {
+	const path = `users/${uid}/accounts/${accountId}`;
+	return doc(db, path) as DocumentReference<AccountRecordPackage>;
 }
 
 function transactionsCollection(
@@ -126,19 +138,38 @@ export async function setAuthMaterial(uid: string, data: KeyMaterial): Promise<v
 
 // ** Account Records
 
-export async function getAllAccounts(uid: string, dek: HashStore): Promise<Dictionary<Account>> {
-	const snap = await getDocs(accountsCollection(uid));
+export function watchAllAccounts(
+	uid: string,
+	onSnap: (snap: QuerySnapshot<AccountRecordPackage>) => void | Promise<void>,
+	onError?: ((error: FirestoreError) => void) | undefined,
+	onCompletion?: (() => void) | undefined
+): Unsubscribe {
+	const queueId = `watchAllAccounts-${uid}`;
+	const queue = useJobQueue<QuerySnapshot<AccountRecordPackage>>(queueId);
+	queue.process(onSnap);
+	const unsubscribe = onSnapshot(
+		accountsCollection(uid),
+		snap => queue.createJob(snap),
+		onError,
+		onCompletion
+	);
 
-	const result: Dictionary<Account> = {};
-	for (const doc of snap.docs) {
-		const pkg = doc.data();
-		const record = decrypt(pkg, dek);
-		if (!Account.isRecord(record)) {
-			throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
-		}
-		result[doc.id] = new Account(doc.id, record);
+	return (): void => {
+		unsubscribe();
+		forgetJobQueue(queueId);
+	};
+}
+
+export function accountFromSnapshot(
+	doc: QueryDocumentSnapshot<AccountRecordPackage>,
+	dek: HashStore
+): Account {
+	const pkg = doc.data();
+	const record = decrypt(pkg, dek);
+	if (!Account.isRecord(record)) {
+		throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
 	}
-	return result;
+	return new Account(doc.id, record);
 }
 
 export async function createAccount(
@@ -152,6 +183,24 @@ export async function createAccount(
 	const pkg = encrypt(record, meta, dek);
 	const ref = await addDoc(accountsCollection(uid), pkg);
 	return new Account(ref.id, record);
+}
+
+export async function updateAccount(uid: string, account: Account, dek: HashStore): Promise<void> {
+	const meta: AccountRecordPackageMetadata = {
+		objectType: "Account",
+	};
+	const record: AccountRecordParams = {
+		createdAt: account.createdAt,
+		notes: account.notes,
+		title: account.title,
+	};
+	const pkg = encrypt(record, meta, dek);
+	await setDoc(accountRef(uid, account.id), pkg);
+}
+
+export async function deleteAccount(uid: string, account: Account): Promise<void> {
+	await deleteDoc(accountRef(uid, account.id));
+	// TODO: Make sure this handles transactions
 }
 
 // ** Transaction Records

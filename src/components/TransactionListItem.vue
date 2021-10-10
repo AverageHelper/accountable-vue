@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, toRefs } from "vue";
 import { Transaction } from "../model/Transaction";
 
 const props = defineProps({
 	transaction: { type: Transaction, required: true },
 });
+const { transaction } = toRefs(props);
 
 const transactionRoute = computed(
-	() => `/accounts/${props.transaction.accountId}/transactions/${props.transaction.id}`
+	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
 );
 </script>
 

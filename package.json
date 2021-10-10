@@ -13,7 +13,9 @@
 		"lint:fix": "npm run lint -- --fix",
 		"export-version": "genversion ./src/version.ts -es"
 	},
+	"type": "module",
 	"dependencies": {
+		"@averagehelper/job-queue": "^0.9.6",
 		"atob-lite": "^2.0.0",
 		"btoa-lite": "^1.0.0",
 		"crypto-js": "^4.1.1",

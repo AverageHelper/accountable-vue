@@ -109,7 +109,7 @@ async function submit() {
 			:shows-required="false"
 			:required="isSignupMode"
 		/>
-		<ActionButton class="submit" type="submit" kind="bordered" :disabled="isLoading">{{
+		<ActionButton type="submit" kind="bordered" :disabled="isLoading">{{
 			isSignupMode ? "Create an account" : "Log in"
 		}}</ActionButton>
 		<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
@@ -129,9 +129,3 @@ async function submit() {
 		</div>
 	</form>
 </template>
-
-<style scoped lang="scss">
-.submit {
-	margin: 1em 0;
-}
-</style>

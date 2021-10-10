@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import { ref } from "vue";
+import { ref, toRefs } from "vue";
 
 const emit = defineEmits([
 	"update:modelValue",
@@ -27,6 +27,7 @@ const props = defineProps({
 	required: { type: Boolean, default: false },
 	showsRequired: { type: Boolean, default: true },
 });
+const { modelValue } = toRefs(props);
 
 const input = ref<HTMLInputElement | null>(null);
 
@@ -45,7 +46,7 @@ function onBlur(event: FocusEvent): void {
 
 function onChange(event: InputEvent): void {
 	const target = event.target as HTMLInputElement | null;
-	if (target?.value !== props.modelValue) {
+	if (target?.value !== modelValue.value) {
 		emit("update:modelValue", target?.value ?? "");
 	}
 	emit("change", target?.value ?? "");
