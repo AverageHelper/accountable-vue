@@ -71,6 +71,15 @@ function transactionsCollection(
 	return collection(db, path) as CollectionReference<TransactionRecordPackage>;
 }
 
+function transactionRef(
+	uid: string,
+	accountId: string,
+	transactionId: string
+): DocumentReference<TransactionRecordPackage> {
+	const path = `users/${uid}/accounts/${accountId}/transactions/${transactionId}`;
+	return doc(db, path) as DocumentReference<TransactionRecordPackage>;
+}
+
 export { Timestamp };
 export const DELETE = deleteField();
 export const TIMESTAMP = serverTimestamp() as unknown as Timestamp;
@@ -204,6 +213,42 @@ export async function deleteAccount(uid: string, account: Account): Promise<void
 
 // ** Transaction Records
 
+export function watchAllTransactions(
+	uid: string,
+	account: Account,
+	onSnap: (snap: QuerySnapshot<TransactionRecordPackage>) => void | Promise<void>,
+	onError?: ((error: FirestoreError) => void) | undefined,
+	onCompletion?: (() => void) | undefined
+): Unsubscribe {
+	const queueId = `watchAllTransactions-${uid}-${account.id}`;
+	const queue = useJobQueue<QuerySnapshot<TransactionRecordPackage>>(queueId);
+	queue.process(onSnap);
+	const unsubscribe = onSnapshot(
+		transactionsCollection(uid, account.id),
+		snap => queue.createJob(snap),
+		onError,
+		onCompletion
+	);
+
+	return (): void => {
+		unsubscribe();
+		forgetJobQueue(queueId);
+	};
+}
+
+export function transactionFromSnapshot(
+	accountId: string,
+	doc: QueryDocumentSnapshot<TransactionRecordPackage>,
+	dek: HashStore
+): Transaction {
+	const pkg = doc.data();
+	const record = decrypt(pkg, dek);
+	if (!Transaction.isRecord(record)) {
+		throw new TypeError(`Failed to parse transaction record from Firestore document ${doc.id}`);
+	}
+	return new Transaction(accountId, doc.id, record);
+}
+
 export async function getTransactionsForAccount(
 	uid: string,
 	account: Account,
@@ -236,4 +281,28 @@ export async function createTransaction(
 	const pkg = encrypt(record, meta, dek);
 	const ref = await addDoc(transactionsCollection(uid, account.id), pkg);
 	return new Transaction(account.id, ref.id, record);
+}
+
+export async function updateTransaction(
+	uid: string,
+	transaction: Transaction,
+	dek: HashStore
+): Promise<void> {
+	const meta: TransactionRecordPackageMetadata = {
+		objectType: "Transaction",
+		createdAt: transaction.createdAt,
+	};
+	const record: TransactionRecordParams = {
+		createdAt: transaction.createdAt,
+		notes: transaction.notes,
+		title: transaction.title,
+		amount: transaction.amount,
+		isReconciled: transaction.isReconciled,
+	};
+	const pkg = encrypt(record, meta, dek);
+	await setDoc(transactionRef(uid, transaction.accountId, transaction.id), pkg);
+}
+
+export async function deleteTransaction(uid: string, transaction: Transaction): Promise<void> {
+	await deleteDoc(transactionRef(uid, transaction.accountId, transaction.id));
 }

@@ -31,7 +31,7 @@ const transactionRoute = computed(
 	margin-bottom: 0.5em;
 	text-decoration: none;
 	color: color($label);
-	background-color: color($cloud);
+	background-color: color($secondary-fill);
 
 	.title {
 		font-weight: bold;

@@ -12,13 +12,29 @@ const emit = defineEmits([
 	"keypress",
 ]);
 
+type TextFieldType =
+	| "text"
+	| "password"
+	| "color"
+	| "date"
+	| "time"
+	| "email"
+	| "hidden"
+	| "number"
+	| "range"
+	| "search"
+	| "tel"
+	| "url";
+
 const props = defineProps({
 	modelValue: { type: String, default: "" },
 	dataTest: { type: String as PropType<string | null>, default: null },
 	placeholder: { type: String as PropType<string | null>, default: null },
-	type: { type: String, default: "text" },
+	type: { type: String as PropType<TextFieldType>, default: "text" },
 	size: { type: Number, default: 20 },
 	maxlength: { type: Number, default: 524288 },
+	min: { type: Number as PropType<number | null>, default: null },
+	max: { type: Number as PropType<number | null>, default: null },
 	autofocus: { type: Boolean, default: false },
 	autocomplete: { type: String, default: "" },
 	label: { type: String, default: "" },
@@ -97,6 +113,8 @@ defineExpose({ focus });
 			:type="type"
 			:size="size"
 			:maxlength="maxlength"
+			:min="min"
+			:max="max"
 			:autofocus="autofocus"
 			:autocomplete="autocomplete"
 			:placeholder="placeholder || (type === 'password' ? '********' : '')"
@@ -133,7 +151,7 @@ defineExpose({ focus });
 	transition: all 0.2s ease;
 
 	&::placeholder {
-		color: color($gray4);
+		color: color($secondary-label);
 	}
 
 	&__container {

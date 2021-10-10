@@ -65,7 +65,7 @@ defineExpose({ focus });
 	</label>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 @use "styles/colors" as *;
 
 .text-area {

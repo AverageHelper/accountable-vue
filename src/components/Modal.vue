@@ -31,7 +31,7 @@ onBeforeUnmount(() => {
 	</teleport>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 @use "styles/colors" as *;
 
 .modal {

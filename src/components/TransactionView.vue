@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import NavAction from "./NavAction.vue";
 import EditButton from "./EditButton.vue";
-import { toTitleCase } from "../filters/toTitleCase";
-
-import type { Transaction } from "../model/Transaction";
-import { computed, toRefs } from "vue";
-import { useTransactionsStore } from "../store";
+import NavAction from "./NavAction.vue";
+import TransactionEdit from "./TransactionEdit.vue";
+import { computed, toRefs, watch, onBeforeUnmount } from "vue";
+import { useAccountsStore, useTransactionsStore } from "../store";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -13,20 +12,45 @@ const props = defineProps({
 });
 const { accountId, transactionId } = toRefs(props);
 
+const router = useRouter();
+const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
-const theseTransactions = computed<Dictionary<Transaction> | undefined>(
-	() => transactions.transactionsForAccount[accountId.value]
+const theseTransactions = computed(() => transactions.transactionsForAccount[accountId.value]);
+const account = computed(() => accounts.items[accountId.value]);
+const transaction = computed(() => theseTransactions.value[transactionId.value]);
+
+watch(
+	account,
+	account => {
+		if (account) {
+			transactions.watchTransactions(account);
+		}
+	},
+	{ immediate: true }
 );
 
-const transaction = computed(() => theseTransactions.value[transactionId.value]);
+onBeforeUnmount(() => {
+	if (account.value) {
+		transactions.unwatchTransactions(account.value);
+	}
+});
+
+function goBack() {
+	router.back();
+}
 </script>
 
 <template>
 	<NavAction>
-		<EditButton>
-			<template #modal>
-				<h1>Edit {{ transaction.title ?? toTitleCase(transaction.type) }}</h1>
+		<EditButton v-if="account && transaction">
+			<template #modal="{ onFinished }">
+				<TransactionEdit
+					:account="account"
+					:transaction="transaction"
+					@deleted="goBack"
+					@finished="onFinished"
+				/>
 			</template>
 		</EditButton>
 	</NavAction>
