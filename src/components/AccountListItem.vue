@@ -31,7 +31,10 @@ onMounted(async () => {
 
 <template>
 	<router-link class="account-list-item" :to="accountRoute">
-		<span class="title">{{ account.title }}</span>
+		<div class="content">
+			<span class="title">{{ account.title }}</span>
+			<span v-if="account.notes" class="subtitle">{{ account.notes }}</span>
+		</div>
 
 		<span v-if="numberOfTransactions === null">...</span>
 		<span v-else class="count">{{ numberOfTransactions }}</span>
@@ -52,8 +55,17 @@ onMounted(async () => {
 	color: color($label);
 	background-color: color($cloud);
 
-	.title {
-		font-weight: bold;
+	.content {
+		display: flex;
+		flex-direction: column;
+
+		.title {
+			font-weight: bold;
+		}
+
+		.subtitle {
+			color: color($secondary-label);
+		}
 	}
 
 	.count {

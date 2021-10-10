@@ -2,7 +2,7 @@ import type { Identifiable } from "./utility/Identifiable";
 import isString from "lodash/isString";
 import isBoolean from "lodash/isBoolean";
 
-export type TransactionRecordType = "expense" | "income" | "zero";
+export type TransactionRecordType = "expense" | "income" | "transaction";
 
 export interface TransactionRecord extends Identifiable<string> {
 	amount: number;
@@ -27,13 +27,13 @@ export class Transaction implements TransactionRecord {
 
 	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
 		this.id = id;
+		this.accountId = accountId;
 		const defaultRecord = Transaction.defaultRecord(record);
 		this.amount = record?.amount ?? defaultRecord.amount;
 		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
-		this.title = record?.title ?? defaultRecord.title;
-		this.notes = record?.notes ?? defaultRecord.notes;
+		this.title = (record?.title?.trim() ?? "") || defaultRecord.title;
+		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
-		this.accountId = accountId;
 	}
 
 	get type(): TransactionRecordType {
@@ -42,7 +42,7 @@ export class Transaction implements TransactionRecord {
 		} else if (this.amount < 0) {
 			return "expense";
 		}
-		return "zero";
+		return "transaction";
 	}
 
 	static defaultRecord(record?: Partial<TransactionRecordParams>): TransactionRecordParams {

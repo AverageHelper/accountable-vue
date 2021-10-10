@@ -13,8 +13,8 @@ const emit = defineEmits([
 ]);
 
 const props = defineProps({
-	dataTest: { type: String as PropType<string | null>, default: null },
 	modelValue: { type: String, default: "" },
+	dataTest: { type: String as PropType<string | null>, default: null },
 	placeholder: { type: String as PropType<string | null>, default: null },
 	type: { type: String, default: "text" },
 	size: { type: Number, default: 20 },
@@ -149,7 +149,6 @@ defineExpose({ focus });
 		font-weight: 700;
 		font-size: 0.9em;
 		width: 100%;
-		text-align: center;
 	}
 
 	&__required {

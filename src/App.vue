@@ -53,6 +53,7 @@ onMounted(() => {
 			</router-view> -->
 		</template>
 	</main>
+	<div id="modal" />
 </template>
 
 <style lang="scss">

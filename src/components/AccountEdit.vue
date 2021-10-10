@@ -2,6 +2,7 @@
 import type { PropType } from "vue";
 import ActionButton from "./ActionButton.vue";
 import TextField from "./TextField.vue";
+import TextAreaField from "./TextAreaField.vue";
 import { Account } from "../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
@@ -26,7 +27,7 @@ const numberOfTransactions = computed<number>(() => {
 
 const isLoading = ref(false);
 const title = ref("");
-// const notes = ref("");
+const notes = ref("");
 // const createdAt = computed(() => props.account.createdAt ?? new Date());
 
 const titleField = ref<HTMLInputElement | null>(null);
@@ -34,6 +35,7 @@ const titleField = ref<HTMLInputElement | null>(null);
 onMounted(() => {
 	// Opened, if we're modal
 	title.value = ogAccount.value?.title ?? "";
+	notes.value = ogAccount.value?.notes ?? "";
 	titleField.value?.focus();
 });
 
@@ -60,12 +62,13 @@ async function submit() {
 			await accounts.createAccount({
 				...Account.defaultRecord(),
 				title: title.value,
+				notes: notes.value,
 			});
 		} else {
 			await accounts.updateAccount(
 				new Account(ogAccount.value.id, {
 					title: title.value,
-					notes: ogAccount.value.notes,
+					notes: notes.value || ogAccount.value.notes,
 					createdAt: ogAccount.value.createdAt,
 				})
 			);
@@ -104,6 +107,7 @@ async function deleteAccount() {
 		<h1 v-else>Edit {{ ogAccount?.title ?? "Account" }}</h1>
 
 		<TextField ref="titleField" v-model="title" label="title" placeholder="Bank Money" required />
+		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
 
 		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Save</ActionButton>
 		<ActionButton

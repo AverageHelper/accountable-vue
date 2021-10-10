@@ -19,8 +19,8 @@ export class Account implements AccountRecord {
 	constructor(id: string, record?: Partial<AccountRecordParams>) {
 		this.id = id;
 		const defaultRecord = Account.defaultRecord(record);
-		this.title = record?.title ?? defaultRecord.title;
-		this.notes = record?.notes ?? defaultRecord.notes;
+		this.title = (record?.title?.trim() ?? defaultRecord.title) || defaultRecord.title;
+		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
 	}
 
