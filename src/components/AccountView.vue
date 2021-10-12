@@ -6,7 +6,7 @@ import List from "./List.vue";
 import NavAction from "./NavAction.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import TransactionListItem from "./TransactionListItem.vue";
-import { computed, toRefs } from "vue";
+import { computed, toRefs, watch } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
 import { useRouter } from "vue-router";
 
@@ -24,6 +24,16 @@ const theseTransactions = computed<Dictionary<Transaction> | undefined>(
 	() => transactions.transactionsForAccount[accountId.value]
 );
 const numberOfTransactions = computed(() => Object.keys(theseTransactions.value ?? {}).length);
+
+watch(
+	account,
+	account => {
+		if (account) {
+			transactions.watchTransactions(account);
+		}
+	},
+	{ immediate: true }
+);
 
 function goBack() {
 	router.back();

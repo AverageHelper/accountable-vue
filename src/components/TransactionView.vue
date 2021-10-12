@@ -2,7 +2,7 @@
 import EditButton from "./EditButton.vue";
 import NavAction from "./NavAction.vue";
 import TransactionEdit from "./TransactionEdit.vue";
-import { computed, toRefs, watch, onBeforeUnmount } from "vue";
+import { computed, toRefs } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
 import { useRouter } from "vue-router";
 
@@ -16,25 +16,11 @@ const router = useRouter();
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
-const theseTransactions = computed(() => transactions.transactionsForAccount[accountId.value]);
+const theseTransactions = computed(
+	() => transactions.transactionsForAccount[accountId.value] ?? {}
+);
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
-
-watch(
-	account,
-	account => {
-		if (account) {
-			transactions.watchTransactions(account);
-		}
-	},
-	{ immediate: true }
-);
-
-onBeforeUnmount(() => {
-	if (account.value) {
-		transactions.unwatchTransactions(account.value);
-	}
-});
 
 function goBack() {
 	router.back();
@@ -55,9 +41,11 @@ function goBack() {
 		</EditButton>
 	</NavAction>
 
-	{{ transaction.title }}
-	{{ transaction.amount }}
-	{{ transaction.createdAt }}
+	<div v-if="transaction">
+		{{ transaction.title }}
+		{{ transaction.amount }}
+		{{ transaction.createdAt }}
+	</div>
 </template>
 
 <style scoped lang="scss">

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { Account } from "../model/Account";
 import type { PropType } from "vue";
+import type { TransactionRecordParams } from "../model/Transaction";
 import ActionButton from "./ActionButton.vue";
+import Checkbox from "./Checkbox.vue";
 import CurrencyInput from "./CurrencyInput.vue";
+import DateTimeInput from "./DateTimeInput.vue";
+import TextAreaField from "./TextAreaField.vue";
 import TextField from "./TextField.vue";
 import { Transaction } from "../model/Transaction";
 import { ref, computed, toRefs, onMounted } from "vue";
@@ -26,18 +30,21 @@ const isCreatingTransaction = computed(() => ogTransaction.value === null);
 const isLoading = ref(false);
 const title = ref("");
 const notes = ref("");
+const location = ref("");
 const createdAt = ref(new Date());
 const amount = ref(0);
 const isReconciled = ref(false);
 
-const titleField = ref<HTMLInputElement | null>(null);
+createdAt.value.setSeconds(0, 0);
 
 onMounted(() => {
 	// Opened, if we're modal
-	title.value = ogTransaction.value?.title ?? "";
-	notes.value = ogTransaction.value?.notes ?? "";
-	createdAt.value = ogTransaction.value?.createdAt ?? new Date();
-	titleField.value?.focus();
+	title.value = ogTransaction.value?.title ?? title.value;
+	notes.value = ogTransaction.value?.notes ?? notes.value;
+	// location.value = ogTransaction.value?.location ?? location.value;
+	createdAt.value = ogTransaction.value?.createdAt ?? createdAt.value;
+	amount.value = ogTransaction.value?.amount ?? amount.value;
+	isReconciled.value = ogTransaction.value?.isReconciled ?? isReconciled.value;
 });
 
 function handleError(error: unknown) {
@@ -59,18 +66,18 @@ async function submit() {
 			throw new Error("Title is required");
 		}
 
+		const params: TransactionRecordParams = {
+			title: title.value,
+			notes: notes.value,
+			createdAt: createdAt.value,
+			isReconciled: isReconciled.value,
+			amount: amount.value,
+		};
 		if (isCreatingTransaction.value) {
-			await transactions.createTransaction(account.value, {
-				...Transaction.defaultRecord(),
-				title: title.value,
-			});
+			await transactions.createTransaction(account.value, params);
 		} else {
 			await transactions.updateTransaction(
-				new Transaction(account.value.id, ogTransaction.value.id, {
-					title: title.value,
-					notes: ogTransaction.value.notes,
-					createdAt: ogTransaction.value.createdAt,
-				})
+				new Transaction(account.value.id, ogTransaction.value.id, params)
 			);
 		}
 
@@ -105,9 +112,14 @@ async function deleteTransaction() {
 	<form @submit.prevent="submit">
 		<h1 v-if="isCreatingTransaction">Create Transaction</h1>
 		<h1 v-else>Edit {{ toTitleCase(ogTransaction?.type) ?? "Transaction" }}</h1>
+		<span>Account: {{ account.title ?? "Unknown" }}</span>
 
-		<TextField ref="titleField" v-model="title" label="title" placeholder="Bank Money" required />
 		<CurrencyInput v-model="amount" label="amount" />
+		<Checkbox v-model="isReconciled" label="Reconciled" class="checkbox" />
+		<TextField v-model="title" label="title" placeholder="Bank Money" />
+		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
+		<TextField v-model="location" label="location" placeholder="Swahilli, New Guinnea" />
+		<DateTimeInput v-model="createdAt" label="date" />
 
 		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Save</ActionButton>
 		<ActionButton
@@ -120,3 +132,11 @@ async function deleteTransaction() {
 		<p v-if="isLoading">Saving...</p>
 	</form>
 </template>
+
+<style scoped lang="scss">
+form {
+	> label:not(.checkbox) {
+		width: 80%;
+	}
+}
+</style>

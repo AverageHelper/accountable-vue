@@ -41,6 +41,7 @@ button {
 	color: inherit;
 	min-height: 44pt;
 	min-width: 44pt;
+	width: fit-content;
 	border-radius: 50%;
 
 	&.kind {

@@ -6,9 +6,11 @@ import { bootstrap, isWrapperInstantiated } from "./transport/wrapper";
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "./store/authStore";
+import { useUiStore } from "./store/uiStore";
 
 const route = useRoute();
 const auth = useAuthStore();
+const ui = useUiStore();
 
 const bootstrapError = ref<Error | null>(null);
 const title = computed<string>(() => {
@@ -23,6 +25,7 @@ const title = computed<string>(() => {
 });
 
 onMounted(() => {
+	ui.watchColorScheme();
 	if (isWrapperInstantiated()) return;
 
 	try {
@@ -59,6 +62,10 @@ onMounted(() => {
 <style lang="scss">
 @use "styles/colors" as *;
 @import "styles/setup";
+
+#app * {
+	box-sizing: border-box;
+}
 
 html,
 body {

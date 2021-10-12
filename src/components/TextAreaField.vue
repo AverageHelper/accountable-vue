@@ -83,7 +83,7 @@ defineExpose({ focus });
 	text-align: left;
 
 	&::placeholder {
-		color: color($gray4);
+		color: color($secondary-label);
 	}
 
 	&__container {

@@ -60,7 +60,7 @@ function close() {
 	li {
 		display: flex;
 
-		& > a {
+		> a {
 			display: block;
 			padding: 1em;
 			text-decoration: none;

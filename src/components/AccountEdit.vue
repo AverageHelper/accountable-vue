@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import ActionButton from "./ActionButton.vue";
-import TextField from "./TextField.vue";
 import TextAreaField from "./TextAreaField.vue";
+import TextField from "./TextField.vue";
 import { Account } from "../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore } from "../store";
@@ -120,3 +120,11 @@ async function deleteAccount() {
 		<p v-if="isLoading">Saving...</p>
 	</form>
 </template>
+
+<style scoped lang="scss">
+form {
+	> label {
+		width: 80%;
+	}
+}
+</style>

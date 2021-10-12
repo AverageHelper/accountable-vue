@@ -63,13 +63,6 @@ export const useTransactionsStore = defineStore("transactions", {
 				});
 			});
 		},
-		unwatchTransactions(account: Account) {
-			const watcher = this.transactionsWatchers[account.id];
-			if (watcher) {
-				watcher();
-				delete this.transactionsWatchers[account.id];
-			}
-		},
 		async getTransactionsForAccount(account: Account) {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
@@ -94,7 +87,6 @@ export const useTransactionsStore = defineStore("transactions", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			const transaction = await createTransaction(uid, account, record, dek);
-			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, dek);
 			return transaction;
 		},
 		async updateTransaction(transaction: Transaction) {

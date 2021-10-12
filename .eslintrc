@@ -25,7 +25,7 @@
 	"rules": {
 		"prettier/prettier": "warn",
 		"no-constant-condition": "warn",
-		"no-console": ["warn", { "allow": ["error"] }],
+		"no-console": ["warn", { "allow": ["error", "warn"] }],
 		"no-dupe-else-if": "warn",
 		"consistent-return": "off", // TS handles this
 		"no-duplicate-imports": "off", // typescript-eslint handles this
