@@ -57,8 +57,8 @@ function onChange(event: Event): void {
 
 		&:after {
 			content: "";
-			width: 1.1em;
-			height: 0.45em;
+			width: 0.9em;
+			height: 0.35em;
 			position: absolute;
 			top: 0.35em;
 			left: 0.25em;

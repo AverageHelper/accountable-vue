@@ -2,7 +2,7 @@
 import type { PropType } from "vue";
 
 type ActionButtonType = "button" | "submit" | "reset";
-type ActionButtonKind = "plain" | "bordered" | "bordered-destructive";
+type ActionButtonKind = "plain" | "bordered" | "bordered-destructive" | "bordered-primary";
 
 const emit = defineEmits(["click"]);
 
@@ -46,7 +46,8 @@ button {
 
 	&.kind {
 		&--bordered,
-		&--bordered-destructive {
+		&--bordered-destructive,
+		&--bordered-primary {
 			font-size: 100%;
 			font-weight: bold;
 			color: color($label);
@@ -72,6 +73,17 @@ button {
 				@media (hover: hover) {
 					&:hover {
 						background-color: color($red-highlight);
+					}
+				}
+			}
+
+			&-primary {
+				background-color: color($blue);
+				color: color($label-dark);
+
+				@media (hover: hover) {
+					&:hover {
+						background-color: color($blue-highlight);
 					}
 				}
 			}

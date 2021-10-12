@@ -109,7 +109,7 @@ async function deleteAccount() {
 		<TextField ref="titleField" v-model="title" label="title" placeholder="Bank Money" required />
 		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
 
-		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Save</ActionButton>
+		<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">Save</ActionButton>
 		<ActionButton
 			v-if="!isCreatingAccount && numberOfTransactions === 0"
 			kind="bordered-destructive"

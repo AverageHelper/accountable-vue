@@ -17,12 +17,15 @@ const { currency, modelValue } = toRefs(props);
 
 const isIncome = ref(true);
 
-const presentableValue = computed(() => {
-	const formatter = new Intl.NumberFormat("en-US", {
+const formatter = computed(() => {
+	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: currency.value,
 	});
-	return formatter.format(modelValue.value);
+});
+
+const presentableValue = computed(() => {
+	return formatter.value.format(modelValue.value);
 });
 
 function onInput(event: Event) {
@@ -66,15 +69,31 @@ defineExpose({ focus });
 </template>
 
 <style scoped lang="scss">
+@use "styles/colors" as *;
+
 .currency-input {
 	&__container {
 		position: relative;
 
 		.negate {
 			position: absolute;
-			right: 0;
-			top: 26%;
+			right: 2pt;
+			bottom: 19%;
 			font-size: 100%;
+			min-height: 1em;
+			min-width: 2em;
+			height: 2em;
+			border-radius: 4pt;
+
+			@media (hover: hover) {
+				&:hover {
+					background: color($gray4);
+				}
+
+				&:hover:disabled {
+					background: none;
+				}
+			}
 		}
 	}
 }

@@ -9,6 +9,7 @@ export interface TransactionRecord extends Identifiable<string> {
 	createdAt: Date;
 	title: string | null;
 	notes: string | null;
+	locationId: string | null;
 	isReconciled: boolean;
 	accountId: string;
 }
@@ -22,6 +23,7 @@ export class Transaction implements TransactionRecord {
 	public readonly createdAt: Date;
 	public readonly title: string | null;
 	public readonly notes: string | null;
+	public readonly locationId: string | null;
 	public readonly isReconciled: boolean;
 	public readonly accountId: string;
 
@@ -33,6 +35,7 @@ export class Transaction implements TransactionRecord {
 		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
 		this.title = (record?.title?.trim() ?? "") || defaultRecord.title;
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
+		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
 	}
 
@@ -49,8 +52,9 @@ export class Transaction implements TransactionRecord {
 		return {
 			amount: record?.amount ?? 0,
 			createdAt: record?.createdAt ?? new Date(),
-			title: record?.title ?? `Transaction ${Math.floor(Math.random() * 10) + 1}`,
+			title: record?.title ?? null,
 			notes: record?.notes ?? null,
+			locationId: record?.locationId ?? null,
 			isReconciled: record?.isReconciled ?? false,
 		};
 	}
@@ -66,11 +70,14 @@ export class Transaction implements TransactionRecord {
 				"createdAt" in toBeDetermined &&
 				"title" in toBeDetermined &&
 				"notes" in toBeDetermined &&
+				"locationId" in toBeDetermined &&
 				"isReconciled" in toBeDetermined &&
 				(toBeDetermined as TransactionRecordParams).title === null) ||
 			(isString((toBeDetermined as TransactionRecordParams).title) &&
 				(toBeDetermined as TransactionRecordParams).notes === null) ||
 			(isString((toBeDetermined as TransactionRecordParams).notes) &&
+				(toBeDetermined as TransactionRecordParams).locationId === null) ||
+			(isString((toBeDetermined as TransactionRecordParams).locationId) &&
 				isBoolean((toBeDetermined as TransactionRecordParams).isReconciled))
 		);
 	}
@@ -82,6 +89,7 @@ export class Transaction implements TransactionRecord {
 			createdAt: this.createdAt,
 			title: this.title,
 			notes: this.notes,
+			locationId: this.locationId,
 			isReconciled: this.isReconciled,
 			accountId: this.accountId,
 		};

@@ -149,6 +149,7 @@ defineExpose({ focus });
 	font-size: 1em;
 	text-overflow: ellipsis;
 	transition: all 0.2s ease;
+	color: inherit;
 
 	&::placeholder {
 		color: color($secondary-label);

@@ -10,9 +10,8 @@ import TextAreaField from "./TextAreaField.vue";
 import TextField from "./TextField.vue";
 import { Transaction } from "../model/Transaction";
 import { ref, computed, toRefs, onMounted } from "vue";
-import { toTitleCase } from "../filters/toTitleCase";
-import { useTransactionsStore } from "../store";
 import { useToast } from "vue-toastification";
+import { useTransactionsStore } from "../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -30,10 +29,12 @@ const isCreatingTransaction = computed(() => ogTransaction.value === null);
 const isLoading = ref(false);
 const title = ref("");
 const notes = ref("");
-const location = ref("");
+const locationId = ref("");
 const createdAt = ref(new Date());
 const amount = ref(0);
 const isReconciled = ref(false);
+
+const isExpense = computed(() => amount.value <= 0);
 
 createdAt.value.setSeconds(0, 0);
 
@@ -41,7 +42,7 @@ onMounted(() => {
 	// Opened, if we're modal
 	title.value = ogTransaction.value?.title ?? title.value;
 	notes.value = ogTransaction.value?.notes ?? notes.value;
-	// location.value = ogTransaction.value?.location ?? location.value;
+	locationId.value = ogTransaction.value?.locationId ?? locationId.value;
 	createdAt.value = ogTransaction.value?.createdAt ?? createdAt.value;
 	amount.value = ogTransaction.value?.amount ?? amount.value;
 	isReconciled.value = ogTransaction.value?.isReconciled ?? isReconciled.value;
@@ -71,6 +72,7 @@ async function submit() {
 			notes: notes.value,
 			createdAt: createdAt.value,
 			isReconciled: isReconciled.value,
+			locationId: locationId.value,
 			amount: amount.value,
 		};
 		if (isCreatingTransaction.value) {
@@ -109,19 +111,20 @@ async function deleteTransaction() {
 </script>
 
 <template>
-	<form @submit.prevent="submit">
-		<h1 v-if="isCreatingTransaction">Create Transaction</h1>
-		<h1 v-else>Edit {{ toTitleCase(ogTransaction?.type) ?? "Transaction" }}</h1>
+	<form :class="{ expense: isExpense }" @submit.prevent="submit">
+		<h1 v-if="isCreatingTransaction">Create {{ isExpense ? "Expense" : "Income" }}</h1>
+		<h1 v-else>Edit {{ isExpense ? "Expense" : "Income" }}</h1>
+
 		<span>Account: {{ account.title ?? "Unknown" }}</span>
 
-		<CurrencyInput v-model="amount" label="amount" />
+		<CurrencyInput v-model="amount" class="currency" label="amount" />
 		<Checkbox v-model="isReconciled" label="Reconciled" class="checkbox" />
 		<TextField v-model="title" label="title" placeholder="Bank Money" />
 		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
-		<TextField v-model="location" label="location" placeholder="Swahilli, New Guinnea" />
+		<!-- <TextField v-model="locationId" label="location" placeholder="Swahilli, New Guinnea" /> -->
 		<DateTimeInput v-model="createdAt" label="date" />
 
-		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Save</ActionButton>
+		<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">Save</ActionButton>
 		<ActionButton
 			v-if="!isCreatingTransaction"
 			kind="bordered-destructive"
@@ -134,9 +137,25 @@ async function deleteTransaction() {
 </template>
 
 <style scoped lang="scss">
+@use "styles/colors" as *;
+
 form {
 	> label:not(.checkbox) {
 		width: 80%;
+	}
+
+	&,
+	& h1,
+	&.expense .currency .text-input {
+		color: color($green);
+		transition: none;
+	}
+
+	&.expense,
+	&.expense h1,
+	&.expense .currency .text-input {
+		color: color($red);
+		transition: none;
 	}
 }
 </style>
