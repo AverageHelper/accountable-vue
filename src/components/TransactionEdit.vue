@@ -74,6 +74,7 @@ async function submit() {
 			isReconciled: isReconciled.value,
 			locationId: locationId.value,
 			amount: amount.value,
+			accountId: account.value.id,
 		};
 		if (isCreatingTransaction.value) {
 			await transactions.createTransaction(account.value, params);

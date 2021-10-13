@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import type { CurrencyCode } from "../filters/toCurrency";
 import type { PropType } from "vue";
 import ActionButton from "./ActionButton.vue";
 import TextField from "./TextField.vue";
 import { ref, computed, toRefs, watch } from "vue";
-
-type CurrencyCode = "USD";
+import { toCurrency } from "../filters/toCurrency";
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -17,15 +17,8 @@ const { currency, modelValue } = toRefs(props);
 
 const isIncome = ref(true);
 
-const formatter = computed(() => {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: currency.value,
-	});
-});
-
 const presentableValue = computed(() => {
-	return formatter.value.format(modelValue.value);
+	return toCurrency(modelValue.value, currency.value);
 });
 
 function onInput(event: Event) {

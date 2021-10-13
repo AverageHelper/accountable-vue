@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
-
-import { bootstrap, isWrapperInstantiated } from "./transport/wrapper";
+import { bootstrap, isWrapperInstantiated } from "./transport";
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "./store/authStore";

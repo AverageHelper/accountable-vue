@@ -14,7 +14,8 @@ import { useUiStore } from "../store/uiStore";
 const emit = defineEmits(["update:modelValue"]);
 
 const props = defineProps({
-	modelValue: { type: Date, default: currentDate },
+	// Sometimes the date will get stringified on the way through. vue3-date-time-picker handles that
+	modelValue: { type: [Date, String], default: currentDate },
 	label: { type: String, default: "" },
 	min: { type: Date as PropType<Date | null>, default: null },
 	max: { type: Date as PropType<Date | null>, default: null },

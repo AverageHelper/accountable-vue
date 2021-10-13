@@ -1,15 +1,13 @@
 import type { Identifiable } from "./utility/Identifiable";
 import isString from "lodash/isString";
 
-export interface AccountRecord extends Identifiable<string> {
+export interface AccountRecordParams {
 	title: string;
 	notes: string | null;
 	createdAt: Date;
 }
 
-export type AccountRecordParams = Omit<AccountRecord, "id">;
-
-export class Account implements AccountRecord {
+export class Account implements Identifiable<string>, AccountRecordParams {
 	public readonly objectType = "Account";
 	public readonly id: string;
 	public readonly title: string;
@@ -24,7 +22,7 @@ export class Account implements AccountRecord {
 		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
 	}
 
-	static defaultRecord(record?: Partial<AccountRecordParams>): AccountRecordParams {
+	static defaultRecord(this: void, record?: Partial<AccountRecordParams>): AccountRecordParams {
 		return {
 			title: record?.title ?? `Account ${Math.floor(Math.random() * 10) + 1}`,
 			notes: record?.notes ?? null,
@@ -32,7 +30,7 @@ export class Account implements AccountRecord {
 		};
 	}
 
-	static isRecord(toBeDetermined: unknown): toBeDetermined is AccountRecordParams {
+	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is AccountRecordParams {
 		return (
 			(typeof toBeDetermined === "object" &&
 				toBeDetermined !== null &&
@@ -49,7 +47,7 @@ export class Account implements AccountRecord {
 		);
 	}
 
-	toRecord(): AccountRecord {
+	toRecord(): AccountRecordParams & { id: string } {
 		return {
 			id: this.id,
 			title: this.title,

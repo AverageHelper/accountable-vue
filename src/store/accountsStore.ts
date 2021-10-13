@@ -1,20 +1,22 @@
 import type { Account, AccountRecordParams } from "../model/Account";
-import type { HashStore } from "../transport/cryption";
+import type { HashStore } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
-import { deriveDEK } from "../transport/cryption";
+import { useAuthStore } from "./authStore";
 import {
 	createAccount,
+	deriveDEK,
 	updateAccount,
 	deleteAccount,
-	watchAllAccounts,
 	accountFromSnapshot,
-} from "../transport/wrapper";
-import { useAuthStore } from "./authStore";
+	accountsCollection,
+	watchAllRecords,
+} from "../transport";
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
 		items: {} as Dictionary<Account>,
+		currentBalance: {} as Dictionary<Account>,
 		loadError: null as Error | null,
 		accountsWatcher: null as Unsubscribe | null,
 	}),
@@ -36,8 +38,9 @@ export const useAccountsStore = defineStore("accounts", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			this.accountsWatcher = watchAllAccounts(
-				uid,
+			const collection = accountsCollection(uid);
+			this.accountsWatcher = watchAllRecords(
+				collection,
 				async snap => {
 					this.loadError = null;
 					const authStore = useAuthStore();
@@ -99,6 +102,16 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(uid, account);
+		},
+	},
+	getters: {
+		balanceForAccount(): (account: Account) => number {
+			return (account: Account): number => {
+				if (!Object.keys(this.items).includes(account.id)) return 0;
+
+				// Add every transaction together for this account. Fetch them if you have to.
+				return 0;
+			};
 		},
 	},
 });

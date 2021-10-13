@@ -1,18 +1,19 @@
-import type { HashStore } from "../transport/cryption";
+import type { HashStore } from "../transport";
 import type { Account } from "../model/Account";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
-import { deriveDEK } from "../transport/cryption";
 import { useAuthStore } from "./authStore";
 import {
 	getTransactionsForAccount,
 	createTransaction,
+	deriveDEK,
 	updateTransaction,
 	deleteTransaction,
-	watchAllTransactions,
 	transactionFromSnapshot,
-} from "../transport/wrapper";
+	transactionsCollection,
+	watchAllRecords,
+} from "../transport";
 
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
@@ -38,7 +39,9 @@ export const useTransactionsStore = defineStore("transactions", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			this.transactionsWatchers[account.id] = watchAllTransactions(uid, account, async snap => {
+			const collection = transactionsCollection(uid, account);
+
+			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
 				const authStore = useAuthStore();
 				const { dekMaterial } = await authStore.getDekMaterial();
 				const dek = deriveDEK(pKey, dekMaterial);

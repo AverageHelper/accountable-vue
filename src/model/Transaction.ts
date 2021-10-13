@@ -4,7 +4,7 @@ import isBoolean from "lodash/isBoolean";
 
 export type TransactionRecordType = "expense" | "income" | "transaction";
 
-export interface TransactionRecord extends Identifiable<string> {
+export interface TransactionRecordParams {
 	amount: number;
 	createdAt: Date;
 	title: string | null;
@@ -14,9 +14,7 @@ export interface TransactionRecord extends Identifiable<string> {
 	accountId: string;
 }
 
-export type TransactionRecordParams = Omit<TransactionRecord, "id" | "accountId">;
-
-export class Transaction implements TransactionRecord {
+export class Transaction implements Identifiable<string>, TransactionRecordParams {
 	public readonly objectType = "Transaction";
 	public readonly id: string;
 	public readonly amount: number;
@@ -48,7 +46,10 @@ export class Transaction implements TransactionRecord {
 		return "transaction";
 	}
 
-	static defaultRecord(record?: Partial<TransactionRecordParams>): TransactionRecordParams {
+	static defaultRecord(
+		this: void,
+		record?: Partial<TransactionRecordParams>
+	): Omit<TransactionRecordParams, "accountId"> {
 		return {
 			amount: record?.amount ?? 0,
 			createdAt: record?.createdAt ?? new Date(),
@@ -59,7 +60,7 @@ export class Transaction implements TransactionRecord {
 		};
 	}
 
-	static isRecord(toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
+	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
 		return (
 			(typeof toBeDetermined === "object" &&
 				toBeDetermined !== null &&
@@ -82,7 +83,7 @@ export class Transaction implements TransactionRecord {
 		);
 	}
 
-	toRecord(): TransactionRecord {
+	toRecord(): TransactionRecordParams & { id: string } {
 		return {
 			id: this.id,
 			amount: this.amount,

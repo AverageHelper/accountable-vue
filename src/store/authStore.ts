@@ -1,14 +1,15 @@
-import type { HashStore, KeyMaterial } from "../transport/cryption";
+import type { HashStore, KeyMaterial } from "../transport";
 import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { FirebaseError } from "firebase/app";
-import { getAuthMaterial, setAuthMaterial } from "../transport/wrapper";
 import { useToast } from "vue-toastification";
 import {
 	derivePKey,
+	getAuthMaterial,
 	newDataEncryptionKeyMaterial,
 	newMaterialFromOldKey,
-} from "../transport/cryption";
+	setAuthMaterial,
+} from "../transport";
 import {
 	createUserWithEmailAndPassword,
 	EmailAuthProvider,

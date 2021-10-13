@@ -9,11 +9,12 @@ Note: DO NOT FORGET YOUR PASSWORD. Even if I could retrieve your encrypted data 
 - Clone the repository
 - Set up a [Firebase](https://firebase.google.com/) project
 - Under "Your apps" select the Web platform and register a Firebase app
-- Copy your app's `apiKey`, `projectId`, and `authDomain`
-- Save these values to a .env file at the root of the project
+- Note your app's `apiKey`, `projectId`, and `authDomain`
+- Save these values to a .env file at the root of the project, as shown below:
 
 ```sh
 # .env
+# Vite pulls these in at build time
 
 VITE_FIREBASE_API_KEY={your API key here}
 VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
