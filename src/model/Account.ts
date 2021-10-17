@@ -19,7 +19,9 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 		const defaultRecord = Account.defaultRecord(record);
 		this.title = (record?.title?.trim() ?? defaultRecord.title) || defaultRecord.title;
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
-		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
+		this.createdAt =
+			// handle case where decryption doesn't return a Date object
+			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
 	}
 
 	static defaultRecord(this: void, record?: Partial<AccountRecordParams>): AccountRecordParams {

@@ -15,14 +15,20 @@ import {
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
-		items: {} as Dictionary<Account>,
-		currentBalance: {} as Dictionary<Account>,
+		items: {} as Dictionary<Account>, // Account.id -> Account
+		currentBalance: {} as Dictionary<number>, // Account.id -> number
 		loadError: null as Error | null,
 		accountsWatcher: null as Unsubscribe | null,
 	}),
 	actions: {
 		clearCache() {
+			if (this.accountsWatcher) {
+				this.accountsWatcher();
+				this.accountsWatcher = null;
+			}
 			this.items = {};
+			this.currentBalance = {};
+			this.loadError = null;
 		},
 		watchAccounts(force: boolean = false) {
 			if (this.accountsWatcher && !force) return;
@@ -102,16 +108,6 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(uid, account);
-		},
-	},
-	getters: {
-		balanceForAccount(): (account: Account) => number {
-			return (account: Account): number => {
-				if (!Object.keys(this.items).includes(account.id)) return 0;
-
-				// Add every transaction together for this account. Fetch them if you have to.
-				return 0;
-			};
 		},
 	},
 });

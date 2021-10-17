@@ -17,12 +17,14 @@ import {
 
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
-		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>,
-		transactionsWatchers: {} as Dictionary<Unsubscribe>,
+		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
+		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
 	actions: {
 		clearCache() {
 			this.transactionsForAccount = {};
+			Object.values(this.transactionsWatchers).forEach(unsubscribe => unsubscribe());
+			this.transactionsWatchers = {};
 		},
 		watchTransactions(account: Account, force: boolean = false) {
 			if (this.transactionsWatchers[account.id] && !force) return;
@@ -42,26 +44,49 @@ export const useTransactionsStore = defineStore("transactions", {
 			const collection = transactionsCollection(uid, account);
 
 			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
+				const { useAccountsStore } = await import("./accountsStore");
+				const accounts = useAccountsStore();
 				const authStore = useAuthStore();
 				const { dekMaterial } = await authStore.getDekMaterial();
 				const dek = deriveDEK(pKey, dekMaterial);
 
 				snap.docChanges().forEach(change => {
 					const accountTransactions = this.transactionsForAccount[account.id] ?? {};
+					let currentBalance = accounts.currentBalance[account.id] ?? 0;
+
 					switch (change.type) {
 						case "removed":
+							// Update the account's balance total
+							currentBalance -= accountTransactions[change.doc.id]?.amount ?? 0;
+							// Forget this transaction
 							delete accountTransactions[change.doc.id];
 							break;
 
 						case "added":
-						case "modified":
+							// Add this transaction
 							accountTransactions[change.doc.id] = transactionFromSnapshot(
 								account.id,
 								change.doc,
 								dek
 							);
+							// Update the account's balance total
+							currentBalance += accountTransactions[change.doc.id]?.amount ?? 0;
+							break;
+
+						case "modified":
+							// Update this account's balance total
+							currentBalance -= accountTransactions[change.doc.id]?.amount ?? 0;
+							// Update this transaction
+							accountTransactions[change.doc.id] = transactionFromSnapshot(
+								account.id,
+								change.doc,
+								dek
+							);
+							currentBalance += accountTransactions[change.doc.id]?.amount ?? 0;
 							break;
 					}
+
+					accounts.currentBalance[account.id] = currentBalance;
 					this.transactionsForAccount[account.id] = accountTransactions;
 				});
 			});

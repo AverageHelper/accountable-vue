@@ -7,8 +7,13 @@ import NavAction from "./NavAction.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import TransactionListItem from "./TransactionListItem.vue";
 import { computed, toRefs, watch } from "vue";
+import { toCurrency } from "../filters/toCurrency";
 import { useAccountsStore, useTransactionsStore } from "../store";
 import { useRouter } from "vue-router";
+
+function reverseChronologically(this: void, a: Transaction, b: Transaction): number {
+	return b.createdAt.getTime() - a.createdAt.getTime();
+}
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -20,10 +25,14 @@ const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
 const account = computed(() => accounts.items[accountId.value]);
-const theseTransactions = computed<Dictionary<Transaction> | undefined>(
-	() => transactions.transactionsForAccount[accountId.value]
-);
-const numberOfTransactions = computed(() => Object.keys(theseTransactions.value ?? {}).length);
+const theseTransactions = computed(() => {
+	const allTransactions = transactions.transactionsForAccount[accountId.value] ?? {};
+	return Object.values(allTransactions).sort(reverseChronologically);
+});
+const numberOfTransactions = computed(() => theseTransactions.value.length);
+
+const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
+const isNegative = computed(() => (remainingBalance.value ?? 0) <= 0);
 
 watch(
 	account,
@@ -57,13 +66,20 @@ function goBack() {
 		</EditButton>
 	</NavAction>
 
+	<p v-if="remainingBalance === null" class="account-balance">--</p>
+	<p v-else class="account-balance" :class="{ negative: isNegative }">{{
+		toCurrency(remainingBalance)
+	}}</p>
+
 	<List>
 		<li v-for="transaction in theseTransactions" :key="transaction.id">
 			<TransactionListItem :transaction="transaction" />
 		</li>
 		<li>
 			<p class="footer">
-				{{ numberOfTransactions }} transaction<span v-if="numberOfTransactions !== 1">s</span>
+				<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
+					>s</span
+				>
 			</p>
 		</li>
 	</List>
@@ -71,6 +87,17 @@ function goBack() {
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
+
+.account-balance {
+	margin: 1em auto;
+	max-width: 36em;
+	text-align: right;
+	font-weight: bold;
+
+	&.expense {
+		color: color($red);
+	}
+}
 
 .footer {
 	color: color($secondary-label);

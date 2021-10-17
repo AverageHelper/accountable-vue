@@ -30,7 +30,9 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		this.accountId = accountId;
 		const defaultRecord = Transaction.defaultRecord(record);
 		this.amount = record?.amount ?? defaultRecord.amount;
-		this.createdAt = record?.createdAt ?? defaultRecord.createdAt;
+		this.createdAt =
+			// handle case where decryption doesn't return a Date object
+			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
 		this.title = (record?.title?.trim() ?? "") || defaultRecord.title;
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
