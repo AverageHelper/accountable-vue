@@ -145,18 +145,10 @@ form {
 		width: 80%;
 	}
 
-	&,
-	& h1,
-	&.expense .currency .text-input {
-		color: color($green);
-		transition: none;
-	}
-
 	&.expense,
 	&.expense h1,
 	&.expense .currency .text-input {
 		color: color($red);
-		transition: none;
 	}
 }
 </style>

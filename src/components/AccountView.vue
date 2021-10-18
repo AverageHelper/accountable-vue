@@ -32,7 +32,7 @@ const theseTransactions = computed(() => {
 const numberOfTransactions = computed(() => theseTransactions.value.length);
 
 const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
-const isNegative = computed(() => (remainingBalance.value ?? 0) <= 0);
+const isNegative = computed(() => (remainingBalance.value ?? 0) < 0);
 
 watch(
 	account,
@@ -94,7 +94,7 @@ function goBack() {
 	text-align: right;
 	font-weight: bold;
 
-	&.expense {
+	&.negative {
 		color: color($red);
 	}
 }

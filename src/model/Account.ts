@@ -57,4 +57,9 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 			createdAt: this.createdAt,
 		};
 	}
+
+	updatedWith(params: Partial<AccountRecordParams>): Account {
+		const thisRecord = this.toRecord();
+		return new Account(this.id, { ...thisRecord, ...params });
+	}
 }

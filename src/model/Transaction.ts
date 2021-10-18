@@ -97,4 +97,9 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			accountId: this.accountId,
 		};
 	}
+
+	updatedWith(params: Partial<TransactionRecordParams>): Transaction {
+		const thisRecord = this.toRecord();
+		return new Transaction(this.accountId, this.id, { ...thisRecord, ...params });
+	}
 }
