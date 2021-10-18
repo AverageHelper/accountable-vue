@@ -1,15 +1,31 @@
 <script setup lang="ts">
+import type { Component } from "vue";
 import ActionButton from "./ActionButton.vue";
+import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
+import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
 import { ref, computed } from "vue";
 import { useAuthStore } from "../store/authStore";
+
+export interface MenuItem {
+	id: string;
+	name: string;
+	path: string;
+	requiresLogin?: boolean;
+	icon?: Component;
+}
 
 const auth = useAuthStore();
 
 const isMenuOpen = ref(false);
 const isLoggedIn = computed(() => auth.uid !== null);
 const hasItems = computed(() => isLoggedIn.value);
+
+const settingsItems = computed<Array<MenuItem>>(() => [
+	{ id: "settings", name: "Settings", path: "/settings", requiresLogin: true, icon: Gear },
+	{ id: "log-out", name: "Log out", path: "/logout", requiresLogin: true, icon: LogOut },
+]);
 
 function close() {
 	isMenuOpen.value = false;
@@ -24,12 +40,14 @@ function close() {
 	<teleport to="body">
 		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close" />
 		<List v-show="isMenuOpen" class="side-menu">
-			<li v-if="isLoggedIn">
-				<router-link to="/settings" @click="close">Settings</router-link>
-			</li>
-			<li v-if="isLoggedIn">
-				<router-link to="/logout" @click="close">Log out</router-link>
-			</li>
+			<template v-for="item in settingsItems" :key="item.id">
+				<li v-if="!item.requiresLogin || isLoggedIn">
+					<router-link :to="item.path" @click="close">
+						<component :is="item.icon" v-if="item.icon" />
+						<span>{{ item.name }}</span>
+					</router-link>
+				</li>
+			</template>
 		</List>
 	</teleport>
 </template>
@@ -71,6 +89,10 @@ function close() {
 					color: color($label);
 					background: color($transparent-gray);
 				}
+			}
+
+			.icon {
+				float: left;
 			}
 		}
 	}
