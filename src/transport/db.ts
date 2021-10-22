@@ -1,3 +1,4 @@
+import type { FirebaseStorage } from "firebase/storage";
 import type {
 	CollectionReference,
 	DocumentData,
@@ -8,13 +9,14 @@ import type {
 	Unsubscribe,
 } from "firebase/firestore";
 import type { EPackage, HashStore } from "./cryption";
-import type { Identifiable } from "../model/utility/Identifiable";
 import { getFirestore, onSnapshot } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { initializeApp } from "firebase/app";
 import { decrypt } from "./cryption";
 import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
 
 export let db: Firestore;
+export let storage: FirebaseStorage;
 
 export function isWrapperInstantiated(): boolean {
 	return db !== undefined;
@@ -51,6 +53,7 @@ export function bootstrap(params?: {
 
 	const firebaseApp = initializeApp({ apiKey, authDomain, projectId });
 	db = getFirestore(firebaseApp);
+	storage = getStorage(firebaseApp);
 }
 
 export function watchAllRecords<T = DocumentData>(
@@ -72,16 +75,15 @@ export function watchAllRecords<T = DocumentData>(
 
 type TypeGuard<G> = (toBeDetermined: unknown) => toBeDetermined is G;
 
-export function recordFromSnapshot<G, T extends Identifiable<string>>(
+export function recordFromSnapshot<G>(
 	doc: QueryDocumentSnapshot<EPackage<unknown>>,
 	dek: HashStore,
-	typeGuard: TypeGuard<G>,
-	create: (id: string, record: G) => T
-): T {
+	typeGuard: TypeGuard<G>
+): { id: string; record: G } {
 	const pkg = doc.data();
 	const record = decrypt(pkg, dek);
 	if (!typeGuard(record)) {
 		throw new TypeError(`Failed to parse record from Firestore document ${doc.id}`);
 	}
-	return create(doc.id, record);
+	return { id: doc.id, record };
 }

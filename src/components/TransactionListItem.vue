@@ -74,6 +74,10 @@ async function markReconciled(isReconciled: boolean) {
 	color: color($label);
 	background-color: color($secondary-fill);
 
+	.mark {
+		background-color: color($cloud);
+	}
+
 	.title {
 		font-weight: bold;
 	}

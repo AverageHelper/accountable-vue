@@ -28,7 +28,7 @@ function goBack() {
 			<div id="nav-actions-leading" class="actions-container" />
 		</aside>
 
-		<h1>{{ title }}</h1>
+		<h1 id="nav-title">{{ title }}</h1>
 
 		<aside class="trailing-actions actions-container">
 			<div id="nav-actions-trailing" class="actions-container" />

@@ -39,9 +39,8 @@ export function transactionFromSnapshot(
 	doc: QueryDocumentSnapshot<TransactionRecordPackage>,
 	dek: HashStore
 ): Transaction {
-	const create: (id: string, record: TransactionRecordParams) => Transaction = (id, record) =>
-		new Transaction(accountId, id, record);
-	return recordFromSnapshot(doc, dek, Transaction.isRecord, create);
+	const { id, record } = recordFromSnapshot(doc, dek, Transaction.isRecord);
+	return new Transaction(accountId, id, record);
 }
 
 export async function getTransactionsForAccount(

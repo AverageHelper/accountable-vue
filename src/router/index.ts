@@ -5,8 +5,7 @@ import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
 import Settings from "../components/Settings.vue";
 import TransactionView from "../components/TransactionView.vue";
-import { createRouter, createWebHistory, useRoute } from "vue-router";
-import { useAccountsStore, useTransactionsStore } from "../store";
+import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/authStore";
 
 // See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
@@ -77,40 +76,14 @@ export const router = createRouter({
 			beforeEnter: onlyIfLoggedIn,
 			component: AccountView,
 			props: true,
-			meta: {
-				title(): string {
-					const accounts = useAccountsStore();
-					const route = useRoute();
-					const accountId = route.params["accountId"] as string | undefined;
-					const DEFAULT = "Unknown Account";
-					if (accountId !== undefined) {
-						return (accounts.items[accountId]?.title ?? DEFAULT) || DEFAULT;
-					}
-					return DEFAULT;
-				},
-			},
+			meta: { title: "Account" },
 		},
 		{
 			path: "/accounts/:accountId/transactions/:transactionId",
 			beforeEnter: onlyIfLoggedIn,
 			component: TransactionView,
 			props: true,
-			meta: {
-				title(): string {
-					const transactions = useTransactionsStore();
-					const route = useRoute();
-					const accountId = route.params["accountId"] as string | undefined;
-					const transactionId = route.params["transactionId"] as string | undefined;
-					const DEFAULT = "Unknown Transaction";
-					if (accountId !== undefined && transactionId !== undefined) {
-						const theseTransactions = transactions.transactionsForAccount[accountId];
-						if (theseTransactions !== undefined) {
-							return (theseTransactions[transactionId]?.title ?? DEFAULT) || DEFAULT;
-						}
-					}
-					return DEFAULT;
-				},
-			},
+			meta: { title: "Transaction" },
 		},
 	],
 });

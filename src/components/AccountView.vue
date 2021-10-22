@@ -4,6 +4,7 @@ import AccountEdit from "./AccountEdit.vue";
 import EditButton from "./EditButton.vue";
 import List from "./List.vue";
 import NavAction from "./NavAction.vue";
+import NavTitle from "./NavTitle.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import TransactionListItem from "./TransactionListItem.vue";
 import { computed, toRefs, watch } from "vue";
@@ -50,6 +51,8 @@ function goBack() {
 </script>
 
 <template>
+	<NavTitle>{{ account.title }}</NavTitle>
+
 	<NavAction>
 		<EditButton>
 			<template #modal="{ onFinished }">
@@ -90,6 +93,7 @@ function goBack() {
 
 .account-balance {
 	margin: 1em auto;
+	padding-right: 0.7em;
 	max-width: 36em;
 	text-align: right;
 	font-weight: bold;

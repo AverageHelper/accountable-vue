@@ -29,7 +29,8 @@ export function accountFromSnapshot(
 	doc: QueryDocumentSnapshot<AccountRecordPackage>,
 	dek: HashStore
 ): Account {
-	return recordFromSnapshot(doc, dek, Account.isRecord, (id, record) => new Account(id, record));
+	const { id, record } = recordFromSnapshot(doc, dek, Account.isRecord);
+	return new Account(id, record);
 }
 
 export async function createAccount(
