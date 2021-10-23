@@ -7,17 +7,20 @@ import ErrorNotice from "./ErrorNotice.vue";
 import List from "./List.vue";
 import NavAction from "./NavAction.vue";
 import ReloadIcon from "../icons/Reload.vue";
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useAccountsStore } from "../store";
+import { useTagsStore } from "../store/tagsStore";
 
 const accounts = useAccountsStore();
+const tags = useTagsStore();
 
 const allAccounts = computed(() => Object.values(accounts.items));
 const numberOfAccounts = computed(() => Object.keys(allAccounts.value).length);
 const loadError = computed<Error | null>(() => accounts.loadError);
 
-async function load() {
+function load() {
 	accounts.watchAccounts();
+	tags.watchTags();
 }
 
 onMounted(() => {

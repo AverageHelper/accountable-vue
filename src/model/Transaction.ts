@@ -12,6 +12,7 @@ export interface TransactionRecordParams {
 	locationId: string | null;
 	isReconciled: boolean;
 	accountId: string;
+	tagIds: Array<string> | null;
 }
 
 export class Transaction implements Identifiable<string>, TransactionRecordParams {
@@ -24,6 +25,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 	public readonly locationId: string | null;
 	public readonly isReconciled: boolean;
 	public readonly accountId: string;
+	public readonly tagIds: Array<string> | null;
 
 	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
 		this.id = id;
@@ -37,6 +39,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
+		this.tagIds = record?.tagIds ?? defaultRecord.tagIds;
 	}
 
 	get type(): TransactionRecordType {
@@ -59,29 +62,30 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			notes: record?.notes ?? null,
 			locationId: record?.locationId ?? null,
 			isReconciled: record?.isReconciled ?? false,
+			tagIds: null,
 		};
 	}
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
 		return (
-			(typeof toBeDetermined === "object" &&
-				toBeDetermined !== null &&
-				toBeDetermined !== undefined &&
-				Boolean(toBeDetermined) &&
-				!Array.isArray(toBeDetermined) &&
-				"amount" in toBeDetermined &&
-				"createdAt" in toBeDetermined &&
-				"title" in toBeDetermined &&
-				"notes" in toBeDetermined &&
-				"locationId" in toBeDetermined &&
-				"isReconciled" in toBeDetermined &&
-				(toBeDetermined as TransactionRecordParams).title === null) ||
-			(isString((toBeDetermined as TransactionRecordParams).title) &&
-				(toBeDetermined as TransactionRecordParams).notes === null) ||
-			(isString((toBeDetermined as TransactionRecordParams).notes) &&
-				(toBeDetermined as TransactionRecordParams).locationId === null) ||
-			(isString((toBeDetermined as TransactionRecordParams).locationId) &&
-				isBoolean((toBeDetermined as TransactionRecordParams).isReconciled))
+			typeof toBeDetermined === "object" &&
+			toBeDetermined !== null &&
+			toBeDetermined !== undefined &&
+			Boolean(toBeDetermined) &&
+			!Array.isArray(toBeDetermined) &&
+			"amount" in toBeDetermined &&
+			"createdAt" in toBeDetermined &&
+			"title" in toBeDetermined &&
+			((toBeDetermined as TransactionRecordParams).title === null ||
+				isString((toBeDetermined as TransactionRecordParams).title)) &&
+			"notes" in toBeDetermined &&
+			((toBeDetermined as TransactionRecordParams).notes === null ||
+				isString((toBeDetermined as TransactionRecordParams).notes)) &&
+			"locationId" in toBeDetermined &&
+			((toBeDetermined as TransactionRecordParams).locationId === null ||
+				isString((toBeDetermined as TransactionRecordParams).locationId)) &&
+			"isReconciled" in toBeDetermined &&
+			isBoolean((toBeDetermined as TransactionRecordParams).isReconciled)
 		);
 	}
 
@@ -95,11 +99,15 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			locationId: this.locationId,
 			isReconciled: this.isReconciled,
 			accountId: this.accountId,
+			tagIds: this.tagIds,
 		};
 	}
 
 	updatedWith(params: Partial<TransactionRecordParams>): Transaction {
 		const thisRecord = this.toRecord();
-		return new Transaction(this.accountId, this.id, { ...thisRecord, ...params });
+		return new Transaction(params.accountId ?? this.accountId, this.id, {
+			...thisRecord,
+			...params,
+		});
 	}
 }
