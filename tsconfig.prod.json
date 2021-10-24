@@ -1,5 +1,10 @@
 {
-  "extends": "./tsconfig.base.json",
-  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "exclude": ["src/**/*.test.ts", "**/__mocks__/**/*.ts"]
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"declaration": true,
+		"noEmit": false
+	},
+	"include": ["src/**/*.ts", "src/**/*.json", "src/**/*.d.ts", "src/**/*.vue"],
+	"exclude": ["src/**/*.test.ts", "**/__mocks__/**/*.ts"]
 }

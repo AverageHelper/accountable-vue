@@ -13,8 +13,8 @@ node_modules
 # Generated files
 ./db
 ./db-test
-./dist
-./dist-ssr
+dist
+dist-ssr
 ./config
 coverage
 src/version.ts
