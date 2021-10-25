@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from "vue";
 import ActionButton from "./ActionButton.vue";
+import AppVersion from "./AppVersion.vue";
 import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
@@ -48,6 +49,9 @@ function close() {
 					</router-link>
 				</li>
 			</template>
+			<li>
+				<AppVersion class="app-version" />
+			</li>
 		</List>
 	</teleport>
 </template>
@@ -77,10 +81,10 @@ function close() {
 
 	li {
 		display: flex;
+		padding: 1em;
 
 		> a {
 			display: block;
-			padding: 1em;
 			text-decoration: none;
 			width: 100%;
 
@@ -94,6 +98,11 @@ function close() {
 			.icon {
 				float: left;
 			}
+		}
+
+		.app-version {
+			width: 100%;
+			text-align: center;
 		}
 	}
 }

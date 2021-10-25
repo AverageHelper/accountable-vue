@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
+import AppVersion from "./AppVersion.vue";
 import TextField from "./TextField.vue";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -127,5 +128,7 @@ async function submit() {
 				<a href="#" @click="enterLoginMode">Log in here.</a>
 			</p>
 		</div>
+
+		<AppVersion v-if="!isLoading" />
 	</form>
 </template>

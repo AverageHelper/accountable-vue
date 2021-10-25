@@ -26,6 +26,7 @@ Install dependencies and run!
 ```sh
 $ cd accountable-vue
 $ npm install
+$ npm run export-version
 $ npm start
 ```
 
