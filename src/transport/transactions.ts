@@ -89,6 +89,7 @@ export async function updateTransaction(
 		amount: transaction.amount,
 		isReconciled: transaction.isReconciled,
 		accountId: transaction.accountId,
+		tagIds: transaction.tagIds,
 	};
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(transactionRef(uid, transaction), pkg);

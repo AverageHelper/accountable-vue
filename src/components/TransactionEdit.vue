@@ -75,8 +75,9 @@ async function submit() {
 			locationId: locationId.value,
 			amount: amount.value,
 			accountId: account.value.id,
+			tagIds: [],
 		};
-		if (isCreatingTransaction.value) {
+		if (ogTransaction.value === null) {
 			await transactions.createTransaction(account.value, params);
 		} else {
 			await transactions.updateTransaction(

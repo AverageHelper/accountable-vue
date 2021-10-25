@@ -4,6 +4,7 @@ import NavAction from "./NavAction.vue";
 import NavTitle from "./NavTitle.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { computed, toRefs } from "vue";
+import { compactMap } from "../filters/compactMap";
 import { toCurrency } from "../filters/toCurrency";
 import { useAccountsStore, useTagsStore, useTransactionsStore } from "../store";
 import { useRouter } from "vue-router";
@@ -24,7 +25,7 @@ const theseTransactions = computed(
 );
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
-const theseTags = computed(() => transaction.value.tagIds?.map(id => tags.items[id]) ?? []);
+const theseTags = computed(() => compactMap(transaction.value?.tagIds ?? [], id => tags.items[id]));
 
 const timestamp = computed(() => {
 	if (!transaction.value) return "";

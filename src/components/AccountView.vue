@@ -51,9 +51,9 @@ function goBack() {
 </script>
 
 <template>
-	<NavTitle>{{ account.title }}</NavTitle>
+	<NavTitle v-if="account">{{ account.title }}</NavTitle>
 
-	<NavAction>
+	<NavAction v-if="account">
 		<EditButton>
 			<template #modal="{ onFinished }">
 				<AccountEdit :account="account" @deleted="goBack" @finished="onFinished" />

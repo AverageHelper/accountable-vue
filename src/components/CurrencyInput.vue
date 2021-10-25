@@ -23,7 +23,7 @@ const presentableValue = computed(() => {
 
 function onInput(event: Event) {
 	const input = event.target as HTMLInputElement | null;
-	const rawValue = input.value ?? "";
+	const rawValue = input?.value ?? "";
 	updateValue(rawValue);
 }
 
@@ -51,7 +51,7 @@ defineExpose({ focus });
 	<div class="currency-input__container">
 		<TextField
 			class="currency-input"
-			:label="label"
+			:label="label ?? undefined"
 			:model-value="presentableValue"
 			:maxlength="18"
 			placeholder="0.00"

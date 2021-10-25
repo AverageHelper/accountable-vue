@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { PropType } from "vue";
+
 defineProps({
 	error: {
-		type: [String, Object, null],
+		type: Object as PropType<Error | string | null>,
 		validator: (val: { toString: unknown } | null) => val === null || "toString" in val,
-		required: true,
+		default: null,
 	},
 });
 </script>

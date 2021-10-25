@@ -22,11 +22,11 @@ const loginProcessState = computed(() => auth.loginProcessState);
 const emailField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
-	emailField.value.focus();
+	emailField.value?.focus();
 });
 
 watch(mode, () => {
-	emailField.value.focus();
+	emailField.value?.focus();
 });
 
 watch(

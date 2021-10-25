@@ -6,6 +6,7 @@ onBeforeMount(() => {
 	// Vue does not do this automatically
 
 	const target = document.querySelector("#nav-title");
+	if (!target) return;
 	target.innerHTML = "&#8203;"; // zero-width space, but still tall, for text-height constraints
 });
 </script>

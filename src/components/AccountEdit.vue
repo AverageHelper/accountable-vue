@@ -21,6 +21,7 @@ const toast = useToast();
 
 const isCreatingAccount = computed(() => ogAccount.value === null);
 const numberOfTransactions = computed<number>(() => {
+	if (!ogAccount.value) return 0;
 	const theseTransactions = transactions.transactionsForAccount[ogAccount.value.id] ?? {};
 	return Object.keys(theseTransactions).length;
 });
@@ -58,7 +59,7 @@ async function submit() {
 			throw new Error("Title is required");
 		}
 
-		if (isCreatingAccount.value) {
+		if (ogAccount.value === null) {
 			await accounts.createAccount({
 				...Account.defaultRecord(),
 				title: title.value,
