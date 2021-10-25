@@ -4,6 +4,6 @@
 		"declaration": true,
 		"noEmit": false
 	},
-	"include": ["src/**/*.ts", "src/**/*.json", "src/**/*.d.ts", "src/**/*.vue"],
-	"exclude": ["src/**/*.test.ts", "**/__mocks__/**/*.ts"]
+	"include": ["**/*.ts", "**/*.d.ts", "**/*.json", "**/*.vue"],
+	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts"]
 }

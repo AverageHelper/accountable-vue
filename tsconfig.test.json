@@ -5,5 +5,5 @@
 		"noEmit": false,
 		"types": ["node", "jest", "jest-extended"]
 	},
-	"include": ["./*.ts", "src/**/*.ts", "tests/**/*.ts", "src/**/*.json"]
+	"include": ["./*.ts", "**/*.ts", "**/*.d.ts", "**/*.json"]
 }
