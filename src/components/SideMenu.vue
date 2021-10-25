@@ -81,12 +81,12 @@ function close() {
 
 	li {
 		display: flex;
-		padding: 1em;
 
 		> a {
 			display: block;
 			text-decoration: none;
 			width: 100%;
+			padding: 1em;
 
 			@media (hover: hover) {
 				&:hover {
@@ -102,6 +102,7 @@ function close() {
 
 		.app-version {
 			width: 100%;
+			padding: 1em;
 			text-align: center;
 		}
 	}
