@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
+import type { TagRecordParams } from "../model/Tag";
 import Modal from "./Modal.vue";
 import Tag from "./Tag.vue";
 import TagEdit from "./TagEdit.vue";
-import { compactMap } from "../filters/compactMap";
 import { ref, computed, toRefs, nextTick } from "vue";
+import { Tag as TagObject } from "../model/Tag";
 import { useTagsStore } from "../store";
 
 const emit = defineEmits(["create-tag", "modify-tag"]);
@@ -16,7 +16,9 @@ const props = defineProps({
 const { tagIds } = toRefs(props);
 
 const tags = useTagsStore();
-const theseTags = computed(() => compactMap(tagIds.value ?? [], id => tags.items[id]));
+const theseTags = computed(() =>
+	(tagIds.value ?? []).map(id => tags.items[id] ?? new TagObject(id, { name: id, colorId: "red" }))
+);
 
 const tagEdit = ref<{ focus: () => void } | null>(null);
 const isCreatingTag = ref(false);
