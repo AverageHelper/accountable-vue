@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
+import type { Transaction } from "../model/Transaction";
 import EditButton from "./EditButton.vue";
 import NavAction from "./NavAction.vue";
 import NavTitle from "./NavTitle.vue";
+import TagList from "./TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { computed, toRefs } from "vue";
-import { compactMap } from "../filters/compactMap";
 import { toCurrency } from "../filters/toCurrency";
 import { useAccountsStore, useTagsStore, useTransactionsStore } from "../store";
 import { useRouter } from "vue-router";
@@ -17,15 +19,14 @@ const { accountId, transactionId } = toRefs(props);
 
 const router = useRouter();
 const accounts = useAccountsStore();
-const tags = useTagsStore();
 const transactions = useTransactionsStore();
+const tags = useTagsStore();
 
 const theseTransactions = computed(
-	() => transactions.transactionsForAccount[accountId.value] ?? {}
+	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
-const theseTags = computed(() => compactMap(transaction.value?.tagIds ?? [], id => tags.items[id]));
 
 const timestamp = computed(() => {
 	if (!transaction.value) return "";
@@ -36,6 +37,17 @@ const timestamp = computed(() => {
 
 function goBack() {
 	router.back();
+}
+
+async function createTag(params: TagRecordParams) {
+	if (!transaction.value) return;
+	const newTag = await tags.createTag(params);
+	transaction.value.addTagId(newTag.id);
+	await transactions.updateTransaction(transaction.value);
+}
+
+function modifyTag(params: TagObject) {
+	console.log("modify", params);
 }
 </script>
 
@@ -58,12 +70,7 @@ function goBack() {
 	</NavAction>
 
 	<div v-if="transaction" class="content">
-		<ul v-if="theseTags.length > 0" class="tags">
-			<li v-for="tag in theseTags" :key="tag.id" :class="`tag tag--${tag.colorId}`">{{
-				tag.name
-			}}</li>
-		</ul>
-		<p v-else class="notes empty">No tags</p>
+		<TagList :tag-ids="transaction.tagIds ?? []" @create-tag="createTag" @modify-tag="modifyTag" />
 
 		<div class="header">
 			<h1 aria-label="title">{{ transaction.title }}</h1>
@@ -96,47 +103,6 @@ function goBack() {
 	text-align: center;
 	max-width: 400pt;
 	margin: 0 auto;
-
-	ul.tags {
-		display: flex;
-		flex-direction: row;
-		list-style: none;
-		padding: 0;
-		max-width: 36em;
-
-		li.tag {
-			margin-right: 1em;
-			padding: 0 0.5em;
-			color: color($label-dark);
-			border-radius: 1em;
-			font-weight: bold;
-
-			&::before {
-				content: "#";
-			}
-
-			&--red {
-				background-color: color($red);
-			}
-			&--orange {
-				background-color: color($orange);
-				color: color($label-light);
-			}
-			&--yellow {
-				background-color: color($yellow);
-				color: color($label-light);
-			}
-			&--green {
-				background-color: color($green);
-			}
-			&--blue {
-				background-color: color($blue);
-			}
-			&--purple {
-				background-color: color($purple);
-			}
-		}
-	}
 
 	.header {
 		display: flex;

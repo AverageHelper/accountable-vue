@@ -19,11 +19,12 @@ const props = defineProps({
 	account: { type: Object as PropType<Account>, required: true },
 	transaction: { type: Object as PropType<Transaction | null>, default: null },
 });
-const { account, transaction: ogTransaction } = toRefs(props);
+const { account, transaction } = toRefs(props);
 
 const transactions = useTransactionsStore();
 const toast = useToast();
 
+const ogTransaction = computed(() => transaction.value as Transaction | null);
 const isCreatingTransaction = computed(() => ogTransaction.value === null);
 
 const isLoading = ref(false);

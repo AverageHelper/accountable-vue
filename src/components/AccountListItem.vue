@@ -11,8 +11,8 @@ const { account } = toRefs(props);
 
 const transactions = useTransactionsStore();
 const accountRoute = computed(() => `/accounts/${account.value.id}`);
-const theseTransactions = computed<Dictionary<Transaction> | undefined>(
-	() => transactions.transactionsForAccount[account.value.id]
+const theseTransactions = computed(
+	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );
 
 const numberOfTransactions = computed<number | null>(() => {

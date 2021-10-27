@@ -70,6 +70,11 @@ export const useTagsStore = defineStore("tags", {
 			);
 		},
 		async createTag(record: TagRecordParams): Promise<Tag> {
+			// If a tag already exists with this name, return that one instead
+			const extantTag = Object.values(this.items).find(tag => tag.name === record.name);
+			if (extantTag) return extantTag;
+
+			// Otherwise, go ahead and make one
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;

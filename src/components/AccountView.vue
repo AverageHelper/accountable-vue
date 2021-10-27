@@ -27,7 +27,8 @@ const transactions = useTransactionsStore();
 
 const account = computed(() => accounts.items[accountId.value]);
 const theseTransactions = computed(() => {
-	const allTransactions = transactions.transactionsForAccount[accountId.value] ?? {};
+	const allTransactions = (transactions.transactionsForAccount[accountId.value] ??
+		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
 const numberOfTransactions = computed(() => theseTransactions.value.length);

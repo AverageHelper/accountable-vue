@@ -12,7 +12,7 @@ export interface TransactionRecordParams {
 	locationId: string | null;
 	isReconciled: boolean;
 	accountId: string;
-	tagIds: Array<string> | null;
+	tagIds: ReadonlyArray<string>;
 }
 
 export class Transaction implements Identifiable<string>, TransactionRecordParams {
@@ -25,7 +25,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 	public readonly locationId: string | null;
 	public readonly isReconciled: boolean;
 	public readonly accountId: string;
-	public readonly tagIds: Array<string> | null;
+	private readonly _tagIds: Set<string>;
 
 	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
 		this.id = id;
@@ -39,7 +39,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
-		this.tagIds = record?.tagIds ?? defaultRecord.tagIds;
+		this._tagIds = new Set(record?.tagIds ?? defaultRecord.tagIds);
 	}
 
 	get type(): TransactionRecordType {
@@ -49,6 +49,10 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			return "expense";
 		}
 		return "transaction";
+	}
+
+	get tagIds(): ReadonlyArray<string> {
+		return new Array(...this._tagIds);
 	}
 
 	static defaultRecord(
@@ -62,7 +66,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			notes: record?.notes ?? null,
 			locationId: record?.locationId ?? null,
 			isReconciled: record?.isReconciled ?? false,
-			tagIds: null,
+			tagIds: [],
 		};
 	}
 
@@ -109,5 +113,13 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			...thisRecord,
 			...params,
 		});
+	}
+
+	addTagId(id: string): void {
+		this._tagIds.add(id);
+	}
+
+	removeTagId(id: string): void {
+		this._tagIds.delete(id);
 	}
 }
