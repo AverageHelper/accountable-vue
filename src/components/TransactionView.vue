@@ -46,8 +46,15 @@ async function createTag(params: TagRecordParams) {
 	await transactions.updateTransaction(transaction.value);
 }
 
-function modifyTag(params: TagObject) {
-	console.log("modify", params);
+function modifyTag(tag: TagObject) {
+	console.log("modify", tag);
+}
+
+async function removeTag(tag: TagObject) {
+	if (!transaction.value) return;
+	transaction.value.removeTagId(tag.id);
+	await transactions.updateTransaction(transaction.value);
+	// TODO: If this is the tag's only reference, remove it
 }
 </script>
 
@@ -70,7 +77,12 @@ function modifyTag(params: TagObject) {
 	</NavAction>
 
 	<div v-if="transaction" class="content">
-		<TagList :tag-ids="transaction.tagIds ?? []" @create-tag="createTag" @modify-tag="modifyTag" />
+		<TagList
+			:tag-ids="transaction.tagIds ?? []"
+			@create-tag="createTag"
+			@modify-tag="modifyTag"
+			@remove-tag="removeTag"
+		/>
 
 		<div class="header">
 			<h1 aria-label="title">{{ transaction.title }}</h1>

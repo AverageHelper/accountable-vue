@@ -8,7 +8,7 @@ import { ref, computed, toRefs, nextTick } from "vue";
 import { Tag as TagObject } from "../model/Tag";
 import { useTagsStore } from "../store";
 
-const emit = defineEmits(["create-tag", "modify-tag"]);
+const emit = defineEmits(["create-tag", "modify-tag", "remove-tag"]);
 
 const props = defineProps({
 	tagIds: { type: Array as PropType<ReadonlyArray<string>>, required: true },
@@ -28,8 +28,12 @@ const isModalOpen = computed(() => isCreatingTag.value || isEditingTag.value);
 
 async function addTag() {
 	isCreatingTag.value = true;
-	await nextTick();
+	await nextTick(); // wait to focus until the element is attached
 	tagEdit.value?.focus();
+}
+
+function removeTag(tag: TagObject) {
+	emit("remove-tag", tag);
 }
 
 function closeModal() {
@@ -54,9 +58,11 @@ function commitTag(params: TagRecordParams | null) {
 	<div class="tag-list">
 		<ul v-if="theseTags.length > 0" class="tags">
 			<li v-for="tag in theseTags" :key="tag.id">
-				<Tag :tag="tag" />
+				<Tag :tag="tag" :on-remove="() => removeTag(tag)" />
 			</li>
 		</ul>
+		<p v-else class="empty">No tags</p>
+
 		<a href="#" @click.prevent="addTag">Add tag</a>
 	</div>
 
@@ -80,15 +86,6 @@ function commitTag(params: TagRecordParams | null) {
 		list-style: none;
 		padding: 0;
 		max-width: 36em;
-
-		li.new {
-			display: flex;
-			flex-flow: row nowrap;
-
-			a {
-				margin-left: 0.25em;
-			}
-		}
 	}
 
 	p.empty {
