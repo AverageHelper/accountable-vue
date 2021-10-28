@@ -1,6 +1,7 @@
 import type { HashStore } from "../transport";
 import type { Account } from "../model/Account";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
+import type { Tag } from "../model/Tag";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { useAuthStore } from "./authStore";
@@ -136,6 +137,22 @@ export const useTransactionsStore = defineStore("transactions", {
 			// TODO: Don't delete if we have attachments
 
 			await deleteTransaction(uid, transaction);
+		},
+		async deleteTagIfUnreferenced(tag: Tag): Promise<void> {
+			// TODO: This is inefficient with many transactions. Consider storing tag references elsewhere, and acting based on that
+			for (const transactions of Object.values(this.transactionsForAccount)) {
+				for (const transaction of Object.values(transactions)) {
+					if (transaction.tagIds.includes(tag.id)) {
+						// This tag is referenced
+						return;
+					}
+				}
+			}
+
+			// This tag is unreferenced
+			const { useTagsStore } = await import("./tagsStore");
+			const tags = useTagsStore();
+			await tags.deleteTag(tag);
 		},
 	},
 });

@@ -54,7 +54,7 @@ async function removeTag(tag: TagObject) {
 	if (!transaction.value) return;
 	transaction.value.removeTagId(tag.id);
 	await transactions.updateTransaction(transaction.value);
-	// TODO: If this is the tag's only reference, remove it
+	await transactions.deleteTagIfUnreferenced(tag);
 }
 </script>
 
