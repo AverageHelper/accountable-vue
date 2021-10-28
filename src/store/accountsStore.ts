@@ -20,6 +20,14 @@ export const useAccountsStore = defineStore("accounts", {
 		loadError: null as Error | null,
 		accountsWatcher: null as Unsubscribe | null,
 	}),
+	getters: {
+		allAccounts(state): Array<Account> {
+			return Object.values(state.items);
+		},
+		numberOfAccounts(): number {
+			return this.allAccounts.length;
+		},
+	},
 	actions: {
 		clearCache() {
 			if (this.accountsWatcher) {

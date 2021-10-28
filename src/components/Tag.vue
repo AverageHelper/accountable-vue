@@ -2,20 +2,33 @@
 import type { PropType } from "vue";
 import type { Tag } from "../model/Tag";
 import TinyButton from "./TinyButton.vue";
+import { computed, toRefs } from "vue";
+import { useTagsStore, useTransactionsStore } from "../store";
 
-defineProps({
-	tag: { type: Object as PropType<Tag>, required: true },
-	onRemove: { type: Function as PropType<(() => void) | null>, default: null },
+const props = defineProps({
+	tagId: { type: String, required: true },
+	showsCount: { type: Boolean, default: false },
+	onRemove: { type: Function as PropType<((tag: Tag) => void) | null>, default: null },
 });
+const { tagId } = toRefs(props);
+
+const transactions = useTransactionsStore();
+const tags = useTagsStore();
+
+const tag = computed(() => tags.items[tagId.value] as Tag | undefined);
+const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id));
 </script>
 
 <template>
-	<div :class="`tag tag--${tag.colorId}`">
-		<span>{{ tag.name }}</span>
+	<div :class="`tag tag--${tag?.colorId ?? 'unknown'}`">
+		<span class="title">{{ tag?.name ?? tagId }}</span>
 
 		<slot />
 
-		<TinyButton v-if="onRemove" class="remove" @click="onRemove()">&times;</TinyButton>
+		<p v-if="showsCount" class="count">{{ count }}</p>
+		<TinyButton v-if="onRemove" class="remove" @click="() => tag ?? onRemove(tag)"
+			>&times;</TinyButton
+		>
 	</div>
 </template>
 
@@ -29,6 +42,7 @@ defineProps({
 	margin-right: 0.5em;
 	margin-bottom: 0.4em;
 	padding: 0 0.5em;
+	padding-right: 0.4em; // right wall was too thick for the round button
 	color: color($label-dark);
 	border-radius: 1em;
 	min-width: min-content;
@@ -40,17 +54,29 @@ defineProps({
 		content: "#";
 	}
 
+	.title {
+		margin-right: 0.25em;
+	}
+
+	.count {
+		margin: 0.2em 0;
+		margin-left: auto;
+		padding: 0 0.4em;
+		min-width: 1.5em;
+		border-radius: 1em;
+		text-align: center;
+		background-color: color($transparent-gray);
+	}
+
 	.remove {
-		margin-left: 0.25em;
-		display: none;
+		margin-left: 0.2em;
+		display: none; // hide until hover
 	}
 
 	@media (hover: hover) {
 		&:hover {
-			padding-right: 0.4em; // right wall was too thick for the round button
-
 			.remove {
-				display: inline-block;
+				display: inline-block; // back to default while hover
 			}
 		}
 	}

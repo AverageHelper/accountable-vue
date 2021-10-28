@@ -1,24 +1,16 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { TagRecordParams } from "../model/Tag";
+import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
 import Modal from "./Modal.vue";
 import Tag from "./Tag.vue";
 import TagEdit from "./TagEdit.vue";
-import { ref, computed, toRefs, nextTick } from "vue";
-import { Tag as TagObject } from "../model/Tag";
-import { useTagsStore } from "../store";
+import { ref, computed, nextTick } from "vue";
 
 const emit = defineEmits(["create-tag", "modify-tag", "remove-tag"]);
 
-const props = defineProps({
+defineProps({
 	tagIds: { type: Array as PropType<ReadonlyArray<string>>, required: true },
 });
-const { tagIds } = toRefs(props);
-
-const tags = useTagsStore();
-const theseTags = computed(() =>
-	(tagIds.value ?? []).map(id => tags.items[id] ?? new TagObject(id, { name: id, colorId: "red" }))
-);
 
 const tagEdit = ref<{ focus: () => void } | null>(null);
 const isCreatingTag = ref(false);
@@ -56,9 +48,9 @@ function commitTag(params: TagRecordParams | null) {
 
 <template>
 	<div class="tag-list">
-		<ul v-if="theseTags.length > 0" class="tags">
-			<li v-for="tag in theseTags" :key="tag.id">
-				<Tag :tag="tag" :on-remove="() => removeTag(tag)" />
+		<ul v-if="tagIds.length > 0" class="tags">
+			<li v-for="tagId in tagIds" :key="tagId">
+				<Tag :tag-id="tagId" :on-remove="removeTag" />
 			</li>
 		</ul>
 		<p v-else class="empty">No tags</p>

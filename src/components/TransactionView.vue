@@ -52,9 +52,8 @@ function modifyTag(tag: TagObject) {
 
 async function removeTag(tag: TagObject) {
 	if (!transaction.value) return;
-	transaction.value.removeTagId(tag.id);
-	await transactions.updateTransaction(transaction.value);
-	await transactions.deleteTagIfUnreferenced(tag);
+	await transactions.removeTagFromTransaction(tag, transaction.value);
+	await transactions.deleteTagIfUnreferenced(tag); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
 }
 </script>
 

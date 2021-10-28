@@ -21,6 +21,19 @@ export const useTransactionsStore = defineStore("transactions", {
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
 		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
+	getters: {
+		allTransactions(state): ReadonlyArray<Transaction> {
+			const result = new Set<Transaction>();
+
+			Object.values(state.transactionsForAccount).forEach(transactions => {
+				Object.values(transactions).forEach(transaction => {
+					result.add(transaction as Transaction);
+				});
+			});
+
+			return [...result];
+		},
+	},
 	actions: {
 		clearCache() {
 			this.transactionsForAccount = {};
@@ -75,7 +88,7 @@ export const useTransactionsStore = defineStore("transactions", {
 							break;
 
 						case "modified":
-							// Update this account's balance total
+							// Remove this account's balance total
 							currentBalance -= accountTransactions[change.doc.id]?.amount ?? 0;
 							// Update this transaction
 							accountTransactions[change.doc.id] = transactionFromSnapshot(
@@ -83,6 +96,7 @@ export const useTransactionsStore = defineStore("transactions", {
 								change.doc,
 								dek
 							);
+							// Update this account's balance total
 							currentBalance += accountTransactions[change.doc.id]?.amount ?? 0;
 							break;
 					}
@@ -102,6 +116,28 @@ export const useTransactionsStore = defineStore("transactions", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, dek);
+		},
+		tagIsReferenced(tagId: string): boolean {
+			for (const transaction of this.allTransactions) {
+				if (transaction.tagIds.includes(tagId)) {
+					// This tag is referenced
+					return true;
+				}
+			}
+
+			return false;
+		},
+		numberOfReferencesForTag(tagId: string | undefined): number {
+			if (tagId === undefined) return 0;
+			let count = 0;
+
+			this.allTransactions.forEach(transaction => {
+				if (transaction.tagIds.includes(tagId)) {
+					count += 1;
+				}
+			});
+
+			return count;
 		},
 		async createTransaction(
 			account: Account,
@@ -138,16 +174,19 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			await deleteTransaction(uid, transaction);
 		},
+		async removeTagFromTransaction(tag: Tag, transaction: Transaction): Promise<void> {
+			transaction.removeTagId(tag.id);
+			await this.updateTransaction(transaction);
+		},
+		async removeTagFromAllTransactions(tag: Tag): Promise<void> {
+			await Promise.all(
+				this.allTransactions
+					.filter(t => t.tagIds.includes(tag.id)) // for each T that has this tag...
+					.map(t => this.removeTagFromTransaction(tag, t)) // remove the tag
+			);
+		},
 		async deleteTagIfUnreferenced(tag: Tag): Promise<void> {
-			// TODO: This is inefficient with many transactions. Consider storing tag references elsewhere, and acting based on that
-			for (const transactions of Object.values(this.transactionsForAccount)) {
-				for (const transaction of Object.values(transactions)) {
-					if (transaction.tagIds.includes(tag.id)) {
-						// This tag is referenced
-						return;
-					}
-				}
-			}
+			if (this.tagIsReferenced(tag.id)) return;
 
 			// This tag is unreferenced
 			const { useTagsStore } = await import("./tagsStore");

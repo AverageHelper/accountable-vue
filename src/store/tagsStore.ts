@@ -19,6 +19,11 @@ export const useTagsStore = defineStore("tags", {
 		loadError: null as Error | null,
 		tagsWatcher: null as Unsubscribe | null,
 	}),
+	getters: {
+		allTags(state): Array<Tag> {
+			return Object.values(state.items);
+		},
+	},
 	actions: {
 		clearCache() {
 			if (this.tagsWatcher) {
@@ -71,7 +76,7 @@ export const useTagsStore = defineStore("tags", {
 		},
 		async createTag(record: TagRecordParams): Promise<Tag> {
 			// If a tag already exists with this name, return that one instead
-			const extantTag = Object.values(this.items).find(tag => tag.name === record.name);
+			const extantTag = this.allTags.find(tag => tag.name === record.name);
 			if (extantTag) return extantTag;
 
 			// Otherwise, go ahead and make one
