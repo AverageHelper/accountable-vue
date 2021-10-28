@@ -26,7 +26,7 @@ const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id
 		<slot />
 
 		<p v-if="showsCount" class="count">{{ count }}</p>
-		<TinyButton v-if="onRemove" class="remove" @click="() => tag ?? onRemove(tag)"
+		<TinyButton v-if="onRemove" class="remove" @click="() => tag && onRemove(tag)"
 			>&times;</TinyButton
 		>
 	</div>
