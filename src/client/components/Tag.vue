@@ -8,7 +8,7 @@ import { useTagsStore, useTransactionsStore } from "../store";
 const props = defineProps({
 	tagId: { type: String, required: true },
 	showsCount: { type: Boolean, default: false },
-	onRemove: { type: Function as PropType<((tag: Tag) => void) | null>, default: null },
+	onRemove: { type: Function as unknown as PropType<((tag: Tag) => void) | null>, default: null },
 });
 const { tagId } = toRefs(props);
 
@@ -26,7 +26,7 @@ const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id
 		<slot />
 
 		<p v-if="showsCount" class="count">{{ count }}</p>
-		<TinyButton v-if="onRemove" class="remove" @click="() => tag && onRemove(tag)"
+		<TinyButton v-if="onRemove" class="remove" @click="() => tag && onRemove && onRemove(tag)"
 			>&times;</TinyButton
 		>
 	</div>

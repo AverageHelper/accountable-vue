@@ -17,7 +17,8 @@ dist
 dist-ssr
 ./config
 coverage
-src/version.ts
+src/client/version.ts
+src/server/version.ts
 tmp
 temp
 *.local

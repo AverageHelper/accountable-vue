@@ -1,6 +1,12 @@
 {
 	"root": true,
-	"ignorePatterns": ["dist", "node_modules", "src/version.ts", ".gitignore"],
+	"ignorePatterns": [
+		"dist",
+		"node_modules",
+		"src/client/version.ts",
+		"src/server/version.ts",
+		".gitignore"
+	],
 
 	"extends": [
 		"strictest/eslint",
@@ -52,7 +58,7 @@
 
 	"overrides": [
 		{
-			"files": ["src/**/*.vue"],
+			"files": ["src/client/**/*.vue"],
 			"parser": "vue-eslint-parser",
 			"parserOptions": {
 				"parser": "@typescript-eslint/parser",

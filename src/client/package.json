@@ -1,0 +1,33 @@
+{
+	"name": "client",
+	"version": "0.0.0",
+	"type": "module",
+	"dependencies": {
+		"@averagehelper/job-queue": "^0.9.6",
+		"atob-lite": "^2.0.0",
+		"btoa-lite": "^1.0.0",
+		"crypto-js": "^4.1.1",
+		"firebase": "^9.1.1",
+		"lodash": "^4.17.21",
+		"node-forge": "^0.10.0",
+		"pinia": "^2.0.0-rc.10",
+		"source-map-support": "^0.5.20",
+		"vue": "^3.2.16",
+		"vue-router": "^4.0.11",
+		"vue-toastification": "^2.0.0-rc.1",
+		"vue3-date-time-picker": "^2.1.8"
+	},
+	"devDependencies": {
+		"@types/atob-lite": "^2.0.0",
+		"@types/btoa-lite": "^1.0.0",
+		"@types/crypto-js": "^4.0.2",
+		"@types/lodash": "^4.14.175",
+		"@types/node-forge": "^0.10.5",
+		"@types/source-map-support": "^0.5.4",
+		"@vitejs/plugin-vue": "^1.9.3",
+		"sass": "^1.42.1",
+		"vite": "^2.6.10",
+		"vite-tsconfig-paths": "^3.3.17",
+		"vue-tsc": "^0.28.8"
+	}
+}

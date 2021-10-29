@@ -4,7 +4,26 @@ A Vue app for managing monetary assets. All data is encrypted client-side and st
 
 Note: DO NOT FORGET YOUR PASSWORD. Even if I could retrieve your encrypted data from your own Firestore instance (I can't) I cannot decrypt your data that you encrypted with your own password.
 
+### Alternative Projects
+
+There are many open-source balance keepers out there, but none I've found that I quite like. A few are listed [here](https://opensource.com/life/17/10/personal-finance-tools-linux).
+
+### The Goal
+
+The aim of Accountable is to be cross-platform and portable. Eventually, I plan to have an Android client on the F-droid store, an iOS app on the App Store, and a website as well. The self-host option will always be available to all clients, and I intend for this project to always be open-source.
+
 ## Setup
+
+### Prerequesites
+
+This project requires NPM v7 or above. You can check what version you have installed by running `npm -v`:
+
+```sh
+$ npm -v
+7.20.3
+```
+
+### Installation
 
 - Clone the repository
 - Set up a [Firebase](https://firebase.google.com/) project
