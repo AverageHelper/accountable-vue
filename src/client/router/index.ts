@@ -4,8 +4,10 @@ import AccountView from "../components/accounts/AccountView.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
 import Settings from "../components/Settings.vue";
+import Tags from "../components/tags/Tags.vue";
 import TransactionView from "../components/transactions/TransactionView.vue";
 import { createRouter, createWebHistory } from "vue-router";
+import { allTabs } from "../model/ui/tabs";
 import { useAuthStore } from "../store/authStore";
 
 // See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
@@ -19,7 +21,9 @@ declare module "vue-router" {
 	}
 }
 
-export const APP_ROOTS = ["/accounts", "/login"];
+export const APP_ROOTS = allTabs //
+	.map(tab => `/${tab}`)
+	.concat(["/login"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -64,6 +68,12 @@ export const router = createRouter({
 			beforeEnter: onlyIfLoggedIn,
 			component: Settings,
 			meta: { title: "Settings" },
+		},
+		{
+			path: "/tags",
+			beforeEnter: onlyIfLoggedIn,
+			component: Tags,
+			meta: { title: "Tags" },
 		},
 		{
 			path: "/accounts",

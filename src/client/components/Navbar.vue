@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
-
+import TabBar from "./TabBar.vue";
+import SideMenu from "./SideMenu.vue";
 import { APP_ROOTS } from "../router";
 import { computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import SideMenu from "./SideMenu.vue";
+import { useAuthStore } from "../store";
 
 defineProps({
 	title: { type: String, required: true },
 });
 
+const auth = useAuthStore();
+
 const router = useRouter();
 const route = useRoute();
 const isRoute = computed(() => APP_ROOTS.includes(route.path));
+const isLoggedIn = computed(() => auth.uid !== null);
 
 function goBack() {
 	router.back();
@@ -20,7 +24,7 @@ function goBack() {
 </script>
 
 <template>
-	<nav>
+	<nav class="navbar">
 		<aside class="leading-actions actions-container">
 			<ActionButton v-show="!isRoute" @click="goBack">
 				<span>&lt;</span>
@@ -35,12 +39,13 @@ function goBack() {
 			<SideMenu />
 		</aside>
 	</nav>
+	<TabBar v-if="isLoggedIn" class="tab-bar" />
 </template>
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-nav {
+.navbar {
 	position: relative;
 	background-color: color($navbar-background);
 	color: color($label-dark);
@@ -76,5 +81,9 @@ nav {
 		top: 0;
 		right: 0;
 	}
+}
+
+.tab-bar {
+	width: 100%;
 }
 </style>
