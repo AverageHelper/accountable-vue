@@ -12,6 +12,7 @@ defineProps({
 	<div class="item-container" :class="{ selected: isSelected }">
 		<router-link v-if="tab === 'accounts'" to="/accounts">Accounts</router-link>
 		<router-link v-else-if="tab === 'tags'" to="/tags">Tags</router-link>
+		<router-link v-else-if="tab === 'attachments'" to="/attachments">Files</router-link>
 	</div>
 </template>
 

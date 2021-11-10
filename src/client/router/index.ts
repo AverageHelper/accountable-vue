@@ -1,6 +1,7 @@
-import type { NavigationGuard } from "vue-router";
+import type { NavigationGuard, RouteRecordRaw } from "vue-router";
 import Accounts from "../components/accounts/Accounts.vue";
 import AccountView from "../components/accounts/AccountView.vue";
+import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
 import Settings from "../components/Settings.vue";
@@ -34,6 +35,58 @@ const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	}
 };
 
+const accounts: RouteRecordRaw = {
+	path: "/accounts",
+	beforeEnter: onlyIfLoggedIn,
+	component: EmptyRoute,
+	children: [
+		{
+			path: "",
+			component: Accounts,
+			meta: { title: "Accounts" },
+		},
+		{
+			path: ":accountId",
+			component: EmptyRoute,
+			children: [
+				{
+					path: "",
+					component: AccountView,
+					props: true,
+					meta: { title: "Account" },
+				},
+				{
+					path: "transactions/:transactionId",
+					component: TransactionView,
+					props: true,
+					meta: { title: "Transaction" },
+				},
+			],
+		},
+	],
+};
+
+const attachments: RouteRecordRaw = {
+	path: "/attachments",
+	beforeEnter: onlyIfLoggedIn,
+	component: Attachments,
+	meta: { title: "Attachments" },
+};
+
+const tags: RouteRecordRaw = {
+	path: "/tags",
+	beforeEnter: onlyIfLoggedIn,
+	component: Tags,
+	meta: { title: "Tags" },
+};
+
+const settings: RouteRecordRaw = {
+	path: "/settings",
+	beforeEnter: onlyIfLoggedIn,
+	component: Settings,
+	meta: { title: "Settings" },
+};
+
 export const router = createRouter({
 	history: createWebHistory(),
 	routes: [
@@ -63,37 +116,9 @@ export const router = createRouter({
 				}
 			},
 		},
-		{
-			path: "/settings",
-			beforeEnter: onlyIfLoggedIn,
-			component: Settings,
-			meta: { title: "Settings" },
-		},
-		{
-			path: "/tags",
-			beforeEnter: onlyIfLoggedIn,
-			component: Tags,
-			meta: { title: "Tags" },
-		},
-		{
-			path: "/accounts",
-			beforeEnter: onlyIfLoggedIn,
-			component: Accounts,
-			meta: { title: "Accounts" },
-		},
-		{
-			path: "/accounts/:accountId",
-			beforeEnter: onlyIfLoggedIn,
-			component: AccountView,
-			props: true,
-			meta: { title: "Account" },
-		},
-		{
-			path: "/accounts/:accountId/transactions/:transactionId",
-			beforeEnter: onlyIfLoggedIn,
-			component: TransactionView,
-			props: true,
-			meta: { title: "Transaction" },
-		},
+		accounts,
+		attachments,
+		tags,
+		settings,
 	],
 });

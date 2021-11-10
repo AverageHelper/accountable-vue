@@ -10,6 +10,8 @@ const allTags = computed(() => tags.allTags);
 </script>
 
 <template>
+	<p>To add a tag, go to one of your transactions.</p>
+
 	<List>
 		<li v-for="tag in allTags" :key="tag.id">
 			<Tag :tag-id="tag.id" :shows-count="true" />
