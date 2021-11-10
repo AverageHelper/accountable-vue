@@ -13,7 +13,6 @@ import { collection, doc, addDoc, setDoc, deleteDoc, getDocs } from "firebase/fi
 
 interface TransactionRecordPackageMetadata {
 	objectType: "Transaction";
-	createdAt: Date;
 }
 type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
 
@@ -65,7 +64,6 @@ export async function createTransaction(
 ): Promise<Transaction> {
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
-		createdAt: record.createdAt,
 	};
 	const pkg = encrypt(record, meta, dek);
 	const ref = await addDoc(transactionsCollection(uid, account), pkg);
@@ -79,7 +77,6 @@ export async function updateTransaction(
 ): Promise<void> {
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
-		createdAt: transaction.createdAt,
 	};
 	const record: TransactionRecordParams = {
 		createdAt: transaction.createdAt,

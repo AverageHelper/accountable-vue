@@ -13,7 +13,6 @@ export const useUiStore = defineStore("ui", {
 			const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches;
 			const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
 
-			// FIXME: `addListener` is deprecated.
 			window
 				.matchMedia("(prefers-color-scheme: dark)")
 				.addEventListener("change", e => e.matches && this.activateDarkMode());

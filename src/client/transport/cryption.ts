@@ -23,10 +23,9 @@ export interface KeyMaterial {
 	oldPassSalt?: string;
 }
 
-export interface EPackage<M> {
+export type EPackage<M> = M & {
 	ciphertext: string;
-	metadata: M;
-}
+};
 
 export type DEKMaterial = CryptoJS.lib.CipherParams;
 
@@ -88,7 +87,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 	// To encrypt the dek
 	const pKey = derivePKey(password, passSalt);
 	const dekObject = btoa(dek.value);
-	const dekMaterial = encrypt(dekObject, null, pKey).ciphertext;
+	const dekMaterial = encrypt(dekObject, {}, pKey).ciphertext;
 
 	return { dekMaterial, passSalt };
 }
@@ -128,7 +127,7 @@ export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage
 	const plaintext = JSON.stringify(data);
 	const ciphertext = AES.encrypt(plaintext, dek.value).toString();
 
-	return { ciphertext, metadata };
+	return { ciphertext, ...metadata };
 }
 
 /**
