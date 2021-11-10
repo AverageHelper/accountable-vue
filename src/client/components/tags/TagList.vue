@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
-import Modal from "./Modal.vue";
+import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+import Modal from "../Modal.vue";
 import Tag from "./Tag.vue";
 import TagEdit from "./TagEdit.vue";
 import { ref, computed, nextTick } from "vue";

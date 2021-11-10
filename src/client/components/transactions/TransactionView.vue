@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
-import type { Transaction } from "../model/Transaction";
-import EditButton from "./EditButton.vue";
-import NavAction from "./NavAction.vue";
-import NavTitle from "./NavTitle.vue";
-import TagList from "./TagList.vue";
+import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+import type { Transaction } from "../../model/Transaction";
+import EditButton from "../EditButton.vue";
+import NavAction from "../NavAction.vue";
+import NavTitle from "../NavTitle.vue";
+import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { computed, toRefs } from "vue";
-import { toCurrency } from "../filters/toCurrency";
-import { useAccountsStore, useTagsStore, useTransactionsStore } from "../store";
+import { toCurrency } from "../../filters/toCurrency";
+import { useAccountsStore, useTagsStore, useTransactionsStore } from "../../store";
 import { useRouter } from "vue-router";
 
 const props = defineProps({

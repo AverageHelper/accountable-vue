@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import AccountEdit from "./AccountEdit.vue";
 import AccountListItem from "./AccountListItem.vue";
-import ActionButton from "./ActionButton.vue";
-import EditButton from "./EditButton.vue";
-import ErrorNotice from "./ErrorNotice.vue";
-import List from "./List.vue";
-import NavAction from "./NavAction.vue";
-import ReloadIcon from "../icons/Reload.vue";
+import ActionButton from "../ActionButton.vue";
+import EditButton from "../EditButton.vue";
+import ErrorNotice from "../ErrorNotice.vue";
+import List from "../List.vue";
+import NavAction from "../NavAction.vue";
+import ReloadIcon from "../../icons/Reload.vue";
 import { computed, onMounted } from "vue";
-import { useAccountsStore } from "../store";
-import { useTagsStore } from "../store/tagsStore";
+import { useAccountsStore } from "../../store";
+import { useTagsStore } from "../../store/tagsStore";
 
 const accounts = useAccountsStore();
 const tags = useTagsStore();

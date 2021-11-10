@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { Tag } from "../model/Tag";
-import TinyButton from "./TinyButton.vue";
+import type { Tag } from "../../model/Tag";
+import TinyButton from "../TinyButton.vue";
 import { computed, toRefs } from "vue";
-import { useTagsStore, useTransactionsStore } from "../store";
+import { useTagsStore, useTransactionsStore } from "../../store";
 
 const props = defineProps({
 	tagId: { type: String, required: true },

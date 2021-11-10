@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Checkbox from "./Checkbox.vue";
+import Checkbox from "../Checkbox.vue";
 import { computed, ref, toRefs } from "vue";
-import { Transaction } from "../model/Transaction";
-import { toCurrency } from "../filters/toCurrency";
-import { useTransactionsStore } from "../store";
+import { Transaction } from "../../model/Transaction";
+import { toCurrency } from "../../filters/toCurrency";
+import { useTransactionsStore } from "../../store";
 import { useToast } from "vue-toastification";
 
 const props = defineProps({

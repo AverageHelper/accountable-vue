@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Transaction } from "../model/Transaction";
-import { Account } from "../model/Account";
+import type { Transaction } from "../../model/Transaction";
+import { Account } from "../../model/Account";
 import { computed, toRefs, onMounted } from "vue";
-import { useTransactionsStore } from "../store";
+import { useTransactionsStore } from "../../store";
 
 const props = defineProps({
 	account: { type: Account, required: true },

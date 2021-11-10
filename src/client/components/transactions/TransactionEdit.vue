@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { Account } from "../model/Account";
+import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
-import type { TransactionRecordParams } from "../model/Transaction";
-import ActionButton from "./ActionButton.vue";
-import Checkbox from "./Checkbox.vue";
-import CurrencyInput from "./CurrencyInput.vue";
-import DateTimeInput from "./DateTimeInput.vue";
-import TextAreaField from "./TextAreaField.vue";
-import TextField from "./TextField.vue";
-import { Transaction } from "../model/Transaction";
+import type { TransactionRecordParams } from "../../model/Transaction";
+import ActionButton from "../ActionButton.vue";
+import Checkbox from "../Checkbox.vue";
+import CurrencyInput from "../CurrencyInput.vue";
+import DateTimeInput from "../DateTimeInput.vue";
+import TextAreaField from "../TextAreaField.vue";
+import TextField from "../TextField.vue";
+import { Transaction } from "../../model/Transaction";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-import { useTransactionsStore } from "../store";
+import { useTransactionsStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 

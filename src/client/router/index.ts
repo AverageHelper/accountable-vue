@@ -1,10 +1,10 @@
 import type { NavigationGuard } from "vue-router";
-import Accounts from "../components/Accounts.vue";
-import AccountView from "../components/AccountView.vue";
+import Accounts from "../components/accounts/Accounts.vue";
+import AccountView from "../components/accounts/AccountView.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
 import Settings from "../components/Settings.vue";
-import TransactionView from "../components/TransactionView.vue";
+import TransactionView from "../components/transactions/TransactionView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/authStore";
 

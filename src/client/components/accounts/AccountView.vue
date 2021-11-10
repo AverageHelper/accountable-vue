@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { Transaction } from "../model/Transaction";
+import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
-import EditButton from "./EditButton.vue";
-import List from "./List.vue";
-import NavAction from "./NavAction.vue";
-import NavTitle from "./NavTitle.vue";
-import TransactionEdit from "./TransactionEdit.vue";
-import TransactionListItem from "./TransactionListItem.vue";
+import EditButton from "../EditButton.vue";
+import List from "../List.vue";
+import NavAction from "../NavAction.vue";
+import NavTitle from "../NavTitle.vue";
+import TransactionEdit from "../transactions/TransactionEdit.vue";
+import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { computed, toRefs, watch } from "vue";
-import { toCurrency } from "../filters/toCurrency";
-import { useAccountsStore, useTransactionsStore } from "../store";
+import { toCurrency } from "../../filters/toCurrency";
+import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRouter } from "vue-router";
 
 function reverseChronologically(this: void, a: Transaction, b: Transaction): number {

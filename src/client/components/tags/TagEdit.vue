@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { Tag as TagObject, TagRecordParams } from "../model/Tag";
-import type { ColorID } from "../model/Color";
-import ActionButton from "./ActionButton.vue";
-import ColorPicker from "./ColorPicker.vue";
-import ConfirmDestroyTag from "./ConfirmDestroyTag.vue";
-import List from "./List.vue";
+import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+import type { ColorID } from "../../model/Color";
+import ActionButton from "../ActionButton.vue";
+import ColorPicker from "../ColorPicker.vue";
+import ConfirmDestroyTag from "../ConfirmDestroyTag.vue";
+import List from "../List.vue";
 import Tag from "./Tag.vue";
-import TextField from "./TextField.vue";
+import TextField from "../TextField.vue";
 import { ref, computed, toRefs } from "vue";
-import { useTagsStore, useTransactionsStore } from "../store";
+import { useTagsStore, useTransactionsStore } from "../../store";
 
 const emit = defineEmits(["finished"]);
 
