@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import type { Attachment } from "../../model/Attachment";
+import FileListItem from "./FileListItem.vue";
 import List from "../List.vue";
 import { computed } from "vue";
-import { useAttachmentsStore, useTransactionsStore } from "../../store";
+import { useAttachmentsStore } from "../../store";
 
 const attachments = useAttachmentsStore();
-const transactions = useTransactionsStore();
 
 const files = computed(() => attachments.allAttachments);
-
-function referencesToFile(file: Attachment): number {
-	return transactions.allTransactions.filter(t => t.attachmentIds.includes(file.id)).length;
-}
+const numberOfFiles = computed(() => files.value.length);
 </script>
 
 <template>
@@ -19,8 +15,23 @@ function referencesToFile(file: Attachment): number {
 
 	<List>
 		<li v-for="file in files" :key="file.id">
-			<span>{{ file.title }}</span>
-			<span>{{ referencesToFile(file) }}</span>
+			<FileListItem :file="file" />
+		</li>
+		<li>
+			<p class="footer">{{ numberOfFiles }} file<span v-if="numberOfFiles !== 1">s</span></p>
 		</li>
 	</List>
 </template>
+
+<style scoped lang="scss">
+@use "styles/colors" as *;
+
+p {
+	text-align: center;
+}
+
+.footer {
+	color: color($secondary-label);
+	user-select: none;
+}
+</style>

@@ -45,14 +45,16 @@ onMounted(() => {
 		</EditButton>
 	</NavAction>
 
+	<p>To add an account, click the (+) button in the upper corner.</p>
+
 	<ErrorNotice :error="loadError" />
 	<List v-if="!loadError">
 		<li v-for="account in allAccounts" :key="account.id">
 			<AccountListItem :account="account" />
 		</li>
 		<li>
-			<p class="footer">
-				{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
+			<p class="footer"
+				>{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
 			</p>
 		</li>
 	</List>
@@ -60,6 +62,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
+
+p {
+	text-align: center;
+}
 
 .footer {
 	color: color($secondary-label);

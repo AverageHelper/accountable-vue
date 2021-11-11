@@ -3,6 +3,7 @@ import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { Transaction } from "../../model/Transaction";
 import EditButton from "../EditButton.vue";
 import FileInput from "../attachments/FileInput.vue";
+import FileListItem from "../attachments/FileListItem.vue";
 import List from "../List.vue";
 import NavAction from "../NavAction.vue";
 import NavTitle from "../NavTitle.vue";
@@ -33,6 +34,7 @@ const tags = useTagsStore();
 const theseTransactions = computed(
 	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
+const files = computed(() => attachments.items);
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
 
@@ -125,8 +127,9 @@ async function onFileReceived(file: File) {
 		<p v-if="transaction.locationId">{{ transaction.locationId }}</p>
 
 		<List>
-			<li v-for="attachmentId in transaction.attachmentIds" :key="attachmentId">
-				<span>{{ attachmentId }}</span>
+			<li v-for="fileId in transaction.attachmentIds" :key="fileId">
+				<FileListItem v-if="files[fileId]" :file="files[fileId]!" />
+				<span v-else>{{ fileId }}</span>
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>

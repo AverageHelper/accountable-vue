@@ -7,6 +7,7 @@ import { useTagsStore } from "../../store";
 const tags = useTagsStore();
 
 const allTags = computed(() => tags.allTags);
+const numberOfTags = computed(() => allTags.value.length);
 </script>
 
 <template>
@@ -22,5 +23,21 @@ const allTags = computed(() => tags.allTags);
 				@no="cancelDeleteTag"
 			/> -->
 		</li>
+		<li>
+			<p class="footer">{{ numberOfTags }} tag<span v-if="numberOfTags !== 1">s</span></p>
+		</li>
 	</List>
 </template>
+
+<style scoped lang="scss">
+@use "styles/colors" as *;
+
+p {
+	text-align: center;
+}
+
+.footer {
+	color: color($secondary-label);
+	user-select: none;
+}
+</style>
