@@ -2,14 +2,21 @@
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { Transaction } from "../../model/Transaction";
 import EditButton from "../EditButton.vue";
+import FileInput from "../attachments/FileInput.vue";
+import List from "../List.vue";
 import NavAction from "../NavAction.vue";
 import NavTitle from "../NavTitle.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { computed, toRefs } from "vue";
 import { toCurrency } from "../../filters/toCurrency";
-import { useAccountsStore, useTagsStore, useTransactionsStore } from "../../store";
 import { useRouter } from "vue-router";
+import {
+	useAccountsStore,
+	useAttachmentsStore,
+	useTagsStore,
+	useTransactionsStore,
+} from "../../store";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -19,6 +26,7 @@ const { accountId, transactionId } = toRefs(props);
 
 const router = useRouter();
 const accounts = useAccountsStore();
+const attachments = useAttachmentsStore();
 const transactions = useTransactionsStore();
 const tags = useTagsStore();
 
@@ -54,6 +62,21 @@ async function removeTag(tag: TagObject) {
 	if (!transaction.value) return;
 	await transactions.removeTagFromTransaction(tag, transaction.value);
 	await transactions.deleteTagIfUnreferenced(tag); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
+}
+
+async function onFileReceived(file: File) {
+	if (!transaction.value) return;
+
+	const metadata = {
+		type: file.type,
+		title: file.name,
+		notes: null,
+		createdAt: new Date(),
+	};
+	const attachment = await attachments.createAttachment(metadata, file);
+
+	transaction.value.addAttachmentId(attachment.id);
+	await transactions.updateTransaction(transaction.value);
 }
 </script>
 
@@ -100,6 +123,13 @@ async function removeTag(tag: TagObject) {
 		<p v-else class="notes empty">No notes</p>
 
 		<p v-if="transaction.locationId">{{ transaction.locationId }}</p>
+
+		<List>
+			<li v-for="attachmentId in transaction.attachmentIds" :key="attachmentId">
+				<span>{{ attachmentId }}</span>
+			</li>
+		</List>
+		<FileInput @input="onFileReceived">Attach a file</FileInput>
 	</div>
 </template>
 
@@ -111,7 +141,6 @@ async function removeTag(tag: TagObject) {
 }
 
 .content {
-	text-align: center;
 	max-width: 400pt;
 	margin: 0 auto;
 

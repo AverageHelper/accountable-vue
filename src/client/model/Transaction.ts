@@ -13,6 +13,7 @@ export interface TransactionRecordParams {
 	isReconciled: boolean;
 	accountId: string;
 	tagIds: ReadonlyArray<string>;
+	attachmentIds: ReadonlyArray<string>;
 }
 
 export class Transaction implements Identifiable<string>, TransactionRecordParams {
@@ -26,6 +27,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 	public readonly isReconciled: boolean;
 	public readonly accountId: string;
 	private readonly _tagIds: Set<string>;
+	private readonly _attachmentIds: Set<string>;
 
 	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
 		this.id = id;
@@ -40,6 +42,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
 		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
 		this._tagIds = new Set(record?.tagIds ?? defaultRecord.tagIds);
+		this._attachmentIds = new Set(record?.attachmentIds ?? defaultRecord.attachmentIds);
 	}
 
 	get type(): TransactionRecordType {
@@ -55,6 +58,10 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		return new Array(...this._tagIds);
 	}
 
+	get attachmentIds(): ReadonlyArray<string> {
+		return new Array(...this._attachmentIds);
+	}
+
 	static defaultRecord(
 		this: void,
 		record?: Partial<TransactionRecordParams>
@@ -67,6 +74,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			locationId: record?.locationId ?? null,
 			isReconciled: record?.isReconciled ?? false,
 			tagIds: [],
+			attachmentIds: [],
 		};
 	}
 
@@ -104,6 +112,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 			isReconciled: this.isReconciled,
 			accountId: this.accountId,
 			tagIds: this.tagIds,
+			attachmentIds: this.attachmentIds,
 		};
 	}
 
@@ -121,5 +130,13 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 
 	removeTagId(id: string): void {
 		this._tagIds.delete(id);
+	}
+
+	addAttachmentId(id: string): void {
+		this._attachmentIds.add(id);
+	}
+
+	removeAttachmentId(id: string): void {
+		this._attachmentIds.delete(id);
 	}
 }

@@ -29,6 +29,7 @@ export function isWrapperInstantiated(): boolean {
  */
 export function bootstrap(params?: {
 	apiKey?: string;
+	storageBucket?: string;
 	authDomain?: string;
 	projectId?: string;
 }): void {
@@ -38,11 +39,15 @@ export function bootstrap(params?: {
 
 	// VITE_ env variables get type definitions in env.d.ts
 	const apiKey = params?.apiKey ?? import.meta.env.VITE_FIREBASE_API_KEY;
+	const storageBucket = params?.storageBucket ?? import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 	const authDomain = params?.authDomain ?? import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 	const projectId = params?.projectId ?? import.meta.env.VITE_FIREBASE_PROJECT_ID;
 
 	if (apiKey === undefined || !apiKey) {
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_API_KEY");
+	}
+	if (storageBucket === undefined || !storageBucket) {
+		throw new TypeError("No value found for environment variable VITE_FIREBASE_STORAGE_BUCKET");
 	}
 	if (authDomain === undefined || !authDomain) {
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_AUTH_DOMAIN");
@@ -51,7 +56,7 @@ export function bootstrap(params?: {
 		throw new TypeError("No value found for environment variable VITE_FIREBASE_PROJECT_ID");
 	}
 
-	const firebaseApp = initializeApp({ apiKey, authDomain, projectId });
+	const firebaseApp = initializeApp({ apiKey, authDomain, storageBucket, projectId });
 	db = getFirestore(firebaseApp);
 	storage = getStorage(firebaseApp);
 }

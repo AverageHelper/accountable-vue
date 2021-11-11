@@ -36,6 +36,7 @@ $ npm -v
 # Vite pulls these in at build time
 
 VITE_FIREBASE_API_KEY={your API key here}
+VITE_FIREBASE_STORAGE_BUCKET={your storage bucket here}
 VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
 VITE_FIREBASE_PROJECT_ID={your project ID here}
 ```

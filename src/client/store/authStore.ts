@@ -56,14 +56,25 @@ export const useAuthStore = defineStore("auth", {
 		async onSignedOut() {
 			this.clearCache();
 
-			const [{ useAccountsStore }, { useTransactionsStore }] = await Promise.all([
+			const [
+				{ useAccountsStore },
+				{ useAttachmentsStore },
+				{ useTagsStore },
+				{ useTransactionsStore },
+			] = await Promise.all([
 				import("./accountsStore"),
+				import("./attachmentsStore"),
+				import("./tagsStore"),
 				import("./transactionsStore"),
 			]);
 			const accounts = useAccountsStore();
+			const attachments = useAttachmentsStore();
+			const tags = useTagsStore();
 			const transactions = useTransactionsStore();
 
 			accounts.clearCache();
+			attachments.clearCache();
+			tags.clearCache();
 			transactions.clearCache();
 		},
 		async login(email: string, password: string) {

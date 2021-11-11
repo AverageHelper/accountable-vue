@@ -4,29 +4,29 @@ import isString from "lodash/isString";
 export interface AttachmentRecordParams {
 	title: string;
 	notes: string | null;
+	type: string;
 	createdAt: Date;
-	storageUrl: string;
-	downloadUrl: string;
+	storagePath: string;
 }
 
 export class Attachment implements Identifiable<string>, AttachmentRecordParams {
 	public readonly objectType = "Attachment";
 	public readonly id: string;
+	public readonly type: string;
 	public readonly title: string;
 	public readonly notes: string | null;
 	public readonly createdAt: Date;
-	public readonly storageUrl: string;
-	public readonly downloadUrl: string;
+	public readonly storagePath: string;
 
 	constructor(
 		id: string,
-		urls: { downloadUrl: string; storageUrl: string },
-		record?: Partial<Omit<AttachmentRecordParams, "downloadUrl" | "storageUrl">>
+		storagePath: string,
+		record?: Partial<Omit<AttachmentRecordParams, "storagePath">>
 	) {
 		this.id = id;
-		this.downloadUrl = urls.downloadUrl;
-		this.storageUrl = urls.storageUrl;
+		this.storagePath = storagePath;
 		const defaultRecord = Attachment.defaultRecord(record);
+		this.type = record?.type ?? defaultRecord.type;
 		this.title = (record?.title?.trim() ?? defaultRecord.title) || defaultRecord.title;
 		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
 		this.createdAt =
@@ -37,8 +37,9 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 	static defaultRecord(
 		this: void,
 		record?: Partial<AttachmentRecordParams>
-	): Omit<AttachmentRecordParams, "downloadUrl" | "storageUrl"> {
+	): Omit<AttachmentRecordParams, "storagePath"> {
 		return {
+			type: record?.type ?? "unknown",
 			title: record?.title ?? `Attachment ${Math.floor(Math.random() * 10) + 1}`,
 			notes: record?.notes ?? null,
 			createdAt: record?.createdAt ?? new Date(),
@@ -62,28 +63,22 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 		);
 	}
 
-	toRecord(): Omit<AttachmentRecordParams, "downloadUrl"> & { id: string } {
+	toRecord(): AttachmentRecordParams & { id: string } {
 		return {
 			id: this.id,
+			type: this.type,
 			title: this.title,
 			notes: this.notes,
 			createdAt: this.createdAt,
-			storageUrl: this.storageUrl,
+			storagePath: this.storagePath,
 		};
 	}
 
 	updatedWith(params: Partial<AttachmentRecordParams>): Attachment {
 		const thisRecord = this.toRecord();
-		return new Attachment(
-			this.id,
-			{
-				downloadUrl: params.downloadUrl ?? this.downloadUrl,
-				storageUrl: params.storageUrl ?? this.storageUrl,
-			},
-			{
-				...thisRecord,
-				...params,
-			}
-		);
+		return new Attachment(this.id, params.storagePath ?? this.storagePath, {
+			...thisRecord,
+			...params,
+		});
 	}
 }

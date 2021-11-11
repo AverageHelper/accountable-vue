@@ -7,9 +7,9 @@ import type { StorageReference } from "firebase/storage";
 import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
 import { Attachment } from "../model/Attachment";
-import { encrypt, decrypt } from "./cryption";
+import { encrypt } from "./cryption";
 import { db, storage, recordFromSnapshot } from "./db";
-import { ref, getDownloadURL, uploadString, deleteObject } from "firebase/storage";
+import { ref, uploadString, deleteObject } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 interface AttachmentRecordPackageMetadata {
@@ -30,49 +30,39 @@ function attachmentRef(
 	return doc(db, path) as DocumentReference<AttachmentRecordPackage>;
 }
 
-function attachmentStorageRef(storageUrl: string): StorageReference {
-	return ref(storage, storageUrl);
+function attachmentStorageRef(storagePath: string): StorageReference {
+	return ref(storage, storagePath);
 }
 
-async function getStringFromURL(url: string): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const xhr = new XMLHttpRequest();
-		xhr.responseType = "text";
-		xhr.addEventListener("load", () => {
-			const blob = xhr.response as string;
-			resolve(blob);
-		});
-		xhr.addEventListener("error", () => {
-			reject(xhr.response);
-		});
-		xhr.open("GET", url);
-		xhr.send();
-	});
-}
+// async function getDataAtURL(url: string): Promise<string> {
+// 	return new Promise((resolve, reject) => {
+// 		const xhr = new XMLHttpRequest();
+// 		xhr.responseType = "text";
+// 		xhr.addEventListener("load", () => {
+// 			const blob = xhr.response as string;
+// 			resolve(blob);
+// 		});
+// 		xhr.addEventListener("error", () => {
+// 			reject(xhr.response);
+// 		});
+// 		xhr.open("GET", url);
+// 		xhr.send();
+// 	});
+// }
 
-export async function attachmentFromSnapshot(
+export function attachmentFromSnapshot(
 	doc: QueryDocumentSnapshot<AttachmentRecordPackage>,
 	dek: HashStore
-): Promise<Attachment> {
+): Attachment {
 	const { id, record } = recordFromSnapshot(doc, dek, Attachment.isRecord);
-	const storageUrl = record.storageUrl;
-
-	const ref = attachmentStorageRef(record.storageUrl);
-	const url = await getDownloadURL(ref);
-
-	// Create a data URL from the data
-	const encryptedFileString = await getStringFromURL(url);
-	const encryptedFile = JSON.parse(encryptedFileString) as EPackage<unknown>;
-	const file = decrypt(encryptedFile, dek);
-	const downloadUrl = URL.createObjectURL(file);
-	const urls = { downloadUrl, storageUrl };
-	return new Attachment(id, urls, record);
+	const storagePath = record.storagePath;
+	return new Attachment(id, storagePath, record);
 }
 
 export async function createAttachment(
 	uid: string,
 	file: File,
-	record: Omit<AttachmentRecordParams, "downloadUrl" | "storageUrl">,
+	record: Omit<AttachmentRecordParams, "storagePath">,
 	dek: HashStore
 ): Promise<Attachment> {
 	const meta: AttachmentRecordPackageMetadata = {
@@ -82,17 +72,16 @@ export async function createAttachment(
 
 	const ref = doc(attachmentsCollection(uid)); // generates unique document ID
 
-	const storageUrl = `users/${uid}/attachments/${ref.id}`;
-	const storageRef = attachmentStorageRef(storageUrl);
+	const storagePath = `users/${uid}/attachments/${ref.id}.json`;
+	const storageRef = attachmentStorageRef(storagePath);
 	await uploadString(storageRef, fileToUpload, "raw"); // Store the attachment
-	const downloadUrl = await getDownloadURL(storageRef);
 
-	const recordToSave = record as typeof record & { storageUrl?: string };
-	recordToSave.storageUrl = storageUrl;
+	const recordToSave = record as typeof record & { storagePath?: string };
+	recordToSave.storagePath = storagePath;
 	const pkg = encrypt(recordToSave, meta, dek);
 	await setDoc(ref, pkg); // Save the record
 
-	return new Attachment(ref.id, { downloadUrl, storageUrl }, recordToSave);
+	return new Attachment(ref.id, storagePath, recordToSave);
 }
 
 export async function updateAttachment(
@@ -104,9 +93,10 @@ export async function updateAttachment(
 		objectType: "Attachment",
 	};
 
-	const record: Omit<AttachmentRecordParams, "downloadUrl" | "storageUrl"> = {
+	const record: Omit<AttachmentRecordParams, "storagePath"> = {
 		createdAt: attachment.createdAt,
 		notes: attachment.notes,
+		type: attachment.type,
 		title: attachment.title,
 	};
 	const pkg = encrypt(record, meta, dek);
@@ -114,7 +104,7 @@ export async function updateAttachment(
 }
 
 export async function deleteAttachment(uid: string, attachment: Attachment): Promise<void> {
-	const storageRef = attachmentStorageRef(attachment.storageUrl);
+	const storageRef = attachmentStorageRef(attachment.storagePath);
 	await deleteDoc(attachmentRef(uid, attachment));
 	await deleteObject(storageRef);
 }

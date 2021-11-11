@@ -81,6 +81,6 @@ main.content {
 }
 
 a {
-	color: color($green);
+	color: color($link);
 }
 </style>
