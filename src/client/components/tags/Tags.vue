@@ -23,7 +23,7 @@ const numberOfTags = computed(() => allTags.value.length);
 				@no="cancelDeleteTag"
 			/> -->
 		</li>
-		<li>
+		<li v-if="numberOfTags > 0">
 			<p class="footer">{{ numberOfTags }} tag<span v-if="numberOfTags !== 1">s</span></p>
 		</li>
 	</List>

@@ -1,13 +1,44 @@
 <script setup lang="ts">
+import type { Attachment } from "../../model/Attachment";
+import ConfirmDestroyFile from "./ConfirmDestroyFile.vue";
 import FileListItem from "./FileListItem.vue";
 import List from "../List.vue";
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useAttachmentsStore } from "../../store";
+import { useToast } from "vue-toastification";
 
 const attachments = useAttachmentsStore();
+const toast = useToast();
 
 const files = computed(() => attachments.allAttachments);
 const numberOfFiles = computed(() => files.value.length);
+
+const fileToDelete = ref<Attachment | null>(null);
+
+function askToDeleteFile(file: Attachment) {
+	fileToDelete.value = file;
+}
+
+async function confirmDeleteFile(file: Attachment) {
+	try {
+		await attachments.deleteAttachment(file);
+	} catch (error: unknown) {
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else {
+			message = JSON.stringify(error);
+		}
+		toast.error(message);
+		console.error(error);
+	} finally {
+		fileToDelete.value = null;
+	}
+}
+
+function cancelDeleteFile() {
+	fileToDelete.value = null;
+}
 </script>
 
 <template>
@@ -15,12 +46,19 @@ const numberOfFiles = computed(() => files.value.length);
 
 	<List>
 		<li v-for="file in files" :key="file.id">
-			<FileListItem :file="file" />
+			<FileListItem :file-id="file.id" @delete="askToDeleteFile" />
 		</li>
-		<li>
+		<li v-if="numberOfFiles > 0">
 			<p class="footer">{{ numberOfFiles }} file<span v-if="numberOfFiles !== 1">s</span></p>
 		</li>
 	</List>
+
+	<ConfirmDestroyFile
+		:file="fileToDelete"
+		:is-open="fileToDelete !== null"
+		@yes="confirmDeleteFile"
+		@no="cancelDeleteFile"
+	/>
 </template>
 
 <style scoped lang="scss">

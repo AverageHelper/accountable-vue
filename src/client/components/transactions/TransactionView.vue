@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+import type { Attachment } from "../../model/Attachment";
 import type { Transaction } from "../../model/Transaction";
+import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.vue";
 import EditButton from "../EditButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import FileListItem from "../attachments/FileListItem.vue";
@@ -9,9 +11,10 @@ import NavAction from "../NavAction.vue";
 import NavTitle from "../NavTitle.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
-import { computed, toRefs } from "vue";
+import { ref, computed, toRefs } from "vue";
 import { toCurrency } from "../../filters/toCurrency";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 import {
 	useAccountsStore,
 	useAttachmentsStore,
@@ -30,11 +33,13 @@ const accounts = useAccountsStore();
 const attachments = useAttachmentsStore();
 const transactions = useTransactionsStore();
 const tags = useTagsStore();
+const toast = useToast();
+
+const fileToDelete = ref<Attachment | null>(null);
 
 const theseTransactions = computed(
 	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
-const files = computed(() => attachments.items);
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
 
@@ -64,6 +69,50 @@ async function removeTag(tag: TagObject) {
 	if (!transaction.value) return;
 	await transactions.removeTagFromTransaction(tag, transaction.value);
 	await transactions.deleteTagIfUnreferenced(tag); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
+}
+
+function askToDeleteFile(file: Attachment) {
+	fileToDelete.value = file;
+}
+
+async function confirmDeleteFile(file: Attachment) {
+	if (!transaction.value) return;
+	try {
+		await attachments.deleteAttachment(file);
+	} catch (error: unknown) {
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else {
+			message = JSON.stringify(error);
+		}
+		toast.error(message);
+		console.error(error);
+	} finally {
+		fileToDelete.value = null;
+	}
+}
+
+async function deleteFileReference(fileId: string) {
+	if (!transaction.value) return;
+	try {
+		await transactions.removeAttachmentFromTransaction(fileId, transaction.value);
+	} catch (error: unknown) {
+		let message: string;
+		if (error instanceof Error) {
+			message = error.message;
+		} else {
+			message = JSON.stringify(error);
+		}
+		toast.error(message);
+		console.error(error);
+	} finally {
+		fileToDelete.value = null;
+	}
+}
+
+function cancelDeleteFile() {
+	fileToDelete.value = null;
 }
 
 async function onFileReceived(file: File) {
@@ -128,12 +177,22 @@ async function onFileReceived(file: File) {
 
 		<List>
 			<li v-for="fileId in transaction.attachmentIds" :key="fileId">
-				<FileListItem v-if="files[fileId]" :file="files[fileId]!" />
-				<span v-else>{{ fileId }}</span>
+				<FileListItem
+					:file-id="fileId"
+					@delete="askToDeleteFile"
+					@delete-reference="deleteFileReference"
+				/>
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>
 	</div>
+
+	<ConfirmDestroyFile
+		:file="fileToDelete"
+		:is-open="fileToDelete !== null"
+		@yes="confirmDeleteFile"
+		@no="cancelDeleteFile"
+	/>
 </template>
 
 <style scoped lang="scss">

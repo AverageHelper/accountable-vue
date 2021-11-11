@@ -108,6 +108,15 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
+			const { useTransactionsStore } = await import("./transactionsStore");
+			const transactions = useTransactionsStore();
+
+			// Remove this attachment from any transactions which reference it
+			await Promise.all(
+				transactions.allTransactions
+					.filter(t => t.attachmentIds.includes(attachment.id))
+					.map(t => transactions.removeAttachmentFromTransaction(attachment.id, t))
+			);
 			await deleteAttachment(uid, attachment);
 		},
 		async imageDataFromFile(file: Attachment): Promise<string> {

@@ -52,7 +52,7 @@ onMounted(() => {
 		<li v-for="account in allAccounts" :key="account.id">
 			<AccountListItem :account="account" />
 		</li>
-		<li>
+		<li v-if="numberOfAccounts > 0">
 			<p class="footer"
 				>{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
 			</p>

@@ -36,6 +36,7 @@ const amount = ref(0);
 const isReconciled = ref(false);
 
 const isExpense = computed(() => amount.value <= 0);
+const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length ?? 0) > 0);
 
 createdAt.value.setSeconds(0, 0);
 
@@ -130,13 +131,14 @@ async function deleteTransaction() {
 
 		<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">Save</ActionButton>
 		<ActionButton
-			v-if="!isCreatingTransaction"
+			v-if="!isCreatingTransaction && !hasAttachments"
 			kind="bordered-destructive"
 			:disabled="isLoading"
 			@click.prevent="deleteTransaction"
 			>Delete {{ ogTransaction?.title ?? "Account" }}</ActionButton
 		>
 		<p v-if="isLoading">Saving...</p>
+		<p v-if="hasAttachments">You must delete attachments before you may delete this transaction.</p>
 	</form>
 </template>
 

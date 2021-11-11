@@ -7,8 +7,9 @@ import type { StorageReference } from "firebase/storage";
 import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
 import { Attachment } from "../model/Attachment";
-import { encrypt, decrypt } from "./cryption";
 import { db, storage, recordFromSnapshot } from "./db";
+import { encrypt, decrypt } from "./cryption";
+import { FirebaseError } from "@firebase/util";
 import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 
@@ -141,7 +142,18 @@ export async function updateAttachment(
 }
 
 export async function deleteAttachment(uid: string, attachment: Attachment): Promise<void> {
-	const storageRef = attachmentStorageRef(attachment.storagePath);
+	// Delete the storage blob
+	try {
+		const storageRef = attachmentStorageRef(attachment.storagePath);
+		await deleteObject(storageRef);
+	} catch (error: unknown) {
+		if (error instanceof FirebaseError && error.code === "storage/object-not-found") {
+			// File not found? Already deleted lol
+		} else {
+			throw error;
+		}
+	}
+
+	// Delete the metadata entry
 	await deleteDoc(attachmentRef(uid, attachment));
-	await deleteObject(storageRef);
 }

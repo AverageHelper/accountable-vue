@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import Modal from "../Modal.vue";
+import type { Attachment } from "../../model/Attachment";
 import FileView from "./FileView.vue";
 import ListItem from "../ListItem.vue";
-import { Attachment } from "../../model/Attachment";
-import { ref, computed, toRefs, onMounted } from "vue";
+import Modal from "../Modal.vue";
+import { ref, computed, toRefs } from "vue";
 import { useAttachmentsStore } from "../../store";
 
 const props = defineProps({
-	file: { type: Attachment, required: true },
+	fileId: { type: String, required: true },
 });
-const { file } = toRefs(props);
+const { fileId } = toRefs(props);
+
+const emit = defineEmits(["delete", "delete-reference"]);
 
 const attachments = useAttachmentsStore();
 
-const subtitle = computed(() => {
+const file = computed(() => attachments.items[fileId.value]);
+const title = computed<string>(() => file.value?.title ?? fileId.value);
+const subtitle = computed<string>(() => {
+	if (!file.value) return "";
 	const timestamp = file.value.createdAt.toString();
 
 	if (file.value.notes === null || !file.value.notes) {
@@ -22,17 +27,7 @@ const subtitle = computed(() => {
 	return `${file.value.notes} - ${timestamp}`;
 });
 
-const imageUrl = ref<string | null>(null);
-const imageLoadError = ref<Error | null>(null);
 const isModalOpen = ref(false);
-
-onMounted(async () => {
-	try {
-		imageUrl.value = await attachments.imageDataFromFile(file.value);
-	} catch (error: unknown) {
-		imageLoadError.value = error as Error;
-	}
-});
 
 function presentImageModal() {
 	isModalOpen.value = true;
@@ -41,16 +36,19 @@ function presentImageModal() {
 function closeImageModal() {
 	isModalOpen.value = false;
 }
+
+function askToDelete(file: Attachment) {
+	emit("delete", file);
+}
+
+function askToDeleteReference() {
+	emit("delete-reference", fileId.value);
+}
 </script>
 
 <template>
-	<ListItem
-		to=""
-		:title="file.title"
-		:subtitle="subtitle"
-		@click.stop.prevent="presentImageModal"
-	/>
+	<ListItem to="" :title="title" :subtitle="subtitle" @click.stop.prevent="presentImageModal" />
 	<Modal :open="isModalOpen" :close-modal="closeImageModal">
-		<FileView :file="isModalOpen ? file : null" />
+		<FileView :file="file" @delete="askToDelete" @delete-reference="askToDeleteReference" />
 	</Modal>
 </template>

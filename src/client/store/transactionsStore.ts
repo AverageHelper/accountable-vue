@@ -167,11 +167,13 @@ export const useTransactionsStore = defineStore("transactions", {
 			await updateTransaction(uid, transaction, dek);
 		},
 		async deleteTransaction(transaction: Transaction) {
+			if (transaction.attachmentIds.length > 0) {
+				throw new Error("Cannot delete a transaction that has attachments. Delete those first.");
+			}
+
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
-
-			// TODO: Don't delete if we have attachments
 
 			await deleteTransaction(uid, transaction);
 		},
@@ -185,6 +187,10 @@ export const useTransactionsStore = defineStore("transactions", {
 					.filter(t => t.tagIds.includes(tag.id)) // for each T that has this tag...
 					.map(t => this.removeTagFromTransaction(tag, t)) // remove the tag
 			);
+		},
+		async removeAttachmentFromTransaction(fileId: string, transaction: Transaction): Promise<void> {
+			transaction.removeAttachmentId(fileId);
+			await this.updateTransaction(transaction);
 		},
 		async deleteTagIfUnreferenced(tag: Tag): Promise<void> {
 			if (this.tagIsReferenced(tag.id)) return;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Attachment } from "../../model/Attachment";
 import type { PropType } from "vue";
+import ActionButton from "../ActionButton.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import { ref, watch, toRefs } from "vue";
 import { useAttachmentsStore } from "../../store";
@@ -9,6 +10,8 @@ const props = defineProps({
 	file: { type: Object as PropType<Attachment | null>, default: null },
 });
 const { file } = toRefs(props);
+
+const emit = defineEmits(["delete", "delete-reference"]);
 
 const attachments = useAttachmentsStore();
 
@@ -33,17 +36,32 @@ watch(
 	},
 	{ immediate: true }
 );
+
+function askToDelete() {
+	if (file.value) {
+		emit("delete", file.value); // get rid of the file
+	} else {
+		emit("delete-reference"); // get rid of the file reference
+	}
+}
 </script>
 
 <template>
-	<p v-if="!file">No file selected</p>
+	<p v-if="!file">This file does not exist. Sorry.</p>
 	<ErrorNotice v-else-if="imageLoadError" :error="imageLoadError" />
 	<p v-else-if="!imageUrl">Loading...</p>
 	<img v-else :src="imageUrl" />
 
-	<p>{{ file?.title ?? "Untitled" }}</p>
-	<p>{{ file?.type ?? "Unknown Type" }}</p>
-	<p>{{ file?.createdAt.toString() ?? "Unknown date" }}</p>
+	<p v-if="file">{{ file.title }}</p>
+	<p v-if="file">{{ file.type }}</p>
+	<p v-if="file">{{ file.createdAt.toString() }}</p>
+
+	<ActionButton v-if="file" kind="bordered-destructive" @click.prevent="askToDelete"
+		>Delete {{ file.title }}</ActionButton
+	>
+	<ActionButton v-else kind="bordered" @click.prevent="askToDelete"
+		>Remove this dead reference</ActionButton
+	>
 </template>
 
 <style scoped lang="scss">
