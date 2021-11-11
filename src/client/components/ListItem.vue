@@ -16,8 +16,7 @@ defineProps({
 			<span v-if="subtitle" class="subtitle">{{ subtitle }}</span>
 		</div>
 
-		<span v-if="count === null">...</span>
-		<span v-else class="count">{{ count }}</span>
+		<span v-if="count !== null" class="count">{{ count }}</span>
 	</component>
 </template>
 

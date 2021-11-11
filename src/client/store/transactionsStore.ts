@@ -36,9 +36,10 @@ export const useTransactionsStore = defineStore("transactions", {
 	},
 	actions: {
 		clearCache() {
-			this.transactionsForAccount = {};
 			Object.values(this.transactionsWatchers).forEach(unsubscribe => unsubscribe());
 			this.transactionsWatchers = {};
+			this.transactionsForAccount = {};
+			console.log("transactionsStore: cache cleared");
 		},
 		watchTransactions(account: Account, force: boolean = false) {
 			if (this.transactionsWatchers[account.id] && !force) return;

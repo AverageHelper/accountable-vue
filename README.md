@@ -41,12 +41,29 @@ VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
 VITE_FIREBASE_PROJECT_ID={your project ID here}
 ```
 
-Install dependencies and run!
+#### Install dependencies and run!
 
 ```sh
 $ cd accountable-vue
 $ npm install
 $ npm run export-version
+```
+
+#### Twiddle with Google Cloud Storage
+
+This is necessary for now. We're looking into alternatives.
+
+```sh
+$ gcloud auth login # log in using your project Google account
+$ gcloud config set project <your-project-ID>
+$ gsutil cors set cors.json gs://<your-cloud-storage-bucket>
+```
+
+See [Google's docs on the subject](https://firebase.google.com/docs/storage/web/download-files#cors_configuration).
+
+#### Run!
+
+```sh
 $ npm start
 ```
 

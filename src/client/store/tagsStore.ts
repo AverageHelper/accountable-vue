@@ -32,6 +32,7 @@ export const useTagsStore = defineStore("tags", {
 			}
 			this.items = {};
 			this.loadError = null;
+			console.log("tagsStore: cache cleared");
 		},
 		watchTags(force: boolean = false) {
 			if (this.tagsWatcher && !force) return;

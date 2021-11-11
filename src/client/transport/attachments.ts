@@ -7,9 +7,9 @@ import type { StorageReference } from "firebase/storage";
 import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
 import { Attachment } from "../model/Attachment";
-import { encrypt } from "./cryption";
+import { encrypt, decrypt } from "./cryption";
 import { db, storage, recordFromSnapshot } from "./db";
-import { ref, uploadString, deleteObject } from "firebase/storage";
+import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 interface AttachmentRecordPackageMetadata {
@@ -34,21 +34,56 @@ function attachmentStorageRef(storagePath: string): StorageReference {
 	return ref(storage, storagePath);
 }
 
-// async function getDataAtURL(url: string): Promise<string> {
-// 	return new Promise((resolve, reject) => {
-// 		const xhr = new XMLHttpRequest();
-// 		xhr.responseType = "text";
-// 		xhr.addEventListener("load", () => {
-// 			const blob = xhr.response as string;
-// 			resolve(blob);
-// 		});
-// 		xhr.addEventListener("error", () => {
-// 			reject(xhr.response);
-// 		});
-// 		xhr.open("GET", url);
-// 		xhr.send();
-// 	});
-// }
+async function dataFromFile(file: File): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.addEventListener("load", () => {
+			const result = reader.result;
+			if (typeof result === "string") {
+				resolve(result);
+			} else {
+				reject(new TypeError(`Expected string result, got ${typeof result}`));
+			}
+		});
+		reader.addEventListener("error", error => {
+			reject(error);
+		});
+		// reader.readAsText(file);
+		reader.readAsDataURL(file);
+	});
+}
+
+async function getDataAtURL(url: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		xhr.responseType = "text";
+		xhr.addEventListener("load", () => {
+			const blob = xhr.response as string;
+			resolve(blob);
+		});
+		xhr.addEventListener("error", () => {
+			reject(xhr.response);
+		});
+		xhr.open("GET", url);
+		xhr.send();
+	});
+}
+
+export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
+	const storageRef = attachmentStorageRef(file.storagePath);
+	const downloadUrl = await getDownloadURL(storageRef);
+	const encryptedData = await getDataAtURL(downloadUrl);
+	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
+	if (!("ciphertext" in pkg)) {
+		throw new TypeError("Improperly formatted payload.");
+	}
+
+	const imageData = decrypt(pkg, dek);
+	if (typeof imageData !== "string") {
+		throw new TypeError(`Expected string output. Got ${typeof imageData}`);
+	}
+	return imageData;
+}
 
 export function attachmentFromSnapshot(
 	doc: QueryDocumentSnapshot<AttachmentRecordPackage>,
@@ -68,7 +103,8 @@ export async function createAttachment(
 	const meta: AttachmentRecordPackageMetadata = {
 		objectType: "Attachment",
 	};
-	const fileToUpload = JSON.stringify(encrypt(await file.text(), {}, dek));
+	const imageData = await dataFromFile(file);
+	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
 
 	const ref = doc(attachmentsCollection(uid)); // generates unique document ID
 

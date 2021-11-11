@@ -14,7 +14,7 @@ function onFileChanged(event: Event) {
 
 <template>
 	<label class="file-input">
-		<input type="file" @change="onFileChanged" />
+		<input type="file" accept="image/*" @change="onFileChanged" />
 		<span>
 			<slot>Choose a file</slot>
 		</span>

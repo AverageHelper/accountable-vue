@@ -35,8 +35,10 @@ export const useAuthStore = defineStore("auth", {
 		clearCache() {
 			this.pKey?.destroy();
 			this.pKey = null;
+			this.loginProcessState = null;
 			this.uid = null;
 			this.email = null;
+			console.log("authStore: cache cleared");
 		},
 		watchAuthState() {
 			if (this.authStateWatcher) this.authStateWatcher();
