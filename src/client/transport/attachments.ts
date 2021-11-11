@@ -107,8 +107,9 @@ export async function createAttachment(
 	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
 
 	const ref = doc(attachmentsCollection(uid)); // generates unique document ID
+	const storageName = doc(attachmentsCollection(uid)); // generates unique file name
 
-	const storagePath = `users/${uid}/attachments/${ref.id}.json`;
+	const storagePath = `users/${uid}/attachments/${storageName.id}.json`;
 	const storageRef = attachmentStorageRef(storagePath);
 	await uploadString(storageRef, fileToUpload, "raw"); // Store the attachment
 
