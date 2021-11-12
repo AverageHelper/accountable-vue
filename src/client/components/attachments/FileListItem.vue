@@ -19,7 +19,9 @@ const file = computed(() => attachments.items[fileId.value]);
 const title = computed<string>(() => file.value?.title ?? fileId.value);
 const subtitle = computed<string>(() => {
 	if (!file.value) return "";
-	const timestamp = file.value.createdAt.toString();
+
+	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+	const timestamp = formatter.format(file.value.createdAt);
 
 	if (file.value.notes === null || !file.value.notes) {
 		return timestamp;

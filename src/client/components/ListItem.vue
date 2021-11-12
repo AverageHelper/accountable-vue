@@ -31,8 +31,15 @@ defineProps({
 	padding: 0.75em;
 	margin-bottom: 0.5em;
 	text-decoration: none;
+	border-radius: 4pt;
 	color: color($label);
 	background-color: color($secondary-fill);
+
+	@media (hover: hover) {
+		&:hover {
+			background-color: color($gray4);
+		}
+	}
 
 	.content {
 		display: flex;

@@ -45,7 +45,7 @@ function onChange(event: Event): void {
 		height: 1.8em;
 		float: left;
 		border-radius: 0.4em;
-		border: 2pt solid color($secondary-fill);
+		border: 2pt solid color($transparent-gray);
 		cursor: pointer;
 		transition: all 0.1s ease;
 

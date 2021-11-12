@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Checkbox from "../Checkbox.vue";
+import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs } from "vue";
 import { Transaction } from "../../model/Transaction";
 import { toCurrency } from "../../filters/toCurrency";
@@ -14,8 +15,13 @@ const { transaction } = toRefs(props);
 const transactions = useTransactionsStore();
 const toast = useToast();
 
-const isNegative = computed(() => transaction.value.amount < 0);
 const isChangingReconciled = ref(false);
+const isNegative = computed(() => transaction.value.amount < 0);
+const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
+const timestamp = computed(() => {
+	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+	return formatter.format(transaction.value.createdAt);
+});
 
 const transactionRoute = computed(
 	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
@@ -49,14 +55,25 @@ async function markReconciled(isReconciled: boolean) {
 <template>
 	<router-link class="transaction-list-item" :to="transactionRoute">
 		<Checkbox
-			:disabled="isChangingReconciled"
+			v-if="!isChangingReconciled"
+			class="checkbox"
 			:model-value="transaction.isReconciled"
 			@update:modelValue="markReconciled"
+			@click.stop.prevent
 		/>
-		<span class="title">{{ transaction.title }}</span>
-		<span class="amount" :class="{ negative: isNegative }">{{
-			toCurrency(transaction.amount)
-		}}</span>
+		<span v-else style="min-height: 33pt">...</span>
+
+		<div class="labels">
+			<span class="title">{{ transaction.title }}</span>
+			<span class="timestamp">{{ timestamp }}</span>
+		</div>
+
+		<div class="tail">
+			<PaperclipIcon v-if="hasAttachments" class="has-attachments" />
+			<span class="amount" :class="{ negative: isNegative }">{{
+				toCurrency(transaction.amount)
+			}}</span>
+		</div>
 	</router-link>
 </template>
 
@@ -64,29 +81,53 @@ async function markReconciled(isReconciled: boolean) {
 @use "styles/colors" as *;
 
 .transaction-list-item {
+	position: relative;
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	justify-content: space-between;
+	border-radius: 0;
 	padding: 0.75em;
-	margin-bottom: 0.5em;
 	text-decoration: none;
 	color: color($label);
 	background-color: color($secondary-fill);
 
-	.mark {
-		background-color: color($cloud);
+	@media (hover: hover) {
+		&:hover {
+			background-color: color($gray4);
+		}
 	}
 
-	.title {
-		font-weight: bold;
+	.labels {
+		display: flex;
+		flex-flow: column nowrap;
+		margin-left: 1em;
+
+		.title {
+			font-weight: bold;
+		}
+
+		.timestamp {
+			font-size: small;
+		}
 	}
 
-	.amount {
-		font-weight: bold;
+	.tail {
+		margin-left: auto;
 
-		&.negative {
-			color: color($red);
+		.has-attachments {
+			position: relative;
+			top: -1pt;
+			margin-left: auto;
+			color: color($secondary-label);
+		}
+
+		.amount {
+			font-weight: bold;
+			margin-left: 8pt;
+
+			&.negative {
+				color: color($red);
+			}
 		}
 	}
 }

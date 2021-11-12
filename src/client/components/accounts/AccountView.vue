@@ -75,8 +75,8 @@ function goBack() {
 		toCurrency(remainingBalance)
 	}}</p>
 
-	<List>
-		<li v-for="transaction in theseTransactions" :key="transaction.id">
+	<List class="transactions-list">
+		<li v-for="transaction in theseTransactions" :key="transaction.id" class="transaction">
 			<TransactionListItem :transaction="transaction" />
 		</li>
 		<li>
@@ -104,8 +104,42 @@ function goBack() {
 	}
 }
 
-.footer {
-	color: color($secondary-label);
-	user-select: none;
+.transactions-list {
+	> .transaction {
+		position: relative;
+		overflow: hidden;
+
+		&::after {
+			content: "";
+			display: block;
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			width: 92%;
+			height: 1pt;
+			background-color: color($background);
+			z-index: 100;
+			user-select: none;
+		}
+
+		// Round the first and last bordered list items
+		&:first-child {
+			border-radius: 4pt 4pt 0 0;
+		}
+
+		&:nth-last-child(2) {
+			border-radius: 0 0 4pt 4pt;
+
+			&::after {
+				display: none;
+			}
+		}
+	}
+
+	.footer {
+		padding-top: 0.5em;
+		user-select: none;
+		color: color($secondary-label);
+	}
 }
 </style>
