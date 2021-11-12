@@ -16,7 +16,7 @@ describe("Transaction record", () => {
 	`(
 		"returns a type of '$type' if the record amount is $amount",
 		({ type, amount }: { type: TransactionRecordType; amount: number }) => {
-			const transaction = new Transaction({ amount });
+			const transaction = new Transaction("", "", { amount });
 			expect(transaction.type).toBe(type);
 		}
 	);

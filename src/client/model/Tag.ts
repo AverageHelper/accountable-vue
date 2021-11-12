@@ -34,9 +34,8 @@ export class Tag implements Identifiable<string>, TagRecordParams {
 		);
 	}
 
-	toRecord(): TagRecordParams & { id: string } {
+	toRecord(): TagRecordParams {
 		return {
-			id: this.id,
 			name: this.name,
 			colorId: this.colorId,
 		};

@@ -63,9 +63,8 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 		);
 	}
 
-	toRecord(): AttachmentRecordParams & { id: string } {
+	toRecord(): AttachmentRecordParams {
 		return {
-			id: this.id,
 			type: this.type,
 			title: this.title,
 			notes: this.notes,

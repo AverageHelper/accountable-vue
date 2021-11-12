@@ -131,12 +131,7 @@ export async function updateAttachment(
 		objectType: "Attachment",
 	};
 
-	const record: Omit<AttachmentRecordParams, "storagePath"> = {
-		createdAt: attachment.createdAt,
-		notes: attachment.notes,
-		type: attachment.type,
-		title: attachment.title,
-	};
+	const record: AttachmentRecordParams = attachment.toRecord();
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(attachmentRef(uid, attachment), pkg);
 }

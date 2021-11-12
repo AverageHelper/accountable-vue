@@ -49,9 +49,8 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 		);
 	}
 
-	toRecord(): AccountRecordParams & { id: string } {
+	toRecord(): AccountRecordParams {
 		return {
-			id: this.id,
 			title: this.title,
 			notes: this.notes,
 			createdAt: this.createdAt,

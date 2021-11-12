@@ -47,10 +47,7 @@ export async function updateTag(uid: string, tag: Tag, dek: HashStore): Promise<
 	const meta: TagRecordPackageMetadata = {
 		objectType: "Tag",
 	};
-	const record: TagRecordParams = {
-		name: tag.name,
-		colorId: tag.colorId,
-	};
+	const record: TagRecordParams = tag.toRecord();
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(tagRef(uid, tag), pkg);
 }

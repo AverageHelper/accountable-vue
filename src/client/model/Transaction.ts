@@ -101,9 +101,8 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		);
 	}
 
-	toRecord(): TransactionRecordParams & { id: string } {
+	toRecord(): TransactionRecordParams {
 		return {
-			id: this.id,
 			amount: this.amount,
 			createdAt: this.createdAt,
 			title: this.title,

@@ -50,11 +50,7 @@ export async function updateAccount(uid: string, account: Account, dek: HashStor
 	const meta: AccountRecordPackageMetadata = {
 		objectType: "Account",
 	};
-	const record: AccountRecordParams = {
-		createdAt: account.createdAt,
-		notes: account.notes,
-		title: account.title,
-	};
+	const record: AccountRecordParams = account.toRecord();
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(accountRef(uid, account), pkg);
 }

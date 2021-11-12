@@ -78,17 +78,7 @@ export async function updateTransaction(
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
 	};
-	const record: TransactionRecordParams = {
-		createdAt: transaction.createdAt,
-		notes: transaction.notes,
-		title: transaction.title,
-		locationId: transaction.locationId,
-		amount: transaction.amount,
-		isReconciled: transaction.isReconciled,
-		accountId: transaction.accountId,
-		tagIds: transaction.tagIds,
-		attachmentIds: transaction.attachmentIds,
-	};
+	const record: TransactionRecordParams = transaction.toRecord();
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(transactionRef(uid, transaction), pkg);
 }
