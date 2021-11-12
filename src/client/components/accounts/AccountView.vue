@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
+import ActionButton from "../ActionButton.vue";
 import AddTransactionListItem from "./AddTransactionListItem.vue";
-import EditButton from "../EditButton.vue";
+import EditIcon from "../../icons/Edit.vue";
 import List from "../List.vue";
 import Modal from "../Modal.vue";
-import NavAction from "../NavAction.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { ref, computed, toRefs, watch } from "vue";
@@ -26,6 +26,7 @@ const router = useRouter();
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
+const isEditingAccount = ref(false);
 const isEditingTransaction = ref(false);
 
 const account = computed(() => accounts.items[accountId.value]);
@@ -60,19 +61,24 @@ function startCreatingTransaction() {
 function finishCreatingTransaction() {
 	isEditingTransaction.value = false;
 }
+
+function startEditingAccount() {
+	isEditingAccount.value = true;
+}
+
+function finishEditingAccount() {
+	isEditingAccount.value = false;
+}
 </script>
 
 <template>
-	<NavAction v-if="account">
-		<EditButton>
-			<template #modal="{ onFinished }">
-				<AccountEdit :account="account" @deleted="goBack" @finished="onFinished" />
-			</template>
-		</EditButton>
-	</NavAction>
-
 	<div class="heading">
-		<h1>{{ account?.title || "Account" }}</h1>
+		<div class="account-title">
+			<h1>{{ account?.title || "Account" }}</h1>
+			<ActionButton class="edit" @click="startEditingAccount">
+				<EditIcon />
+			</ActionButton>
+		</div>
 
 		<p v-if="remainingBalance === null" class="account-balance">--</p>
 		<p v-else class="account-balance" :class="{ negative: isNegative }">{{
@@ -103,6 +109,9 @@ function finishCreatingTransaction() {
 	<Modal v-if="account" :open="isEditingTransaction" :close-modal="finishCreatingTransaction">
 		<TransactionEdit :account="account" @finished="finishCreatingTransaction" />
 	</Modal>
+	<Modal v-if="account" :open="isEditingAccount" :close-modal="finishEditingAccount">
+		<AccountEdit :account="account" @deleted="goBack" @finished="finishEditingAccount" />
+	</Modal>
 </template>
 
 <style scoped lang="scss">
@@ -112,16 +121,38 @@ function finishCreatingTransaction() {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: baseline;
-	justify-content: space-between;
 	max-width: 36em;
 	margin: 1em auto;
 
-	> h1 {
-		margin: 0;
+	> .account-title {
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
+
+		> h1 {
+			margin: 0;
+		}
+
+		.edit {
+			display: flex;
+			flex-flow: row nowrap;
+			align-items: center;
+			color: color($link);
+			min-height: 22pt;
+			height: 22pt;
+			min-width: 22pt;
+			width: 22pt;
+			margin-left: 8pt;
+
+			.icon {
+				height: 14pt;
+			}
+		}
 	}
 
 	.account-balance {
 		margin: 0;
+		margin-left: auto;
 		text-align: right;
 		font-weight: bold;
 		padding-right: 0.7em;
