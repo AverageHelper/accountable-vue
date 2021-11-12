@@ -8,11 +8,16 @@ import List from "../List.vue";
 import NavAction from "../NavAction.vue";
 import ReloadIcon from "../../icons/Reload.vue";
 import { computed, onMounted } from "vue";
-import { useAccountsStore, useAttachmentsStore } from "../../store";
-import { useTagsStore } from "../../store/tagsStore";
+import {
+	useAccountsStore,
+	useAttachmentsStore,
+	useLocationsStore,
+	useTagsStore,
+} from "../../store";
 
 const accounts = useAccountsStore();
 const attachments = useAttachmentsStore();
+const locations = useLocationsStore();
 const tags = useTagsStore();
 
 const allAccounts = computed(() => accounts.allAccounts);
@@ -22,6 +27,7 @@ const loadError = computed<Error | null>(() => accounts.loadError);
 function load() {
 	accounts.watchAccounts();
 	attachments.watchAttachments();
+	locations.watchLocations();
 	tags.watchTags();
 }
 

@@ -1,45 +1,45 @@
-import type { Tag, TagRecordParams } from "../model/Tag";
+import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { useAuthStore } from "./authStore";
 import {
-	createTag,
+	createLocation,
 	deriveDEK,
-	updateTag,
-	deleteTag,
-	tagFromSnapshot,
-	tagsCollection,
+	updateLocation,
+	deleteLocation,
+	locationFromSnapshot,
+	locationsCollection,
 	watchAllRecords,
 } from "../transport";
 
-export const useTagsStore = defineStore("tags", {
+export const useLocationsStore = defineStore("locations", {
 	state: () => ({
-		items: {} as Dictionary<Tag>, // Tag.id -> Tag
+		items: {} as Dictionary<Location>, // Location.id -> Location
 		loadError: null as Error | null,
-		tagsWatcher: null as Unsubscribe | null,
+		locationsWatcher: null as Unsubscribe | null,
 	}),
 	getters: {
-		allTags(state): Array<Tag> {
+		allLocations(state): Array<Location> {
 			return Object.values(state.items);
 		},
 	},
 	actions: {
 		clearCache() {
-			if (this.tagsWatcher) {
-				this.tagsWatcher();
-				this.tagsWatcher = null;
+			if (this.locationsWatcher) {
+				this.locationsWatcher();
+				this.locationsWatcher = null;
 			}
 			this.items = {};
 			this.loadError = null;
-			console.log("tagsStore: cache cleared");
+			console.log("locationsStore: cache cleared");
 		},
-		watchTags(force: boolean = false) {
-			if (this.tagsWatcher && !force) return;
+		watchLocations(force: boolean = false) {
+			if (this.locationsWatcher && !force) return;
 
-			if (this.tagsWatcher) {
-				this.tagsWatcher();
-				this.tagsWatcher = null;
+			if (this.locationsWatcher) {
+				this.locationsWatcher();
+				this.locationsWatcher = null;
 			}
 
 			const authStore = useAuthStore();
@@ -48,8 +48,8 @@ export const useTagsStore = defineStore("tags", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const collection = tagsCollection(uid);
-			this.tagsWatcher = watchAllRecords(
+			const collection = locationsCollection(uid);
+			this.locationsWatcher = watchAllRecords(
 				collection,
 				async snap => {
 					this.loadError = null;
@@ -65,7 +65,7 @@ export const useTagsStore = defineStore("tags", {
 
 							case "added":
 							case "modified":
-								this.items[change.doc.id] = tagFromSnapshot(change.doc, dek);
+								this.items[change.doc.id] = locationFromSnapshot(change.doc, dek);
 								break;
 						}
 					});
@@ -75,12 +75,7 @@ export const useTagsStore = defineStore("tags", {
 				}
 			);
 		},
-		async createTag(record: TagRecordParams): Promise<Tag> {
-			// If a tag already exists with this name, return that one instead
-			const extantTag = this.allTags.find(tag => tag.name === record.name);
-			if (extantTag) return extantTag;
-
-			// Otherwise, go ahead and make one
+		async createLocation(record: LocationRecordParams): Promise<Location> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -89,9 +84,9 @@ export const useTagsStore = defineStore("tags", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createTag(uid, record, dek);
+			return await createLocation(uid, record, dek);
 		},
-		async updateTag(tag: Tag): Promise<void> {
+		async updateLocation(location: Location): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -100,9 +95,9 @@ export const useTagsStore = defineStore("tags", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateTag(uid, tag, dek);
+			await updateLocation(uid, location, dek);
 		},
-		async deleteTag(tag: Tag): Promise<void> {
+		async deleteLocation(location: Location): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -110,15 +105,15 @@ export const useTagsStore = defineStore("tags", {
 			// Don't delete if we have transactions
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
-			const relevantTransactions = transactions.allTransactions.filter(t =>
-				t.tagIds.includes(tag.id)
+			const relevantTransactions = transactions.allTransactions.filter(
+				t => t.locationId === location.id
 			);
 			if (relevantTransactions.length > 0)
 				throw new Error(
-					"Cannot delete a tag when transactions reference it. Remove those references first."
+					"Cannot delete a location when transactions reference it. Remove those references first."
 				);
 
-			await deleteTag(uid, tag);
+			await deleteLocation(uid, location);
 		},
 	},
 });
