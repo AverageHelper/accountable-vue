@@ -18,7 +18,7 @@ const { currency, modelValue } = toRefs(props);
 const isIncome = ref(true);
 
 const presentableValue = computed(() => {
-	return toCurrency(modelValue.value, currency.value);
+	return toCurrency(modelValue.value, "accounting", currency.value);
 });
 
 function onInput(event: Event) {

@@ -33,7 +33,7 @@ function yes() {
 			>Are you sure you want to delete the tag <strong class="tag-name">{{ tag.name }}</strong
 			>?<template v-if="count > 0">
 				This tag will be removed from
-				<strong class="tag-count">{{ count }} transaction(s)</strong>.</template
+				<strong>{{ count }} transaction(s)</strong>.</template
 			>
 			This cannot be undone.</template
 		>
@@ -52,14 +52,8 @@ function yes() {
 
 <style scoped lang="scss">
 .tag-name {
-	font-weight: bold;
-
 	&::before {
 		content: "#";
 	}
-}
-
-.tag-count {
-	font-weight: bold;
 }
 </style>

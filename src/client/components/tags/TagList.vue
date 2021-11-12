@@ -48,14 +48,14 @@ function commitTag(params: TagRecordParams | null) {
 
 <template>
 	<div class="tag-list">
-		<ul v-if="tagIds.length > 0" class="tags">
+		<ul class="tags">
 			<li v-for="tagId in tagIds" :key="tagId">
 				<Tag :tag-id="tagId" :on-remove="removeTag" />
 			</li>
+			<li>
+				<a href="#" @click.prevent="addTag">Add tag</a>
+			</li>
 		</ul>
-		<p v-else class="empty">No tags</p>
-
-		<a href="#" @click.prevent="addTag">Add tag</a>
 	</div>
 
 	<Modal :open="isModalOpen" :close-modal="closeModal">
@@ -68,8 +68,7 @@ function commitTag(params: TagRecordParams | null) {
 
 .tag-list {
 	display: flex;
-	flex-flow: row nowrap;
-	justify-content: space-between;
+	flex-flow: row wrap;
 	align-items: baseline;
 
 	ul.tags {
@@ -80,16 +79,7 @@ function commitTag(params: TagRecordParams | null) {
 		max-width: 36em;
 	}
 
-	p.empty {
-		color: color($secondary-label);
-		text-align: left;
-		margin-top: 0.5em;
-		font-style: italic;
-		font-weight: normal;
-	}
-
 	a {
-		font-weight: bold;
 		white-space: nowrap;
 	}
 }

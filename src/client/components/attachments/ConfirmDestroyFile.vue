@@ -29,8 +29,7 @@ function yes() {
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
 		<template #message
-			>Are you sure you want to delete
-			<strong v-if="file" class="file-name">{{ file.title }}</strong
+			>Are you sure you want to delete <strong v-if="file">{{ file.title }}</strong
 			><span v-else>this file</span>? This cannot be undone.</template
 		>
 
@@ -42,9 +41,3 @@ function yes() {
 		</template>
 	</Confirm>
 </template>
-
-<style scoped lang="scss">
-.file-name {
-	font-weight: bold;
-}
-</style>

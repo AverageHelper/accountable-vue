@@ -8,7 +8,6 @@ import FileInput from "../attachments/FileInput.vue";
 import FileListItem from "../attachments/FileListItem.vue";
 import List from "../List.vue";
 import NavAction from "../NavAction.vue";
-import NavTitle from "../NavTitle.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { ref, computed, toRefs } from "vue";
@@ -46,7 +45,7 @@ const transaction = computed(() => theseTransactions.value[transactionId.value])
 const timestamp = computed(() => {
 	if (!transaction.value) return "";
 
-	const formatter = Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" });
+	const formatter = Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 	return formatter.format(transaction.value.createdAt);
 });
 
@@ -132,10 +131,6 @@ async function onFileReceived(file: File) {
 </script>
 
 <template>
-	<NavTitle v-if="transaction">
-		<span class="title" aria-label="timestamp">{{ timestamp }}</span>
-	</NavTitle>
-
 	<NavAction v-if="account && transaction">
 		<EditButton>
 			<template #modal="{ onFinished }">
@@ -150,6 +145,11 @@ async function onFileReceived(file: File) {
 	</NavAction>
 
 	<div v-if="transaction" class="content">
+		<p
+			>Account:
+			<router-link :to="`/accounts/${accountId}`">{{ account?.title ?? accountId }}</router-link>
+		</p>
+
 		<TagList
 			:tag-ids="transaction.tagIds ?? []"
 			@create-tag="createTag"
@@ -157,24 +157,34 @@ async function onFileReceived(file: File) {
 			@remove-tag="removeTag"
 		/>
 
-		<div class="header">
-			<h1 aria-label="title">{{ transaction.title }}</h1>
-
-			<div class="amount-container">
-				<p class="amount" :class="{ negative: transaction.amount < 0 }" aria-label="amount">{{
-					toCurrency(transaction.amount)
-				}}</p>
-				<!-- <p class="amount" :class="{ negative: transaction.amount < 0 }" aria-label="amount">{{
-					toCurrency(transaction.amount)
-				}}</p> -->
-			</div>
+		<h3>Details</h3>
+		<!-- Amount -->
+		<div class="key-value-pair" aria-label="Transaction Amount">
+			<span class="key">Amount</span>
+			<span class="value amount" :class="{ negative: transaction.amount < 0 }">{{
+				toCurrency(transaction.amount, "hyphen")
+			}}</span>
 		</div>
-
-		<p v-if="transaction.notes" class="notes">{{ transaction.notes }}</p>
-		<p v-else class="notes empty">No notes</p>
+		<!-- Timestamp -->
+		<div class="key-value-pair" aria-label="Transaction Timestamp">
+			<span class="key">Timestamp</span>
+			<span class="value">{{ timestamp }}</span>
+		</div>
+		<!-- Title -->
+		<div v-if="transaction.title" class="key-value-pair" aria-label="Transaction Title">
+			<span class="key">Title</span>
+			<span class="value">&quot;{{ transaction.title }}&quot;</span>
+		</div>
+		<!-- Notes -->
+		<div v-if="transaction.notes" class="key-value-pair" aria-label="Transaction Notes">
+			<span class="key">Notes</span>
+			<span class="value">&quot;{{ transaction.notes }}&quot;</span>
+		</div>
 
 		<p v-if="transaction.locationId">{{ transaction.locationId }}</p>
 
+		<hr />
+		<h3>Files</h3>
 		<List>
 			<li v-for="fileId in transaction.attachmentIds" :key="fileId">
 				<FileListItem
@@ -198,58 +208,44 @@ async function onFileReceived(file: File) {
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-.title {
-	font-size: 24pt;
-}
-
 .content {
 	max-width: 400pt;
 	margin: 0 auto;
 
-	.header {
-		display: flex;
-		flex-flow: row nowrap;
-		align-items: flex-end;
-		justify-content: space-between;
-
-		h1 {
-			margin-bottom: 0;
-		}
-	}
-
-	.amount-container {
-		display: flex;
-		flex-direction: column;
-		height: min-content;
-
-		p {
-			margin: 0;
-		}
-	}
-
-	p.amount {
-		font-weight: bold;
-
+	.amount {
 		&.negative {
 			color: color($red);
 		}
 	}
 
-	p.notes {
-		text-align: left;
-		font-weight: bold;
-		margin-top: 0.5em;
+	.key-value-pair {
+		width: 100%;
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: space-between;
 
-		&.empty {
-			color: color($secondary-label);
-			font-style: italic;
-			font-weight: normal;
+		> .key {
+			flex: 0 0 auto; // don't grow, take up only needed space
+		}
+
+		&::after {
+			content: "";
+			min-width: 0.5em;
+			height: 1em;
+			margin: 0 2pt;
+			border-bottom: 1pt dotted color($label);
+			flex: 1 0 auto; // Grow, don't shrink
+			order: 1; // this goes in the middle
+		}
+
+		> .value {
+			text-align: right;
+			font-weight: bold;
+			white-space: pre-wrap;
+			max-width: 80%;
+			flex: 0 0 auto; // don't grow, take up only needed space
+			order: 2;
 		}
 	}
-}
-
-.footer {
-	color: color($secondary-label);
-	user-select: none;
 }
 </style>
