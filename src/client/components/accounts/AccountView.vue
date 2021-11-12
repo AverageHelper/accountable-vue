@@ -138,7 +138,6 @@ function finishCreatingTransaction() {
 			width: 92%;
 			height: 1pt;
 			background-color: color($background);
-			z-index: 100;
 			user-select: none;
 		}
 
