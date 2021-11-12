@@ -2,26 +2,14 @@
 import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
 import { bootstrap, isWrapperInstantiated } from "./transport";
-import { computed, ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted } from "vue";
 import { useAuthStore } from "./store/authStore";
 import { useUiStore } from "./store/uiStore";
 
-const route = useRoute();
 const auth = useAuthStore();
 const ui = useUiStore();
 
 const bootstrapError = ref<Error | null>(null);
-const title = computed<string>(() => {
-	const titleOrGetter = route.meta.title;
-	if (titleOrGetter === undefined) {
-		return "Home";
-	}
-	if (typeof titleOrGetter === "string") {
-		return titleOrGetter;
-	}
-	return titleOrGetter();
-});
 
 onMounted(() => {
 	ui.watchColorScheme();
@@ -41,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-	<Navbar :title="title" />
+	<Navbar />
 	<main class="content">
 		<ErrorNotice :error="bootstrapError" />
 		<template v-if="!bootstrapError">

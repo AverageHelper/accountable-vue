@@ -91,3 +91,9 @@ defineExpose({ focus });
 		</li>
 	</List>
 </template>
+
+<style scoped lang="scss">
+form {
+	align-items: center;
+}
+</style>

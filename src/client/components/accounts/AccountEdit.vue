@@ -124,6 +124,8 @@ async function deleteAccount() {
 
 <style scoped lang="scss">
 form {
+	align-items: center;
+
 	> label {
 		width: 80%;
 	}

@@ -13,14 +13,14 @@ import { useAuthStore } from "../store/authStore";
 
 // See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
 
-type RouteTitleGetter = () => string;
-type RouteTitle = string | RouteTitleGetter;
+// type RouteTitleGetter = () => string;
+// type RouteTitle = string | RouteTitleGetter;
 
-declare module "vue-router" {
-	interface RouteMeta {
-		title?: RouteTitle;
-	}
-}
+// declare module "vue-router" {
+// 	interface RouteMeta {
+// 		title?: RouteTitle;
+// 	}
+// }
 
 export const APP_ROOTS = allTabs //
 	.map(tab => `/${tab}`)
@@ -43,7 +43,6 @@ const accounts: RouteRecordRaw = {
 		{
 			path: "",
 			component: Accounts,
-			meta: { title: "Accounts" },
 		},
 		{
 			path: ":accountId",
@@ -53,13 +52,11 @@ const accounts: RouteRecordRaw = {
 					path: "",
 					component: AccountView,
 					props: true,
-					meta: { title: "Account" },
 				},
 				{
 					path: "transactions/:transactionId",
 					component: TransactionView,
 					props: true,
-					meta: { title: "Transaction" },
 				},
 			],
 		},
@@ -70,21 +67,18 @@ const attachments: RouteRecordRaw = {
 	path: "/attachments",
 	beforeEnter: onlyIfLoggedIn,
 	component: Attachments,
-	meta: { title: "Attachments" },
 };
 
 const tags: RouteRecordRaw = {
 	path: "/tags",
 	beforeEnter: onlyIfLoggedIn,
 	component: Tags,
-	meta: { title: "Tags" },
 };
 
 const settings: RouteRecordRaw = {
 	path: "/settings",
 	beforeEnter: onlyIfLoggedIn,
 	component: Settings,
-	meta: { title: "Settings" },
 };
 
 export const router = createRouter({
@@ -106,7 +100,6 @@ export const router = createRouter({
 		{
 			path: "/login",
 			component: Login,
-			meta: { title: "Login" },
 			beforeEnter(from, to, next): void {
 				const auth = useAuthStore();
 				if (auth.uid !== null) {

@@ -7,10 +7,6 @@ import { computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../store";
 
-defineProps({
-	title: { type: String, required: true },
-});
-
 const auth = useAuthStore();
 
 const router = useRouter();
@@ -32,14 +28,14 @@ function goBack() {
 			<div id="nav-actions-leading" class="actions-container" />
 		</aside>
 
-		<h1 id="nav-title">{{ title }}</h1>
+		<TabBar v-if="isLoggedIn" class="tab-bar" />
+		<h1 v-else id="nav-title" />
 
 		<aside class="trailing-actions actions-container">
 			<div id="nav-actions-trailing" class="actions-container" />
 			<SideMenu />
 		</aside>
 	</nav>
-	<TabBar v-if="isLoggedIn" class="tab-bar" />
 </template>
 
 <style scoped lang="scss">
@@ -50,7 +46,7 @@ function goBack() {
 	background-color: color($navbar-background);
 	color: color($label-dark);
 	text-align: center;
-	padding: 0.8em 0;
+	height: 44pt;
 
 	h1 {
 		color: inherit;
@@ -81,9 +77,9 @@ function goBack() {
 		top: 0;
 		right: 0;
 	}
-}
 
-.tab-bar {
-	width: 100%;
+	.tab-bar {
+		height: 100%;
+	}
 }
 </style>

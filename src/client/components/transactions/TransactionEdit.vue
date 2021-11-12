@@ -146,6 +146,8 @@ async function deleteTransaction() {
 @use "styles/colors" as *;
 
 form {
+	align-items: center;
+
 	> label:not(.checkbox) {
 		width: 80%;
 	}

@@ -11,7 +11,10 @@ const numberOfTags = computed(() => allTags.value.length);
 </script>
 
 <template>
-	<p>To add a tag, go to one of your transactions.</p>
+	<div class="heading">
+		<h1>Tags</h1>
+		<p>To add a tag, go to one of your transactions.</p>
+	</div>
 
 	<List>
 		<li v-for="tag in allTags" :key="tag.id">
@@ -32,8 +35,13 @@ const numberOfTags = computed(() => allTags.value.length);
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-p {
-	text-align: center;
+.heading {
+	max-width: 36em;
+	margin: 1em auto;
+
+	> h1 {
+		margin: 0;
+	}
 }
 
 .footer {

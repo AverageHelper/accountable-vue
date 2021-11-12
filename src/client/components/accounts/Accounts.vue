@@ -45,7 +45,10 @@ onMounted(() => {
 		</EditButton>
 	</NavAction>
 
-	<p>To add an account, click the (+) button in the upper corner.</p>
+	<div class="heading">
+		<h1>Accounts</h1>
+		<p>To add an account, click the (+) button in the upper corner.</p>
+	</div>
 
 	<ErrorNotice :error="loadError" />
 	<List v-if="!loadError">
@@ -63,8 +66,13 @@ onMounted(() => {
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-p {
-	text-align: center;
+.heading {
+	max-width: 36em;
+	margin: 1em auto;
+
+	> h1 {
+		margin: 0;
+	}
 }
 
 .footer {

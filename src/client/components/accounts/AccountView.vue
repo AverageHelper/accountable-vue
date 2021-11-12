@@ -6,7 +6,6 @@ import EditButton from "../EditButton.vue";
 import List from "../List.vue";
 import Modal from "../Modal.vue";
 import NavAction from "../NavAction.vue";
-import NavTitle from "../NavTitle.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { ref, computed, toRefs, watch } from "vue";
@@ -64,8 +63,6 @@ function finishCreatingTransaction() {
 </script>
 
 <template>
-	<NavTitle v-if="account">{{ account.title }}</NavTitle>
-
 	<NavAction v-if="account">
 		<EditButton>
 			<template #modal="{ onFinished }">
@@ -74,10 +71,14 @@ function finishCreatingTransaction() {
 		</EditButton>
 	</NavAction>
 
-	<p v-if="remainingBalance === null" class="account-balance">--</p>
-	<p v-else class="account-balance" :class="{ negative: isNegative }">{{
-		toCurrency(remainingBalance)
-	}}</p>
+	<div class="heading">
+		<h1>{{ account?.title || "Account" }}</h1>
+
+		<p v-if="remainingBalance === null" class="account-balance">--</p>
+		<p v-else class="account-balance" :class="{ negative: isNegative }">{{
+			toCurrency(remainingBalance)
+		}}</p>
+	</div>
 
 	<List class="transactions-list">
 		<li>
@@ -107,15 +108,27 @@ function finishCreatingTransaction() {
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-.account-balance {
-	margin: 1em auto;
-	padding-right: 0.7em;
+.heading {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+	justify-content: space-between;
 	max-width: 36em;
-	text-align: right;
-	font-weight: bold;
+	margin: 1em auto;
 
-	&.negative {
-		color: color($red);
+	> h1 {
+		margin: 0;
+	}
+
+	.account-balance {
+		margin: 0;
+		text-align: right;
+		font-weight: bold;
+		padding-right: 0.7em;
+
+		&.negative {
+			color: color($red);
+		}
 	}
 }
 

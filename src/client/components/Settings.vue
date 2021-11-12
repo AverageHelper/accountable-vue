@@ -31,6 +31,10 @@ async function submitNewPassword() {
 </script>
 
 <template>
+	<div class="heading">
+		<h1>Settings</h1>
+	</div>
+
 	<form @submit.prevent="submitNewPassword">
 		<h2>Change Password</h2>
 		<TextField
@@ -63,3 +67,14 @@ async function submitNewPassword() {
 		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Change password</ActionButton>
 	</form>
 </template>
+
+<style scoped lang="scss">
+.heading {
+	max-width: 36em;
+	margin: 1em auto;
+
+	> h1 {
+		margin: 0;
+	}
+}
+</style>
