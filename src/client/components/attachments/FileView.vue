@@ -2,8 +2,10 @@
 import type { Attachment } from "../../model/Attachment";
 import type { PropType } from "vue";
 import ActionButton from "../ActionButton.vue";
+import DownloadButton from "./DownloadButton.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import List from "../List.vue";
+import TrashIcon from "../../icons/Trash.vue";
 import { ref, computed, watch, toRefs } from "vue";
 import { useAttachmentsStore, useTransactionsStore } from "../../store";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
@@ -68,31 +70,43 @@ function askToDelete() {
 		<img v-else :src="imageUrl" />
 	</div>
 
-	<p v-if="file"
-		>Name: <strong>{{ file.title }}</strong></p
-	>
-	<p v-if="file"
-		>Type: <strong>{{ file.type }}</strong></p
-	>
-	<p v-if="file"
-		>Timestamp: <strong>{{ timestamp }}</strong></p
-	>
+	<div>
+		<p v-if="file"
+			>Name: <strong>{{ file.title }}</strong></p
+		>
+		<p v-if="file"
+			>Type: <strong>{{ file.type }}</strong></p
+		>
+		<p v-if="file"
+			>Timestamp: <strong>{{ timestamp }}</strong></p
+		>
+	</div>
 
 	<div v-if="transactionCount > 0">
 		<h3>Linked Transaction{{ transactionCount !== 1 ? "s" : "" }}</h3>
-		<List>
+		<List class="files">
 			<li v-for="transaction in linkedTransactions" :key="transaction.id">
 				<TransactionListItem :transaction="transaction" />
 			</li>
 		</List>
 	</div>
 
-	<ActionButton v-if="file" kind="bordered-destructive" @click.prevent="askToDelete"
-		>Delete {{ file.title }}</ActionButton
-	>
-	<ActionButton v-else kind="bordered" @click.prevent="askToDelete"
-		>Remove this dead reference</ActionButton
-	>
+	<h3>Actions</h3>
+	<div class="buttons">
+		<DownloadButton v-if="file" class="download" :file="file" />
+
+		<ActionButton
+			v-if="file"
+			class="delete"
+			kind="bordered-destructive"
+			@click.prevent="askToDelete"
+		>
+			<TrashIcon /> Delete</ActionButton
+		>
+		<ActionButton v-else class="delete" kind="bordered" @click.prevent="askToDelete">
+			<TrashIcon /> Remove this dead reference</ActionButton
+		>
+	</div>
 </template>
 
 <style scoped lang="scss">
@@ -105,6 +119,34 @@ function askToDelete() {
 
 	img {
 		max-width: 100%;
+	}
+}
+
+.files {
+	> li {
+		overflow: hidden;
+		border-radius: 4pt;
+	}
+}
+
+.buttons {
+	display: flex;
+	flex-flow: row nowrap;
+
+	> button {
+		margin-top: 0;
+	}
+
+	> .download {
+		margin-right: 8pt;
+	}
+
+	> .delete {
+		margin-left: auto;
+
+		.icon {
+			margin-right: 6pt;
+		}
 	}
 }
 </style>

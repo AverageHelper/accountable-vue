@@ -32,6 +32,7 @@ function onClick(event: Event): void {
 @use "styles/colors" as *;
 
 button {
+	display: block;
 	font-family: inherit;
 	font-size: 200%;
 	line-height: 1.15;
