@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
+import AddTransactionListItem from "./AddTransactionListItem.vue";
 import EditButton from "../EditButton.vue";
 import List from "../List.vue";
+import Modal from "../Modal.vue";
 import NavAction from "../NavAction.vue";
 import NavTitle from "../NavTitle.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
-import { computed, toRefs, watch } from "vue";
+import { ref, computed, toRefs, watch } from "vue";
 import { toCurrency } from "../../filters/toCurrency";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRouter } from "vue-router";
@@ -24,6 +26,8 @@ const { accountId } = toRefs(props);
 const router = useRouter();
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
+
+const isEditingTransaction = ref(false);
 
 const account = computed(() => accounts.items[accountId.value]);
 const theseTransactions = computed(() => {
@@ -49,6 +53,14 @@ watch(
 function goBack() {
 	router.back();
 }
+
+function startCreatingTransaction() {
+	isEditingTransaction.value = true;
+}
+
+function finishCreatingTransaction() {
+	isEditingTransaction.value = false;
+}
 </script>
 
 <template>
@@ -60,14 +72,6 @@ function goBack() {
 				<AccountEdit :account="account" @deleted="goBack" @finished="onFinished" />
 			</template>
 		</EditButton>
-		<EditButton>
-			<template #icon>
-				<span>+</span>
-			</template>
-			<template #modal="{ onFinished }">
-				<TransactionEdit :account="account" @finished="onFinished" />
-			</template>
-		</EditButton>
 	</NavAction>
 
 	<p v-if="remainingBalance === null" class="account-balance">--</p>
@@ -76,7 +80,14 @@ function goBack() {
 	}}</p>
 
 	<List class="transactions-list">
-		<li v-for="transaction in theseTransactions" :key="transaction.id" class="transaction">
+		<li>
+			<AddTransactionListItem class="list-item header" @click="startCreatingTransaction" />
+		</li>
+		<li
+			v-for="transaction in theseTransactions"
+			:key="transaction.id"
+			class="list-item transaction"
+		>
 			<TransactionListItem :transaction="transaction" />
 		</li>
 		<li>
@@ -87,6 +98,10 @@ function goBack() {
 			</p>
 		</li>
 	</List>
+
+	<Modal v-if="account" :open="isEditingTransaction" :close-modal="finishCreatingTransaction">
+		<TransactionEdit :account="account" @finished="finishCreatingTransaction" />
+	</Modal>
 </template>
 
 <style scoped lang="scss">
@@ -105,7 +120,12 @@ function goBack() {
 }
 
 .transactions-list {
-	> .transaction {
+	.header {
+		border-radius: 0;
+		margin-bottom: 0;
+	}
+
+	.list-item {
 		position: relative;
 		overflow: hidden;
 

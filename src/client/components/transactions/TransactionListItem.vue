@@ -100,7 +100,7 @@ async function markReconciled(isReconciled: boolean) {
 	.labels {
 		display: flex;
 		flex-flow: column nowrap;
-		margin-left: 1em;
+		margin-left: 0.4em;
 
 		.title {
 			font-weight: bold;

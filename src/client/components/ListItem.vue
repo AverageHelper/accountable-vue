@@ -11,6 +11,8 @@ defineProps({
 
 <template>
 	<component :is="to === null ? 'div' : 'router-link'" class="list-item" :to="to ?? '#'">
+		<slot name="icon" />
+
 		<div class="content">
 			<span class="title">{{ title }}</span>
 			<span v-if="subtitle" class="subtitle">{{ subtitle }}</span>
@@ -27,7 +29,6 @@ defineProps({
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	justify-content: space-between;
 	padding: 0.75em;
 	margin-bottom: 0.5em;
 	text-decoration: none;
@@ -61,6 +62,7 @@ defineProps({
 		color: color($inverse-label);
 		border-radius: 1em;
 		padding: 0 0.5em;
+		margin-left: auto;
 		min-width: 1em;
 		text-align: center;
 		user-select: none;

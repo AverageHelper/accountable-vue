@@ -49,7 +49,7 @@ function askToDeleteReference() {
 </script>
 
 <template>
-	<ListItem to="" :title="title" :subtitle="subtitle" @click.stop.prevent="presentImageModal" />
+	<ListItem :title="title" :subtitle="subtitle" to="" @click.stop.prevent="presentImageModal" />
 	<Modal :open="isModalOpen" :close-modal="closeImageModal">
 		<FileView :file="file" @delete="askToDelete" @delete-reference="askToDeleteReference" />
 	</Modal>
