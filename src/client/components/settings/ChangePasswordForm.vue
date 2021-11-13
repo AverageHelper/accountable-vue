@@ -1,20 +1,28 @@
 <script setup lang="ts">
-import ActionButton from "./ActionButton.vue";
-import TextField from "./TextField.vue";
+import ActionButton from "../ActionButton.vue";
+import TextField from "../TextField.vue";
 import { ref } from "vue";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../../store/authStore";
+import { useToast } from "vue-toastification";
 
 const auth = useAuthStore();
+const toast = useToast();
 
 const isLoading = ref(false);
 const currentPassword = ref("");
 const newPassword = ref("");
 const newPasswordRepeat = ref("");
 
+function reset() {
+	currentPassword.value = "";
+	newPassword.value = "";
+	newPasswordRepeat.value = "";
+}
+
 async function submitNewPassword() {
 	try {
 		if (!currentPassword.value || !newPassword.value || !newPasswordRepeat.value) {
-			throw new Error("Please fill out the required fields");
+			throw new Error("All fields are required");
 		}
 		if (newPassword.value !== newPasswordRepeat.value) {
 			throw new Error("Those passwords need to match");
@@ -23,6 +31,8 @@ async function submitNewPassword() {
 		isLoading.value = true;
 
 		await auth.updatePassword(currentPassword.value, newPassword.value);
+		toast.success("Your password has been updated!");
+		reset();
 	} catch (error: unknown) {
 		auth.handleAuthError(error);
 	}
@@ -31,12 +41,8 @@ async function submitNewPassword() {
 </script>
 
 <template>
-	<div class="heading">
-		<h1>Settings</h1>
-	</div>
-
 	<form @submit.prevent="submitNewPassword">
-		<h2>Change Password</h2>
+		<h3>Change Password</h3>
 		<TextField
 			v-model="currentPassword"
 			type="password"
@@ -67,14 +73,3 @@ async function submitNewPassword() {
 		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Change password</ActionButton>
 	</form>
 </template>
-
-<style scoped lang="scss">
-.heading {
-	max-width: 36em;
-	margin: 1em auto;
-
-	> h1 {
-		margin: 0;
-	}
-}
-</style>

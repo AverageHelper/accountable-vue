@@ -18,7 +18,7 @@ function onChange(event: Event): void {
 </script>
 
 <template>
-	<label class="checkbox">
+	<label class="checkbox" tabindex="0" @keyup.space="sendValue(!modelValue)">
 		<input type="checkbox" :checked="modelValue" :disabled="disabled" @change="onChange" />
 		<label class="mark" :class="{ disabled: disabled }" @click="sendValue(!modelValue)" />
 		<span v-if="label" class="label" :class="{ disabled: disabled }">{{ label }}</span>

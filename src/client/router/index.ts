@@ -4,7 +4,7 @@ import AccountView from "../components/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Login from "../components/Login.vue";
-import Settings from "../components/Settings.vue";
+import Settings from "../components/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
 import TransactionView from "../components/transactions/TransactionView.vue";
 import { createRouter, createWebHistory } from "vue-router";

@@ -18,6 +18,7 @@ import {
 	reauthenticateWithCredential,
 	signInWithEmailAndPassword,
 	signOut,
+	updateEmail,
 	updatePassword,
 } from "firebase/auth";
 
@@ -124,6 +125,19 @@ export const useAuthStore = defineStore("auth", {
 				// In any event, error or not:
 				this.loginProcessState = null;
 			}
+		},
+		async updateEmail(newEmail: string, currentPassword: string) {
+			const auth = getAuth();
+			const user = auth.currentUser;
+			const currentEmail = this.email;
+			if (user === null || currentEmail === null) {
+				throw new Error("Not logged in");
+			}
+
+			const credential = EmailAuthProvider.credential(currentEmail, currentPassword);
+			await reauthenticateWithCredential(user, credential);
+			await updateEmail(user, newEmail);
+			this.email = newEmail;
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
 			const auth = getAuth();
