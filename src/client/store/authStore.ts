@@ -1,9 +1,10 @@
-import type { HashStore, KeyMaterial } from "../transport";
+import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
 import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { FirebaseError } from "firebase/app";
 import { useToast } from "vue-toastification";
 import {
+	defaultPrefs,
 	derivePKey,
 	getAuthMaterial,
 	newDataEncryptionKeyMaterial,
@@ -30,15 +31,19 @@ export const useAuthStore = defineStore("auth", {
 		uid: null as string | null,
 		pKey: null as HashStore | null,
 		loginProcessState: null as LoginProcessState | null,
+		preferences: defaultPrefs(),
 		authStateWatcher: null as null | Unsubscribe,
 	}),
 	actions: {
 		clearCache() {
+			if (this.authStateWatcher) this.authStateWatcher();
+			this.authStateWatcher = null;
 			this.pKey?.destroy();
 			this.pKey = null;
 			this.loginProcessState = null;
 			this.uid = null;
 			this.email = null;
+			this.preferences = defaultPrefs();
 			console.log("authStore: cache cleared");
 		},
 		watchAuthState() {
@@ -125,6 +130,9 @@ export const useAuthStore = defineStore("auth", {
 				// In any event, error or not:
 				this.loginProcessState = null;
 			}
+		},
+		async updateUserPreferences(prefs: UserPreferences) {
+			// do the thing
 		},
 		async updateEmail(newEmail: string, currentPassword: string) {
 			const auth = getAuth();

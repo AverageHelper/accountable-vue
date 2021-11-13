@@ -43,10 +43,10 @@ function goBack() {
 
 .navbar {
 	position: relative;
-	background-color: color($navbar-background);
-	color: color($label-dark);
 	text-align: center;
 	height: 44pt;
+	background-color: color($navbar-background);
+	color: color($label-dark);
 
 	h1 {
 		color: inherit;

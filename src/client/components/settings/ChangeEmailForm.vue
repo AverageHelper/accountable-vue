@@ -13,6 +13,10 @@ const currentEmail = computed(() => auth.email);
 const newEmail = ref("");
 const currentPassword = ref("");
 
+const hasChanges = computed(() => {
+	return newEmail.value !== "";
+});
+
 function reset() {
 	newEmail.value = "";
 	currentPassword.value = "";
@@ -63,6 +67,8 @@ async function submitNewEmail() {
 			:shows-required="false"
 			required
 		/>
-		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Change email</ActionButton>
+		<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
+			>Change email</ActionButton
+		>
 	</form>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ChangePasswordForm from "./ChangePasswordForm.vue";
 import ChangeEmailForm from "./ChangeEmailForm.vue";
+import LocationPrefForm from "./LocationPrefForm.vue";
 </script>
 
 <template>
@@ -8,9 +9,9 @@ import ChangeEmailForm from "./ChangeEmailForm.vue";
 		<h1>Settings</h1>
 	</div>
 
-	<ChangePasswordForm />
 	<ChangeEmailForm />
-	<!-- Form to change location preferences: none, imprecise, precise -->
+	<ChangePasswordForm />
+	<LocationPrefForm v-if="false" />
 </template>
 
 <style scoped lang="scss">

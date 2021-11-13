@@ -102,16 +102,8 @@ export const useLocationsStore = defineStore("locations", {
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
-			// Don't delete if we have transactions
-			const { useTransactionsStore } = await import("./transactionsStore");
-			const transactions = useTransactionsStore();
-			const relevantTransactions = transactions.allTransactions.filter(
-				t => t.locationId === location.id
-			);
-			if (relevantTransactions.length > 0)
-				throw new Error(
-					"Cannot delete a location when transactions reference it. Remove those references first."
-				);
+			// Transaction views should gracefully handle the
+			// case where their linked location does not exist
 
 			await deleteLocation(uid, location);
 		},

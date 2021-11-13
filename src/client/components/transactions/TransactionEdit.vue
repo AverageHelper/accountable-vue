@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type { Account } from "../../model/Account";
+import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
 import type { TransactionRecordParams } from "../../model/Transaction";
 import ActionButton from "../ActionButton.vue";
 import Checkbox from "../Checkbox.vue";
 import CurrencyInput from "../CurrencyInput.vue";
 import DateTimeInput from "../DateTimeInput.vue";
+import LocationField from "../locations/LocationField.vue";
 import TextAreaField from "../TextAreaField.vue";
 import TextField from "../TextField.vue";
 import { Transaction } from "../../model/Transaction";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-import { useTransactionsStore } from "../../store";
+import { useLocationsStore, useTransactionsStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -21,6 +23,7 @@ const props = defineProps({
 });
 const { account, transaction } = toRefs(props);
 
+const locations = useLocationsStore();
 const transactions = useTransactionsStore();
 const toast = useToast();
 
@@ -30,7 +33,7 @@ const isCreatingTransaction = computed(() => ogTransaction.value === null);
 const isLoading = ref(false);
 const title = ref("");
 const notes = ref("");
-const locationId = ref("");
+const locationData = ref<(LocationRecordParams & { id: string | null }) | null>(null);
 const createdAt = ref(new Date());
 const amount = ref(0);
 const isReconciled = ref(false);
@@ -44,10 +47,15 @@ onMounted(() => {
 	// Opened, if we're modal
 	title.value = ogTransaction.value?.title ?? title.value;
 	notes.value = ogTransaction.value?.notes ?? notes.value;
-	locationId.value = ogTransaction.value?.locationId ?? locationId.value;
 	createdAt.value = ogTransaction.value?.createdAt ?? createdAt.value;
 	amount.value = ogTransaction.value?.amount ?? amount.value;
 	isReconciled.value = ogTransaction.value?.isReconciled ?? isReconciled.value;
+
+	const ogLocationId = ogTransaction.value?.locationId ?? null;
+	if (ogLocationId !== null && ogLocationId) {
+		const ogLocation = locations.items[ogLocationId]?.toRecord() ?? null;
+		locationData.value = ogLocation !== null ? { ...ogLocation, id: ogLocationId } : null;
+	}
 });
 
 function handleError(error: unknown) {
@@ -65,16 +73,41 @@ async function submit() {
 	isLoading.value = true;
 
 	try {
-		if (!title.value) {
+		if (!title.value.trim()) {
 			throw new Error("Title is required");
 		}
 
+		// Handle location change (to another or to none)
+		//  Unlink the old and delete it if unreferenced
+		const ogLocationId = ogTransaction.value?.locationId ?? null;
+		if (ogLocationId !== null) {
+			// The next step will replace the location link
+			// Just delete the location if this is the only transaction which referenced it
+			const ogLocation = locations.items[ogLocationId];
+			if (ogLocation) {
+				await transactions.deleteLocationIfUnreferenced(ogLocation);
+			}
+		}
+
+		// Handle location add
+		//  Link the new location (if `id` isn't null), or make one
+		let newLocation: Location | null = null;
+		if (locationData.value) {
+			if (locationData.value.id !== null) {
+				// Existing location
+				newLocation = locations.items[locationData.value.id] ?? null;
+			} else {
+				// New location
+				newLocation = await locations.createLocation(locationData.value);
+			}
+		}
+
 		const params: TransactionRecordParams = {
-			title: title.value,
-			notes: notes.value,
+			title: title.value.trim(),
+			notes: notes.value.trim(),
 			createdAt: createdAt.value,
 			isReconciled: isReconciled.value,
-			locationId: locationId.value,
+			locationId: newLocation?.id ?? null,
 			amount: amount.value,
 			accountId: account.value.id,
 			tagIds: ogTransaction.value?.tagIds ?? [],
@@ -122,12 +155,14 @@ async function deleteTransaction() {
 
 		<span>Account: {{ account.title ?? "Unknown" }}</span>
 
-		<CurrencyInput v-model="amount" class="currency" label="amount" />
-		<Checkbox v-model="isReconciled" label="Reconciled" class="checkbox" />
-		<TextField v-model="title" label="title" placeholder="Bank Money" />
-		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
-		<!-- <TextField v-model="locationId" label="location" placeholder="Swahilli, New Guinnea" /> -->
 		<DateTimeInput v-model="createdAt" label="date" />
+		<div class="moneys">
+			<CurrencyInput v-model="amount" class="currency" label="amount" />
+			<Checkbox v-model="isReconciled" class="reconciliation" label="Reconciled" />
+		</div>
+		<LocationField v-if="false" v-model="locationData" />
+		<TextField v-model="title" label="title" placeholder="Bank Money" required />
+		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
 
 		<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">Save</ActionButton>
 		<ActionButton
@@ -148,7 +183,7 @@ async function deleteTransaction() {
 form {
 	align-items: center;
 
-	> label:not(.checkbox) {
+	> label:not(.reconciliation) {
 		width: 80%;
 	}
 
@@ -156,6 +191,22 @@ form {
 	&.expense h1,
 	&.expense .currency .text-input {
 		color: color($red);
+	}
+
+	.moneys {
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: flex-end;
+		width: 80%;
+
+		.currency {
+			flex: 1 0 auto; // Grow, don't shrink
+		}
+
+		.reconciliation {
+			margin-bottom: 8pt;
+			margin-left: 8pt;
+		}
 	}
 }
 </style>

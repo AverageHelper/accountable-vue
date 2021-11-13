@@ -15,7 +15,7 @@ const props = defineProps({
 });
 const { currency, modelValue } = toRefs(props);
 
-const isIncome = ref(true);
+const isIncome = ref(false);
 
 const presentableValue = computed(() => {
 	return toCurrency(modelValue.value, "accounting", currency.value);
@@ -48,7 +48,7 @@ defineExpose({ focus });
 </script>
 
 <template>
-	<div class="currency-input__container">
+	<label class="currency-input__container">
 		<TextField
 			class="currency-input"
 			:label="label ?? undefined"
@@ -58,7 +58,7 @@ defineExpose({ focus });
 			@input="onInput"
 		/>
 		<ActionButton class="negate" @click.prevent="isIncome = !isIncome">+/-</ActionButton>
-	</div>
+	</label>
 </template>
 
 <style scoped lang="scss">

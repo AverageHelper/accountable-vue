@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "../ActionButton.vue";
 import TextField from "../TextField.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
 
@@ -12,6 +12,14 @@ const isLoading = ref(false);
 const currentPassword = ref("");
 const newPassword = ref("");
 const newPasswordRepeat = ref("");
+
+const hasChanges = computed(() => {
+	return (
+		currentPassword.value !== "" &&
+		newPassword.value !== "" &&
+		newPassword.value === newPasswordRepeat.value
+	);
+});
 
 function reset() {
 	currentPassword.value = "";
@@ -70,6 +78,8 @@ async function submitNewPassword() {
 			:shows-required="false"
 			required
 		/>
-		<ActionButton type="submit" kind="bordered" :disabled="isLoading">Change password</ActionButton>
+		<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
+			>Change password</ActionButton
+		>
 	</form>
 </template>

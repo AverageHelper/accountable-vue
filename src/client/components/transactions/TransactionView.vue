@@ -10,6 +10,7 @@ import List from "../List.vue";
 import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
+import { Location } from "../../model/Location";
 import { ref, computed, toRefs } from "vue";
 import { toCurrency } from "../../filters/toCurrency";
 import { useRouter } from "vue-router";
@@ -41,6 +42,7 @@ const theseTransactions = computed(
 );
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
+const location = computed<Location | null>(() => null);
 
 const timestamp = computed(() => {
 	if (!transaction.value) return "";
@@ -180,10 +182,13 @@ async function onFileReceived(file: File) {
 			<span class="key">Notes</span>
 			<span class="value">&quot;{{ transaction.notes }}&quot;</span>
 		</div>
+		<!-- Location -->
+		<div v-if="false && location" class="key-value-pair" aria-label="Transaction Location">
+			<span class="key">Location</span>
+			<span class="value">{{ location?.title }}</span>
+			<!-- If the location has more than a title, then this should link to a modal for those details -->
+		</div>
 
-		<p v-if="transaction.locationId">{{ transaction.locationId }}</p>
-
-		<hr />
 		<h3>Files</h3>
 		<List>
 			<li v-for="fileId in transaction.attachmentIds" :key="fileId">

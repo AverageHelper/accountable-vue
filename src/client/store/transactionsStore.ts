@@ -1,5 +1,6 @@
-import type { HashStore } from "../transport";
 import type { Account } from "../model/Account";
+import type { HashStore } from "../transport";
+import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { Tag } from "../model/Tag";
 import type { Unsubscribe } from "firebase/auth";
@@ -128,6 +129,16 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			return false;
 		},
+		locationIsReferenced(locationId: string): boolean {
+			for (const transaction of this.allTransactions) {
+				if (transaction.locationId === locationId) {
+					// This location is referenced
+					return true;
+				}
+			}
+
+			return false;
+		},
 		numberOfReferencesForTag(tagId: string | undefined): number {
 			if (tagId === undefined) return 0;
 			let count = 0;
@@ -199,6 +210,14 @@ export const useTransactionsStore = defineStore("transactions", {
 			const { useTagsStore } = await import("./tagsStore");
 			const tags = useTagsStore();
 			await tags.deleteTag(tag);
+		},
+		async deleteLocationIfUnreferenced(location: Location) {
+			if (this.locationIsReferenced(location.id)) return;
+
+			// This location is unreferenced
+			const { useLocationsStore } = await import("./locationsStore");
+			const locations = useLocationsStore();
+			await locations.deleteLocation(location);
 		},
 	},
 });

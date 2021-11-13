@@ -14,6 +14,7 @@ interface ImportMetaEnv extends Readonly<Record<string, string>> {
 	readonly VITE_FIREBASE_STORAGE_BUCKET: string | undefined;
 	readonly VITE_FIREBASE_AUTH_DOMAIN: string | undefined;
 	readonly VITE_FIREBASE_PROJECT_ID: string | undefined;
+	readonly VITE_FREEGEOIP_API_KEY: string | undefined;
 }
 
 interface ImportMeta {
