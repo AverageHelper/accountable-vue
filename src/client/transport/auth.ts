@@ -1,10 +1,8 @@
 import type { KeyMaterial } from "./cryption";
 import type { DocumentReference } from "firebase/firestore";
+import type { LocationPref } from "./locations";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "./db";
-
-export type LocationPref = "none" | "vague" | "specific";
-export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague", "specific"];
 
 export interface UserPreferences {
 	locationSensitivity: LocationPref;

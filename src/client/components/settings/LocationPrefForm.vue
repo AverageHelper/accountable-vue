@@ -6,11 +6,14 @@ import { computed, ref } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
+import { useLocationsStore } from "../../store";
 
 const auth = useAuthStore();
+const locations = useLocationsStore();
 const toast = useToast();
 
 const isLoading = ref(false);
+const isLocationEnabled = computed(() => locations.isLocationEnabled);
 const currentSensitivity = computed(() => auth.preferences.locationSensitivity);
 const selectedSensitivity = ref<LocationPref>("none");
 
@@ -45,11 +48,11 @@ async function submitNewLocationPref() {
 </script>
 
 <template>
-	<form @submit.prevent="submitNewLocationPref">
+	<form v-if="isLocationEnabled" @submit.prevent="submitNewLocationPref">
 		<h3>Location Preference</h3>
 		<p
 			>By default, we don't talk to any external location APIs. However, if you want Accountable to
-			prefill transaction location fields, you'll need to select a different option:</p
+			prefill transaction location fields, you'll need to select a different option below.</p
 		>
 
 		<div class="options">
@@ -70,14 +73,23 @@ async function submitNewLocationPref() {
 					<span v-else-if="option === 'vague'">Imprecise</span>
 					<span v-else-if="option === 'specific'">Precise</span>
 
-					<p v-if="option === 'none'">No automatic location detection.</p>
-					<p v-else-if="option === 'vague'">We'll obfuscate your details to the location API.</p>
-					<p v-else-if="option === 'specific'"
-						>We'll let the location API give you the most precise information as it can.</p
-					>
+					<p v-if="option === 'none'">No location services.</p>
+					<p v-else-if="option === 'vague'">Get, on-demand, a locale based on your IP address.</p>
+					<p v-else-if="option === 'specific'">Get the best-available location information.</p>
 				</div>
 			</ActionButton>
 		</div>
+		<div v-if="false && selectedSensitivity !== 'none'">
+			<p
+				>Requests go to <code>https://api.freegeoip.app/json/?apikey=XXXXXXXXXXXXXX</code>.
+				Responses are generated from your IP address, and return a locale based on their database of
+				IP addresses and locales.</p
+			>
+		</div>
+		<p style="font-size: small"
+			>Note that we have no "automatic" location features. We only fetch your current location when
+			you press a button to request it.</p
+		>
 
 		<div class="buttons">
 			<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
@@ -87,6 +99,14 @@ async function submitNewLocationPref() {
 				>Reset</ActionButton
 			>
 		</div>
+	</form>
+	<form v-else @submit.prevent>
+		<h3>Location Preference</h3>
+		<p
+			>To enable location services, add a
+			<a href="https://freegeoip.app" target="__blank">FreeGeoIp</a> API key to
+			<code>VITE_FREEGEOIP_API_KEY</code> in your .env file.</p
+		>
 	</form>
 </template>
 

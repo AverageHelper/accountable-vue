@@ -78,8 +78,24 @@ async function submitNewPassword() {
 			:shows-required="false"
 			required
 		/>
-		<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
-			>Change password</ActionButton
-		>
+		<div class="buttons">
+			<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
+				>Change password</ActionButton
+			>
+			<ActionButton v-show="hasChanges" kind="bordered" :disabled="isLoading" @click.prevent="reset"
+				>Reset</ActionButton
+			>
+		</div>
 	</form>
 </template>
+
+<style scoped lang="scss">
+.buttons {
+	display: flex;
+	flex-flow: row nowrap;
+
+	:not(:last-child) {
+		margin-right: 8pt;
+	}
+}
+</style>

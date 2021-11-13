@@ -10,6 +10,9 @@ import { encrypt } from "./cryption";
 import { Location } from "../model/Location";
 import { collection, doc, addDoc, setDoc, deleteDoc } from "firebase/firestore";
 
+export type LocationPref = "none" | "vague" | "specific";
+export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
+
 interface LocationRecordPackageMetadata {
 	objectType: "Location";
 }

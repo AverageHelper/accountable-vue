@@ -5,11 +5,14 @@ import type { PropType } from "vue";
 import type { TransactionRecordParams } from "../../model/Transaction";
 import ActionButton from "../ActionButton.vue";
 import Checkbox from "../Checkbox.vue";
+import CheckmarkIcon from "../../icons/Checkmark.vue";
+import ConfirmDestroyTransaction from "./ConfirmDestroyTransaction.vue";
 import CurrencyInput from "../CurrencyInput.vue";
 import DateTimeInput from "../DateTimeInput.vue";
 import LocationField from "../locations/LocationField.vue";
 import TextAreaField from "../TextAreaField.vue";
 import TextField from "../TextField.vue";
+import TrashIcon from "../../icons/Trash.vue";
 import { Transaction } from "../../model/Transaction";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useToast } from "vue-toastification";
@@ -38,6 +41,7 @@ const createdAt = ref(new Date());
 const amount = ref(0);
 const isReconciled = ref(false);
 
+const isAskingToDelete = ref(false);
 const isExpense = computed(() => amount.value <= 0);
 const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length ?? 0) > 0);
 
@@ -129,7 +133,11 @@ async function submit() {
 	isLoading.value = false;
 }
 
-async function deleteTransaction() {
+function askToDeleteTransaction() {
+	isAskingToDelete.value = true;
+}
+
+async function confirmDeleteTransaction() {
 	isLoading.value = true;
 
 	try {
@@ -146,6 +154,10 @@ async function deleteTransaction() {
 
 	isLoading.value = false;
 }
+
+function cancelDeleteTransaction() {
+	isAskingToDelete.value = false;
+}
 </script>
 
 <template>
@@ -160,20 +172,33 @@ async function deleteTransaction() {
 			<CurrencyInput v-model="amount" class="currency" label="amount" />
 			<Checkbox v-model="isReconciled" class="reconciliation" label="Reconciled" />
 		</div>
-		<LocationField v-if="false" v-model="locationData" />
 		<TextField v-model="title" label="title" placeholder="Bank Money" required />
+		<LocationField v-model="locationData" />
 		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
 
-		<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">Save</ActionButton>
-		<ActionButton
-			v-if="!isCreatingTransaction && !hasAttachments"
-			kind="bordered-destructive"
-			:disabled="isLoading"
-			@click.prevent="deleteTransaction"
-			>Delete {{ ogTransaction?.title ?? "Account" }}</ActionButton
-		>
+		<div class="buttons">
+			<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">
+				<CheckmarkIcon /> Save</ActionButton
+			>
+			<ActionButton
+				v-if="!isCreatingTransaction && !hasAttachments"
+				kind="bordered-destructive"
+				:disabled="isLoading"
+				@click.prevent="askToDeleteTransaction"
+			>
+				<TrashIcon /> Delete</ActionButton
+			>
+		</div>
 		<p v-if="isLoading">Saving...</p>
 		<p v-if="hasAttachments">You must delete attachments before you may delete this transaction.</p>
+
+		<ConfirmDestroyTransaction
+			v-if="transaction"
+			:transaction="transaction"
+			:is-open="isAskingToDelete"
+			@yes="confirmDeleteTransaction"
+			@no="cancelDeleteTransaction"
+		/>
 	</form>
 </template>
 
@@ -207,6 +232,16 @@ form {
 			margin-bottom: 8pt;
 			margin-left: 8pt;
 		}
+	}
+}
+
+.buttons {
+	display: flex;
+	flex-flow: row nowrap;
+	width: 80%;
+
+	:first-child {
+		margin-right: auto;
 	}
 }
 </style>

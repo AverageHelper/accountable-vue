@@ -23,6 +23,10 @@ export const useLocationsStore = defineStore("locations", {
 		allLocations(state): Array<Location> {
 			return Object.values(state.items);
 		},
+		isLocationEnabled(): boolean {
+			// TODO: Return `true` only if we have a VITE_FREEGEOIP_API_KEY
+			return true;
+		},
 	},
 	actions: {
 		clearCache() {

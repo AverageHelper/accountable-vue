@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { Attachment } from "../../model/Attachment";
+import type { Location } from "../../model/Location";
 import type { Transaction } from "../../model/Transaction";
 import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.vue";
 import EditButton from "../EditButton.vue";
@@ -10,7 +11,6 @@ import List from "../List.vue";
 import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
-import { Location } from "../../model/Location";
 import { ref, computed, toRefs } from "vue";
 import { toCurrency } from "../../filters/toCurrency";
 import { useRouter } from "vue-router";
@@ -183,7 +183,7 @@ async function onFileReceived(file: File) {
 			<span class="value">&quot;{{ transaction.notes }}&quot;</span>
 		</div>
 		<!-- Location -->
-		<div v-if="false && location" class="key-value-pair" aria-label="Transaction Location">
+		<div v-if="location" class="key-value-pair" aria-label="Transaction Location">
 			<span class="key">Location</span>
 			<span class="value">{{ location?.title }}</span>
 			<!-- If the location has more than a title, then this should link to a modal for those details -->

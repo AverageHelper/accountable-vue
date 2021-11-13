@@ -9,9 +9,9 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 		<h1>Settings</h1>
 	</div>
 
+	<LocationPrefForm />
 	<ChangeEmailForm />
 	<ChangePasswordForm />
-	<LocationPrefForm v-if="false" />
 </template>
 
 <style scoped lang="scss">
