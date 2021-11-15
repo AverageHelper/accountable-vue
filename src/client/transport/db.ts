@@ -2,6 +2,8 @@ import type { FirebaseStorage } from "firebase/storage";
 import type {
 	CollectionReference,
 	DocumentData,
+	DocumentReference,
+	DocumentSnapshot,
 	Firestore,
 	FirestoreError,
 	QueryDocumentSnapshot,
@@ -71,6 +73,23 @@ export function watchAllRecords<T = DocumentData>(
 	const queue = useJobQueue<QuerySnapshot<T>>(queueId);
 	queue.process(onSnap);
 	const unsubscribe = onSnapshot(collection, snap => queue.createJob(snap), onError, onCompletion);
+
+	return (): void => {
+		unsubscribe();
+		forgetJobQueue(queueId);
+	};
+}
+
+export function watchRecord<T = DocumentData>(
+	doc: DocumentReference<T>,
+	onSnap: (snap: DocumentSnapshot<T>) => void | Promise<void>,
+	onError?: ((error: FirestoreError) => void) | undefined,
+	onCompletion?: (() => void) | undefined
+): Unsubscribe {
+	const queueId = `watchRecord-${doc.path}`;
+	const queue = useJobQueue<DocumentSnapshot<T>>(queueId);
+	queue.process(onSnap);
+	const unsubscribe = onSnapshot(doc, snap => queue.createJob(snap), onError, onCompletion);
 
 	return (): void => {
 		unsubscribe();

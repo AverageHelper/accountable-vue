@@ -2,7 +2,7 @@
 import type { LocationPref } from "../../transport";
 import ActionButton from "../ActionButton.vue";
 import Checkmark from "../../icons/Checkmark.vue";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
@@ -13,7 +13,7 @@ const locations = useLocationsStore();
 const toast = useToast();
 
 const isLoading = ref(false);
-const isLocationEnabled = computed(() => locations.isLocationEnabled);
+const isLocationApiAvailable = computed(() => locations.isLocationApiAvailable);
 const currentSensitivity = computed(() => auth.preferences.locationSensitivity);
 const selectedSensitivity = ref<LocationPref>("none");
 
@@ -26,6 +26,10 @@ const hasChanges = computed(() => {
 function reset() {
 	selectedSensitivity.value = currentSensitivity.value;
 }
+
+onMounted(() => {
+	reset();
+});
 
 async function submitNewLocationPref() {
 	try {
@@ -48,8 +52,8 @@ async function submitNewLocationPref() {
 </script>
 
 <template>
-	<form v-if="isLocationEnabled" @submit.prevent="submitNewLocationPref">
-		<h3>Location Preference</h3>
+	<form v-if="isLocationApiAvailable" @submit.prevent="submitNewLocationPref">
+		<h3>Location Service</h3>
 		<p
 			>By default, we don't talk to any external location APIs. However, if you want Accountable to
 			prefill transaction location fields, you'll need to select a different option below.</p
@@ -88,12 +92,14 @@ async function submitNewLocationPref() {
 		</div>
 		<p style="font-size: small"
 			>Note that we have no "automatic" location features. We only fetch your current location when
-			you press a button to request it.</p
+			you press a button to request it. We use the
+			<a href="https://freegeoip.app" target="__blank">FreeGeoIp</a> API to obtain vague location
+			data.</p
 		>
 
 		<div class="buttons">
 			<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
-				>Confirm</ActionButton
+				>Confirm preference</ActionButton
 			>
 			<ActionButton v-show="hasChanges" kind="bordered" :disabled="isLoading" @click.prevent="reset"
 				>Reset</ActionButton
@@ -101,7 +107,7 @@ async function submitNewLocationPref() {
 		</div>
 	</form>
 	<form v-else @submit.prevent>
-		<h3>Location Preference</h3>
+		<h3>Location Service</h3>
 		<p
 			>To enable location services, add a
 			<a href="https://freegeoip.app" target="__blank">FreeGeoIp</a> API key to

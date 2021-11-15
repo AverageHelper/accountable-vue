@@ -1,37 +1,7 @@
 import type { KeyMaterial } from "./cryption";
 import type { DocumentReference } from "firebase/firestore";
-import type { LocationPref } from "./locations";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "./db";
-
-export interface UserPreferences {
-	locationSensitivity: LocationPref;
-}
-
-function userRef(uid: string): DocumentReference<UserPreferences> {
-	const path = `users/${uid}`;
-	return doc(db, path) as DocumentReference<UserPreferences>;
-}
-
-export function defaultPrefs(this: void): UserPreferences {
-	return {
-		locationSensitivity: "none",
-	};
-}
-
-export async function getUserPreferences(uid: string): Promise<UserPreferences> {
-	const snap = await getDoc(userRef(uid));
-	// TODO: We'll need to decrypt here
-	const prefs = snap.data() ?? defaultPrefs();
-	return {
-		...defaultPrefs(), // in case the payload is incomplete
-		...prefs, // override defaults with what's stored
-	};
-}
-
-export async function setUserPreferences(uid: string): Promise<void> {
-	// TODO: We'll need to encrypt here
-}
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
 	const path = `users/${uid}/keys/main`;

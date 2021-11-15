@@ -5,11 +5,16 @@ import { FirebaseError } from "firebase/app";
 import { useToast } from "vue-toastification";
 import {
 	defaultPrefs,
+	deriveDEK,
 	derivePKey,
 	getAuthMaterial,
 	newDataEncryptionKeyMaterial,
 	newMaterialFromOldKey,
 	setAuthMaterial,
+	setUserPreferences,
+	userPreferencesFromSnapshot,
+	userRef,
+	watchRecord,
 } from "../transport";
 import {
 	createUserWithEmailAndPassword,
@@ -33,9 +38,12 @@ export const useAuthStore = defineStore("auth", {
 		loginProcessState: null as LoginProcessState | null,
 		preferences: defaultPrefs(),
 		authStateWatcher: null as null | Unsubscribe,
+		userPrefsWatcher: null as null | Unsubscribe,
 	}),
 	actions: {
 		clearCache() {
+			if (this.userPrefsWatcher) this.userPrefsWatcher(); // needs to die before auth watcher
+			this.userPrefsWatcher = null;
 			if (this.authStateWatcher) this.authStateWatcher();
 			this.authStateWatcher = null;
 			this.pKey?.destroy();
@@ -60,6 +68,26 @@ export const useAuthStore = defineStore("auth", {
 		onSignedIn(user: User) {
 			this.email = user.email;
 			this.uid = user.uid;
+
+			if (this.userPrefsWatcher) {
+				this.userPrefsWatcher();
+				this.userPrefsWatcher = null;
+			}
+
+			const pKey = this.pKey as HashStore | null;
+			if (pKey === null) return; // No decryption key
+
+			const userDoc = userRef(user.uid);
+			this.userPrefsWatcher = watchRecord(userDoc, async snap => {
+				const { dekMaterial } = await this.getDekMaterial();
+				const dek = deriveDEK(pKey, dekMaterial);
+				if (snap.exists()) {
+					const prefs = userPreferencesFromSnapshot(snap, dek);
+					this.preferences = prefs;
+				} else {
+					this.preferences = defaultPrefs();
+				}
+			});
 		},
 		async onSignedOut() {
 			this.clearCache();
@@ -131,8 +159,15 @@ export const useAuthStore = defineStore("auth", {
 				this.loginProcessState = null;
 			}
 		},
-		async updateUserPreferences(prefs: UserPreferences) {
-			// do the thing
+		async updateUserPreferences(prefs: Partial<UserPreferences>) {
+			const uid = this.uid;
+			const pKey = this.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await this.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+			await setUserPreferences(uid, prefs, dek);
 		},
 		async updateEmail(newEmail: string, currentPassword: string) {
 			const auth = getAuth();
