@@ -1,11 +1,15 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { Dinero } from "dinero.js";
 import type { HashStore } from "../transport";
+import type { LocationsDownloadable } from "./locationsStore";
+import type { TagsDownloadable } from "./tagsStore";
 import type { TransactionsDownloadable } from "./transactionsStore";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
+import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
 import {
+	asyncMap,
 	createAccount,
 	deriveDEK,
 	updateAccount,
@@ -16,7 +20,12 @@ import {
 } from "../transport";
 
 export type AccountsDownloadable = Array<
-	AccountRecordParams & { id: string; transactions: TransactionsDownloadable }
+	AccountRecordParams & {
+		id: string;
+		locations: LocationsDownloadable;
+		transactions: TransactionsDownloadable;
+		tags: TagsDownloadable;
+	}
 >;
 
 export const useAccountsStore = defineStore("accounts", {
@@ -123,6 +132,49 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(uid, account);
+		},
+		async getAllAccountsAsJson(): Promise<AccountsDownloadable> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const [
+				{ useLocationsStore }, //
+				{ useTransactionsStore },
+				{ useTagsStore },
+			] = await Promise.all([
+				import("./locationsStore"), //
+				import("./transactionsStore"),
+				import("./tagsStore"),
+			]);
+			const locationsStore = useLocationsStore();
+			const transactionsStore = useTransactionsStore();
+			const tagsStore = useTagsStore();
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const collection = accountsCollection(uid);
+			const snap = await getDocs(collection);
+			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
+			const data: AccountsDownloadable = await asyncMap(accounts, async acct => {
+				const [locations, transactions, tags] = await Promise.all([
+					locationsStore.getAllLocationsAsJson(),
+					transactionsStore.getAllTransactionsAsJson(acct),
+					tagsStore.getAllTagsAsJson(),
+				]);
+				return {
+					id: acct.id,
+					...acct.toRecord(),
+					locations,
+					transactions,
+					tags,
+				};
+			});
+
+			return data;
 		},
 	},
 });

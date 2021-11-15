@@ -6,6 +6,7 @@ import type { Tag } from "../model/Tag";
 import type { Unsubscribe } from "firebase/auth";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
+import { getDocs } from "firebase/firestore";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
 import {
@@ -248,6 +249,26 @@ export const useTransactionsStore = defineStore("transactions", {
 			const { useLocationsStore } = await import("./locationsStore");
 			const locations = useLocationsStore();
 			await locations.deleteLocation(location);
+		},
+		async getAllTransactionsAsJson(account: Account): Promise<TransactionsDownloadable> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const collection = transactionsCollection(uid, account);
+			const snap = await getDocs(collection);
+			const transactions: TransactionsDownloadable = snap.docs
+				.map(doc => transactionFromSnapshot(account.id, doc, dek))
+				.map(t => ({
+					id: t.id,
+					...t.toRecord(),
+				}));
+			return transactions;
 		},
 	},
 });

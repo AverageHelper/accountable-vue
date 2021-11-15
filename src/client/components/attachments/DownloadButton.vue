@@ -3,6 +3,7 @@ import ActionButton from "../ActionButton.vue";
 import DownloadIcon from "../../icons/Download.vue";
 import { Attachment } from "../../model/Attachment";
 import { computed, toRefs } from "vue";
+import { downloadFileAtUrl } from "../../transport";
 import { useAttachmentsStore } from "../../store";
 
 const props = defineProps({
@@ -18,10 +19,7 @@ function startDownload() {
 	const url = imgUrl.value;
 	if (url === null || !url) return;
 
-	const anchor = document.createElement("a");
-	anchor.href = url; // file to download
-	anchor.download = file.value.title; // filename to save as
-	anchor.click();
+	downloadFileAtUrl(url, file.value.title);
 }
 </script>
 

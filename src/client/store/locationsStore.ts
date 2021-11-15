@@ -2,6 +2,7 @@ import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
+import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
 import {
 	createLocation,
@@ -12,6 +13,8 @@ import {
 	locationsCollection,
 	watchAllRecords,
 } from "../transport";
+
+export type LocationsDownloadable = Array<LocationRecordParams & { id: string }>;
 
 export const useLocationsStore = defineStore("locations", {
 	state: () => ({
@@ -110,6 +113,26 @@ export const useLocationsStore = defineStore("locations", {
 			// case where their linked location does not exist
 
 			await deleteLocation(uid, location);
+		},
+		async getAllLocationsAsJson(): Promise<LocationsDownloadable> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const collection = locationsCollection(uid);
+			const snap = await getDocs(collection);
+			const tags: LocationsDownloadable = snap.docs
+				.map(doc => locationFromSnapshot(doc, dek))
+				.map(t => ({
+					id: t.id,
+					...t.toRecord(),
+				}));
+			return tags;
 		},
 	},
 });

@@ -2,6 +2,7 @@ import type { Tag, TagRecordParams } from "../model/Tag";
 import type { HashStore } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
+import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
 import {
 	createTag,
@@ -12,6 +13,8 @@ import {
 	tagsCollection,
 	watchAllRecords,
 } from "../transport";
+
+export type TagsDownloadable = Array<TagRecordParams & { id: string }>;
 
 export const useTagsStore = defineStore("tags", {
 	state: () => ({
@@ -119,6 +122,26 @@ export const useTagsStore = defineStore("tags", {
 				);
 
 			await deleteTag(uid, tag);
+		},
+		async getAllTagsAsJson(): Promise<TagsDownloadable> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const collection = tagsCollection(uid);
+			const snap = await getDocs(collection);
+			const tags: TagsDownloadable = snap.docs
+				.map(doc => tagFromSnapshot(doc, dek))
+				.map(t => ({
+					id: t.id,
+					...t.toRecord(),
+				}));
+			return tags;
 		},
 	},
 });

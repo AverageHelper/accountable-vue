@@ -12,6 +12,7 @@ import { encrypt, decrypt } from "./cryption";
 import { FirebaseError } from "@firebase/util";
 import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+import { getDataAtUrl } from "./getDataAtUrl";
 
 interface AttachmentRecordPackageMetadata {
 	objectType: "Attachment";
@@ -54,26 +55,10 @@ async function dataFromFile(file: File): Promise<string> {
 	});
 }
 
-async function getDataAtURL(url: string): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const xhr = new XMLHttpRequest();
-		xhr.responseType = "text";
-		xhr.addEventListener("load", () => {
-			const blob = xhr.response as string;
-			resolve(blob);
-		});
-		xhr.addEventListener("error", () => {
-			reject(xhr.response);
-		});
-		xhr.open("GET", url);
-		xhr.send();
-	});
-}
-
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
 	const storageRef = attachmentStorageRef(file.storagePath);
 	const downloadUrl = await getDownloadURL(storageRef);
-	const encryptedData = await getDataAtURL(downloadUrl);
+	const encryptedData = await getDataAtUrl(downloadUrl);
 	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
 	if (!("ciphertext" in pkg)) {
 		throw new TypeError("Improperly formatted payload.");
