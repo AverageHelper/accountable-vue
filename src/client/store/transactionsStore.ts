@@ -4,7 +4,9 @@ import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { Tag } from "../model/Tag";
 import type { Unsubscribe } from "firebase/auth";
+import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
+import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
 import {
 	getTransactionsForAccount,
@@ -16,6 +18,9 @@ import {
 	transactionsCollection,
 	watchAllRecords,
 } from "../transport";
+import { useToast } from "vue-toastification";
+
+export type TransactionsDownloadable = Array<TransactionRecordParams & { id: string }>;
 
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
@@ -57,6 +62,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
+			const toast = useToast();
 			const collection = transactionsCollection(uid, account);
 
 			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
@@ -68,43 +74,67 @@ export const useTransactionsStore = defineStore("transactions", {
 
 				snap.docChanges().forEach(change => {
 					const accountTransactions = this.transactionsForAccount[account.id] ?? {};
-					let currentBalance = accounts.currentBalance[account.id] ?? 0;
+					let currentBalance =
+						accounts.currentBalance[account.id] ?? dinero({ amount: 0, currency: USD });
 
-					switch (change.type) {
-						case "removed":
-							// Update the account's balance total
-							currentBalance -= accountTransactions[change.doc.id]?.amount ?? 0;
-							// Forget this transaction
-							delete accountTransactions[change.doc.id];
-							break;
+					try {
+						switch (change.type) {
+							case "removed":
+								// Update the account's balance total
+								currentBalance = subtract(
+									currentBalance,
+									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
+								);
+								// Forget this transaction
+								delete accountTransactions[change.doc.id];
+								break;
 
-						case "added":
-							// Add this transaction
-							accountTransactions[change.doc.id] = transactionFromSnapshot(
-								account.id,
-								change.doc,
-								dek
-							);
-							// Update the account's balance total
-							currentBalance += accountTransactions[change.doc.id]?.amount ?? 0;
-							break;
+							case "added":
+								// Add this transaction
+								accountTransactions[change.doc.id] = transactionFromSnapshot(
+									account.id,
+									change.doc,
+									dek
+								);
+								// Update the account's balance total
+								currentBalance = add(
+									currentBalance,
+									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
+								);
+								break;
 
-						case "modified":
-							// Remove this account's balance total
-							currentBalance -= accountTransactions[change.doc.id]?.amount ?? 0;
-							// Update this transaction
-							accountTransactions[change.doc.id] = transactionFromSnapshot(
-								account.id,
-								change.doc,
-								dek
-							);
-							// Update this account's balance total
-							currentBalance += accountTransactions[change.doc.id]?.amount ?? 0;
-							break;
+							case "modified":
+								// Remove this account's balance total
+								currentBalance = subtract(
+									currentBalance,
+									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
+								);
+								// Update this transaction
+								accountTransactions[change.doc.id] = transactionFromSnapshot(
+									account.id,
+									change.doc,
+									dek
+								);
+								// Update this account's balance total
+								currentBalance = add(
+									currentBalance,
+									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
+								);
+								break;
+						}
+
+						accounts.currentBalance[account.id] = currentBalance;
+						this.transactionsForAccount[account.id] = accountTransactions;
+					} catch (error: unknown) {
+						let message: string;
+						if (error instanceof Error) {
+							message = error.message;
+						} else {
+							message = JSON.stringify(error);
+						}
+						toast.error(message);
+						console.error(error);
 					}
-
-					accounts.currentBalance[account.id] = currentBalance;
-					this.transactionsForAccount[account.id] = accountTransactions;
 				});
 			});
 		},

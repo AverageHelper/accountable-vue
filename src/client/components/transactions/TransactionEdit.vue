@@ -13,8 +13,10 @@ import LocationField from "../locations/LocationField.vue";
 import TextAreaField from "../TextAreaField.vue";
 import TextField from "../TextField.vue";
 import TrashIcon from "../../icons/Trash.vue";
-import { Transaction } from "../../model/Transaction";
+import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
 import { ref, computed, toRefs, onMounted } from "vue";
+import { Transaction } from "../../model/Transaction";
+import { USD } from "@dinero.js/currencies";
 import { useToast } from "vue-toastification";
 import { useLocationsStore, useTransactionsStore } from "../../store";
 
@@ -38,11 +40,11 @@ const title = ref("");
 const notes = ref("");
 const locationData = ref<(LocationRecordParams & { id: string | null }) | null>(null);
 const createdAt = ref(new Date());
-const amount = ref(0);
+const amount = ref(dinero({ amount: 0, currency: USD }));
 const isReconciled = ref(false);
 
 const isAskingToDelete = ref(false);
-const isExpense = computed(() => amount.value <= 0);
+const isExpense = computed(() => isNegative(amount.value) || isZero(amount.value));
 const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length ?? 0) > 0);
 
 createdAt.value.setSeconds(0, 0);
@@ -112,7 +114,7 @@ async function submit() {
 			createdAt: createdAt.value,
 			isReconciled: isReconciled.value,
 			locationId: newLocation?.id ?? null,
-			amount: amount.value,
+			amount: toSnapshot(amount.value),
 			accountId: account.value.id,
 			tagIds: ogTransaction.value?.tagIds ?? [],
 			attachmentIds: ogTransaction.value?.attachmentIds ?? [],

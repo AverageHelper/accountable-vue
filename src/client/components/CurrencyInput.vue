@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import type { CurrencyCode } from "../filters/toCurrency";
 import type { PropType } from "vue";
+import type { Dinero } from "dinero.js";
 import ActionButton from "./ActionButton.vue";
 import TextField from "./TextField.vue";
+import { dinero } from "dinero.js";
+import { intlFormat } from "../filters/toCurrency";
 import { ref, computed, toRefs, watch } from "vue";
-import { toCurrency } from "../filters/toCurrency";
+import { USD } from "@dinero.js/currencies";
 
 const emit = defineEmits(["update:modelValue"]);
 
 const props = defineProps({
 	label: { type: String as PropType<string | null>, default: null },
-	modelValue: { type: Number, default: 0 },
-	currency: { type: String as PropType<CurrencyCode>, default: "USD" },
+	modelValue: {
+		type: Object as PropType<Dinero<number>>,
+		default: dinero({ amount: 0, currency: USD }),
+	},
 });
-const { currency, modelValue } = toRefs(props);
+const { modelValue } = toRefs(props);
 
 const isIncome = ref(false);
 
 const presentableValue = computed(() => {
-	return toCurrency(modelValue.value, "accounting", currency.value);
+	return intlFormat(modelValue.value, "accounting");
 });
 
 function onInput(event: Event) {
@@ -36,7 +40,7 @@ function updateValue(rawValue: string) {
 	if (Number.isNaN(value) || rawValue === "") {
 		emit("update:modelValue", modelValue.value);
 	} else {
-		emit("update:modelValue", value / 100);
+		emit("update:modelValue", dinero({ amount: value, currency: USD }));
 	}
 }
 

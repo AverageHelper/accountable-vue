@@ -1,5 +1,7 @@
 import type { Account, AccountRecordParams } from "../model/Account";
+import type { Dinero } from "dinero.js";
 import type { HashStore } from "../transport";
+import type { TransactionsDownloadable } from "./transactionsStore";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { useAuthStore } from "./authStore";
@@ -13,10 +15,14 @@ import {
 	watchAllRecords,
 } from "../transport";
 
+export type AccountsDownloadable = Array<
+	AccountRecordParams & { id: string; transactions: TransactionsDownloadable }
+>;
+
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
 		items: {} as Dictionary<Account>, // Account.id -> Account
-		currentBalance: {} as Dictionary<number>, // Account.id -> number
+		currentBalance: {} as Dictionary<Dinero<number>>, // Account.id -> Dinero
 		loadError: null as Error | null,
 		accountsWatcher: null as Unsubscribe | null,
 	}),

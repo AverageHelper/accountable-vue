@@ -1,11 +1,14 @@
+import type { Dinero, DineroSnapshot } from "dinero.js";
 import type { Identifiable } from "./utility/Identifiable";
 import isString from "lodash/isString";
 import isBoolean from "lodash/isBoolean";
+import { dinero, toSnapshot, isPositive, isNegative, isZero } from "dinero.js";
+import { USD } from "@dinero.js/currencies";
 
 export type TransactionRecordType = "expense" | "income" | "transaction";
 
 export interface TransactionRecordParams {
-	amount: number;
+	amount: DineroSnapshot<number>;
 	createdAt: Date;
 	title: string | null;
 	notes: string | null;
@@ -16,10 +19,12 @@ export interface TransactionRecordParams {
 	attachmentIds: ReadonlyArray<string>;
 }
 
-export class Transaction implements Identifiable<string>, TransactionRecordParams {
+export class Transaction
+	implements Identifiable<string>, ReplaceWith<TransactionRecordParams, "amount", Dinero<number>>
+{
 	public readonly objectType = "Transaction";
 	public readonly id: string;
-	public readonly amount: number;
+	public readonly amount: Dinero<number>;
 	public readonly createdAt: Date;
 	public readonly title: string | null;
 	public readonly notes: string | null;
@@ -33,7 +38,10 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		this.id = id;
 		this.accountId = accountId;
 		const defaultRecord = Transaction.defaultRecord(record);
-		this.amount = record?.amount ?? defaultRecord.amount;
+		this.amount =
+			typeof record?.amount === "number"
+				? dinero({ amount: record.amount * 100, currency: USD }) // for compatibility
+				: dinero(record?.amount ?? defaultRecord.amount);
 		this.createdAt =
 			// handle case where decryption doesn't return a Date object
 			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
@@ -46,12 +54,18 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 	}
 
 	get type(): TransactionRecordType {
-		if (this.amount > 0) {
-			return "income";
-		} else if (this.amount < 0) {
-			return "expense";
+		const TRANSACTION = "transaction";
+		const INCOME = "income";
+		const EXPENSE = "expense";
+
+		if (isZero(this.amount)) {
+			return TRANSACTION;
+		} else if (isPositive(this.amount)) {
+			return INCOME;
+		} else if (isNegative(this.amount)) {
+			return EXPENSE;
 		}
-		return "transaction";
+		return TRANSACTION;
 	}
 
 	get tagIds(): ReadonlyArray<string> {
@@ -67,7 +81,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 		record?: Partial<TransactionRecordParams>
 	): Omit<TransactionRecordParams, "accountId"> {
 		return {
-			amount: record?.amount ?? 0,
+			amount: record?.amount ?? toSnapshot(dinero({ amount: 0, currency: USD })),
 			createdAt: record?.createdAt ?? new Date(),
 			title: record?.title ?? null,
 			notes: record?.notes ?? null,
@@ -103,7 +117,7 @@ export class Transaction implements Identifiable<string>, TransactionRecordParam
 
 	toRecord(): TransactionRecordParams {
 		return {
-			amount: this.amount,
+			amount: toSnapshot(this.amount),
 			createdAt: this.createdAt,
 			title: this.title,
 			notes: this.notes,

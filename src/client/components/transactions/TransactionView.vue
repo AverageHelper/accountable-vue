@@ -12,7 +12,8 @@ import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { ref, computed, toRefs } from "vue";
-import { toCurrency } from "../../filters/toCurrency";
+import { intlFormat } from "../../filters/toCurrency";
+import { isNegative } from "dinero.js";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 import {
@@ -163,8 +164,8 @@ async function onFileReceived(file: File) {
 		<!-- Amount -->
 		<div class="key-value-pair" aria-label="Transaction Amount">
 			<span class="key">Amount</span>
-			<span class="value amount" :class="{ negative: transaction.amount < 0 }">{{
-				toCurrency(transaction.amount, "hyphen")
+			<span class="value amount" :class="{ negative: isNegative(transaction.amount) }">{{
+				intlFormat(transaction.amount, "standard")
 			}}</span>
 		</div>
 		<!-- Timestamp -->

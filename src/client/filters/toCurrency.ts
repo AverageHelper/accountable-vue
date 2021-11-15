@@ -1,25 +1,18 @@
-export type CurrencyCode = "USD";
+import type { Dinero } from "dinero.js";
+import { toFormat } from "dinero.js";
 
-type NegativeStyle = "accounting" | "hyphen";
+type NegativeStyle = "accounting" | "standard";
 
-export function toCurrency(
-	value: number,
-	negativeStyle: NegativeStyle = "accounting",
-	currency: CurrencyCode = "USD"
+export function intlFormat(
+	dinero: Dinero<number>,
+	negativeStyle: NegativeStyle = "accounting"
 ): string {
-	const isNegative = value < 0;
-	const formatter = new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency,
+	return toFormat(dinero, ({ amount, currency }) => {
+		const formatter = new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: currency.code,
+			currencySign: negativeStyle,
+		});
+		return formatter.format(amount);
 	});
-	const formatted = formatter.format(Math.abs(value));
-	if (isNegative) {
-		switch (negativeStyle) {
-			case "accounting":
-				return `(${formatted})`;
-			case "hyphen":
-				return `-${formatted}`;
-		}
-	}
-	return formatted;
 }

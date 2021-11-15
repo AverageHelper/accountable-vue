@@ -2,8 +2,9 @@
 import Checkbox from "../Checkbox.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs } from "vue";
+import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
-import { toCurrency } from "../../filters/toCurrency";
+import { intlFormat } from "../../filters/toCurrency";
 import { useTransactionsStore } from "../../store";
 import { useToast } from "vue-toastification";
 
@@ -16,7 +17,7 @@ const transactions = useTransactionsStore();
 const toast = useToast();
 
 const isChangingReconciled = ref(false);
-const isNegative = computed(() => transaction.value.amount < 0);
+const isNegative = computed(() => isDineroNegative(transaction.value.amount));
 const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
 const timestamp = computed(() => {
 	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -71,7 +72,7 @@ async function markReconciled(isReconciled: boolean) {
 		<div class="tail">
 			<PaperclipIcon v-if="hasAttachments" class="has-attachments" />
 			<span class="amount" :class="{ negative: isNegative }">{{
-				toCurrency(transaction.amount)
+				intlFormat(transaction.amount)
 			}}</span>
 		</div>
 	</router-link>

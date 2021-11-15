@@ -8,8 +8,10 @@ import List from "../List.vue";
 import Modal from "../Modal.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
+import { dinero, isNegative as isDineroNegative } from "dinero.js";
+import { intlFormat } from "../../filters/toCurrency";
 import { ref, computed, toRefs, watch } from "vue";
-import { toCurrency } from "../../filters/toCurrency";
+import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRouter } from "vue-router";
 
@@ -38,7 +40,9 @@ const theseTransactions = computed(() => {
 const numberOfTransactions = computed(() => theseTransactions.value.length);
 
 const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
-const isNegative = computed(() => (remainingBalance.value ?? 0) < 0);
+const isNegative = computed(() =>
+	isDineroNegative(remainingBalance.value ?? dinero({ amount: 0, currency: USD }))
+);
 
 watch(
 	account,
@@ -82,7 +86,7 @@ function finishEditingAccount() {
 
 		<p v-if="remainingBalance === null" class="account-balance">--</p>
 		<p v-else class="account-balance" :class="{ negative: isNegative }">{{
-			toCurrency(remainingBalance)
+			intlFormat(remainingBalance)
 		}}</p>
 	</div>
 
