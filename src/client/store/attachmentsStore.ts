@@ -122,7 +122,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			);
 			await deleteAttachment(uid, attachment);
 		},
-		async imageDataFromFile(file: Attachment): Promise<string> {
+		async imageDataFromFile(file: Attachment, shouldCache: boolean = true): Promise<string> {
 			// If we already have the thing, don't redownload
 			const extantData = this.files[file.id];
 			if (extantData !== undefined && extantData) return extantData;
@@ -137,8 +137,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			const imageData = await embeddableDataForFile(dek, file);
 
-			// Cache the data URL and its file
-			this.files[file.id] = imageData;
+			if (shouldCache) {
+				// Cache the data URL and its file
+				this.files[file.id] = imageData;
+			}
 
 			return imageData;
 		},

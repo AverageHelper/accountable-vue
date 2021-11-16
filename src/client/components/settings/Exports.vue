@@ -37,7 +37,9 @@ async function downloadStuff(shouldMinify: boolean) {
 		});
 		const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
 			const file = new Attachment(a.id, a.storagePath, a);
-			return [file, await attachments.imageDataFromFile(file)];
+			// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB
+			const data = await attachments.imageDataFromFile(file, false);
+			return [file, data];
 		});
 		// mirror the storage bucket layout
 		const userFiles =
