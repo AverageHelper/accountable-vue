@@ -1,4 +1,5 @@
 import type { Account, AccountRecordParams } from "../model/Account";
+import type { AttachmentsDownloadable } from "./attachmentsStore";
 import type { Dinero } from "dinero.js";
 import type { HashStore } from "../transport";
 import type { LocationsDownloadable } from "./locationsStore";
@@ -22,6 +23,7 @@ import {
 export type AccountsDownloadable = Array<
 	AccountRecordParams & {
 		id: string;
+		attachments: AttachmentsDownloadable;
 		locations: LocationsDownloadable;
 		transactions: TransactionsDownloadable;
 		tags: TagsDownloadable;
@@ -141,14 +143,17 @@ export const useAccountsStore = defineStore("accounts", {
 			if (uid === null) throw new Error("Sign in first");
 
 			const [
-				{ useLocationsStore }, //
+				{ useAttachmentsStore }, //
+				{ useLocationsStore },
 				{ useTransactionsStore },
 				{ useTagsStore },
 			] = await Promise.all([
-				import("./locationsStore"), //
+				import("./attachmentsStore"), //
+				import("./locationsStore"),
 				import("./transactionsStore"),
 				import("./tagsStore"),
 			]);
+			const attachmentsStore = useAttachmentsStore();
 			const locationsStore = useLocationsStore();
 			const transactionsStore = useTransactionsStore();
 			const tagsStore = useTagsStore();
@@ -160,17 +165,20 @@ export const useAccountsStore = defineStore("accounts", {
 			const snap = await getDocs(collection);
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
 			const data: AccountsDownloadable = await asyncMap(accounts, async acct => {
-				const [locations, transactions, tags] = await Promise.all([
+				const [attachments, locations, transactions, tags] = await Promise.all([
+					attachmentsStore.getAllAttachmentsAsJson(),
 					locationsStore.getAllLocationsAsJson(),
 					transactionsStore.getAllTransactionsAsJson(acct),
 					tagsStore.getAllTagsAsJson(),
 				]);
+
 				return {
 					id: acct.id,
 					...acct.toRecord(),
 					locations,
 					transactions,
 					tags,
+					attachments,
 				};
 			});
 

@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { useAuthStore } from "../../store";
-import { downloadFileAtUrl } from "../../transport";
+import type { AttachmentsDownloadable } from "../../store";
 import ActionButton from "../ActionButton.vue";
+import JSZip from "jszip";
+import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 import { ref } from "vue";
+import { useAttachmentsStore, useAuthStore } from "../../store";
 import { useToast } from "vue-toastification";
+import { Attachment } from "../../model/Attachment";
+import btoa from "btoa-lite";
 
 const auth = useAuthStore();
+const attachments = useAttachmentsStore();
 const toast = useToast();
 
 const isLoading = ref(false);
@@ -13,10 +18,45 @@ const isLoading = ref(false);
 async function downloadStuff(shouldMinify: boolean) {
 	isLoading.value = true;
 	try {
+		const zip = new JSZip();
+		const root = zip.folder("accountable");
+		if (!root) throw new Error("Zip failed, not sure why. Try again maybe?");
+
+		// Prepare database
 		const rawData = await auth.getAllUserDataAsJson();
 		const data = JSON.stringify(rawData, undefined, shouldMinify ? undefined : "\t");
-		const dataUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(data)}`;
-		downloadFileAtUrl(dataUrl, `accounts${shouldMinify ? "-raw" : ""}.json`);
+		const encodedData = btoa(data);
+		root.file(`database${shouldMinify ? "-raw" : ""}.json`, encodedData, {
+			base64: true,
+		});
+
+		// Prepare attachments
+		const filesToGet: AttachmentsDownloadable = [];
+		rawData.accounts.forEach(acct => {
+			filesToGet.push(...acct.attachments);
+		});
+		const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
+			const file = new Attachment(a.id, a.storagePath, a);
+			return [file, await attachments.imageDataFromFile(file)];
+		});
+		// mirror the storage bucket layout
+		const userFiles =
+			filesGotten.length > 0
+				? root.folder("storage")?.folder("users")?.folder(rawData.uid)?.folder("attachments")
+				: null;
+		filesGotten.forEach(([f, d]) => {
+			const mystifiedName = f.storagePath.slice(Math.max(0, f.storagePath.lastIndexOf("/") + 1));
+			const imageFolder = userFiles?.folder(mystifiedName);
+			const image = dataUriToBlob(d);
+			imageFolder?.file(f.title, image);
+		});
+
+		// Zip them up
+		const content = await zip.generateAsync({ type: "base64" });
+		downloadFileAtUrl(
+			`data:application/zip;base64,${encodeURIComponent(content)}`,
+			"accountable.zip"
+		);
 	} catch (error: unknown) {
 		let message: string;
 		if (error instanceof Error) {

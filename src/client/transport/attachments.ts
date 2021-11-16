@@ -12,7 +12,7 @@ import { encrypt, decrypt } from "./cryption";
 import { FirebaseError } from "@firebase/util";
 import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { getDataAtUrl } from "./getDataAtUrl";
+import { dataFromFile, getDataAtUrl } from "./getDataAtUrl";
 
 interface AttachmentRecordPackageMetadata {
 	objectType: "Attachment";
@@ -34,25 +34,6 @@ function attachmentRef(
 
 function attachmentStorageRef(storagePath: string): StorageReference {
 	return ref(storage, storagePath);
-}
-
-async function dataFromFile(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.addEventListener("load", () => {
-			const result = reader.result;
-			if (typeof result === "string") {
-				resolve(result);
-			} else {
-				reject(new TypeError(`Expected string result, got ${typeof result}`));
-			}
-		});
-		reader.addEventListener("error", error => {
-			reject(error);
-		});
-		// reader.readAsText(file);
-		reader.readAsDataURL(file);
-	});
 }
 
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
