@@ -78,18 +78,29 @@ async function downloadStuff(shouldMinify: boolean) {
 		<h3>Export</h3>
 		<p
 			>Exports an <strong>unencrypted</strong> copy of all your data in JSON format. (Except
-			attachments for now, while we figure out how to export those in one go).</p
+			attachments of course, those will come as Accountable got them).</p
 		>
-		<p
+		<p v-if="false"
 			>This export might get big, and about 1/3 of it is spacing to make the JSON more
 			human-readable. If you don't care about that, then we can just export the raw JSON data as
 			small as we can make it.</p
 		>
 		<div class="buttons">
-			<ActionButton kind="bordered" :disabled="isLoading" @click.prevent="() => downloadStuff(true)"
+			<ActionButton
+				kind="bordered"
+				:disabled="isLoading"
+				@click.prevent="() => downloadStuff(false)"
 				>Export Everything</ActionButton
 			>
 			<ActionButton
+				v-if="false"
+				kind="bordered"
+				:disabled="isLoading"
+				@click.prevent="() => downloadStuff(true)"
+				>Export Everything</ActionButton
+			>
+			<ActionButton
+				v-if="false"
 				kind="bordered"
 				:disabled="isLoading"
 				@click.prevent="() => downloadStuff(false)"
