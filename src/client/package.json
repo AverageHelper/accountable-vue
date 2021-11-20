@@ -9,6 +9,8 @@
 		"crypto-js": "^4.1.1",
 		"dinero.js": "^2.0.0-alpha.8",
 		"firebase": "^9.1.1",
+		"joi": "^17.4.2",
+		"joi-extract-type": "^15.0.8",
 		"jszip": "^3.7.1",
 		"lodash": "^4.17.21",
 		"node-forge": "^0.10.0",

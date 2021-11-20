@@ -7,11 +7,12 @@ import { useTransactionsStore } from "../../store";
 
 const props = defineProps({
 	account: { type: Account, required: true },
+	link: { type: Boolean, default: true },
 });
-const { account } = toRefs(props);
+const { account, link } = toRefs(props);
 
 const transactions = useTransactionsStore();
-const accountRoute = computed(() => `/accounts/${account.value.id}`);
+const accountRoute = computed(() => (link.value ? `/accounts/${account.value.id}` : "#"));
 const theseTransactions = computed(
 	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );

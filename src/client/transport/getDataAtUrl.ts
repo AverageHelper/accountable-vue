@@ -46,7 +46,7 @@ export function dataUriToBlob(dataUri: string): Blob {
 	return blob;
 }
 
-export async function dataFromFile(file: Blob): Promise<string> {
+async function dataFromBlob(file: Blob, type: "dataUrl" | "text"): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
@@ -60,8 +60,24 @@ export async function dataFromFile(file: Blob): Promise<string> {
 		reader.addEventListener("error", error => {
 			reject(error);
 		});
-		reader.readAsDataURL(file);
+		switch (type) {
+			case "dataUrl":
+				reader.readAsDataURL(file);
+				break;
+			case "text":
+				reader.readAsText(file);
+				break;
+		}
 	});
+}
+
+export async function dataUrlFromFile(file: Blob): Promise<string> {
+	return await dataFromBlob(file, "dataUrl");
+}
+
+export async function getJsonFromFile(file: Blob): Promise<unknown> {
+	const text = await dataFromBlob(file, "text");
+	return JSON.parse(text) as unknown;
 }
 
 // These are different, I promise

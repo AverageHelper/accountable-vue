@@ -46,7 +46,10 @@ async function downloadStuff(shouldMinify: boolean) {
 				? root.folder("storage")?.folder("users")?.folder(rawData.uid)?.folder("attachments")
 				: null;
 		filesGotten.forEach(([f, d]) => {
-			const mystifiedName = f.storagePath.slice(Math.max(0, f.storagePath.lastIndexOf("/") + 1));
+			// Get storage file name without extension, so that explorers don't try to treat the folder as JSON
+			const mystifiedName = f.storagePath
+				.slice(Math.max(0, f.storagePath.lastIndexOf("/") + 1))
+				.split(".")[0] as string;
 			const imageFolder = userFiles?.folder(mystifiedName);
 			const image = dataUriToBlob(d);
 			imageFolder?.file(f.title, image);

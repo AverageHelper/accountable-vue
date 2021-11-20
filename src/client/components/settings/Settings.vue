@@ -2,6 +2,7 @@
 import ChangePasswordForm from "./ChangePasswordForm.vue";
 import ChangeEmailForm from "./ChangeEmailForm.vue";
 import Exports from "./Exports.vue";
+import Import from "./Import.vue";
 import LocationPrefForm from "./LocationPrefForm.vue";
 </script>
 
@@ -10,10 +11,12 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 		<h1>Settings</h1>
 	</div>
 
-	<Exports />
 	<LocationPrefForm />
 	<ChangeEmailForm />
 	<ChangePasswordForm />
+	<Import />
+	<Exports />
+	<!-- TODO: Delete all data -->
 </template>
 
 <style scoped lang="scss">

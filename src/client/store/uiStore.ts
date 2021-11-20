@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { FirebaseError } from "firebase/app";
 import { useToast } from "vue-toastification";
+import Joi from "joi";
 
 type ColorScheme = "light" | "dark";
 
@@ -43,6 +44,8 @@ export const useUiStore = defineStore("ui", {
 				message = error.message;
 			} else if (error instanceof FirebaseError) {
 				message = error.code;
+			} else if (error instanceof Joi.ValidationError) {
+				message = `ValidationError: ${error.message}`;
 			} else {
 				message = JSON.stringify(error);
 			}

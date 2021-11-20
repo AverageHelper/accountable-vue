@@ -12,7 +12,7 @@ import { encrypt, decrypt } from "./cryption";
 import { FirebaseError } from "@firebase/util";
 import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
 import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { dataFromFile, getDataAtUrl } from "./getDataAtUrl";
+import { dataUrlFromFile, getDataAtUrl } from "./getDataAtUrl";
 
 interface AttachmentRecordPackageMetadata {
 	objectType: "Attachment";
@@ -70,7 +70,7 @@ export async function createAttachment(
 	const meta: AttachmentRecordPackageMetadata = {
 		objectType: "Attachment",
 	};
-	const imageData = await dataFromFile(file);
+	const imageData = await dataUrlFromFile(file);
 	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
 
 	const ref = doc(attachmentsCollection(uid)); // generates unique document ID
@@ -90,6 +90,7 @@ export async function createAttachment(
 
 export async function updateAttachment(
 	uid: string,
+	file: File | null,
 	attachment: Attachment,
 	dek: HashStore
 ): Promise<void> {
@@ -100,6 +101,18 @@ export async function updateAttachment(
 	const record: AttachmentRecordParams = attachment.toRecord();
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(attachmentRef(uid, attachment), pkg);
+
+	if (file) {
+		// delete the old file
+		const storageRef = attachmentStorageRef(attachment.storagePath);
+		await deleteObject(storageRef);
+
+		// store the new file
+		const imageData = await dataUrlFromFile(file);
+		const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
+
+		await uploadString(storageRef, fileToUpload, "raw");
+	}
 }
 
 export async function deleteAttachment(uid: string, attachment: Attachment): Promise<void> {

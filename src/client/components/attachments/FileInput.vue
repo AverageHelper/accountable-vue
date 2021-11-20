@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { ref } from "vue";
+
+defineProps({
+	accept: { type: String, default: "image/*" },
+	disabled: { type: Boolean, default: false },
+});
+
 const emit = defineEmits(["input"]);
+
+const inputElement = ref<HTMLInputElement | null>(null);
 
 function onFileChanged(event: Event) {
 	const input = event.target as HTMLInputElement | null;
@@ -10,13 +19,23 @@ function onFileChanged(event: Event) {
 
 	input.files = null; // reset the file input, probably
 }
+
+function click() {
+	inputElement.value?.click();
+}
 </script>
 
 <template>
 	<label class="file-input">
-		<input type="file" accept="image/*" @change="onFileChanged" />
+		<input
+			ref="inputElement"
+			type="file"
+			:accept="accept"
+			:disabled="disabled"
+			@change="onFileChanged"
+		/>
 		<span>
-			<slot>Choose a file</slot>
+			<slot :click="click">Choose a file</slot>
 		</span>
 	</label>
 </template>

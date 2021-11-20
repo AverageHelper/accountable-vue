@@ -229,6 +229,7 @@ export const useAuthStore = defineStore("auth", {
 		async logout() {
 			const auth = getAuth();
 			await signOut(auth);
+			await this.onSignedOut();
 		},
 		async getAllUserDataAsJson(): Promise<UserDataDownloadable> {
 			const uid = this.uid;

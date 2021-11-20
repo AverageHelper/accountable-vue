@@ -95,7 +95,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			return await createAttachment(uid, file, record, dek);
 		},
-		async updateAttachment(attachment: Attachment): Promise<void> {
+		async updateAttachment(attachment: Attachment, file?: File): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -104,7 +104,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateAttachment(uid, attachment, dek);
+			await updateAttachment(uid, file ?? null, attachment, dek);
 		},
 		async deleteAttachment(attachment: Attachment): Promise<void> {
 			const authStore = useAuthStore();
