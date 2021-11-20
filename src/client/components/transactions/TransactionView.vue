@@ -15,12 +15,12 @@ import { ref, computed, toRefs } from "vue";
 import { intlFormat } from "../../filters/toCurrency";
 import { isNegative } from "dinero.js";
 import { useRouter } from "vue-router";
-import { useToast } from "vue-toastification";
 import {
 	useAccountsStore,
 	useAttachmentsStore,
 	useTagsStore,
 	useTransactionsStore,
+	useUiStore,
 } from "../../store";
 
 const props = defineProps({
@@ -34,7 +34,7 @@ const accounts = useAccountsStore();
 const attachments = useAttachmentsStore();
 const transactions = useTransactionsStore();
 const tags = useTagsStore();
-const toast = useToast();
+const ui = useUiStore();
 
 const fileToDelete = ref<Attachment | null>(null);
 
@@ -82,14 +82,7 @@ async function confirmDeleteFile(file: Attachment) {
 	try {
 		await attachments.deleteAttachment(file);
 	} catch (error: unknown) {
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else {
-			message = JSON.stringify(error);
-		}
-		toast.error(message);
-		console.error(error);
+		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;
 	}
@@ -100,14 +93,7 @@ async function deleteFileReference(fileId: string) {
 	try {
 		await transactions.removeAttachmentFromTransaction(fileId, transaction.value);
 	} catch (error: unknown) {
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else {
-			message = JSON.stringify(error);
-		}
-		toast.error(message);
-		console.error(error);
+		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;
 	}

@@ -17,8 +17,7 @@ import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { Transaction } from "../../model/Transaction";
 import { USD } from "@dinero.js/currencies";
-import { useToast } from "vue-toastification";
-import { useLocationsStore, useTransactionsStore } from "../../store";
+import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -30,7 +29,7 @@ const { account, transaction } = toRefs(props);
 
 const locations = useLocationsStore();
 const transactions = useTransactionsStore();
-const toast = useToast();
+const ui = useUiStore();
 
 const ogTransaction = computed(() => transaction.value as Transaction | null);
 const isCreatingTransaction = computed(() => ogTransaction.value === null);
@@ -63,17 +62,6 @@ onMounted(() => {
 		locationData.value = ogLocation !== null ? { ...ogLocation, id: ogLocationId } : null;
 	}
 });
-
-function handleError(error: unknown) {
-	let message: string;
-	if (error instanceof Error) {
-		message = error.message;
-	} else {
-		message = JSON.stringify(error);
-	}
-	toast.error(message);
-	console.error(error);
-}
 
 async function submit() {
 	isLoading.value = true;
@@ -129,7 +117,7 @@ async function submit() {
 
 		emit("finished");
 	} catch (error: unknown) {
-		handleError(error);
+		ui.handleError(error);
 	}
 
 	isLoading.value = false;
@@ -151,7 +139,7 @@ async function confirmDeleteTransaction() {
 		emit("deleted");
 		emit("finished");
 	} catch (error: unknown) {
-		handleError(error);
+		ui.handleError(error);
 	}
 
 	isLoading.value = false;

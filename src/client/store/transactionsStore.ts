@@ -9,6 +9,7 @@ import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
+import { useUiStore } from "./uiStore";
 import {
 	getTransactionsForAccount,
 	createTransaction,
@@ -19,7 +20,6 @@ import {
 	transactionsCollection,
 	watchAllRecords,
 } from "../transport";
-import { useToast } from "vue-toastification";
 
 export type TransactionsDownloadable = Array<TransactionRecordParams & { id: string }>;
 
@@ -63,7 +63,6 @@ export const useTransactionsStore = defineStore("transactions", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const toast = useToast();
 			const collection = transactionsCollection(uid, account);
 
 			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
@@ -127,14 +126,8 @@ export const useTransactionsStore = defineStore("transactions", {
 						accounts.currentBalance[account.id] = currentBalance;
 						this.transactionsForAccount[account.id] = accountTransactions;
 					} catch (error: unknown) {
-						let message: string;
-						if (error instanceof Error) {
-							message = error.message;
-						} else {
-							message = JSON.stringify(error);
-						}
-						toast.error(message);
-						console.error(error);
+						const ui = useUiStore();
+						ui.handleError(error);
 					}
 				});
 			});

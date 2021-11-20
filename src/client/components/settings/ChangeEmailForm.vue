@@ -4,8 +4,10 @@ import TextField from "../TextField.vue";
 import { ref, computed } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
+import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
+const ui = useUiStore();
 const toast = useToast();
 
 const isLoading = ref(false);
@@ -34,7 +36,7 @@ async function submitNewEmail() {
 		toast.success("Your email has been updated!");
 		reset();
 	} catch (error: unknown) {
-		auth.handleAuthError(error);
+		ui.handleError(error);
 	}
 	isLoading.value = false;
 }

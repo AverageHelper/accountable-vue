@@ -6,8 +6,10 @@ import TextField from "./TextField.vue";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
+import { useUiStore } from "../store";
 
 const auth = useAuthStore();
+const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -75,7 +77,7 @@ async function submit() {
 		await nextTick();
 		await router.replace("/accounts");
 	} catch (error: unknown) {
-		auth.handleAuthError(error);
+		ui.handleError(error);
 	}
 	isLoading.value = false;
 }

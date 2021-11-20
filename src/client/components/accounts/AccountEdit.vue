@@ -5,8 +5,7 @@ import TextAreaField from "../TextAreaField.vue";
 import TextField from "../TextField.vue";
 import { Account } from "../../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
-import { useAccountsStore, useTransactionsStore } from "../../store";
-import { useToast } from "vue-toastification";
+import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -17,7 +16,7 @@ const { account: ogAccount } = toRefs(props);
 
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
-const toast = useToast();
+const ui = useUiStore();
 
 const isCreatingAccount = computed(() => ogAccount.value === null);
 const numberOfTransactions = computed<number>(() => {
@@ -39,17 +38,6 @@ onMounted(() => {
 	notes.value = ogAccount.value?.notes ?? "";
 	titleField.value?.focus();
 });
-
-function handleError(error: unknown) {
-	let message: string;
-	if (error instanceof Error) {
-		message = error.message;
-	} else {
-		message = JSON.stringify(error);
-	}
-	toast.error(message);
-	console.error(error);
-}
 
 async function submit() {
 	isLoading.value = true;
@@ -77,7 +65,7 @@ async function submit() {
 
 		emit("finished");
 	} catch (error: unknown) {
-		handleError(error);
+		ui.handleError(error);
 	}
 
 	isLoading.value = false;
@@ -95,7 +83,7 @@ async function deleteAccount() {
 		emit("deleted");
 		emit("finished");
 	} catch (error: unknown) {
-		handleError(error);
+		ui.handleError(error);
 	}
 
 	isLoading.value = false;

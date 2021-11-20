@@ -6,10 +6,11 @@ import { computed, ref, onMounted } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
-import { useLocationsStore } from "../../store";
+import { useLocationsStore, useUiStore } from "../../store";
 
 const auth = useAuthStore();
 const locations = useLocationsStore();
+const ui = useUiStore();
 const toast = useToast();
 
 const isLoading = ref(false);
@@ -45,7 +46,7 @@ async function submitNewLocationPref() {
 		toast.success("Your preferences have been updated!");
 		reset();
 	} catch (error: unknown) {
-		auth.handleAuthError(error);
+		ui.handleError(error);
 	}
 	isLoading.value = false;
 }

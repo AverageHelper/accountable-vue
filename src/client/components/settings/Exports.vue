@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import type { AttachmentsDownloadable } from "../../store";
 import ActionButton from "../ActionButton.vue";
+import btoa from "btoa-lite";
 import JSZip from "jszip";
+import { Attachment } from "../../model/Attachment";
 import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 import { ref } from "vue";
-import { useAttachmentsStore, useAuthStore } from "../../store";
-import { useToast } from "vue-toastification";
-import { Attachment } from "../../model/Attachment";
-import btoa from "btoa-lite";
+import { useAttachmentsStore, useAuthStore, useUiStore } from "../../store";
 
 const auth = useAuthStore();
 const attachments = useAttachmentsStore();
-const toast = useToast();
+const ui = useUiStore();
 
 const isLoading = ref(false);
 
@@ -60,14 +59,7 @@ async function downloadStuff(shouldMinify: boolean) {
 			"accountable.zip"
 		);
 	} catch (error: unknown) {
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else {
-			message = JSON.stringify(error);
-		}
-		toast.error(message);
-		console.error(error);
+		ui.handleError(error);
 	}
 	isLoading.value = false;
 }

@@ -2,9 +2,7 @@ import type { AccountsDownloadable } from "./accountsStore";
 import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
 import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
-import { FirebaseError } from "firebase/app";
 import { getDoc } from "firebase/firestore";
-import { useToast } from "vue-toastification";
 import {
 	defaultPrefs,
 	deriveDEK,
@@ -227,32 +225,6 @@ export const useAuthStore = defineStore("auth", {
 
 			// Erase the old key
 			await setAuthMaterial(user.uid, newMaterial);
-		},
-		handleAuthError(error: unknown) {
-			const toast = useToast();
-
-			let message: string;
-			if (error instanceof Error) {
-				message = error.message;
-			} else if (error instanceof FirebaseError) {
-				message = error.code;
-			} else {
-				message = JSON.stringify(error);
-			}
-
-			if (message.includes("auth/invalid-email")) {
-				toast.error("That doesn't quite look like an email address");
-			} else if (
-				message.includes("auth/wrong-password") ||
-				message.includes("auth/user-not-found")
-			) {
-				toast.error("Incorrect email address or password.");
-			} else if (message.includes("auth/email-already-in-use")) {
-				toast.error("Someone already has an account with that email.");
-			} else {
-				toast.error(message);
-			}
-			console.error(error);
 		},
 		async logout() {
 			const auth = getAuth();

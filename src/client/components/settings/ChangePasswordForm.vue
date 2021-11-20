@@ -4,8 +4,10 @@ import TextField from "../TextField.vue";
 import { computed, ref } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
+import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
+const ui = useUiStore();
 const toast = useToast();
 
 const isLoading = ref(false);
@@ -42,7 +44,7 @@ async function submitNewPassword() {
 		toast.success("Your password has been updated!");
 		reset();
 	} catch (error: unknown) {
-		auth.handleAuthError(error);
+		ui.handleError(error);
 	}
 	isLoading.value = false;
 }

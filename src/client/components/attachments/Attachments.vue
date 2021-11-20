@@ -4,11 +4,10 @@ import ConfirmDestroyFile from "./ConfirmDestroyFile.vue";
 import FileListItem from "./FileListItem.vue";
 import List from "../List.vue";
 import { ref, computed } from "vue";
-import { useAttachmentsStore } from "../../store";
-import { useToast } from "vue-toastification";
+import { useAttachmentsStore, useUiStore } from "../../store";
 
 const attachments = useAttachmentsStore();
-const toast = useToast();
+const ui = useUiStore();
 
 const files = computed(() => attachments.allAttachments);
 const numberOfFiles = computed(() => files.value.length);
@@ -23,14 +22,7 @@ async function confirmDeleteFile(file: Attachment) {
 	try {
 		await attachments.deleteAttachment(file);
 	} catch (error: unknown) {
-		let message: string;
-		if (error instanceof Error) {
-			message = error.message;
-		} else {
-			message = JSON.stringify(error);
-		}
-		toast.error(message);
-		console.error(error);
+		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;
 	}
