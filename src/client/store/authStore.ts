@@ -5,6 +5,8 @@ import { defineStore } from "pinia";
 import { getDoc } from "firebase/firestore";
 import {
 	defaultPrefs,
+	deleteAuthMaterial,
+	deleteUserPreferences,
 	deriveDEK,
 	derivePKey,
 	getAuthMaterial,
@@ -18,6 +20,7 @@ import {
 } from "../transport";
 import {
 	createUserWithEmailAndPassword,
+	deleteUser,
 	EmailAuthProvider,
 	getAuth,
 	onAuthStateChanged,
@@ -34,6 +37,34 @@ export interface UserDataDownloadable extends UserPreferences {
 }
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
+
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+interface Stores {
+	accounts: ReturnType<typeof import("./accountsStore").useAccountsStore>;
+	attachments: ReturnType<typeof import("./attachmentsStore").useAttachmentsStore>;
+	tags: ReturnType<typeof import("./tagsStore").useTagsStore>;
+	transactions: ReturnType<typeof import("./transactionsStore").useTransactionsStore>;
+}
+/* eslint-enable @typescript-eslint/consistent-type-imports */
+
+async function stores(this: void): Promise<Stores> {
+	const [
+		{ useAccountsStore },
+		{ useAttachmentsStore },
+		{ useTagsStore },
+		{ useTransactionsStore },
+	] = await Promise.all([
+		import("./accountsStore"),
+		import("./attachmentsStore"),
+		import("./tagsStore"),
+		import("./transactionsStore"),
+	]);
+	const accounts = useAccountsStore();
+	const attachments = useAttachmentsStore();
+	const tags = useTagsStore();
+	const transactions = useTransactionsStore();
+	return { accounts, attachments, tags, transactions };
+}
 
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
@@ -97,21 +128,7 @@ export const useAuthStore = defineStore("auth", {
 		async onSignedOut() {
 			this.clearCache();
 
-			const [
-				{ useAccountsStore },
-				{ useAttachmentsStore },
-				{ useTagsStore },
-				{ useTransactionsStore },
-			] = await Promise.all([
-				import("./accountsStore"),
-				import("./attachmentsStore"),
-				import("./tagsStore"),
-				import("./transactionsStore"),
-			]);
-			const accounts = useAccountsStore();
-			const attachments = useAttachmentsStore();
-			const tags = useTagsStore();
-			const transactions = useTransactionsStore();
+			const { accounts, attachments, tags, transactions } = await stores();
 
 			accounts.clearCache();
 			attachments.clearCache();
@@ -163,6 +180,24 @@ export const useAuthStore = defineStore("auth", {
 				// In any event, error or not:
 				this.loginProcessState = null;
 			}
+		},
+		async destroyVault(email: string, password: string) {
+			const auth = getAuth();
+			if (!auth.currentUser) throw new Error("Not signed in to any account.");
+
+			const oldCredential = EmailAuthProvider.credential(email, password);
+			await reauthenticateWithCredential(auth.currentUser, oldCredential);
+
+			const { accounts, attachments, tags, transactions } = await stores();
+			await attachments.deleteAllAttachments();
+			await transactions.deleteAllTransactions();
+			await tags.deleteAllTags();
+			await accounts.deleteAllAccounts();
+			await deleteUserPreferences(auth.currentUser.uid);
+			await deleteAuthMaterial(auth.currentUser.uid);
+
+			await deleteUser(auth.currentUser);
+			await this.onSignedOut();
 		},
 		async updateUserPreferences(prefs: Partial<UserPreferences>) {
 			const uid = this.uid;

@@ -1,6 +1,6 @@
 import type { KeyMaterial } from "./cryption";
 import type { DocumentReference } from "firebase/firestore";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "./db";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
@@ -15,4 +15,8 @@ export async function getAuthMaterial(uid: string): Promise<KeyMaterial | null> 
 
 export async function setAuthMaterial(uid: string, data: KeyMaterial): Promise<void> {
 	await setDoc(authRef(uid), data);
+}
+
+export async function deleteAuthMaterial(uid: string): Promise<void> {
+	await deleteDoc(authRef(uid));
 }

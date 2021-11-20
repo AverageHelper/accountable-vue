@@ -14,6 +14,7 @@ const ui = useUiStore();
 
 const isLoading = ref(false);
 
+// TODO: Move this into a store
 async function downloadStuff(shouldMinify: boolean) {
 	isLoading.value = true;
 	try {

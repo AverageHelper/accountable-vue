@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ChangePasswordForm from "./ChangePasswordForm.vue";
 import ChangeEmailForm from "./ChangeEmailForm.vue";
+import DeleteData from "./DeleteData.vue";
 import Exports from "./Exports.vue";
 import Import from "./Import.vue";
 import LocationPrefForm from "./LocationPrefForm.vue";
@@ -16,7 +17,7 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 	<ChangePasswordForm />
 	<Import />
 	<Exports />
-	<!-- TODO: Delete all data -->
+	<DeleteData />
 </template>
 
 <style scoped lang="scss">

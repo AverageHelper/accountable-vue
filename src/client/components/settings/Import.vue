@@ -6,10 +6,11 @@ import ImportProcessModal from "./ImportProcessModal.vue";
 import JSZip from "jszip";
 import { schema } from "../../model/DatabaseSchema";
 import { ref } from "vue";
-// import { getJsonFromFile } from "../../transport";
 import { useUiStore } from "../../store";
+import { useRouter } from "vue-router";
 
 const ui = useUiStore();
+const router = useRouter();
 
 const isLoading = ref(false);
 const zip = ref<JSZip | null>(null);
@@ -30,7 +31,6 @@ async function onFileReceived(file: File) {
 
 		const jsonString = await dbFile.async("string");
 		const json = JSON.parse(jsonString) as unknown;
-		// const json = await getJsonFromFile(file);
 		db.value = (await schema.validateAsync(json)) as Schema;
 		dbName.value = file.name;
 		zip.value = zipFile;
@@ -44,6 +44,7 @@ async function onFileReceived(file: File) {
 function forgetFile() {
 	db.value = null;
 	dbName.value = "";
+	void router.push("/accounts");
 }
 </script>
 

@@ -105,7 +105,7 @@ export const useTagsStore = defineStore("tags", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTag(uid, tag, dek);
 		},
-		async deleteTag(tag: Tag): Promise<void> {
+		async deleteTag(this: void, tag: Tag): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -122,6 +122,9 @@ export const useTagsStore = defineStore("tags", {
 				);
 
 			await deleteTag(uid, tag);
+		},
+		async deleteAllTags(): Promise<void> {
+			await Promise.all(this.allTags.map(this.deleteTag));
 		},
 		async getAllTagsAsJson(): Promise<TagsDownloadable> {
 			const authStore = useAuthStore();

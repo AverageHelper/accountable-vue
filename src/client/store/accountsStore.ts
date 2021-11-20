@@ -119,7 +119,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAccount(uid, account, dek);
 		},
-		async deleteAccount(account: Account): Promise<void> {
+		async deleteAccount(this: void, account: Account): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -127,6 +127,7 @@ export const useAccountsStore = defineStore("accounts", {
 			// Don't delete if we have transactions
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
+			await transactions.getTransactionsForAccount(account);
 			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
 			const transactionCount = Object.keys(accountTransactions).length;
 			if (transactionCount !== 0) {
@@ -134,6 +135,9 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(uid, account);
+		},
+		async deleteAllAccounts(): Promise<void> {
+			await Promise.all(this.allAccounts.map(this.deleteAccount));
 		},
 		async getAllAccountsAsJson(): Promise<AccountsDownloadable> {
 			const authStore = useAuthStore();

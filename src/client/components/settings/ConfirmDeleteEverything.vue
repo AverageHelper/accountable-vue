@@ -1,0 +1,33 @@
+<script setup lang="ts">
+import ActionButton from "../ActionButton.vue";
+import Confirm from "../Confirm.vue";
+
+const emit = defineEmits(["yes", "no"]);
+
+defineProps({
+	isOpen: { type: Boolean, required: true },
+});
+
+function no() {
+	emit("no");
+}
+
+function yes() {
+	emit("yes");
+}
+</script>
+
+<template>
+	<Confirm :is-open="isOpen" :close-modal="no">
+		<template #message
+			>Are you sure you want to delete all of your data? This cannot be undone.</template
+		>
+
+		<template #primary-action>
+			<ActionButton kind="bordered-destructive" @click="yes">Yes</ActionButton>
+		</template>
+		<template #secondary-action>
+			<ActionButton kind="bordered-primary" @click="no">No</ActionButton>
+		</template>
+	</Confirm>
+</template>

@@ -201,16 +201,15 @@ export const useTransactionsStore = defineStore("transactions", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTransaction(uid, transaction, dek);
 		},
-		async deleteTransaction(transaction: Transaction) {
-			if (transaction.attachmentIds.length > 0) {
-				throw new Error("Cannot delete a transaction that has attachments. Delete those first.");
-			}
-
+		async deleteTransaction(this: void, transaction: Transaction) {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
 			await deleteTransaction(uid, transaction);
+		},
+		async deleteAllTransactions(): Promise<void> {
+			await Promise.all(this.allTransactions.map(this.deleteTransaction));
 		},
 		async removeTagFromTransaction(tag: Tag, transaction: Transaction): Promise<void> {
 			transaction.removeTagId(tag.id);

@@ -1,7 +1,7 @@
 import type { DocumentReference, QueryDocumentSnapshot } from "firebase/firestore";
 import type { EPackage, HashStore } from "./cryption";
 import type { LocationPref } from "./locations";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { db, recordFromSnapshot } from "./db";
 import { encrypt } from "./cryption";
 
@@ -49,6 +49,10 @@ export async function setUserPreferences(
 	};
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(userRef(uid), pkg);
+}
+
+export async function deleteUserPreferences(uid: string): Promise<void> {
+	await deleteDoc(userRef(uid));
 }
 
 export function userPreferencesFromSnapshot(

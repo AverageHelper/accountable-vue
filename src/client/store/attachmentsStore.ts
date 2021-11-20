@@ -106,7 +106,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAttachment(uid, file ?? null, attachment, dek);
 		},
-		async deleteAttachment(attachment: Attachment): Promise<void> {
+		async deleteAttachment(this: void, attachment: Attachment): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -121,6 +121,9 @@ export const useAttachmentsStore = defineStore("attachments", {
 					.map(t => transactions.removeAttachmentFromTransaction(attachment.id, t))
 			);
 			await deleteAttachment(uid, attachment);
+		},
+		async deleteAllAttachments(): Promise<void> {
+			await Promise.all(this.allAttachments.map(this.deleteAttachment));
 		},
 		async imageDataFromFile(file: Attachment, shouldCache: boolean = true): Promise<string> {
 			// If we already have the thing, don't redownload
