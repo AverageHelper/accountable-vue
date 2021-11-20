@@ -3,6 +3,7 @@ import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
 import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDoc } from "firebase/firestore";
+import { stores } from "./stores";
 import {
 	defaultPrefs,
 	deleteAuthMaterial,
@@ -37,34 +38,6 @@ export interface UserDataDownloadable extends UserPreferences {
 }
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
-
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-interface Stores {
-	accounts: ReturnType<typeof import("./accountsStore").useAccountsStore>;
-	attachments: ReturnType<typeof import("./attachmentsStore").useAttachmentsStore>;
-	tags: ReturnType<typeof import("./tagsStore").useTagsStore>;
-	transactions: ReturnType<typeof import("./transactionsStore").useTransactionsStore>;
-}
-/* eslint-enable @typescript-eslint/consistent-type-imports */
-
-async function stores(this: void): Promise<Stores> {
-	const [
-		{ useAccountsStore },
-		{ useAttachmentsStore },
-		{ useTagsStore },
-		{ useTransactionsStore },
-	] = await Promise.all([
-		import("./accountsStore"),
-		import("./attachmentsStore"),
-		import("./tagsStore"),
-		import("./transactionsStore"),
-	]);
-	const accounts = useAccountsStore();
-	const attachments = useAttachmentsStore();
-	const tags = useTagsStore();
-	const transactions = useTransactionsStore();
-	return { accounts, attachments, tags, transactions };
-}
 
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
@@ -129,7 +102,6 @@ export const useAuthStore = defineStore("auth", {
 			this.clearCache();
 
 			const { accounts, attachments, tags, transactions } = await stores();
-
 			accounts.clearCache();
 			attachments.clearCache();
 			tags.clearCache();

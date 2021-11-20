@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Schema } from "../../model/DatabaseSchema";
+import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import ActionButton from "../ActionButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import ImportProcessModal from "./ImportProcessModal.vue";
@@ -15,7 +15,7 @@ const router = useRouter();
 const isLoading = ref(false);
 const zip = ref<JSZip | null>(null);
 const dbName = ref("");
-const db = ref<Schema | null>(null);
+const db = ref<DatabaseSchema | null>(null);
 
 // TODO: Move this into a store
 async function onFileReceived(file: File) {
@@ -31,7 +31,7 @@ async function onFileReceived(file: File) {
 
 		const jsonString = await dbFile.async("string");
 		const json = JSON.parse(jsonString) as unknown;
-		db.value = (await schema.validateAsync(json)) as Schema;
+		db.value = (await schema.validateAsync(json)) as DatabaseSchema;
 		dbName.value = file.name;
 		zip.value = zipFile;
 	} catch (error: unknown) {

@@ -1,5 +1,6 @@
 import type { Tag, TagRecordParams } from "../model/Tag";
 import type { HashStore } from "../transport";
+import type { TagSchema } from "../model/DatabaseSchema";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
@@ -145,6 +146,25 @@ export const useTagsStore = defineStore("tags", {
 					...t.toRecord(),
 				}));
 			return tags;
+		},
+		async importTag(tagToImport: TagSchema): Promise<void> {
+			const storedTag = this.items[tagToImport.id] ?? null;
+			if (storedTag) {
+				// If duplicate, overwrite the one we have
+				const newTag = storedTag.updatedWith(tagToImport);
+				await this.updateTag(newTag);
+			} else {
+				// If new, create a new tag
+				const params: TagRecordParams = {
+					...tagToImport,
+				};
+				await this.createTag(params);
+			}
+		},
+		async importTags(data: Array<TagSchema>): Promise<void> {
+			for (const tagToImport of data) {
+				await this.importTag(tagToImport);
+			}
 		},
 	},
 });

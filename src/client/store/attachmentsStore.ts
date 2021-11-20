@@ -1,6 +1,8 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
+import type { AttachmentSchema } from "../model/DatabaseSchema";
 import type { HashStore } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
+import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
@@ -166,6 +168,40 @@ export const useAttachmentsStore = defineStore("attachments", {
 					...t.toRecord(),
 				}));
 			return attachments;
+		},
+		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
+			const storedAttachment = this.items[attachmentToImport.id];
+
+			const path = `accountable/storage/${attachmentToImport.storagePath.split(".")[0] as string}/${
+				attachmentToImport.title
+			}`;
+			const fileRef = zip?.files[path] ?? null;
+
+			const blobToImport = (await fileRef?.async("blob")) ?? null;
+			if (!blobToImport) return;
+			const fileToImport = new File([blobToImport], attachmentToImport.title.trim(), {
+				type: attachmentToImport.type?.trim(),
+			});
+
+			if (storedAttachment) {
+				// If duplicate, overwrite the one we have
+				const newAttachment = storedAttachment.updatedWith(attachmentToImport);
+				await this.updateAttachment(newAttachment, fileToImport);
+			} else {
+				// If new, create a new attachment
+				const params: AttachmentRecordParams = {
+					...attachmentToImport,
+					title: attachmentToImport.title.trim(),
+					type: attachmentToImport.type?.trim() ?? "unknown",
+					notes: attachmentToImport.notes?.trim() ?? null,
+				};
+				await this.createAttachment(params, fileToImport);
+			}
+		},
+		async importAttachments(data: Array<AttachmentSchema>, zip: JSZip | null): Promise<void> {
+			for (const attachmentToImport of data) {
+				await this.importAttachment(attachmentToImport, zip);
+			}
 		},
 	},
 });

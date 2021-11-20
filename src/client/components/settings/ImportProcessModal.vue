@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import type { AccountRecordParams } from "../../model/Account";
-import type { AttachmentRecordParams } from "../../model/Attachment";
-import type { LocationRecordParams } from "../../model/Location";
-import type { TagRecordParams } from "../../model/Tag";
-import type { TransactionRecordParams } from "../../model/Transaction";
 import type { PropType } from "vue";
-import type { Schema } from "../../model/DatabaseSchema";
+import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type JSZip from "jszip";
 import ActionButton from "../ActionButton.vue";
 import AccountListItem from "../accounts/AccountListItem.vue";
@@ -15,29 +10,18 @@ import Modal from "../Modal.vue";
 import { computed, ref, reactive, toRefs, watch } from "vue";
 import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";
-import {
-	useAccountsStore,
-	useAttachmentsStore,
-	useLocationsStore,
-	useTagsStore,
-	useTransactionsStore,
-	useUiStore,
-} from "../../store";
+import { useAccountsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["finished"]);
 
 const props = defineProps({
 	fileName: { type: String, default: "" },
 	zip: { type: Object as PropType<JSZip | null>, default: null },
-	db: { type: Object as PropType<Schema | null>, default: null },
+	db: { type: Object as PropType<DatabaseSchema | null>, default: null },
 });
 const { db, zip, fileName } = toRefs(props);
 
 const accounts = useAccountsStore();
-const attachments = useAttachmentsStore();
-const locations = useLocationsStore();
-const tags = useTagsStore();
-const transactions = useTransactionsStore();
 const ui = useUiStore();
 const toast = useToast();
 
@@ -77,7 +61,6 @@ function forgetDb() {
 	}
 }
 
-// TODO: Move this into a store
 // TODO: Analyze the consequenses of this import. Will this overwrite some entries, and add other ones?
 async function beginImport() {
 	isImporting.value = true;
@@ -87,112 +70,7 @@ async function beginImport() {
 		for (const accountId of accountsToImport) {
 			const accountToImport = db.value.accounts?.find(a => a.id === accountId);
 			if (!accountToImport) continue;
-
-			// Account data
-			const storedAccount = accounts.items[accountId] ?? null;
-			let newAccount: Account;
-			if (storedAccount) {
-				// If duplicate, overwrite the one we have
-				newAccount = storedAccount.updatedWith(accountToImport);
-				await accounts.updateAccount(newAccount);
-			} else {
-				// If new, create a new account
-				const params: AccountRecordParams = {
-					...accountToImport,
-					title: accountToImport.title.trim(),
-					notes: accountToImport.notes?.trim() ?? null,
-				};
-				newAccount = await accounts.createAccount(params);
-			}
-
-			// Transaction data
-			const storedTransactions = transactions.transactionsForAccount[accountId] ?? {};
-			for (const transactionToImport of accountToImport.transactions ?? []) {
-				const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
-				if (storedTransaction) {
-					// If duplicate, overwrite the one we have
-					const newTransaction = storedTransaction.updatedWith(transactionToImport);
-					await transactions.updateTransaction(newTransaction);
-				} else {
-					// If new, create a new transaction
-					const params: TransactionRecordParams = {
-						locationId: null,
-						isReconciled: false,
-						tagIds: [],
-						attachmentIds: [],
-						...transactionToImport,
-						title: transactionToImport.title?.trim() ?? null,
-						notes: transactionToImport.notes?.trim() ?? null,
-					};
-					await transactions.createTransaction(newAccount, params);
-				}
-			}
-
-			// Location data
-			for (const locationToImport of accountToImport.locations ?? []) {
-				const storedLocation = locations.items[locationToImport.id] ?? null;
-				if (storedLocation) {
-					// If duplicate, overwrite the one we have
-					const newLocation = storedLocation.updatedWith(locationToImport);
-					await locations.updateLocation(newLocation);
-				} else {
-					// If new, create a new location
-					const params: LocationRecordParams = {
-						coordinate: null,
-						...locationToImport,
-						title: locationToImport.title.trim(),
-						subtitle: locationToImport.subtitle?.trim() ?? null,
-					};
-					await locations.createLocation(params);
-				}
-			}
-
-			// Tag data
-			for (const tagToImport of accountToImport.tags ?? []) {
-				const storedTag = tags.items[tagToImport.id] ?? null;
-				if (storedTag) {
-					// If duplicate, overwrite the one we have
-					const newTag = storedTag.updatedWith(tagToImport);
-					await tags.updateTag(newTag);
-				} else {
-					// If new, create a new tag
-					const params: TagRecordParams = {
-						...tagToImport,
-					};
-					await tags.createTag(params);
-				}
-			}
-
-			// File Attachments
-			for (const attachmentToImport of accountToImport.attachments ?? []) {
-				const storedAttachment = attachments.items[attachmentToImport.id];
-
-				const path = `accountable/storage/${
-					attachmentToImport.storagePath.split(".")[0] as string
-				}/${attachmentToImport.title}`;
-				const fileRef = zip.value?.files[path] ?? null;
-
-				const blobToImport = (await fileRef?.async("blob")) ?? null;
-				if (!blobToImport) continue;
-				const fileToImport = new File([blobToImport], attachmentToImport.title.trim(), {
-					type: attachmentToImport.type?.trim(),
-				});
-
-				if (storedAttachment) {
-					// If duplicate, overwrite the one we have
-					const newAttachment = storedAttachment.updatedWith(attachmentToImport);
-					await attachments.updateAttachment(newAttachment, fileToImport);
-				} else {
-					// If new, create a new attachment
-					const params: AttachmentRecordParams = {
-						...attachmentToImport,
-						title: attachmentToImport.title.trim(),
-						type: attachmentToImport.type?.trim() ?? "unknown",
-						notes: attachmentToImport.notes?.trim() ?? null,
-					};
-					await attachments.createAttachment(params, fileToImport);
-				}
-			}
+			await accounts.importAccount(accountToImport, zip.value);
 		}
 
 		toast.success("Imported all the things!");

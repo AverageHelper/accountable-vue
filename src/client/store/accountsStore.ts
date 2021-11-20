@@ -1,4 +1,5 @@
 import type { Account, AccountRecordParams } from "../model/Account";
+import type { AccountSchema } from "../model/DatabaseSchema";
 import type { AttachmentsDownloadable } from "./attachmentsStore";
 import type { Dinero } from "dinero.js";
 import type { HashStore } from "../transport";
@@ -6,8 +7,10 @@ import type { LocationsDownloadable } from "./locationsStore";
 import type { TagsDownloadable } from "./tagsStore";
 import type { TransactionsDownloadable } from "./transactionsStore";
 import type { Unsubscribe } from "firebase/auth";
+import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
+import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import {
 	asyncMap,
@@ -146,21 +149,12 @@ export const useAccountsStore = defineStore("accounts", {
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const [
-				{ useAttachmentsStore }, //
-				{ useLocationsStore },
-				{ useTransactionsStore },
-				{ useTagsStore },
-			] = await Promise.all([
-				import("./attachmentsStore"), //
-				import("./locationsStore"),
-				import("./transactionsStore"),
-				import("./tagsStore"),
-			]);
-			const attachmentsStore = useAttachmentsStore();
-			const locationsStore = useLocationsStore();
-			const transactionsStore = useTransactionsStore();
-			const tagsStore = useTagsStore();
+			const {
+				attachments: attachmentsStore,
+				locations: locationsStore,
+				transactions: transactionsStore,
+				tags: tagsStore,
+			} = await stores();
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -187,6 +181,32 @@ export const useAccountsStore = defineStore("accounts", {
 			});
 
 			return data;
+		},
+		async importAccount(accountToImport: AccountSchema, zip: JSZip | null): Promise<void> {
+			const accountId = accountToImport.id;
+			const storedAccount = this.items[accountId] ?? null;
+
+			let newAccount: Account;
+			if (storedAccount) {
+				// If duplicate, overwrite the one we have
+				newAccount = storedAccount.updatedWith(accountToImport);
+				await this.updateAccount(newAccount);
+			} else {
+				// If new, create a new account
+				const params: AccountRecordParams = {
+					...accountToImport,
+					title: accountToImport.title.trim(),
+					notes: accountToImport.notes?.trim() ?? null,
+				};
+				newAccount = await this.createAccount(params);
+			}
+
+			const { transactions, locations, tags, attachments } = await stores();
+
+			await transactions.importTransactions(accountToImport.transactions ?? [], newAccount);
+			await locations.importLocations(accountToImport.locations ?? []);
+			await tags.importTags(accountToImport.tags ?? []);
+			await attachments.importAttachments(accountToImport.attachments ?? [], zip);
 		},
 	},
 });

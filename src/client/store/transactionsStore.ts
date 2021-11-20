@@ -2,6 +2,7 @@ import type { Account } from "../model/Account";
 import type { HashStore } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
+import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
 import type { Unsubscribe } from "firebase/auth";
 import { dinero, add, subtract } from "dinero.js";
@@ -261,6 +262,35 @@ export const useTransactionsStore = defineStore("transactions", {
 					...t.toRecord(),
 				}));
 			return transactions;
+		},
+		async importTransaction(
+			transactionToImport: TransactionSchema,
+			account: Account
+		): Promise<void> {
+			const storedTransactions = this.transactionsForAccount[account.id] ?? {};
+			const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
+			if (storedTransaction) {
+				// If duplicate, overwrite the one we have
+				const newTransaction = storedTransaction.updatedWith(transactionToImport);
+				await this.updateTransaction(newTransaction);
+			} else {
+				// If new, create a new transaction
+				const params: TransactionRecordParams = {
+					locationId: null,
+					isReconciled: false,
+					tagIds: [],
+					attachmentIds: [],
+					...transactionToImport,
+					title: transactionToImport.title?.trim() ?? null,
+					notes: transactionToImport.notes?.trim() ?? null,
+				};
+				await this.createTransaction(account, params);
+			}
+		},
+		async importTransactions(data: Array<TransactionSchema>, account: Account): Promise<void> {
+			for (const transactionToImport of data) {
+				await this.importTransaction(transactionToImport, account);
+			}
 		},
 	},
 });

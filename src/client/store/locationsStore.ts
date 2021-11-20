@@ -1,5 +1,6 @@
 import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore } from "../transport";
+import type { LocationSchema } from "../model/DatabaseSchema";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
@@ -133,6 +134,28 @@ export const useLocationsStore = defineStore("locations", {
 					...t.toRecord(),
 				}));
 			return tags;
+		},
+		async importLocation(locationToImport: LocationSchema): Promise<void> {
+			const storedLocation = this.items[locationToImport.id] ?? null;
+			if (storedLocation) {
+				// If duplicate, overwrite the one we have
+				const newLocation = storedLocation.updatedWith(locationToImport);
+				await this.updateLocation(newLocation);
+			} else {
+				// If new, create a new location
+				const params: LocationRecordParams = {
+					coordinate: null,
+					...locationToImport,
+					title: locationToImport.title.trim(),
+					subtitle: locationToImport.subtitle?.trim() ?? null,
+				};
+				await this.createLocation(params);
+			}
+		},
+		async importLocations(data: Array<LocationSchema>): Promise<void> {
+			for (const locationToImport of data) {
+				await this.importLocation(locationToImport);
+			}
 		},
 	},
 });

@@ -12,11 +12,15 @@ const attachmentSchema = Joi.object({
 	storagePath: Joi.string().required(),
 });
 
+export type AttachmentSchema = Joi.extractType<typeof attachmentSchema>;
+
 const tagSchema = Joi.object({
 	id: Joi.string().required(),
 	name: Joi.string().allow("").required(),
 	colorId: Joi.string().valid("red", "orange", "yellow", "green", "blue", "purple").required(),
 });
+
+export type TagSchema = Joi.extractType<typeof tagSchema>;
 
 const currencySchema = Joi.object({
 	code: Joi.string().required(),
@@ -43,6 +47,8 @@ const transactionSchema = Joi.object({
 	attachmentIds: Joi.array().items(Joi.string()).default([]),
 });
 
+export type TransactionSchema = Joi.extractType<typeof transactionSchema>;
+
 const coordinateSchema = Joi.object({
 	lat: Joi.number().required(),
 	lng: Joi.number().required(),
@@ -56,6 +62,8 @@ const locationSchema = Joi.object({
 	lastUsed: Joi.date().required(),
 });
 
+export type LocationSchema = Joi.extractType<typeof locationSchema>;
+
 const accountSchema = Joi.object({
 	id: Joi.string().required(),
 	title: Joi.string().required(),
@@ -67,10 +75,12 @@ const accountSchema = Joi.object({
 	attachments: Joi.array().items(attachmentSchema).default([]),
 });
 
+export type AccountSchema = Joi.extractType<typeof accountSchema>;
+
 export const schema = Joi.object({
 	uid: Joi.string().required(),
 	locationSensitivity: Joi.string().valid("none", "vague", "specific").default("none"),
 	accounts: Joi.array().items(accountSchema).default([]),
 }).unknown(true);
 
-export type Schema = Joi.extractType<typeof schema>;
+export type DatabaseSchema = Joi.extractType<typeof schema>;
