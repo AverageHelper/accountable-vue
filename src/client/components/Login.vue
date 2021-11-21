@@ -14,7 +14,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isLoggedIn = computed(() => auth.uid !== null);
-const email = ref("");
+const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
 const isLoading = ref(false);
@@ -23,14 +23,22 @@ const isSignupMode = computed(() => mode.value === "signup");
 const isLoginMode = computed(() => mode.value === "login");
 const loginProcessState = computed(() => auth.loginProcessState);
 
-const emailField = ref<HTMLInputElement | null>(null);
+const accountIdField = ref<HTMLInputElement | null>(null);
+const passwordField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
-	emailField.value?.focus();
+	accountIdField.value?.focus();
 });
 
-watch(mode, () => {
-	emailField.value?.focus();
+watch(mode, mode => {
+	switch (mode) {
+		case "login":
+			accountIdField.value?.focus();
+			break;
+		case "signup":
+			passwordField.value?.focus();
+			break;
+	}
 });
 
 watch(
@@ -46,31 +54,44 @@ watch(
 );
 
 function enterSignupMode() {
+	accountId.value = "";
 	mode.value = "signup";
 }
 
 function enterLoginMode() {
+	accountId.value = "";
 	mode.value = "login";
+}
+
+function onUpdateAccountId(newId: string) {
+	if (!isSignupMode.value || isLoading.value) {
+		accountId.value = newId;
+	}
 }
 
 async function submit() {
 	try {
-		if (!email.value || !password.value || (isSignupMode.value && !passwordRepeat.value)) {
+		isLoading.value = true;
+		if (isSignupMode.value) {
+			// Don't let the user pick their own account ID
+			accountId.value = auth.createAccountId();
+			await nextTick();
+		}
+
+		if (!accountId.value || !password.value || (isSignupMode.value && !passwordRepeat.value)) {
 			throw new Error("Please fill out the required fields");
 		}
 		if (isSignupMode.value && password.value !== passwordRepeat.value) {
 			throw new Error("Those passwords need to match");
 		}
 
-		isLoading.value = true;
-
 		switch (mode.value) {
 			case "signup":
-				await auth.createVault(email.value, password.value);
+				await auth.createVault(accountId.value, password.value);
 				break;
 
 			case "login":
-				await auth.login(email.value, password.value);
+				await auth.login(accountId.value, password.value);
 				break;
 		}
 
@@ -78,8 +99,9 @@ async function submit() {
 		await router.replace("/accounts");
 	} catch (error: unknown) {
 		ui.handleError(error);
+	} finally {
+		isLoading.value = false;
 	}
-	isLoading.value = false;
 }
 </script>
 
@@ -88,15 +110,18 @@ async function submit() {
 
 	<form @submit.prevent="submit">
 		<TextField
-			ref="emailField"
-			v-model="email"
-			label="email"
-			placeholder="john.doe@example.com"
+			ref="accountIdField"
+			v-model="accountId"
+			:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
+			label="account ID"
+			placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
 			autocomplete="username"
 			:shows-required="false"
 			required
+			@update:modelValue="onUpdateAccountId"
 		/>
 		<TextField
+			ref="passwordField"
 			v-model="password"
 			type="password"
 			label="password"

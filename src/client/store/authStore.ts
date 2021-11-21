@@ -4,6 +4,7 @@ import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDoc } from "firebase/firestore";
 import { stores } from "./stores";
+import { v4 as uuid } from "uuid";
 import {
 	defaultPrefs,
 	deleteAuthMaterial,
@@ -39,9 +40,31 @@ export interface UserDataDownloadable extends UserPreferences {
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
 
+function emailFromAccountId(accountId: string): string;
+function emailFromAccountId(accountId: null): null;
+function emailFromAccountId(accountId: string | null): string | null;
+function emailFromAccountId(accountId: string | null): string | null {
+	if (accountId === null) return null;
+	// @example.com is meant as a dummy domain that doesn't 404. Sending emails to it should be fine, since all we usually send are UUID usernames
+	return `${accountId}@example.com`;
+}
+
+function accountIdFromEmail(email: string): string;
+function accountIdFromEmail(email: null): null;
+function accountIdFromEmail(email: string | null): string | null;
+function accountIdFromEmail(email: string | null): string | null {
+	if (email === null) return null;
+	const result = email.split("@")[0] ?? "";
+	if (!result) {
+		throw new TypeError(`${email} is not a valid email address`);
+	}
+	return result;
+}
+
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
-		email: null as string | null,
+		isNewLogin: false,
+		accountId: null as string | null,
 		uid: null as string | null,
 		pKey: null as HashStore | null,
 		loginProcessState: null as LoginProcessState | null,
@@ -59,7 +82,8 @@ export const useAuthStore = defineStore("auth", {
 			this.pKey = null;
 			this.loginProcessState = null;
 			this.uid = null;
-			this.email = null;
+			this.accountId = null;
+			this.isNewLogin = false;
 			this.preferences = defaultPrefs();
 			console.log("authStore: cache cleared");
 		},
@@ -75,7 +99,7 @@ export const useAuthStore = defineStore("auth", {
 			});
 		},
 		onSignedIn(user: User) {
-			this.email = user.email;
+			this.accountId = accountIdFromEmail(user.email);
 			this.uid = user.uid;
 
 			if (this.userPrefsWatcher) {
@@ -107,8 +131,9 @@ export const useAuthStore = defineStore("auth", {
 			tags.clearCache();
 			transactions.clearCache();
 		},
-		async login(email: string, password: string) {
+		async login(accountId: string, password: string) {
 			try {
+				const email = emailFromAccountId(accountId);
 				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
 				const { user } = await signInWithEmailAndPassword(auth, email, password);
@@ -135,8 +160,13 @@ export const useAuthStore = defineStore("auth", {
 			if (!material) throw new Error("You must create an accout first");
 			return material;
 		},
-		async createVault(email: string, password: string) {
+		createAccountId(this: void): string {
+			const id = uuid();
+			return id.replace(/\W+/gu, "");
+		},
+		async createVault(accountId: string, password: string) {
 			try {
+				const email = emailFromAccountId(accountId);
 				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
 				const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -147,15 +177,20 @@ export const useAuthStore = defineStore("auth", {
 
 				this.loginProcessState = "DERIVING_PKEY";
 				this.pKey = derivePKey(password, material.passSalt);
+				this.isNewLogin = true;
 				this.onSignedIn(user);
 			} finally {
 				// In any event, error or not:
 				this.loginProcessState = null;
 			}
 		},
-		async destroyVault(email: string, password: string) {
+		clearNewLoginStatus() {
+			this.isNewLogin = false;
+		},
+		async destroyVault(password: string) {
 			const auth = getAuth();
-			if (!auth.currentUser) throw new Error("Not signed in to any account.");
+			const email = emailFromAccountId(this.accountId);
+			if (!auth.currentUser || email === null) throw new Error("Not signed in to any account.");
 
 			const oldCredential = EmailAuthProvider.credential(email, password);
 			await reauthenticateWithCredential(auth.currentUser, oldCredential);
@@ -181,23 +216,26 @@ export const useAuthStore = defineStore("auth", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await setUserPreferences(uid, prefs, dek);
 		},
-		async updateEmail(newEmail: string, currentPassword: string) {
+		async regenerateAccountId(currentPassword: string) {
 			const auth = getAuth();
 			const user = auth.currentUser;
-			const currentEmail = this.email;
+			const currentEmail = emailFromAccountId(this.accountId);
 			if (user === null || currentEmail === null) {
 				throw new Error("Not logged in");
 			}
 
 			const credential = EmailAuthProvider.credential(currentEmail, currentPassword);
 			await reauthenticateWithCredential(user, credential);
+
+			const newEmail = emailFromAccountId(this.createAccountId());
 			await updateEmail(user, newEmail);
-			this.email = newEmail;
+			this.accountId = accountIdFromEmail(newEmail);
+			this.isNewLogin = true;
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
 			const auth = getAuth();
 			const user = auth.currentUser;
-			const email = this.email;
+			const email = emailFromAccountId(this.accountId);
 			if (user === null || email === null) {
 				throw new Error("Not logged in");
 			}

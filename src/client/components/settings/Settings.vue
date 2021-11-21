@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ChangePasswordForm from "./ChangePasswordForm.vue";
-import ChangeEmailForm from "./ChangeEmailForm.vue";
+import ChangeAccountIdForm from "./ChangeAccountIdForm.vue";
 import DeleteData from "./DeleteData.vue";
 import Exports from "./Exports.vue";
 import Import from "./Import.vue";
@@ -13,7 +13,7 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 	</div>
 
 	<LocationPrefForm />
-	<ChangeEmailForm />
+	<ChangeAccountIdForm />
 	<ChangePasswordForm />
 	<Import />
 	<Exports />

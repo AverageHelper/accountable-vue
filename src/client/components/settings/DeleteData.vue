@@ -10,10 +10,16 @@ const auth = useAuthStore();
 const ui = useUiStore();
 const router = useRouter();
 
-const email = computed(() => auth.email);
+const accountId = computed(() => auth.accountId);
 const password = ref("");
 const isAskingToDelete = ref(false);
 const isDeleting = ref(false);
+
+const hasChanges = computed(() => password.value !== "");
+
+function reset() {
+	password.value = "";
+}
 
 function askToDeleteEverything() {
 	isAskingToDelete.value = true;
@@ -24,14 +30,13 @@ async function confirmDeleteEverything() {
 	isDeleting.value = true;
 
 	try {
-		if (email.value === null || !email.value) throw new Error("Email is required.");
 		if (!password.value) throw new Error("Password is required.");
+		await auth.destroyVault(password.value);
 
-		await auth.destroyVault(email.value, password.value);
 		await router.push("/logout");
 	} catch (error: unknown) {
 		ui.handleError(error);
-		isDeleting.value = true;
+		isDeleting.value = false;
 	}
 }
 
@@ -46,9 +51,9 @@ function cancelDeleteEverything() {
 		<p>You have the option to delete all of your data on Accountable.</p>
 
 		<TextField
-			:model-value="email ?? 'johnny.appleseed@example.com'"
-			type="email"
-			label="current email"
+			:model-value="accountId ?? 'b4dcb93bc0c04251a930541e1a3c9a80'"
+			type="text"
+			label="account ID"
 			disabled
 		/>
 		<TextField
@@ -60,10 +65,20 @@ function cancelDeleteEverything() {
 			:shows-required="false"
 			required
 		/>
-		<ActionButton type="submit" kind="bordered-destructive" :disabled="isDeleting">
-			<span v-if="isDeleting">Deleting...</span>
-			<span v-else>Delete Everything</span>
-		</ActionButton>
+
+		<div class="buttons">
+			<ActionButton type="submit" kind="bordered-destructive" :disabled="!hasChanges || isDeleting">
+				<span v-if="isDeleting">Deleting...</span>
+				<span v-else>Delete Everything</span>
+			</ActionButton>
+			<ActionButton
+				v-show="hasChanges"
+				kind="bordered"
+				:disabled="isDeleting"
+				@click.prevent="reset"
+				>Reset</ActionButton
+			>
+		</div>
 	</form>
 
 	<ConfirmDeleteEverything
@@ -72,3 +87,14 @@ function cancelDeleteEverything() {
 		@no="cancelDeleteEverything"
 	/>
 </template>
+
+<style scoped lang="scss">
+.buttons {
+	display: flex;
+	flex-flow: row nowrap;
+
+	:not(:last-child) {
+		margin-right: 8pt;
+	}
+}
+</style>

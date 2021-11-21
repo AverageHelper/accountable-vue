@@ -51,14 +51,14 @@ export const useUiStore = defineStore("ui", {
 			}
 
 			if (message.includes("auth/invalid-email")) {
-				toast.error("That doesn't quite look like an email address");
+				toast.error("That doesn't quite look like an email address. (You should never see this)");
 			} else if (
 				message.includes("auth/wrong-password") ||
 				message.includes("auth/user-not-found")
 			) {
-				toast.error("Incorrect email address or password.");
+				toast.error("Incorrect account ID or password.");
 			} else if (message.includes("auth/email-already-in-use")) {
-				toast.error("Someone already has an account with that email.");
+				toast.error("Someone already has an account with that ID.");
 			} else {
 				toast.error(message);
 			}

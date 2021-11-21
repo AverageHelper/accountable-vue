@@ -6,6 +6,7 @@ import EditButton from "../EditButton.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import List from "../List.vue";
 import NavAction from "../NavAction.vue";
+import NewLoginModal from "../NewLoginModal.vue";
 import ReloadIcon from "../../icons/Reload.vue";
 import { computed, onMounted } from "vue";
 import {
@@ -67,6 +68,8 @@ onMounted(() => {
 			</p>
 		</li>
 	</List>
+
+	<NewLoginModal />
 </template>
 
 <style scoped lang="scss">

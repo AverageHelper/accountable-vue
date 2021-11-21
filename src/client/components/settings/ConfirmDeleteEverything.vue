@@ -20,7 +20,8 @@ function yes() {
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
 		<template #message
-			>Are you sure you want to delete all of your data? This cannot be undone.</template
+			>Are you sure you want to delete <strong>all of your data</strong>? This cannot be
+			undone.</template
 		>
 
 		<template #primary-action>

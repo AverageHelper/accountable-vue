@@ -7,20 +7,26 @@ import { toRefs, onBeforeUnmount } from "vue";
 
 const props = defineProps({
 	open: { type: Boolean, required: true },
-	closeModal: { type: Function as PropType<() => void>, required: true },
+	closeModal: { type: Function as unknown as PropType<(() => void) | null>, default: null },
 });
 const { closeModal } = toRefs(props);
 
+function onClose() {
+	if (closeModal.value) {
+		closeModal.value();
+	}
+}
+
 onBeforeUnmount(() => {
-	closeModal.value();
+	onClose();
 });
 </script>
 
 <template>
 	<teleport to="#modal">
 		<transition name="modal">
-			<div v-if="open" class="modal__wrapper" @click.self="closeModal">
-				<a href="#" class="modal__close-button" @click.prevent="closeModal">
+			<div v-if="open" class="modal__wrapper" @click.self="onClose">
+				<a v-if="closeModal" href="#" class="modal__close-button" @click.prevent="closeModal">
 					<XIcon />
 				</a>
 				<div class="modal">
