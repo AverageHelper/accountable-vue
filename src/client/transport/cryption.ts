@@ -1,5 +1,5 @@
 import AES from "crypto-js/aes";
-import CryptoJS from "crypto-js";
+import CryptoJS from "crypto-js"; // TODO: prefer this over node-forge
 import forge from "node-forge";
 import atob from "atob-lite";
 import btoa from "btoa-lite";
@@ -64,6 +64,10 @@ async function random(byteCount: number): Promise<string> {
 			return resolve(bytes);
 		});
 	});
+}
+
+export function sha512(input: string): string {
+	return btoa(CryptoJS.SHA512(input).toString(CryptoJS.enc.Base64));
 }
 
 export function derivePKey(password: string, salt: string): HashStore {

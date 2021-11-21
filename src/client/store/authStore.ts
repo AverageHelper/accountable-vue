@@ -16,6 +16,7 @@ import {
 	newMaterialFromOldKey,
 	setAuthMaterial,
 	setUserPreferences,
+	sha512,
 	userPreferencesFromSnapshot,
 	userRef,
 	watchRecord,
@@ -136,7 +137,7 @@ export const useAuthStore = defineStore("auth", {
 				const email = emailFromAccountId(accountId);
 				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
-				const { user } = await signInWithEmailAndPassword(auth, email, password);
+				const { user } = await signInWithEmailAndPassword(auth, email, sha512(password));
 
 				// Get the salt and dek material from Firestore
 				this.loginProcessState = "FETCHING_KEYS";
@@ -169,7 +170,7 @@ export const useAuthStore = defineStore("auth", {
 				const email = emailFromAccountId(accountId);
 				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
-				const { user } = await createUserWithEmailAndPassword(auth, email, password);
+				const { user } = await createUserWithEmailAndPassword(auth, email, sha512(password));
 
 				this.loginProcessState = "GENERATING_KEYS";
 				const material = await newDataEncryptionKeyMaterial(password);
@@ -192,7 +193,7 @@ export const useAuthStore = defineStore("auth", {
 			const email = emailFromAccountId(this.accountId);
 			if (!auth.currentUser || email === null) throw new Error("Not signed in to any account.");
 
-			const oldCredential = EmailAuthProvider.credential(email, password);
+			const oldCredential = EmailAuthProvider.credential(email, sha512(password));
 			await reauthenticateWithCredential(auth.currentUser, oldCredential);
 
 			const { accounts, attachments, tags, transactions } = await stores();
@@ -224,7 +225,7 @@ export const useAuthStore = defineStore("auth", {
 				throw new Error("Not logged in");
 			}
 
-			const credential = EmailAuthProvider.credential(currentEmail, currentPassword);
+			const credential = EmailAuthProvider.credential(currentEmail, sha512(currentPassword));
 			await reauthenticateWithCredential(user, credential);
 
 			const newEmail = emailFromAccountId(this.createAccountId());
@@ -240,7 +241,7 @@ export const useAuthStore = defineStore("auth", {
 				throw new Error("Not logged in");
 			}
 
-			const oldCredential = EmailAuthProvider.credential(email, oldPassword);
+			const oldCredential = EmailAuthProvider.credential(email, sha512(oldPassword));
 			await reauthenticateWithCredential(user, oldCredential);
 
 			// Get old DEK material
@@ -260,7 +261,7 @@ export const useAuthStore = defineStore("auth", {
 
 			// Update auth password
 			try {
-				await updatePassword(user, newPassword);
+				await updatePassword(user, sha512(newPassword));
 			} catch (error: unknown) {
 				// Overwrite the new key with the old key, and have user try again
 				await setAuthMaterial(user.uid, oldMaterial);

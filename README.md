@@ -2,7 +2,7 @@
 
 A Vue app for managing monetary assets. All data is encrypted client-side and stored in a Firebase instance that you control.
 
-Note: DO NOT FORGET YOUR PASSWORD. Even if I could retrieve your encrypted data from your own Firestore instance (I can't) I cannot decrypt your data that you encrypted with your own password.
+Note: DO NOT FORGET your ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
 ### Alternative Projects
 
