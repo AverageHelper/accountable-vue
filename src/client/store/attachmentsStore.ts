@@ -202,6 +202,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 				const newAttachment = await this.createAttachment(params, fileToImport);
 
 				const { transactions } = await stores();
+				// Assume we've imported all transactions,
+				// but don't assume we have them cached yet
+				await transactions.getAllTransactions();
+
 				for (const transaction of transactions.allTransactions) {
 					if (!transaction.attachmentIds.includes(attachmentToImport.id)) continue;
 

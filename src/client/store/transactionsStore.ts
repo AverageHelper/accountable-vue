@@ -8,6 +8,7 @@ import type { Unsubscribe } from "firebase/auth";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
+import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
@@ -143,6 +144,12 @@ export const useTransactionsStore = defineStore("transactions", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, dek);
+		},
+		async getAllTransactions() {
+			const { accounts } = await stores();
+			for (const account of accounts.allAccounts) {
+				await this.getTransactionsForAccount(account);
+			}
 		},
 		tagIsReferenced(tagId: string): boolean {
 			for (const transaction of this.allTransactions) {
