@@ -7,7 +7,11 @@ import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.vue";
 import EditButton from "../EditButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import FileListItem from "../attachments/FileListItem.vue";
+import FileReattach from "../attachments/FileReattach.vue";
 import List from "../List.vue";
+import LocationIcon from "../../icons/Location.vue";
+import LocationView from "../locations/LocationView.vue";
+import Modal from "../Modal.vue";
 import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
@@ -18,6 +22,7 @@ import { useRouter } from "vue-router";
 import {
 	useAccountsStore,
 	useAttachmentsStore,
+	useLocationsStore,
 	useTagsStore,
 	useTransactionsStore,
 	useUiStore,
@@ -32,18 +37,24 @@ const { accountId, transactionId } = toRefs(props);
 const router = useRouter();
 const accounts = useAccountsStore();
 const attachments = useAttachmentsStore();
+const locations = useLocationsStore();
 const transactions = useTransactionsStore();
 const tags = useTagsStore();
 const ui = useUiStore();
 
 const fileToDelete = ref<Attachment | null>(null);
+const isViewingLocation = ref(false);
+const brokenReferenceToFix = ref<string | null>(null);
 
 const theseTransactions = computed(
 	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
-const location = computed<Location | null>(() => null);
+const locationId = computed(() => transaction.value?.locationId ?? null);
+const location = computed<Location | null>(() =>
+	locationId.value !== null ? locations.items[locationId.value] ?? null : null
+);
 
 const timestamp = computed(() => {
 	if (!transaction.value) return "";
@@ -86,6 +97,14 @@ async function confirmDeleteFile(file: Attachment) {
 	} finally {
 		fileToDelete.value = null;
 	}
+}
+
+function openReferenceFixer(fileId: string) {
+	brokenReferenceToFix.value = fileId;
+}
+
+function closeReferenceFixer() {
+	brokenReferenceToFix.value = null;
 }
 
 async function deleteFileReference(fileId: string) {
@@ -170,24 +189,39 @@ async function onFileReceived(file: File) {
 			<span class="value">&quot;{{ transaction.notes }}&quot;</span>
 		</div>
 		<!-- Location -->
-		<div v-if="location" class="key-value-pair" aria-label="Transaction Location">
+		<div v-if="locationId" class="key-value-pair" aria-label="Transaction Location">
 			<span class="key">Location</span>
-			<span class="value">{{ location?.title }}</span>
-			<!-- If the location has more than a title, then this should link to a modal for those details -->
+			<a href="#" class="value" @click.prevent="isViewingLocation = true"
+				>{{ location?.title ?? locationId }} <LocationIcon v-if="location?.coordinate" />
+			</a>
+			<Modal :open="isViewingLocation" :close-modal="() => (isViewingLocation = false)">
+				<LocationView v-if="location" :location="location" />
+			</Modal>
 		</div>
 
 		<h3>Files</h3>
 		<List>
 			<li v-for="fileId in transaction.attachmentIds" :key="fileId">
 				<FileListItem
+					v-if="attachments.items[fileId]"
 					:file-id="fileId"
 					@delete="askToDeleteFile"
 					@delete-reference="deleteFileReference"
 				/>
+				<FileListItem v-else :file-id="fileId" @click.prevent="() => openReferenceFixer(fileId)" />
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>
 	</div>
+
+	<Modal :open="brokenReferenceToFix !== null && !!transaction" :close-modal="closeReferenceFixer">
+		<FileReattach
+			v-if="brokenReferenceToFix !== null && !!transaction"
+			:transaction="transaction"
+			:file-id="brokenReferenceToFix"
+			@close="closeReferenceFixer"
+		/>
+	</Modal>
 
 	<ConfirmDestroyFile
 		:file="fileToDelete"

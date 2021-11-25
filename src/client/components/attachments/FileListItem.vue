@@ -11,14 +11,14 @@ const props = defineProps({
 });
 const { fileId } = toRefs(props);
 
-const emit = defineEmits(["delete", "delete-reference"]);
+const emit = defineEmits(["delete", "delete-reference", "click"]);
 
 const attachments = useAttachmentsStore();
 
 const file = computed(() => attachments.items[fileId.value]);
 const title = computed<string>(() => file.value?.title ?? fileId.value);
 const subtitle = computed<string>(() => {
-	if (!file.value) return "";
+	if (!file.value) return "Broken reference";
 
 	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 	const timestamp = formatter.format(file.value.createdAt);
@@ -31,11 +31,12 @@ const subtitle = computed<string>(() => {
 
 const isModalOpen = ref(false);
 
-function presentImageModal() {
+function presentImageModal(event: Event) {
+	emit("click", event);
 	isModalOpen.value = true;
 }
 
-function closeImageModal() {
+function closeModal() {
 	isModalOpen.value = false;
 }
 
@@ -49,8 +50,8 @@ function askToDeleteReference() {
 </script>
 
 <template>
-	<ListItem :title="title" :subtitle="subtitle" to="" @click.stop.prevent="presentImageModal" />
-	<Modal :open="isModalOpen" :close-modal="closeImageModal">
+	<ListItem :title="title" :subtitle="subtitle" to="" @click.prevent="presentImageModal" />
+	<Modal :open="isModalOpen && !!file" :close-modal="closeModal">
 		<FileView :file="file" @delete="askToDelete" @delete-reference="askToDeleteReference" />
 	</Modal>
 </template>

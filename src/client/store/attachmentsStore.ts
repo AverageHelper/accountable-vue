@@ -5,6 +5,7 @@ import type { Unsubscribe } from "firebase/auth";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
+import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import {
 	attachmentsCollection,
@@ -170,6 +171,9 @@ export const useAttachmentsStore = defineStore("attachments", {
 			return attachments;
 		},
 		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
+			// FIXME: Import leaves broken references
+			// TODO: Add a way to fix broken references as users find them
+
 			const storedAttachment = this.items[attachmentToImport.id];
 
 			const path = `accountable/storage/${attachmentToImport.storagePath.split(".")[0] as string}/${
@@ -195,7 +199,17 @@ export const useAttachmentsStore = defineStore("attachments", {
 					type: attachmentToImport.type?.trim() ?? "unknown",
 					notes: attachmentToImport.notes?.trim() ?? null,
 				};
-				await this.createAttachment(params, fileToImport);
+				const newAttachment = await this.createAttachment(params, fileToImport);
+
+				const { transactions } = await stores();
+				for (const transaction of transactions.allTransactions) {
+					if (!transaction.attachmentIds.includes(attachmentToImport.id)) continue;
+
+					// Update the transaction with new attachment ID
+					transaction.removeAttachmentId(attachmentToImport.id);
+					transaction.addAttachmentId(newAttachment.id);
+					await transactions.updateTransaction(transaction);
+				}
 			}
 		},
 		async importAttachments(data: Array<AttachmentSchema>, zip: JSZip | null): Promise<void> {

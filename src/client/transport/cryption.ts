@@ -85,7 +85,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 	password: string,
 	dek: HashStore
 ): Promise<KeyMaterial> {
-	// To make password de-derivation harder
+	// To make passwords harder to guess
 	const passSalt = btoa(await random(32));
 
 	// To encrypt the dek

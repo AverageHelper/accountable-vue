@@ -17,7 +17,6 @@ const zip = ref<JSZip | null>(null);
 const dbName = ref("");
 const db = ref<DatabaseSchema | null>(null);
 
-// TODO: Move this into a store
 async function onFileReceived(file: File) {
 	zip.value = null;
 	dbName.value = "";

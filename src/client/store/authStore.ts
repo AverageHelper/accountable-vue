@@ -137,6 +137,8 @@ export const useAuthStore = defineStore("auth", {
 				const email = emailFromAccountId(accountId);
 				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
+				// TODO: Also salt the password hash
+				// Salt using the user's account ID
 				const { user } = await signInWithEmailAndPassword(auth, email, sha512(password));
 
 				// Get the salt and dek material from Firestore
@@ -152,7 +154,7 @@ export const useAuthStore = defineStore("auth", {
 				this.loginProcessState = null;
 			}
 		},
-		async getDekMaterial(): Promise<KeyMaterial> {
+		async getDekMaterial(this: void): Promise<KeyMaterial> {
 			const auth = getAuth();
 			const user = auth.currentUser;
 			if (!user) throw new Error("You must sign in first");

@@ -129,6 +129,10 @@ export class Transaction
 		};
 	}
 
+	copy(): Transaction {
+		return this.updatedWith({});
+	}
+
 	updatedWith(params: Partial<TransactionRecordParams>): Transaction {
 		const thisRecord = this.toRecord();
 		return new Transaction(params.accountId ?? this.accountId, this.id, {

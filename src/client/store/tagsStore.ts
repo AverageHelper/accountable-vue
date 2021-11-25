@@ -111,17 +111,6 @@ export const useTagsStore = defineStore("tags", {
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
-			// Don't delete if we have transactions
-			const { useTransactionsStore } = await import("./transactionsStore");
-			const transactions = useTransactionsStore();
-			const relevantTransactions = transactions.allTransactions.filter(t =>
-				t.tagIds.includes(tag.id)
-			);
-			if (relevantTransactions.length > 0)
-				throw new Error(
-					"Cannot delete a tag when transactions reference it. Remove those references first."
-				);
-
 			await deleteTag(uid, tag);
 		},
 		async deleteAllTags(): Promise<void> {
