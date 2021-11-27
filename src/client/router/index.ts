@@ -3,6 +3,7 @@ import Accounts from "../components/accounts/Accounts.vue";
 import AccountView from "../components/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
+import Locations from "../components/locations/Locations.vue";
 import Login from "../components/Login.vue";
 import Settings from "../components/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
@@ -69,6 +70,12 @@ const attachments: RouteRecordRaw = {
 	component: Attachments,
 };
 
+const locations: RouteRecordRaw = {
+	path: "/locations",
+	beforeEnter: onlyIfLoggedIn,
+	component: Locations,
+};
+
 const tags: RouteRecordRaw = {
 	path: "/tags",
 	beforeEnter: onlyIfLoggedIn,
@@ -111,6 +118,7 @@ export const router = createRouter({
 		},
 		accounts,
 		attachments,
+		locations,
 		tags,
 		settings,
 	],

@@ -15,6 +15,8 @@ const to = computed<string>(() => {
 			return "/accounts";
 		case "attachments":
 			return "/attachments";
+		case "locations":
+			return "/locations";
 		case "tags":
 			return "/tags";
 		default:
@@ -28,6 +30,8 @@ const label = computed<string>(() => {
 			return "Accounts";
 		case "attachments":
 			return "Files";
+		case "locations":
+			return "Locations";
 		case "tags":
 			return "Tags";
 		default:
