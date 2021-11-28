@@ -83,9 +83,9 @@ export class Transaction
 		return {
 			amount: record?.amount ?? toSnapshot(dinero({ amount: 0, currency: USD })),
 			createdAt: record?.createdAt ?? new Date(),
-			title: record?.title ?? null,
-			notes: record?.notes ?? null,
-			locationId: record?.locationId ?? null,
+			title: (record?.title ?? "") || null,
+			notes: (record?.notes ?? "") || null,
+			locationId: (record?.locationId ?? "") || null,
 			isReconciled: record?.isReconciled ?? false,
 			tagIds: [],
 			attachmentIds: [],

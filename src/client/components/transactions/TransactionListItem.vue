@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Checkbox from "../Checkbox.vue";
+import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs } from "vue";
 import { isNegative as isDineroNegative } from "dinero.js";
@@ -18,6 +19,7 @@ const ui = useUiStore();
 const isChangingReconciled = ref(false);
 const isNegative = computed(() => isDineroNegative(transaction.value.amount));
 const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
+const hasLocation = computed(() => transaction.value.locationId !== null);
 const timestamp = computed(() => {
 	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 	return formatter.format(transaction.value.createdAt);
@@ -58,7 +60,19 @@ async function markReconciled(isReconciled: boolean) {
 		</div>
 
 		<div class="tail">
-			<PaperclipIcon v-if="hasAttachments" class="has-attachments" />
+			<div class="indicators">
+				<div
+					v-if="hasAttachments"
+					:title="`${transaction.attachmentIds.length} attachment${
+						transaction.attachmentIds.length === 1 ? '' : 's'
+					}`"
+				>
+					<PaperclipIcon />
+				</div>
+				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
+					<LocationIcon />
+				</div>
+			</div>
 			<span class="amount" :class="{ negative: isNegative }">{{
 				intlFormat(transaction.amount)
 			}}</span>
@@ -101,13 +115,20 @@ async function markReconciled(isReconciled: boolean) {
 	}
 
 	.tail {
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
 		margin-left: auto;
 
-		.has-attachments {
-			position: relative;
-			top: -1pt;
-			margin-left: auto;
+		> .indicators {
+			display: flex;
+			flex-flow: column nowrap;
 			color: color($secondary-label);
+			margin-left: auto;
+
+			:not(:last-child) {
+				margin-bottom: 2pt;
+			}
 		}
 
 		.amount {
