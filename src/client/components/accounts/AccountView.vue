@@ -4,8 +4,10 @@ import AccountEdit from "./AccountEdit.vue";
 import ActionButton from "../ActionButton.vue";
 import AddTransactionListItem from "./AddTransactionListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
+import Fuse from "fuse.js";
 import List from "../List.vue";
 import Modal from "../Modal.vue";
+import TextField from "../TextField.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
@@ -32,12 +34,22 @@ const isEditingAccount = ref(false);
 const isEditingTransaction = ref(false);
 
 const account = computed(() => accounts.items[accountId.value]);
-const theseTransactions = computed(() => {
+const theseTransactions = computed<Array<Transaction>>(() => {
 	const allTransactions = (transactions.transactionsForAccount[accountId.value] ??
 		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
 const numberOfTransactions = computed(() => theseTransactions.value.length);
+
+const searchQuery = ref("");
+const searchClient = computed(
+	() => new Fuse(theseTransactions.value, { keys: ["title", "notes"] })
+);
+const filteredTransactions = computed<Array<Transaction>>(() =>
+	searchQuery.value !== ""
+		? searchClient.value.search(searchQuery.value).map(r => r.item)
+		: theseTransactions.value
+);
 
 const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
 const isNegative = computed(() =>
@@ -90,12 +102,14 @@ function finishEditingAccount() {
 		}}</p>
 	</div>
 
+	<TextField v-model="searchQuery" type="search" placeholder="Search transactions" class="search" />
+
 	<List class="transactions-list">
-		<li>
+		<li v-if="searchQuery === ''">
 			<AddTransactionListItem class="list-item header" @click="startCreatingTransaction" />
 		</li>
 		<li
-			v-for="transaction in theseTransactions"
+			v-for="transaction in filteredTransactions"
 			:key="transaction.id"
 			class="list-item transaction"
 		>
@@ -165,6 +179,11 @@ function finishEditingAccount() {
 			color: color($red);
 		}
 	}
+}
+
+.search {
+	max-width: 36em;
+	margin: 1em auto;
 }
 
 .transactions-list {
