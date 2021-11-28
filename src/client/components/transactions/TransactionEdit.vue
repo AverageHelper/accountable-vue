@@ -32,6 +32,11 @@ const transactions = useTransactionsStore();
 const ui = useUiStore();
 
 const ogTransaction = computed(() => transaction.value as Transaction | null);
+const ogLocation = computed(() =>
+	ogTransaction.value?.locationId !== null && ogTransaction.value?.locationId !== undefined
+		? locations.items[ogTransaction.value.locationId] ?? null
+		: null
+);
 const isCreatingTransaction = computed(() => ogTransaction.value === null);
 
 const isLoading = ref(false);
@@ -46,10 +51,39 @@ const isAskingToDelete = ref(false);
 const isExpense = computed(() => isNegative(amount.value) || isZero(amount.value));
 const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length ?? 0) > 0);
 
+const hasChanges = computed(() => {
+	if (ogTransaction.value) {
+		const oldAmount = (
+			ogTransaction.value?.amount ?? dinero({ amount: 0, currency: USD })
+		).toJSON();
+		return (
+			title.value !== (ogTransaction.value?.title ?? "") ||
+			notes.value !== (ogTransaction.value?.notes ?? "") ||
+			amount.value.toJSON().amount !== oldAmount.amount ||
+			amount.value.toJSON().currency.code !== oldAmount.currency.code ||
+			isReconciled.value !== (ogTransaction.value?.isReconciled ?? false) ||
+			locationData.value?.title !== ogLocation.value?.title ||
+			locationData.value?.subtitle !== ogLocation.value?.subtitle ||
+			locationData.value?.coordinate !== ogLocation.value?.coordinate
+		);
+	}
+	return (
+		title.value !== "" ||
+		notes.value !== "" ||
+		amount.value !== dinero({ amount: 0, currency: USD }) ||
+		isReconciled.value !== false ||
+		(locationData.value?.title ?? "") !== "" ||
+		(locationData.value?.subtitle ?? "") !== "" ||
+		(locationData.value?.coordinate?.lat ?? null) !== null ||
+		(locationData.value?.coordinate?.lng ?? null) !== null
+	);
+});
+
 createdAt.value.setSeconds(0, 0);
 
 onMounted(() => {
-	// Opened, if we're modal
+	// Modal invocations call this. This is good.
+
 	title.value = ogTransaction.value?.title ?? title.value;
 	notes.value = ogTransaction.value?.notes ?? notes.value;
 	createdAt.value = ogTransaction.value?.createdAt ?? createdAt.value;
@@ -167,7 +201,7 @@ function cancelDeleteTransaction() {
 		<TextAreaField v-model="notes" label="notes" placeholder="This is a thing" />
 
 		<div class="buttons">
-			<ActionButton type="submit" kind="bordered-primary" :disabled="isLoading">
+			<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading">
 				<CheckmarkIcon /> Save</ActionButton
 			>
 			<ActionButton

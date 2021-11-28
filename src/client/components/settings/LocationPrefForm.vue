@@ -6,15 +6,13 @@ import { computed, ref, onMounted } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
-import { useLocationsStore, useUiStore } from "../../store";
+import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
-const locations = useLocationsStore();
 const ui = useUiStore();
 const toast = useToast();
 
 const isLoading = ref(false);
-const isLocationApiAvailable = computed(() => locations.isLocationApiAvailable);
 const currentSensitivity = computed(() => auth.preferences.locationSensitivity);
 const selectedSensitivity = ref<LocationPref>("none");
 
@@ -53,7 +51,7 @@ async function submitNewLocationPref() {
 </script>
 
 <template>
-	<form v-if="isLocationApiAvailable" @submit.prevent="submitNewLocationPref">
+	<form @submit.prevent="submitNewLocationPref">
 		<h3>Location Service</h3>
 		<p
 			>By default, we don't talk to any external location APIs. However, if you want Accountable to
@@ -84,17 +82,10 @@ async function submitNewLocationPref() {
 				</div>
 			</ActionButton>
 		</div>
-		<div v-if="false && selectedSensitivity !== 'none'">
-			<p
-				>Requests go to <code>https://api.freegeoip.app/json/?apikey=XXXXXXXXXXXXXX</code>.
-				Responses are generated from your IP address, and return a locale based on their database of
-				IP addresses and locales.</p
-			>
-		</div>
 		<p style="font-size: small"
 			>Note that we have no "automatic" location features. We only fetch your current location when
 			you press a button to request it. We use the
-			<a href="https://freegeoip.app" target="__blank">FreeGeoIp</a> API to obtain vague location
+			<a href="https://www.iplocate.io" target="__blank">IPLocate</a> API to obtain vague location
 			data.</p
 		>
 
@@ -106,14 +97,6 @@ async function submitNewLocationPref() {
 				>Reset</ActionButton
 			>
 		</div>
-	</form>
-	<form v-else @submit.prevent>
-		<h3>Location Service</h3>
-		<p
-			>To enable location services, add a
-			<a href="https://freegeoip.app" target="__blank">FreeGeoIp</a> API key to
-			<code>VITE_FREEGEOIP_API_KEY</code> in your .env file.</p
-		>
 	</form>
 </template>
 

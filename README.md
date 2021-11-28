@@ -61,17 +61,6 @@ $ gsutil cors set cors.json gs://<your-cloud-storage-bucket>
 
 See [Google's docs on the subject](https://firebase.google.com/docs/storage/web/download-files#cors_configuration).
 
-#### (Optional) Enable IP-based geolocation with FreeGeoIp
-
-We don't talk to external APIs without your express consent. When enabled and requested, this information is used only to quickly add your current location to a transaction. Even when the feature is enabled, you must press a button before we make the location request.
-
-If you wish to enable location features, go to [FreeGeoIp](https://freegeoip.app) and register for an API key. Then paste that key into `VITE_FREEGEOIP_API_KEY` in your .env file.
-
-```sh
-...
-VITE_FREEGEOIP_API_KEY={your key here}
-```
-
 #### Run!
 
 ```sh
@@ -79,6 +68,10 @@ $ npm start
 ```
 
 Vite will give your a URL to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
+
+## Acknowledgements
+
+- Icons from [iconmonstr](https://iconmonstr.com/)
 
 ## Contributing
 

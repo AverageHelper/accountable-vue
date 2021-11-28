@@ -9,7 +9,7 @@ type ActionButtonKind =
 	| "bordered-primary"
 	| "bordered-secondary";
 
-const emit = defineEmits(["click"]);
+const emit = defineEmits(["click", "focus", "blur"]);
 
 defineProps({
 	type: { type: String as PropType<ActionButtonType>, default: "button" },
@@ -20,10 +20,24 @@ defineProps({
 function onClick(event: Event): void {
 	emit("click", event);
 }
+
+function onFocus(event: Event): void {
+	emit("focus", event);
+}
+
+function onBlur(event: Event): void {
+	emit("blur", event);
+}
 </script>
 
 <template>
-	<button :class="`kind--${kind}`" :disabled="disabled" @click="onClick">
+	<button
+		:class="`kind--${kind}`"
+		:disabled="disabled"
+		@focus="onFocus"
+		@blur="onBlur"
+		@click="onClick"
+	>
 		<slot />
 	</button>
 </template>

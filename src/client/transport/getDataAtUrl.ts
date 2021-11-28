@@ -1,6 +1,6 @@
 import atob from "atob-lite";
 
-export async function getDataAtUrl(url: string): Promise<string> {
+export async function getDataAtUrl(url: string, contentType?: string): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
 		xhr.responseType = "text";
@@ -12,6 +12,9 @@ export async function getDataAtUrl(url: string): Promise<string> {
 			reject(xhr.response);
 		});
 		xhr.open("GET", url);
+		if (contentType !== undefined && contentType) {
+			xhr.setRequestHeader("Content-Type", contentType);
+		}
 		xhr.send();
 	});
 }
