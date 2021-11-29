@@ -4,6 +4,8 @@ A Vue app for managing monetary assets. All data is encrypted client-side and st
 
 Note: DO NOT FORGET your ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
+Also note: This project is UNSTABLE for the moment, at least until it hits a proper 1.0 release. Feel free to try it out and let me know of any issues. Until I can trust this software, you probably should not trust it either.
+
 ### Alternative Projects
 
 There are many open-source balance keepers out there, but none I've found that I quite like. A few are listed [here](https://opensource.com/life/17/10/personal-finance-tools-linux).

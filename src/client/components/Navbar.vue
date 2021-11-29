@@ -29,7 +29,7 @@ function goBack() {
 		</aside>
 
 		<TabBar v-if="isLoggedIn" class="tab-bar" />
-		<h1 v-else id="nav-title" />
+		<h1 v-else>Login</h1>
 
 		<aside class="trailing-actions actions-container">
 			<div id="nav-actions-trailing" class="actions-container" />
@@ -51,6 +51,7 @@ function goBack() {
 	h1 {
 		color: inherit;
 		margin: 0 44pt;
+		padding-top: 6pt;
 		user-select: none;
 	}
 

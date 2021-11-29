@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
 import AppVersion from "./AppVersion.vue";
-import NavTitle from "./NavTitle.vue";
 import TextField from "./TextField.vue";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -106,8 +105,6 @@ async function submit() {
 </script>
 
 <template>
-	<NavTitle>Login</NavTitle>
-
 	<form @submit.prevent="submit">
 		<TextField
 			ref="accountIdField"
