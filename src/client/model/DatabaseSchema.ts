@@ -69,10 +69,7 @@ const accountSchema = Joi.object({
 	title: Joi.string().required(),
 	notes: Joi.string().allow(null, "").default(null),
 	createdAt: Joi.date().required(),
-	locations: Joi.array().items(locationSchema).default([]),
 	transactions: Joi.array().items(transactionSchema).default([]),
-	tags: Joi.array().items(tagSchema).default([]),
-	attachments: Joi.array().items(attachmentSchema).default([]),
 });
 
 export type AccountSchema = Joi.extractType<typeof accountSchema>;
@@ -81,6 +78,9 @@ export const schema = Joi.object({
 	uid: Joi.string().required(),
 	locationSensitivity: Joi.string().valid("none", "vague", "specific").default("none"),
 	accounts: Joi.array().items(accountSchema).default([]),
-}).unknown(true);
+	attachments: Joi.array().items(attachmentSchema).default([]),
+	locations: Joi.array().items(locationSchema).default([]),
+	tags: Joi.array().items(tagSchema).default([]),
+});
 
 export type DatabaseSchema = Joi.extractType<typeof schema>;

@@ -1,4 +1,4 @@
-import type { AccountsDownloadable } from "./accountsStore";
+import type { DatabaseSchema } from "../model/DatabaseSchema";
 import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
 import type { Unsubscribe, User } from "firebase/auth";
 import { defineStore } from "pinia";
@@ -33,11 +33,6 @@ import {
 	updateEmail,
 	updatePassword,
 } from "firebase/auth";
-
-export interface UserDataDownloadable extends UserPreferences {
-	uid: string;
-	accounts: AccountsDownloadable;
-}
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
 
@@ -279,30 +274,44 @@ export const useAuthStore = defineStore("auth", {
 			await signOut(auth);
 			await this.onSignedOut();
 		},
-		async getAllUserDataAsJson(): Promise<UserDataDownloadable> {
+		async getAllUserDataAsJson(): Promise<DatabaseSchema> {
 			const uid = this.uid;
 			const pKey = this.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const { useAccountsStore } = await import("./accountsStore");
-			const accountsStore = useAccountsStore();
+			const {
+				accounts: accountsStore,
+				attachments: attachmentsStore,
+				locations: locationsStore,
+				tags: tagsStore,
+			} = await stores();
 
 			const { dekMaterial } = await this.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const userDoc = userRef(uid);
 			const snap = await getDoc(userDoc);
-			const accounts = await accountsStore.getAllAccountsAsJson();
+
+			const [accounts, attachments, locations, tags] = await Promise.all([
+				accountsStore.getAllAccountsAsJson(),
+				attachmentsStore.getAllAttachmentsAsJson(),
+				locationsStore.getAllLocationsAsJson(),
+				tagsStore.getAllTagsAsJson(),
+			]);
 
 			const prefs = snap.exists() //
 				? userPreferencesFromSnapshot(snap, dek)
 				: defaultPrefs();
 
+			// JS seems to put these in the order we lay them. Do prefs first, since they're smol
 			return {
 				uid,
-				...prefs, // JS seems to put these in the order we lay them. Do prefs first, since they're smol
+				...prefs,
 				accounts,
+				attachments,
+				locations,
+				tags,
 			};
 		},
 	},

@@ -115,7 +115,7 @@ export class Transaction
 		);
 	}
 
-	toRecord(): TransactionRecordParams {
+	toRecord(): ReplaceWith<TransactionRecordParams, "attachmentIds" | "tagIds", Array<string>> {
 		return {
 			amount: toSnapshot(this.amount),
 			createdAt: this.createdAt,
@@ -124,8 +124,8 @@ export class Transaction
 			locationId: this.locationId,
 			isReconciled: this.isReconciled,
 			accountId: this.accountId,
-			tagIds: this.tagIds,
-			attachmentIds: this.attachmentIds,
+			tagIds: this.tagIds as Array<string>,
+			attachmentIds: this.attachmentIds as Array<string>,
 		};
 	}
 

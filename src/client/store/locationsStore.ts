@@ -15,8 +15,6 @@ import {
 	watchAllRecords,
 } from "../transport";
 
-export type LocationsDownloadable = Array<LocationRecordParams & { id: string }>;
-
 export const useLocationsStore = defineStore("locations", {
 	state: () => ({
 		items: {} as Dictionary<Location>, // Location.id -> Location
@@ -111,7 +109,7 @@ export const useLocationsStore = defineStore("locations", {
 
 			await deleteLocation(uid, location);
 		},
-		async getAllLocationsAsJson(): Promise<LocationsDownloadable> {
+		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -123,13 +121,12 @@ export const useLocationsStore = defineStore("locations", {
 
 			const collection = locationsCollection(uid);
 			const snap = await getDocs(collection);
-			const tags: LocationsDownloadable = snap.docs
+			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
 				.map(t => ({
 					id: t.id,
 					...t.toRecord(),
 				}));
-			return tags;
 		},
 		async importLocation(locationToImport: LocationSchema): Promise<void> {
 			const storedLocation = this.items[locationToImport.id] ?? null;

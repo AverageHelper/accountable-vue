@@ -15,8 +15,6 @@ import {
 	watchAllRecords,
 } from "../transport";
 
-export type TagsDownloadable = Array<TagRecordParams & { id: string }>;
-
 export const useTagsStore = defineStore("tags", {
 	state: () => ({
 		items: {} as Dictionary<Tag>, // Tag.id -> Tag
@@ -116,7 +114,7 @@ export const useTagsStore = defineStore("tags", {
 		async deleteAllTags(): Promise<void> {
 			await Promise.all(this.allTags.map(this.deleteTag));
 		},
-		async getAllTagsAsJson(): Promise<TagsDownloadable> {
+		async getAllTagsAsJson(): Promise<Array<TagSchema>> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -128,13 +126,12 @@ export const useTagsStore = defineStore("tags", {
 
 			const collection = tagsCollection(uid);
 			const snap = await getDocs(collection);
-			const tags: TagsDownloadable = snap.docs
+			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
 				.map(t => ({
 					id: t.id,
 					...t.toRecord(),
 				}));
-			return tags;
 		},
 		async importTag(tagToImport: TagSchema): Promise<void> {
 			const storedTag = this.items[tagToImport.id] ?? null;

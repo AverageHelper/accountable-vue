@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AttachmentsDownloadable } from "../../store";
+import type { AttachmentSchema } from "../../model/DatabaseSchema";
 import ActionButton from "../ActionButton.vue";
 import btoa from "btoa-lite";
 import JSZip from "jszip";
@@ -31,10 +31,7 @@ async function downloadStuff(shouldMinify: boolean) {
 		});
 
 		// Prepare attachments
-		const filesToGet: AttachmentsDownloadable = [];
-		rawData.accounts.forEach(acct => {
-			filesToGet.push(...acct.attachments);
-		});
+		const filesToGet: Array<AttachmentSchema> = rawData.attachments ?? [];
 		// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB
 		const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
 			const file = new Attachment(a.id, a.storagePath, a);

@@ -23,8 +23,6 @@ import {
 	watchAllRecords,
 } from "../transport";
 
-export type TransactionsDownloadable = Array<TransactionRecordParams & { id: string }>;
-
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
@@ -250,7 +248,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const locations = useLocationsStore();
 			await locations.deleteLocation(location);
 		},
-		async getAllTransactionsAsJson(account: Account): Promise<TransactionsDownloadable> {
+		async getAllTransactionsAsJson(account: Account): Promise<Array<TransactionSchema>> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -262,13 +260,12 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			const collection = transactionsCollection(uid, account);
 			const snap = await getDocs(collection);
-			const transactions: TransactionsDownloadable = snap.docs
+			return snap.docs
 				.map(doc => transactionFromSnapshot(account.id, doc, dek))
 				.map(t => ({
 					id: t.id,
 					...t.toRecord(),
 				}));
-			return transactions;
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,

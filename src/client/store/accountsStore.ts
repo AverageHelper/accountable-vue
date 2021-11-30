@@ -1,13 +1,8 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
-import type { AttachmentsDownloadable } from "./attachmentsStore";
 import type { Dinero } from "dinero.js";
 import type { HashStore } from "../transport";
-import type { LocationsDownloadable } from "./locationsStore";
-import type { TagsDownloadable } from "./tagsStore";
-import type { TransactionsDownloadable } from "./transactionsStore";
 import type { Unsubscribe } from "firebase/auth";
-import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
@@ -22,16 +17,6 @@ import {
 	accountsCollection,
 	watchAllRecords,
 } from "../transport";
-
-export type AccountsDownloadable = Array<
-	AccountRecordParams & {
-		id: string;
-		attachments: AttachmentsDownloadable;
-		locations: LocationsDownloadable;
-		transactions: TransactionsDownloadable;
-		tags: TagsDownloadable;
-	}
->;
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
@@ -142,19 +127,14 @@ export const useAccountsStore = defineStore("accounts", {
 		async deleteAllAccounts(): Promise<void> {
 			await Promise.all(this.allAccounts.map(this.deleteAccount));
 		},
-		async getAllAccountsAsJson(): Promise<AccountsDownloadable> {
+		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 			if (uid === null) throw new Error("Sign in first");
 
-			const {
-				attachments: attachmentsStore,
-				locations: locationsStore,
-				transactions: transactionsStore,
-				tags: tagsStore,
-			} = await stores();
+			const { transactions: transactionsStore } = await stores();
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -162,27 +142,16 @@ export const useAccountsStore = defineStore("accounts", {
 			const collection = accountsCollection(uid);
 			const snap = await getDocs(collection);
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
-			const data: AccountsDownloadable = await asyncMap(accounts, async acct => {
-				const [attachments, locations, transactions, tags] = await Promise.all([
-					attachmentsStore.getAllAttachmentsAsJson(),
-					locationsStore.getAllLocationsAsJson(),
-					transactionsStore.getAllTransactionsAsJson(acct),
-					tagsStore.getAllTagsAsJson(),
-				]);
-
+			return await asyncMap(accounts, async acct => {
+				const transactions = await transactionsStore.getAllTransactionsAsJson(acct);
 				return {
 					id: acct.id,
 					...acct.toRecord(),
-					locations,
 					transactions,
-					tags,
-					attachments,
 				};
 			});
-
-			return data;
 		},
-		async importAccount(accountToImport: AccountSchema, zip: JSZip | null): Promise<void> {
+		async importAccount(accountToImport: AccountSchema): Promise<void> {
 			const accountId = accountToImport.id;
 			const storedAccount = this.items[accountId] ?? null;
 
@@ -201,12 +170,8 @@ export const useAccountsStore = defineStore("accounts", {
 				newAccount = await this.createAccount(params);
 			}
 
-			const { transactions, locations, tags, attachments } = await stores();
-
+			const { transactions } = await stores();
 			await transactions.importTransactions(accountToImport.transactions ?? [], newAccount);
-			await locations.importLocations(accountToImport.locations ?? []);
-			await tags.importTags(accountToImport.tags ?? []);
-			await attachments.importAttachments(accountToImport.attachments ?? [], zip);
 		},
 	},
 });

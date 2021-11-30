@@ -18,8 +18,6 @@ import {
 	watchAllRecords,
 } from "../transport";
 
-export type AttachmentsDownloadable = Array<AttachmentRecordParams & { id: string }>;
-
 export const useAttachmentsStore = defineStore("attachments", {
 	state: () => ({
 		items: {} as Dictionary<Attachment>, // Attachment.id -> Attachment
@@ -150,7 +148,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			return imageData;
 		},
-		async getAllAttachmentsAsJson(): Promise<AttachmentsDownloadable> {
+		async getAllAttachmentsAsJson(): Promise<Array<AttachmentSchema>> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -162,13 +160,12 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			const collection = attachmentsCollection(uid);
 			const snap = await getDocs(collection);
-			const attachments: AttachmentsDownloadable = snap.docs
+			return snap.docs
 				.map(doc => attachmentFromSnapshot(doc, dek))
 				.map(t => ({
 					id: t.id,
 					...t.toRecord(),
 				}));
-			return attachments;
 		},
 		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
 			// FIXME: Import leaves broken references
@@ -217,9 +214,9 @@ export const useAttachmentsStore = defineStore("attachments", {
 			}
 		},
 		async importAttachments(data: Array<AttachmentSchema>, zip: JSZip | null): Promise<void> {
-			for (const attachmentToImport of data) {
-				await this.importAttachment(attachmentToImport, zip);
-			}
+			await Promise.all(
+				data.map(attachmentToImport => this.importAttachment(attachmentToImport, zip))
+			);
 		},
 	},
 });

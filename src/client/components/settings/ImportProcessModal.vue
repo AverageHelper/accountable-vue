@@ -10,7 +10,13 @@ import Modal from "../Modal.vue";
 import { computed, ref, reactive, toRefs, watch } from "vue";
 import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";
-import { useAccountsStore, useUiStore } from "../../store";
+import {
+	useAccountsStore,
+	useAttachmentsStore,
+	useLocationsStore,
+	useTagsStore,
+	useUiStore,
+} from "../../store";
 
 const emit = defineEmits(["finished"]);
 
@@ -22,10 +28,16 @@ const props = defineProps({
 const { db, zip, fileName } = toRefs(props);
 
 const accounts = useAccountsStore();
+const attachments = useAttachmentsStore();
+const locations = useLocationsStore();
+const tags = useTagsStore();
 const ui = useUiStore();
 const toast = useToast();
 
-const accountsToImport = reactive(new Set<string>());
+const accountIdsToImport = reactive(new Set<string>());
+const numberOfAttachmentsToImport = computed(() => db.value?.attachments?.length ?? 0);
+const numberOfLocationsToImport = computed(() => db.value?.locations?.length ?? 0);
+const numberOfTagsToImport = computed(() => db.value?.tags?.length ?? 0);
 const isImporting = ref(false);
 
 const hasDb = computed(() => db.value !== null);
@@ -48,10 +60,10 @@ watch(importedAccounts, importedAccounts => {
 });
 
 function toggleAccount(account: Account) {
-	if (accountsToImport.has(account.id)) {
-		accountsToImport.delete(account.id);
+	if (accountIdsToImport.has(account.id)) {
+		accountIdsToImport.delete(account.id);
 	} else {
-		accountsToImport.add(account.id);
+		accountIdsToImport.add(account.id);
 	}
 }
 
@@ -67,11 +79,14 @@ async function beginImport() {
 	if (!db.value) return;
 
 	try {
-		for (const accountId of accountsToImport) {
+		for (const accountId of accountIdsToImport) {
 			const accountToImport = db.value.accounts?.find(a => a.id === accountId);
 			if (!accountToImport) continue;
-			await accounts.importAccount(accountToImport, zip.value);
+			await accounts.importAccount(accountToImport);
 		}
+		await locations.importLocations(db.value.locations ?? []);
+		await tags.importTags(db.value.tags ?? []);
+		await attachments.importAttachments(db.value.attachments ?? [], zip.value);
 
 		toast.success("Imported all the things!");
 		emit("finished");
@@ -97,7 +112,7 @@ async function beginImport() {
 						:link="false"
 						@click.prevent="() => toggleAccount(account)"
 					/>
-					<Checkmark v-if="accountsToImport.has(account.id)" />
+					<Checkmark v-if="accountIdsToImport.has(account.id)" />
 				</li>
 			</List>
 		</div>
@@ -116,19 +131,25 @@ async function beginImport() {
 						:link="false"
 						@click.prevent="() => toggleAccount(account)"
 					/>
-					<Checkmark v-if="accountsToImport.has(account.id)" />
+					<Checkmark v-if="accountIdsToImport.has(account.id)" />
 				</li>
 			</List>
 		</div>
 
-		<p v-if="accountsToImport.size > 0" class="prompt"
-			>{{ accountsToImport.size }} account selected</p
-		>
+		<div>
+			<h4>Everything Else</h4>
+			<List>
+				<li class="importable">{{ numberOfLocationsToImport }} locations <Checkmark /></li>
+				<li class="importable">{{ numberOfTagsToImport }} tags <Checkmark /></li>
+				<li class="importable">{{ numberOfAttachmentsToImport }} attachments <Checkmark /></li>
+			</List>
+		</div>
+
 		<div class="buttons">
 			<ActionButton
 				class="continue"
 				kind="bordered-primary"
-				:disabled="isImporting || accountsToImport.size === 0"
+				:disabled="isImporting || accountIdsToImport.size === 0"
 				@click.prevent="beginImport"
 			>
 				<span v-if="isImporting">Importing...</span>
@@ -153,10 +174,6 @@ async function beginImport() {
 	.icon {
 		margin-left: 8pt;
 	}
-}
-
-.prompt {
-	color: color($secondary-label);
 }
 
 .buttons {
