@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PropType } from "vue";
 import type { Transaction } from "../../model/Transaction";
 import ListItem from "../ListItem.vue";
 import { Account } from "../../model/Account";
@@ -8,8 +9,9 @@ import { useTransactionsStore } from "../../store";
 const props = defineProps({
 	account: { type: Account, required: true },
 	link: { type: Boolean, default: true },
+	count: { type: Number as PropType<number | null>, default: null },
 });
-const { account, link } = toRefs(props);
+const { account, link, count } = toRefs(props);
 
 const transactions = useTransactionsStore();
 const accountRoute = computed(() => (link.value ? `/accounts/${account.value.id}` : "#"));
@@ -19,9 +21,9 @@ const theseTransactions = computed(
 
 const numberOfTransactions = computed<number | null>(() => {
 	if (theseTransactions.value === undefined) {
-		return null;
+		return count.value ?? null;
 	}
-	return Object.keys(theseTransactions.value).length;
+	return count.value ?? Object.keys(theseTransactions.value).length;
 });
 
 onMounted(async () => {

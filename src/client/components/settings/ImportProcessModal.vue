@@ -7,7 +7,7 @@ import AccountListItem from "../accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
 import List from "../List.vue";
 import Modal from "../Modal.vue";
-import { computed, ref, reactive, toRefs, watch } from "vue";
+import { computed, ref, reactive, toRefs, watch, nextTick } from "vue";
 import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";
 import {
@@ -39,6 +39,10 @@ const numberOfAttachmentsToImport = computed(() => db.value?.attachments?.length
 const numberOfLocationsToImport = computed(() => db.value?.locations?.length ?? 0);
 const numberOfTagsToImport = computed(() => db.value?.tags?.length ?? 0);
 const isImporting = ref(false);
+const importProgress = ref(1);
+const importProgressPercent = computed(() =>
+	Intl.NumberFormat(undefined, { style: "percent" }).format(importProgress.value)
+);
 
 const hasDb = computed(() => db.value !== null);
 const storedAccounts = computed(() => accounts.allAccounts);
@@ -51,6 +55,17 @@ const duplicateAccounts = computed(() =>
 const newAccounts = computed(() =>
 	importedAccounts.value.filter(a1 => !storedAccounts.value.some(a2 => a2.id === a1.id))
 );
+const transactionCounts = computed<Dictionary<number>>(() => {
+	const result: Dictionary<number> = {};
+	if (!db.value) return result;
+
+	const accounts = db.value?.accounts ?? [];
+	for (const a of accounts) {
+		result[a.id] = (a.transactions ?? []).length;
+	}
+
+	return result;
+});
 
 watch(importedAccounts, importedAccounts => {
 	if (hasDb.value && importedAccounts.length === 0) {
@@ -60,6 +75,8 @@ watch(importedAccounts, importedAccounts => {
 });
 
 function toggleAccount(account: Account) {
+	if (isImporting.value) return; // Don't modify import while we're importing
+
 	if (accountIdsToImport.has(account.id)) {
 		accountIdsToImport.delete(account.id);
 	} else {
@@ -75,15 +92,23 @@ function forgetDb() {
 
 // TODO: Analyze the consequenses of this import. Will this overwrite some entries, and add other ones?
 async function beginImport() {
-	isImporting.value = true;
 	if (!db.value) return;
+	isImporting.value = true;
+	importProgress.value = 0;
 
 	try {
+		let total = accountIdsToImport.size || 1;
+		let finished = 0;
+
 		for (const accountId of accountIdsToImport) {
 			const accountToImport = db.value.accounts?.find(a => a.id === accountId);
 			if (!accountToImport) continue;
 			await accounts.importAccount(accountToImport);
+
+			importProgress.value = finished / total;
+			await nextTick();
 		}
+
 		await locations.importLocations(db.value.locations ?? []);
 		await tags.importTags(db.value.tags ?? []);
 		await attachments.importAttachments(db.value.attachments ?? [], zip.value);
@@ -94,6 +119,8 @@ async function beginImport() {
 		ui.handleError(error);
 	}
 
+	importProgress.value = 1;
+	await nextTick();
 	isImporting.value = false;
 }
 </script>
@@ -110,6 +137,7 @@ async function beginImport() {
 						class="account"
 						:account="account"
 						:link="false"
+						:count="transactionCounts[account.id] ?? 0"
 						@click.prevent="() => toggleAccount(account)"
 					/>
 					<Checkmark v-if="accountIdsToImport.has(account.id)" />
@@ -129,6 +157,7 @@ async function beginImport() {
 						class="account"
 						:account="account"
 						:link="false"
+						:count="transactionCounts[account.id] ?? 0"
 						@click.prevent="() => toggleAccount(account)"
 					/>
 					<Checkmark v-if="accountIdsToImport.has(account.id)" />
@@ -152,7 +181,7 @@ async function beginImport() {
 				:disabled="isImporting || accountIdsToImport.size === 0"
 				@click.prevent="beginImport"
 			>
-				<span v-if="isImporting">Importing...</span>
+				<span v-if="isImporting">Importing... ({{ importProgressPercent }})</span>
 				<span v-else>Begin Import</span>
 			</ActionButton>
 		</div>
