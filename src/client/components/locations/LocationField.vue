@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
+import type { Coordinate, LocationRecordParams } from "../../model/Location";
 import type { IPLocateResult } from "../../transport";
 import type { PropType } from "vue";
 import ActionButton from "../ActionButton.vue";
+import Fuse from "fuse.js";
 import List from "../List.vue";
 import LocationIcon from "../../icons/Location.vue";
 import LocationListItem from "./LocationListItem.vue";
 import TextField from "../TextField.vue";
 import { computed, ref, toRefs, watch } from "vue";
 import { fetchLocationData } from "../../transport";
+import { Location } from "../../model/Location";
 import { useAuthStore, useLocationsStore, useUiStore } from "../../store";
 
 /**
@@ -40,15 +42,33 @@ const locations = useLocationsStore();
 const ui = useUiStore();
 
 const root = ref<HTMLLabelElement | null>(null);
+const titleField = ref<HTMLLabelElement | null>(null);
 const hasFocus = ref(false);
 
 const locationPreference = computed(() => auth.preferences.locationSensitivity);
 const mayGetLocation = computed(() => locationPreference.value !== "none");
+
 const allLocations = computed(() => locations.allLocations);
+const searchClient = computed(() => new Fuse(allLocations.value, { keys: ["title", "subtitle"] }));
+const shouldSearch = computed(() => selectedLocationId.value === null && !!newLocationTitle.value);
+const recentLocations = computed(() =>
+	shouldSearch.value
+		? searchClient.value.search(newLocationTitle.value).map(r => r.item)
+		: allLocations.value
+);
 
 const newLocationTitle = ref("");
 const newLocationSubtitle = ref("");
 const newLocationCoordinates = ref<Coordinate | null>(null);
+
+const textLocationPreview = computed(
+	() =>
+		new Location("sample", `"${newLocationTitle.value}"`, {
+			subtitle: null,
+			coordinate: null,
+			lastUsed: new Date(),
+		})
+);
 
 const selectedLocationId = ref<string | null>(null);
 const selectedLocation = computed<Location | null>(() =>
@@ -61,14 +81,10 @@ const coordinates = computed(
 	() => selectedLocation.value?.coordinate ?? newLocationCoordinates.value ?? null
 );
 
-const hasChanged = computed(() => {
-	return false;
-});
-
 async function updateFocusState() {
 	// Wait until new focus is resolved before we check again
 	await new Promise(resolve => setTimeout(resolve, 30));
-	hasFocus.value = root.value?.contains(document.activeElement) ?? false;
+	hasFocus.value = titleField.value?.contains(document.activeElement) ?? false;
 }
 
 watch(
@@ -81,6 +97,10 @@ watch(
 
 function onLocationSelect(location: Location) {
 	selectedLocationId.value = location.id;
+	newLocationTitle.value = location.title;
+	newLocationSubtitle.value = location.subtitle ?? "";
+	newLocationCoordinates.value = location.coordinate !== null ? { ...location.coordinate } : null;
+	updateModelValue();
 	root.value?.focus();
 }
 
@@ -140,6 +160,7 @@ function updateSubtitle(subtitle: string) {
 		<div class="container">
 			<div class="fields">
 				<TextField
+					ref="titleField"
 					:model-value="title"
 					class="title-field"
 					:label="title ? 'location title' : 'location'"
@@ -147,7 +168,7 @@ function updateSubtitle(subtitle: string) {
 					@update:modelValue="updateTitle"
 				/>
 				<TextField
-					v-show="!!title"
+					v-show="!!title || !!subtitle"
 					:model-value="subtitle"
 					class="title-field"
 					label="location subtitle"
@@ -156,33 +177,15 @@ function updateSubtitle(subtitle: string) {
 				/>
 			</div>
 
-			<ActionButton
-				v-if="
-					!!modelValue || !!newLocationTitle || !!newLocationSubtitle || !!newLocationCoordinates
-				"
-				class="clear"
-				kind="bordered-destructive"
-				title="Clear location"
-				@click.prevent="clear"
-			>
-				<span>X</span>
-			</ActionButton>
-			<ActionButton
-				v-if="mayGetLocation && !hasChanged && !modelValue && !newLocationTitle"
-				class="current-location"
-				kind="bordered"
-				title="Get current location"
-				@click.prevent="getLocation"
-			>
-				<LocationIcon />
-			</ActionButton>
-
-			<List v-show="hasFocus && allLocations.length > 0" class="recent-location-select">
-				<li>
+			<List v-show="hasFocus" class="recent-location-select">
+				<li v-if="newLocationTitle" tabindex="0">
+					<LocationListItem :location="textLocationPreview" />
+				</li>
+				<li v-if="recentLocations.length > 0" tabindex="-1">
 					<strong>Recent Locations</strong>
 				</li>
 				<li
-					v-for="location in allLocations"
+					v-for="location in recentLocations"
 					:key="location.id"
 					tabindex="0"
 					@keydown.space="onLocationSelect(location)"
@@ -192,9 +195,28 @@ function updateSubtitle(subtitle: string) {
 					<LocationListItem :location="location" />
 				</li>
 			</List>
+
+			<ActionButton
+				v-if="!!selectedLocationId || !!title || !!subtitle || !!coordinates"
+				class="clear"
+				kind="bordered-destructive"
+				title="Clear location"
+				@click.prevent="clear"
+			>
+				<span>X</span>
+			</ActionButton>
+			<ActionButton
+				v-if="mayGetLocation && !selectedLocationId && !title"
+				class="current-location"
+				kind="bordered"
+				title="Get current location"
+				@click.prevent="getLocation"
+			>
+				<LocationIcon />
+			</ActionButton>
 		</div>
 
-		<p v-if="!mayGetLocation" class="disclaimer"
+		<p v-if="!mayGetLocation" class="disclaimer" @click.stop.prevent
 			>To get your current location, you'll need to enable the location service in
 			<router-link to="/settings">Settings</router-link>.</p
 		>
@@ -224,8 +246,9 @@ function updateSubtitle(subtitle: string) {
 		top: 4.4em;
 		left: 0;
 		z-index: 100;
+		width: calc(100% - 44pt - 8pt);
+		border-radius: 0 0 4pt 4pt;
 		background-color: color($secondary-fill);
-		border-radius: 4pt;
 
 		> li {
 			background-color: color($clear);

@@ -86,7 +86,18 @@ export const useLocationsStore = defineStore("locations", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createLocation(uid, record, dek);
+
+			// If the record matches the title and coords of an extant location, return that instead
+			const extantLocation = record.coordinate
+				? this.allLocations.find(
+						l =>
+							record.coordinate?.lat === l.coordinate?.lat &&
+							record.coordinate?.lng === l.coordinate?.lng &&
+							record.title === l.title
+				  )
+				: undefined;
+
+			return extantLocation ?? (await createLocation(uid, record, dek));
 		},
 		async updateLocation(location: Location): Promise<void> {
 			const authStore = useAuthStore();

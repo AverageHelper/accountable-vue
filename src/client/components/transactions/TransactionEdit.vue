@@ -64,7 +64,8 @@ const hasChanges = computed(() => {
 			isReconciled.value !== (ogTransaction.value?.isReconciled ?? false) ||
 			locationData.value?.title !== ogLocation.value?.title ||
 			locationData.value?.subtitle !== ogLocation.value?.subtitle ||
-			locationData.value?.coordinate !== ogLocation.value?.coordinate
+			locationData.value?.coordinate?.lat !== ogLocation.value?.coordinate?.lat ||
+			locationData.value?.coordinate?.lng !== ogLocation.value?.coordinate?.lng
 		);
 	}
 	return (
@@ -110,10 +111,13 @@ async function submit() {
 		const ogLocationId = ogTransaction.value?.locationId ?? null;
 		if (ogLocationId !== null) {
 			// The next step will replace the location link
-			// Just delete the location if this is the only transaction which referenced it
+			// Just delete the location if this is the only transaction which references it
 			const ogLocation = locations.items[ogLocationId];
 			if (ogLocation) {
-				await transactions.deleteLocationIfUnreferenced(ogLocation);
+				const referenceCount = transactions.numberOfReferencesForLocation(ogLocation.id);
+				if (referenceCount > 1) {
+					await locations.deleteLocation(ogLocation);
+				}
 			}
 		}
 

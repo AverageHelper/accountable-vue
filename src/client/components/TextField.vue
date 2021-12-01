@@ -45,6 +45,7 @@ const props = defineProps({
 });
 const { modelValue } = toRefs(props);
 
+const root = ref<HTMLLabelElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
 
 function onInput(event: Event): void {
@@ -84,11 +85,15 @@ function focus(): void {
 	input.value?.focus();
 }
 
-defineExpose({ focus });
+function contains(node: Node | null): boolean {
+	return root.value?.contains(node) ?? false;
+}
+
+defineExpose({ focus, contains });
 </script>
 
 <template>
-	<label class="text-input__container">
+	<label ref="root" class="text-input__container">
 		<div class="text-input__label" @click="focus">
 			{{ label }}
 			<span v-if="required && showsRequired" class="text-input__required">(required)</span>

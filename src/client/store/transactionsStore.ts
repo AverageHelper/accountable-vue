@@ -181,6 +181,18 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			return count;
 		},
+		numberOfReferencesForLocation(locationId: string | undefined): number {
+			if (locationId === undefined) return 0;
+			let count = 0;
+
+			this.allTransactions.forEach(transaction => {
+				if (transaction.locationId === locationId) {
+					count += 1;
+				}
+			});
+
+			return count;
+		},
 		async createTransaction(
 			account: Account,
 			record: TransactionRecordParams

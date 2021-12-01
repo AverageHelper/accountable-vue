@@ -168,9 +168,6 @@ export const useAttachmentsStore = defineStore("attachments", {
 				}));
 		},
 		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
-			// FIXME: Import leaves broken references
-			// TODO: Add a way to fix broken references as users find them
-
 			const storedAttachment = this.items[attachmentToImport.id];
 
 			const path = `accountable/storage/${attachmentToImport.storagePath.split(".")[0] as string}/${
