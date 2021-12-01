@@ -193,11 +193,12 @@ export const useAuthStore = defineStore("auth", {
 			const oldCredential = EmailAuthProvider.credential(email, sha512(password));
 			await reauthenticateWithCredential(auth.currentUser, oldCredential);
 
-			const { accounts, attachments, tags, transactions } = await stores();
+			const { accounts, attachments, locations, tags, transactions } = await stores();
 			await attachments.deleteAllAttachments();
 			await transactions.deleteAllTransactions();
 			await tags.deleteAllTags();
 			await accounts.deleteAllAccounts();
+			await locations.deleteAllLocation();
 			await deleteUserPreferences(auth.currentUser.uid);
 			await deleteAuthMaterial(auth.currentUser.uid);
 

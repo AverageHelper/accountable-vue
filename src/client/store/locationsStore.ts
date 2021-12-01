@@ -112,7 +112,10 @@ export const useLocationsStore = defineStore("locations", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateLocation(uid, location, dek);
 		},
-		async deleteLocation(location: Location): Promise<void> {
+		async deleteAllLocation(): Promise<void> {
+			await Promise.all(this.allLocations.map(this.deleteLocation));
+		},
+		async deleteLocation(this: void, location: Location): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");

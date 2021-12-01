@@ -176,7 +176,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const fileRef = zip?.files[path] ?? null;
 
 			const blobToImport = (await fileRef?.async("blob")) ?? null;
-			if (!blobToImport) return;
+			if (!blobToImport) return; // no blob? leave the reference broken.
 			const fileToImport = new File([blobToImport], attachmentToImport.title.trim(), {
 				type: attachmentToImport.type?.trim(),
 			});
