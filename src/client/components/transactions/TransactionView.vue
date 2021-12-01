@@ -191,9 +191,14 @@ async function onFileReceived(file: File) {
 		<!-- Location -->
 		<div v-if="locationId" class="key-value-pair" aria-label="Transaction Location">
 			<span class="key">Location</span>
-			<a href="#" class="value" @click.prevent="isViewingLocation = true"
+			<a
+				v-if="location?.coordinate || location?.subtitle"
+				href="#"
+				class="value"
+				@click.prevent="isViewingLocation = true"
 				>{{ location?.title ?? locationId }} <LocationIcon v-if="location?.coordinate" />
 			</a>
+			<span v-else class="value">&quot;{{ location?.title ?? locationId }}&quot;</span>
 			<Modal :open="isViewingLocation" :close-modal="() => (isViewingLocation = false)">
 				<LocationView v-if="location" :location="location" />
 			</Modal>

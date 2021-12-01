@@ -43,6 +43,7 @@ const ui = useUiStore();
 
 const root = ref<HTMLLabelElement | null>(null);
 const titleField = ref<HTMLLabelElement | null>(null);
+const recentsList = ref<HTMLUListElement | null>(null);
 const hasFocus = ref(false);
 
 const locationPreference = computed(() => auth.preferences.locationSensitivity);
@@ -84,7 +85,9 @@ const coordinates = computed(
 async function updateFocusState() {
 	// Wait until new focus is resolved before we check again
 	await new Promise(resolve => setTimeout(resolve, 30));
-	hasFocus.value = titleField.value?.contains(document.activeElement) ?? false;
+	hasFocus.value =
+		(titleField.value?.contains(document.activeElement) ?? false) ||
+		(recentsList.value?.contains(document.activeElement) ?? false);
 }
 
 watch(
@@ -96,12 +99,15 @@ watch(
 );
 
 function onLocationSelect(location: Location) {
+	// Fill fields with this location's details
 	selectedLocationId.value = location.id;
 	newLocationTitle.value = location.title;
 	newLocationSubtitle.value = location.subtitle ?? "";
 	newLocationCoordinates.value = location.coordinate !== null ? { ...location.coordinate } : null;
 	updateModelValue();
-	root.value?.focus();
+
+	// Hide the recents list for now, since we just got this entry from there
+	hasFocus.value = false;
 }
 
 async function getLocation() {
@@ -177,7 +183,7 @@ function updateSubtitle(subtitle: string) {
 				/>
 			</div>
 
-			<List v-show="hasFocus" class="recent-location-select">
+			<List ref="recentsList" v-show="hasFocus" class="recent-location-select">
 				<li v-if="newLocationTitle" tabindex="0">
 					<LocationListItem :location="textLocationPreview" />
 				</li>
@@ -188,9 +194,9 @@ function updateSubtitle(subtitle: string) {
 					v-for="location in recentLocations"
 					:key="location.id"
 					tabindex="0"
-					@keydown.space="onLocationSelect(location)"
-					@enter="onLocationSelect(location)"
-					@click="onLocationSelect(location)"
+					@keydown.space.stop.prevent="onLocationSelect(location)"
+					@enter.stop.prevent="onLocationSelect(location)"
+					@click.stop.prevent="onLocationSelect(location)"
 				>
 					<LocationListItem :location="location" />
 				</li>

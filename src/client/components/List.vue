@@ -1,5 +1,17 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const root = ref<HTMLUListElement | null>(null);
+
+function contains(node: Node | null): boolean {
+	return root.value?.contains(node) ?? false;
+}
+
+defineExpose({ contains });
+</script>
+
 <template>
-	<ul>
+	<ul ref="root">
 		<slot />
 	</ul>
 </template>

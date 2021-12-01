@@ -89,13 +89,15 @@ export const useLocationsStore = defineStore("locations", {
 
 			// If the record matches the title and coords of an extant location, return that instead
 			const extantLocation = record.coordinate
-				? this.allLocations.find(
+				? // coordinate matches
+				  this.allLocations.find(
 						l =>
 							record.coordinate?.lat === l.coordinate?.lat &&
 							record.coordinate?.lng === l.coordinate?.lng &&
 							record.title === l.title
 				  )
-				: undefined;
+				: // title matches
+				  this.allLocations.find(l => record.title === l.title && record.subtitle === l.subtitle);
 
 			return extantLocation ?? (await createLocation(uid, record, dek));
 		},
