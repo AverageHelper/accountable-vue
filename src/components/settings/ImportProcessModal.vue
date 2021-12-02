@@ -38,11 +38,29 @@ const accountIdsToImport = reactive(new Set<string>());
 const numberOfAttachmentsToImport = computed(() => db.value?.attachments?.length ?? 0);
 const numberOfLocationsToImport = computed(() => db.value?.locations?.length ?? 0);
 const numberOfTagsToImport = computed(() => db.value?.tags?.length ?? 0);
+
 const isImporting = ref(false);
-const importProgress = ref(1);
-const importProgressPercent = computed(() =>
-	Intl.NumberFormat(undefined, { style: "percent" }).format(importProgress.value)
-);
+const itemsImported = ref(0);
+const totalItemsToImport = computed(() => {
+	let numberOfTransactionsToImport = 0;
+	accountIdsToImport.forEach(a => {
+		numberOfTransactionsToImport += transactionCounts.value[a] ?? 0;
+	});
+
+	return (
+		numberOfTransactionsToImport +
+		numberOfTagsToImport.value +
+		numberOfLocationsToImport.value +
+		numberOfAttachmentsToImport.value +
+		accountIdsToImport.size
+	);
+});
+const importProgressPercent = computed(() => {
+	const yet = itemsImported.value;
+	const total = totalItemsToImport.value;
+	const progress = total === 0 ? 1 : yet / total;
+	return Intl.NumberFormat(undefined, { style: "percent" }).format(progress);
+});
 
 const hasDb = computed(() => db.value !== null);
 const storedAccounts = computed(() => accounts.allAccounts);
@@ -94,34 +112,39 @@ function forgetDb() {
 async function beginImport() {
 	if (!db.value) return;
 	isImporting.value = true;
-	importProgress.value = 0;
+	itemsImported.value = 0;
 
 	try {
-		const total = accountIdsToImport.size === 0 ? 1 : accountIdsToImport.size;
-		let finished = 0;
-
 		for (const accountId of accountIdsToImport) {
 			const accountToImport = db.value.accounts?.find(a => a.id === accountId);
 			if (!accountToImport) continue;
 			await accounts.importAccount(accountToImport);
 
-			importProgress.value = finished / total;
+			itemsImported.value += transactionCounts.value[accountToImport.id] ?? 0;
+			itemsImported.value += 1;
 			await nextTick();
-			finished += 1;
 		}
 
 		await locations.importLocations(db.value.locations ?? []);
-		await tags.importTags(db.value.tags ?? []);
-		await attachments.importAttachments(db.value.attachments ?? [], zip.value);
+		itemsImported.value += numberOfLocationsToImport.value;
+		await nextTick();
 
+		await tags.importTags(db.value.tags ?? []);
+		itemsImported.value += numberOfTagsToImport.value;
+		await nextTick();
+
+		await attachments.importAttachments(db.value.attachments ?? [], zip.value);
+		itemsImported.value += numberOfAttachmentsToImport.value;
+		await nextTick();
+
+		itemsImported.value = totalItemsToImport.value;
+		await nextTick();
 		toast.success("Imported all the things!");
 		emit("finished");
 	} catch (error: unknown) {
 		ui.handleError(error);
 	}
 
-	importProgress.value = 1;
-	await nextTick();
 	isImporting.value = false;
 }
 </script>
