@@ -19,7 +19,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@averagehelper/job-queue": "^0.9.6",
+		"@averagehelper/job-queue": "^1.0.1",
 		"atob-lite": "^2.0.0",
 		"btoa-lite": "^1.0.0",
 		"crypto-js": "^4.1.1",
