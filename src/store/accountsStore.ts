@@ -129,7 +129,7 @@ export const useAccountsStore = defineStore("accounts", {
 		async deleteAllAccounts(): Promise<void> {
 			for (const accounts of chunk(this.allAccounts, 500)) {
 				const batch = writeBatch();
-				accounts.forEach(a => void this.deleteAccount(a, batch));
+				await Promise.all(accounts.map(a => this.deleteAccount(a, batch)));
 				await batch.commit();
 			}
 		},

@@ -231,7 +231,7 @@ export const useTransactionsStore = defineStore("transactions", {
 		async deleteAllTransactions(): Promise<void> {
 			for (const transactions of chunk(this.allTransactions, 500)) {
 				const batch = writeBatch();
-				transactions.forEach(t => void this.deleteTransaction(t, batch));
+				await Promise.all(transactions.map(t => this.deleteTransaction(t, batch)));
 				await batch.commit();
 			}
 		},
@@ -248,7 +248,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const relevantTransactions = this.allTransactions.filter(t => t.tagIds.includes(tag.id));
 			for (const transactions of chunk(relevantTransactions, 500)) {
 				const batch = writeBatch();
-				transactions.forEach(t => void this.removeTagFromTransaction(tag, t, batch));
+				await Promise.all(transactions.map(t => this.removeTagFromTransaction(tag, t, batch)));
 				await batch.commit();
 			}
 		},
@@ -323,7 +323,7 @@ export const useTransactionsStore = defineStore("transactions", {
 		async importTransactions(data: Array<TransactionSchema>, account: Account): Promise<void> {
 			for (const transactions of chunk(data, 500)) {
 				const batch = writeBatch();
-				transactions.forEach(t => void this.importTransaction(t, account, batch));
+				await Promise.all(transactions.map(t => this.importTransaction(t, account, batch)));
 				await batch.commit();
 			}
 		},

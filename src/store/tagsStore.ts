@@ -116,7 +116,7 @@ export const useTagsStore = defineStore("tags", {
 		async deleteAllTags(): Promise<void> {
 			for (const tags of chunk(this.allTags, 500)) {
 				const batch = writeBatch();
-				tags.forEach(t => void this.deleteTag(t, batch));
+				await Promise.all(tags.map(t => this.deleteTag(t, batch)));
 				await batch.commit();
 			}
 		},

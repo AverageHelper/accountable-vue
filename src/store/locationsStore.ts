@@ -118,7 +118,7 @@ export const useLocationsStore = defineStore("locations", {
 		async deleteAllLocation(): Promise<void> {
 			for (const locations of chunk(this.allLocations, 500)) {
 				const batch = writeBatch();
-				locations.forEach(l => void this.deleteLocation(l, batch));
+				await Promise.all(locations.map(l => this.deleteLocation(l, batch)));
 				await batch.commit();
 			}
 		},
@@ -207,7 +207,7 @@ export const useLocationsStore = defineStore("locations", {
 			// Only batch 250 at a time, since each import does up to 2 writes
 			for (const locations of chunk(data, 250)) {
 				const batch = writeBatch();
-				locations.forEach(l => void this.importLocation(l, batch));
+				await Promise.all(locations.map(l => this.importLocation(l, batch)));
 				await batch.commit();
 			}
 		},
