@@ -45,6 +45,7 @@ function goBack() {
 	position: relative;
 	text-align: center;
 	height: 44pt;
+	width: 100vw;
 	background-color: color($navbar-background);
 	color: color($label-dark);
 

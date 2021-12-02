@@ -43,7 +43,6 @@ onMounted(() => {
 			</router-view> -->
 		</template>
 	</main>
-	<div id="modal" />
 </template>
 
 <style lang="scss">
@@ -61,7 +60,11 @@ body {
 }
 
 main.content {
-	margin: 1em;
+	margin: 0;
+	padding: 1em;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	height: calc(100vh - 44pt);
 
 	.error {
 		color: color($red);
