@@ -97,7 +97,7 @@ async function beginImport() {
 	importProgress.value = 0;
 
 	try {
-		let total = accountIdsToImport.size || 1;
+		const total = accountIdsToImport.size === 0 ? 1 : accountIdsToImport.size;
 		let finished = 0;
 
 		for (const accountId of accountIdsToImport) {
@@ -107,6 +107,7 @@ async function beginImport() {
 
 			importProgress.value = finished / total;
 			await nextTick();
+			finished += 1;
 		}
 
 		await locations.importLocations(db.value.locations ?? []);

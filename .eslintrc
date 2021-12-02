@@ -1,12 +1,6 @@
 {
 	"root": true,
-	"ignorePatterns": [
-		"dist",
-		"node_modules",
-		"src/client/version.ts",
-		"src/server/version.ts",
-		".gitignore"
-	],
+	"ignorePatterns": ["dist", "node_modules", "src/version.ts", "server/version.ts", ".gitignore"],
 
 	"extends": [
 		"strictest/eslint",
@@ -58,7 +52,7 @@
 
 	"overrides": [
 		{
-			"files": ["src/client/**/*.vue"],
+			"files": ["src/**/*.vue"],
 			"parser": "vue-eslint-parser",
 			"parserOptions": {
 				"parser": "@typescript-eslint/parser",
@@ -117,6 +111,30 @@
 			"parserOptions": {
 				"project": "./tsconfig.test.json",
 				"tsconfigRootDir": "."
+			},
+			"env": {
+				"jest": true
+			},
+			"rules": {
+				"prettier/prettier": "warn",
+				"max-nested-callbacks": "off" // Unit tests involve a lot of nested callbacks
+			}
+		},
+		{
+			"files": ["./server/**/*.ts"],
+			"parserOptions": {
+				"project": "./tsconfig.server.json",
+				"tsconfigRootDir": "./server"
+			}
+		},
+		{
+			"files": ["./server/**/*.test.ts", "./server/tests/**/*.ts", "./server/**/__mocks__/**/*.ts"],
+			"extends": ["plugin:prettier/recommended"],
+			"plugins": ["prettier", "@typescript-eslint"],
+			"parser": "@typescript-eslint/parser",
+			"parserOptions": {
+				"project": "./tsconfig.server.json",
+				"tsconfigRootDir": "./server"
 			},
 			"env": {
 				"jest": true

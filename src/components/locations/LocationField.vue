@@ -51,7 +51,9 @@ const mayGetLocation = computed(() => locationPreference.value !== "none");
 
 const allLocations = computed(() => locations.allLocations);
 const searchClient = computed(() => new Fuse(allLocations.value, { keys: ["title", "subtitle"] }));
-const shouldSearch = computed(() => selectedLocationId.value === null && !!newLocationTitle.value);
+const shouldSearch = computed(
+	() => selectedLocationId.value === null && newLocationTitle.value !== ""
+);
 const recentLocations = computed(() =>
 	shouldSearch.value
 		? searchClient.value.search(newLocationTitle.value).map(r => r.item)
@@ -183,7 +185,7 @@ function updateSubtitle(subtitle: string) {
 				/>
 			</div>
 
-			<List ref="recentsList" v-show="hasFocus" class="recent-location-select">
+			<List v-show="hasFocus" ref="recentsList" class="recent-location-select">
 				<li v-if="newLocationTitle" tabindex="0">
 					<LocationListItem :location="textLocationPreview" />
 				</li>

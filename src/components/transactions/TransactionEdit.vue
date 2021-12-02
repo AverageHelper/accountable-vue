@@ -31,7 +31,7 @@ const locations = useLocationsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
 
-const ogTransaction = computed(() => transaction.value as Transaction | null);
+const ogTransaction = computed(() => transaction.value);
 const ogLocation = computed(() =>
 	ogTransaction.value?.locationId !== null && ogTransaction.value?.locationId !== undefined
 		? locations.items[ogTransaction.value.locationId] ?? null
