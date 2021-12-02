@@ -41,7 +41,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			this.files = {};
 			this.items = {};
 			this.loadError = null;
-			console.log("attachmentsStore: cache cleared");
+			console.debug("attachmentsStore: cache cleared");
 		},
 		watchAttachments(force: boolean = false) {
 			if (this.attachmentsWatcher && !force) return;

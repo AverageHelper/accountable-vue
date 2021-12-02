@@ -137,8 +137,6 @@ async function beginImport() {
 		itemsImported.value += numberOfAttachmentsToImport.value;
 		await nextTick();
 
-		itemsImported.value = totalItemsToImport.value;
-		await nextTick();
 		toast.success("Imported all the things!");
 		emit("finished");
 	} catch (error: unknown) {

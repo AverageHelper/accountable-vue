@@ -75,7 +75,7 @@ async function createTag(params: TagRecordParams) {
 }
 
 function modifyTag(tag: TagObject) {
-	console.log("modify", tag);
+	console.debug("modify", tag);
 }
 
 async function removeTag(tag: TagObject) {

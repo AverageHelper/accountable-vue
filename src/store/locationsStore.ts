@@ -37,7 +37,7 @@ export const useLocationsStore = defineStore("locations", {
 			}
 			this.items = {};
 			this.loadError = null;
-			console.log("locationsStore: cache cleared");
+			console.debug("locationsStore: cache cleared");
 		},
 		watchLocations(force: boolean = false) {
 			if (this.locationsWatcher && !force) return;

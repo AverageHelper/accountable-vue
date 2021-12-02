@@ -44,7 +44,7 @@ export const useAccountsStore = defineStore("accounts", {
 			this.items = {};
 			this.currentBalance = {};
 			this.loadError = null;
-			console.log("accountsStore: cache cleared");
+			console.debug("accountsStore: cache cleared");
 		},
 		watchAccounts(force: boolean = false) {
 			if (this.accountsWatcher && !force) return;

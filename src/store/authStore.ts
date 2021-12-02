@@ -81,7 +81,7 @@ export const useAuthStore = defineStore("auth", {
 			this.accountId = null;
 			this.isNewLogin = false;
 			this.preferences = defaultPrefs();
-			console.log("authStore: cache cleared");
+			console.debug("authStore: cache cleared");
 		},
 		watchAuthState() {
 			if (this.authStateWatcher) this.authStateWatcher();

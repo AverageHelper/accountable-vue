@@ -38,6 +38,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+@use "styles/setup" as *;
 @use "styles/colors" as *;
 
 .modal {
@@ -53,9 +54,9 @@ onBeforeUnmount(() => {
 	opacity: 1;
 	transition: all 0.3s cubic-bezier(0.36, 0, 0.66, -0.56) 0.02s;
 
-	// @include mq($until: tablet) {
-	// 	padding: 2em 1em 1em;
-	// }
+	@include mq($until: tablet) {
+		padding: 2em 1em 1em;
+	}
 
 	.modal-enter-from &,
 	.modal-leave-to & {
@@ -120,10 +121,9 @@ onBeforeUnmount(() => {
 		text-align: center;
 		font-size: 30px;
 
-		// TODO: Set up sass mq
-		// @include mq($until: tablet) {
-		// 	font-size: 22px;
-		// }
+		@include mq($until: tablet) {
+			font-size: 22px;
+		}
 	}
 
 	&__button-wrap {

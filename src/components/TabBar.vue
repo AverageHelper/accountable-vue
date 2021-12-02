@@ -32,6 +32,7 @@ const currentTab = computed<Tab | null>(() => {
 </template>
 
 <style scoped lang="scss">
+@use "styles/setup" as *;
 @use "styles/colors" as *;
 
 nav {
@@ -40,5 +41,10 @@ nav {
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
+	overflow-y: scroll;
+
+	@include mq($until: mobile) {
+		width: 88pt;
+	}
 }
 </style>

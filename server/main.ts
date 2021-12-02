@@ -13,5 +13,5 @@ express() //
 		res.send("Hello, world!");
 	})
 	.listen(port, () => {
-		console.log(`Example app listening at http://localhost:${port}`);
+		process.stdout.write(`Example app listening at http://localhost:${port}\n`);
 	});
