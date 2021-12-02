@@ -211,9 +211,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			}
 		},
 		async importAttachments(data: Array<AttachmentSchema>, zip: JSZip | null): Promise<void> {
-			await Promise.all(
-				data.map(attachmentToImport => this.importAttachment(attachmentToImport, zip))
-			);
+			await Promise.all(data.map(a => this.importAttachment(a, zip)));
 		},
 	},
 });

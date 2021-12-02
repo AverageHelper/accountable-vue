@@ -156,7 +156,7 @@ export const useTagsStore = defineStore("tags", {
 		async importTags(data: Array<TagSchema>): Promise<void> {
 			for (const tags of chunk(data, 500)) {
 				const batch = writeBatch();
-				tags.map(t => this.importTag(t, batch));
+				await Promise.all(tags.map(t => this.importTag(t, batch)));
 				await batch.commit();
 			}
 		},
