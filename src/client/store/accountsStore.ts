@@ -1,12 +1,13 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
-import type { HashStore } from "../transport";
+import type { HashStore, WriteBatch } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import chunk from "lodash/chunk";
 import {
 	asyncMap,
 	createAccount,
@@ -16,6 +17,7 @@ import {
 	accountFromSnapshot,
 	accountsCollection,
 	watchAllRecords,
+	writeBatch,
 } from "../transport";
 
 export const useAccountsStore = defineStore("accounts", {
@@ -85,7 +87,7 @@ export const useAccountsStore = defineStore("accounts", {
 				}
 			);
 		},
-		async createAccount(record: AccountRecordParams): Promise<Account> {
+		async createAccount(record: AccountRecordParams, batch?: WriteBatch): Promise<Account> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -94,9 +96,9 @@ export const useAccountsStore = defineStore("accounts", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createAccount(uid, record, dek);
+			return await createAccount(uid, record, dek, batch);
 		},
-		async updateAccount(account: Account): Promise<void> {
+		async updateAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -105,9 +107,9 @@ export const useAccountsStore = defineStore("accounts", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateAccount(uid, account, dek);
+			await updateAccount(uid, account, dek, batch);
 		},
-		async deleteAccount(this: void, account: Account): Promise<void> {
+		async deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -122,10 +124,14 @@ export const useAccountsStore = defineStore("accounts", {
 				throw new Error("Cannot delete an account that has transactions.");
 			}
 
-			await deleteAccount(uid, account);
+			await deleteAccount(uid, account, batch);
 		},
 		async deleteAllAccounts(): Promise<void> {
-			await Promise.all(this.allAccounts.map(this.deleteAccount));
+			for (const accounts of chunk(this.allAccounts, 500)) {
+				const batch = writeBatch();
+				accounts.forEach(a => void this.deleteAccount(a, batch));
+				await batch.commit();
+			}
 		},
 		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
 			const authStore = useAuthStore();
@@ -151,7 +157,7 @@ export const useAccountsStore = defineStore("accounts", {
 				};
 			});
 		},
-		async importAccount(accountToImport: AccountSchema): Promise<void> {
+		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {
 			const accountId = accountToImport.id;
 			const storedAccount = this.items[accountId] ?? null;
 
@@ -159,7 +165,7 @@ export const useAccountsStore = defineStore("accounts", {
 			if (storedAccount) {
 				// If duplicate, overwrite the one we have
 				newAccount = storedAccount.updatedWith(accountToImport);
-				await this.updateAccount(newAccount);
+				await this.updateAccount(newAccount, batch);
 			} else {
 				// If new, create a new account
 				const params: AccountRecordParams = {
@@ -167,7 +173,7 @@ export const useAccountsStore = defineStore("accounts", {
 					title: accountToImport.title.trim(),
 					notes: accountToImport.notes?.trim() ?? null,
 				};
-				newAccount = await this.createAccount(params);
+				newAccount = await this.createAccount(params, batch);
 			}
 
 			const { transactions } = await stores();

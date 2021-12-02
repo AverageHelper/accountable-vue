@@ -6,6 +6,7 @@ import { computed } from "vue";
 
 const locations = useLocationsStore();
 
+// FIXME: This somehow stays between login sessions
 const allLocations = computed(() => locations.allLocations);
 const numberOfLocations = computed(() => allLocations.value.length);
 </script>

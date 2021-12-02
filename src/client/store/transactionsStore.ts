@@ -1,5 +1,5 @@
 import type { Account } from "../model/Account";
-import type { HashStore } from "../transport";
+import type { HashStore, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { TransactionSchema } from "../model/DatabaseSchema";
@@ -12,6 +12,7 @@ import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
+import chunk from "lodash/chunk";
 import {
 	getTransactionsForAccount,
 	createTransaction,
@@ -21,6 +22,7 @@ import {
 	transactionFromSnapshot,
 	transactionsCollection,
 	watchAllRecords,
+	writeBatch,
 } from "../transport";
 
 export const useTransactionsStore = defineStore("transactions", {
@@ -195,7 +197,8 @@ export const useTransactionsStore = defineStore("transactions", {
 		},
 		async createTransaction(
 			account: Account,
-			record: TransactionRecordParams
+			record: TransactionRecordParams,
+			batch?: WriteBatch
 		): Promise<Transaction> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
@@ -205,10 +208,9 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			const transaction = await createTransaction(uid, account, record, dek);
-			return transaction;
+			return await createTransaction(uid, account, record, dek, batch);
 		},
-		async updateTransaction(transaction: Transaction) {
+		async updateTransaction(transaction: Transaction, batch?: WriteBatch) {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -217,48 +219,62 @@ export const useTransactionsStore = defineStore("transactions", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateTransaction(uid, transaction, dek);
+			await updateTransaction(uid, transaction, dek, batch);
 		},
-		async deleteTransaction(this: void, transaction: Transaction) {
+		async deleteTransaction(transaction: Transaction, batch?: WriteBatch) {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
-			await deleteTransaction(uid, transaction);
+			await deleteTransaction(uid, transaction, batch);
 		},
 		async deleteAllTransactions(): Promise<void> {
-			await Promise.all(this.allTransactions.map(this.deleteTransaction));
+			for (const transactions of chunk(this.allTransactions, 500)) {
+				const batch = writeBatch();
+				transactions.forEach(t => void this.deleteTransaction(t, batch));
+				await batch.commit();
+			}
 		},
-		async removeTagFromTransaction(tag: Tag, transaction: Transaction): Promise<void> {
+		async removeTagFromTransaction(
+			tag: Tag,
+			transaction: Transaction,
+			batch?: WriteBatch
+		): Promise<void> {
 			transaction.removeTagId(tag.id);
-			await this.updateTransaction(transaction);
+			await this.updateTransaction(transaction, batch);
 		},
 		async removeTagFromAllTransactions(tag: Tag): Promise<void> {
-			await Promise.all(
-				this.allTransactions
-					.filter(t => t.tagIds.includes(tag.id)) // for each T that has this tag...
-					.map(t => this.removeTagFromTransaction(tag, t)) // remove the tag
-			);
+			// for each transaction that has this tag, remove the tag
+			const relevantTransactions = this.allTransactions.filter(t => t.tagIds.includes(tag.id));
+			for (const transactions of chunk(relevantTransactions, 500)) {
+				const batch = writeBatch();
+				transactions.forEach(t => void this.removeTagFromTransaction(tag, t, batch));
+				await batch.commit();
+			}
 		},
-		async removeAttachmentFromTransaction(fileId: string, transaction: Transaction): Promise<void> {
+		async removeAttachmentFromTransaction(
+			fileId: string,
+			transaction: Transaction,
+			batch?: WriteBatch
+		): Promise<void> {
 			transaction.removeAttachmentId(fileId);
-			await this.updateTransaction(transaction);
+			await this.updateTransaction(transaction, batch);
 		},
-		async deleteTagIfUnreferenced(tag: Tag): Promise<void> {
+		async deleteTagIfUnreferenced(tag: Tag, batch?: WriteBatch): Promise<void> {
 			if (this.tagIsReferenced(tag.id)) return;
 
 			// This tag is unreferenced
 			const { useTagsStore } = await import("./tagsStore");
 			const tags = useTagsStore();
-			await tags.deleteTag(tag);
+			await tags.deleteTag(tag, batch);
 		},
-		async deleteLocationIfUnreferenced(location: Location) {
+		async deleteLocationIfUnreferenced(location: Location, batch?: WriteBatch) {
 			if (this.locationIsReferenced(location.id)) return;
 
 			// This location is unreferenced
 			const { useLocationsStore } = await import("./locationsStore");
 			const locations = useLocationsStore();
-			await locations.deleteLocation(location);
+			await locations.deleteLocation(location, batch);
 		},
 		async getAllTransactionsAsJson(account: Account): Promise<Array<TransactionSchema>> {
 			const authStore = useAuthStore();
@@ -281,14 +297,15 @@ export const useTransactionsStore = defineStore("transactions", {
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,
-			account: Account
+			account: Account,
+			batch?: WriteBatch
 		): Promise<void> {
 			const storedTransactions = this.transactionsForAccount[account.id] ?? {};
 			const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
 			if (storedTransaction) {
 				// If duplicate, overwrite the one we have
 				const newTransaction = storedTransaction.updatedWith(transactionToImport);
-				await this.updateTransaction(newTransaction);
+				await this.updateTransaction(newTransaction, batch);
 			} else {
 				// If new, create a new transaction
 				const params: TransactionRecordParams = {
@@ -300,12 +317,14 @@ export const useTransactionsStore = defineStore("transactions", {
 					title: transactionToImport.title?.trim() ?? null,
 					notes: transactionToImport.notes?.trim() ?? null,
 				};
-				await this.createTransaction(account, params);
+				await this.createTransaction(account, params, batch);
 			}
 		},
 		async importTransactions(data: Array<TransactionSchema>, account: Account): Promise<void> {
-			for (const transactionToImport of data) {
-				await this.importTransaction(transactionToImport, account);
+			for (const transactions of chunk(data, 500)) {
+				const batch = writeBatch();
+				transactions.forEach(t => void this.importTransaction(t, account, batch));
+				await batch.commit();
 			}
 		},
 	},

@@ -4,11 +4,12 @@ import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
+	WriteBatch,
 } from "firebase/firestore";
 import { db, recordFromSnapshot } from "./db";
 import { encrypt } from "./cryption";
 import { Location } from "../model/Location";
-import { collection, doc, addDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 export type LocationPref = "none" | "vague" | "specific";
 export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
@@ -39,29 +40,50 @@ export function locationFromSnapshot(
 export async function createLocation(
 	uid: string,
 	record: LocationRecordParams,
-	dek: HashStore
+	dek: HashStore,
+	batch?: WriteBatch
 ): Promise<Location> {
 	const meta: LocationRecordPackageMetadata = {
 		objectType: "Location",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = await addDoc(locationsCollection(uid), pkg);
+	const ref = doc(locationsCollection(uid));
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 	return new Location(ref.id, record.title, record);
 }
 
 export async function updateLocation(
 	uid: string,
 	location: Location,
-	dek: HashStore
+	dek: HashStore,
+	batch?: WriteBatch
 ): Promise<void> {
 	const meta: LocationRecordPackageMetadata = {
 		objectType: "Location",
 	};
 	const record: LocationRecordParams = location.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	await setDoc(locationRef(uid, location), pkg);
+	const ref = locationRef(uid, location);
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 }
 
-export async function deleteLocation(uid: string, location: Location): Promise<void> {
-	await deleteDoc(locationRef(uid, location));
+export async function deleteLocation(
+	uid: string,
+	location: Location,
+	batch?: WriteBatch
+): Promise<void> {
+	const ref = locationRef(uid, location);
+	if (batch) {
+		batch.delete(ref);
+	} else {
+		await deleteDoc(ref);
+	}
 }

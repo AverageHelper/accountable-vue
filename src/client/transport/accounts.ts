@@ -2,13 +2,14 @@ import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
+	WriteBatch,
 } from "firebase/firestore";
 import type { AccountRecordParams } from "../model/Account";
 import type { EPackage, HashStore } from "./cryption";
 import { encrypt } from "./cryption";
 import { Account } from "../model/Account";
 import { db, recordFromSnapshot } from "./db";
-import { collection, doc, addDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 interface AccountRecordPackageMetadata {
 	objectType: "Account";
@@ -36,25 +37,50 @@ export function accountFromSnapshot(
 export async function createAccount(
 	uid: string,
 	record: AccountRecordParams,
-	dek: HashStore
+	dek: HashStore,
+	batch?: WriteBatch
 ): Promise<Account> {
 	const meta: AccountRecordPackageMetadata = {
 		objectType: "Account",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = await addDoc(accountsCollection(uid), pkg);
+	const ref = doc(accountsCollection(uid));
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 	return new Account(ref.id, record);
 }
 
-export async function updateAccount(uid: string, account: Account, dek: HashStore): Promise<void> {
+export async function updateAccount(
+	uid: string,
+	account: Account,
+	dek: HashStore,
+	batch?: WriteBatch
+): Promise<void> {
 	const meta: AccountRecordPackageMetadata = {
 		objectType: "Account",
 	};
 	const record: AccountRecordParams = account.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	await setDoc(accountRef(uid, account), pkg);
+	const ref = accountRef(uid, account);
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 }
 
-export async function deleteAccount(uid: string, account: Account): Promise<void> {
-	await deleteDoc(accountRef(uid, account));
+export async function deleteAccount(
+	uid: string,
+	account: Account,
+	batch?: WriteBatch
+): Promise<void> {
+	const ref = accountRef(uid, account);
+	if (batch) {
+		batch.delete(ref);
+	} else {
+		await deleteDoc(ref);
+	}
 }

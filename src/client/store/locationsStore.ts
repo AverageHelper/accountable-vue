@@ -1,10 +1,12 @@
 import type { Location, LocationRecordParams } from "../model/Location";
-import type { HashStore } from "../transport";
+import type { HashStore, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
+import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import chunk from "lodash/chunk";
 import {
 	createLocation,
 	deriveDEK,
@@ -13,6 +15,7 @@ import {
 	locationFromSnapshot,
 	locationsCollection,
 	watchAllRecords,
+	writeBatch,
 } from "../transport";
 
 export const useLocationsStore = defineStore("locations", {
@@ -77,7 +80,7 @@ export const useLocationsStore = defineStore("locations", {
 				}
 			);
 		},
-		async createLocation(record: LocationRecordParams): Promise<Location> {
+		async createLocation(record: LocationRecordParams, batch?: WriteBatch): Promise<Location> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -99,9 +102,9 @@ export const useLocationsStore = defineStore("locations", {
 				: // title matches
 				  this.allLocations.find(l => record.title === l.title && record.subtitle === l.subtitle);
 
-			return extantLocation ?? (await createLocation(uid, record, dek));
+			return extantLocation ?? (await createLocation(uid, record, dek, batch));
 		},
-		async updateLocation(location: Location): Promise<void> {
+		async updateLocation(location: Location, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -110,12 +113,16 @@ export const useLocationsStore = defineStore("locations", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateLocation(uid, location, dek);
+			await updateLocation(uid, location, dek, batch);
 		},
 		async deleteAllLocation(): Promise<void> {
-			await Promise.all(this.allLocations.map(this.deleteLocation));
+			for (const locations of chunk(this.allLocations, 500)) {
+				const batch = writeBatch();
+				locations.forEach(l => void this.deleteLocation(l, batch));
+				await batch.commit();
+			}
 		},
-		async deleteLocation(this: void, location: Location): Promise<void> {
+		async deleteLocation(location: Location, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -123,7 +130,25 @@ export const useLocationsStore = defineStore("locations", {
 			// Transaction views should gracefully handle the
 			// case where their linked location does not exist
 
-			await deleteLocation(uid, location);
+			await deleteLocation(uid, location, batch);
+		},
+		async getAllLocations(): Promise<void> {
+			const authStore = useAuthStore();
+			const uid = authStore.uid;
+			const pKey = authStore.pKey as HashStore | null;
+			if (pKey === null) throw new Error("No decryption key");
+			if (uid === null) throw new Error("Sign in first");
+
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const collection = locationsCollection(uid);
+			const snap = await getDocs(collection);
+			snap.docs
+				.map(doc => locationFromSnapshot(doc, dek))
+				.forEach(l => {
+					this.items[l.id] = l;
+				});
 		},
 		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
@@ -144,12 +169,14 @@ export const useLocationsStore = defineStore("locations", {
 					...t.toRecord(),
 				}));
 		},
-		async importLocation(locationToImport: LocationSchema): Promise<void> {
+		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
+			const { transactions } = await stores();
+
 			const storedLocation = this.items[locationToImport.id] ?? null;
 			if (storedLocation) {
 				// If duplicate, overwrite the one we have
 				const newLocation = storedLocation.updatedWith(locationToImport);
-				await this.updateLocation(newLocation);
+				await this.updateLocation(newLocation, batch);
 			} else {
 				// If new, create a new location
 				const params: LocationRecordParams = {
@@ -158,12 +185,30 @@ export const useLocationsStore = defineStore("locations", {
 					title: locationToImport.title.trim(),
 					subtitle: locationToImport.subtitle?.trim() ?? null,
 				};
-				await this.createLocation(params);
+				const newLocation = await this.createLocation(params, batch);
+				for (const transaction of transactions.allTransactions) {
+					if (transaction.locationId !== locationToImport.id) continue;
+
+					// Update the transaction with new location ID
+					await transactions.updateTransaction(
+						transaction.updatedWith({ locationId: newLocation.id }),
+						batch
+					);
+				}
 			}
 		},
 		async importLocations(data: Array<LocationSchema>): Promise<void> {
-			for (const locationToImport of data) {
-				await this.importLocation(locationToImport);
+			const { transactions } = await stores();
+			// Assume we've imported all transactions,
+			// but don't assume we have them cached yet
+			await transactions.getAllTransactions();
+			await this.getAllLocations();
+
+			// Only batch 250 at a time, since each import does up to 2 writes
+			for (const locations of chunk(data, 250)) {
+				const batch = writeBatch();
+				locations.forEach(l => void this.importLocation(l, batch));
+				await batch.commit();
 			}
 		},
 	},

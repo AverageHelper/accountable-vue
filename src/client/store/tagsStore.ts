@@ -1,10 +1,11 @@
 import type { Tag, TagRecordParams } from "../model/Tag";
-import type { HashStore } from "../transport";
+import type { HashStore, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
+import chunk from "lodash/chunk";
 import {
 	createTag,
 	deriveDEK,
@@ -13,6 +14,7 @@ import {
 	tagFromSnapshot,
 	tagsCollection,
 	watchAllRecords,
+	writeBatch,
 } from "../transport";
 
 export const useTagsStore = defineStore("tags", {
@@ -77,7 +79,7 @@ export const useTagsStore = defineStore("tags", {
 				}
 			);
 		},
-		async createTag(record: TagRecordParams): Promise<Tag> {
+		async createTag(record: TagRecordParams, batch?: WriteBatch): Promise<Tag> {
 			// If a tag already exists with this name, return that one instead
 			const extantTag = this.allTags.find(tag => tag.name === record.name);
 			if (extantTag) return extantTag;
@@ -91,9 +93,9 @@ export const useTagsStore = defineStore("tags", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createTag(uid, record, dek);
+			return await createTag(uid, record, dek, batch);
 		},
-		async updateTag(tag: Tag): Promise<void> {
+		async updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
@@ -102,17 +104,21 @@ export const useTagsStore = defineStore("tags", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateTag(uid, tag, dek);
+			await updateTag(uid, tag, dek, batch);
 		},
-		async deleteTag(this: void, tag: Tag): Promise<void> {
+		async deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
-			await deleteTag(uid, tag);
+			await deleteTag(uid, tag, batch);
 		},
 		async deleteAllTags(): Promise<void> {
-			await Promise.all(this.allTags.map(this.deleteTag));
+			for (const tags of chunk(this.allTags, 500)) {
+				const batch = writeBatch();
+				tags.forEach(t => void this.deleteTag(t, batch));
+				await batch.commit();
+			}
 		},
 		async getAllTagsAsJson(): Promise<Array<TagSchema>> {
 			const authStore = useAuthStore();
@@ -133,23 +139,25 @@ export const useTagsStore = defineStore("tags", {
 					...t.toRecord(),
 				}));
 		},
-		async importTag(tagToImport: TagSchema): Promise<void> {
+		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const storedTag = this.items[tagToImport.id] ?? null;
 			if (storedTag) {
 				// If duplicate, overwrite the one we have
 				const newTag = storedTag.updatedWith(tagToImport);
-				await this.updateTag(newTag);
+				await this.updateTag(newTag, batch);
 			} else {
 				// If new, create a new tag
 				const params: TagRecordParams = {
 					...tagToImport,
 				};
-				await this.createTag(params);
+				await this.createTag(params, batch);
 			}
 		},
 		async importTags(data: Array<TagSchema>): Promise<void> {
-			for (const tagToImport of data) {
-				await this.importTag(tagToImport);
+			for (const tags of chunk(data, 500)) {
+				const batch = writeBatch();
+				tags.map(t => this.importTag(t, batch));
+				await batch.commit();
 			}
 		},
 	},

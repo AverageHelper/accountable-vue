@@ -5,11 +5,12 @@ import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
+	WriteBatch,
 } from "firebase/firestore";
 import { db, recordFromSnapshot } from "./db";
 import { encrypt } from "./cryption";
 import { Transaction } from "../model/Transaction";
-import { collection, doc, addDoc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
 
 interface TransactionRecordPackageMetadata {
 	objectType: "Transaction";
@@ -60,29 +61,50 @@ export async function createTransaction(
 	uid: string,
 	account: Account,
 	record: TransactionRecordParams,
-	dek: HashStore
+	dek: HashStore,
+	batch?: WriteBatch
 ): Promise<Transaction> {
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = await addDoc(transactionsCollection(uid, account), pkg);
+	const ref = doc(transactionsCollection(uid, account));
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 	return new Transaction(account.id, ref.id, record);
 }
 
 export async function updateTransaction(
 	uid: string,
 	transaction: Transaction,
-	dek: HashStore
+	dek: HashStore,
+	batch?: WriteBatch
 ): Promise<void> {
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
 	};
 	const record: TransactionRecordParams = transaction.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	await setDoc(transactionRef(uid, transaction), pkg);
+	const ref = transactionRef(uid, transaction);
+	if (batch) {
+		batch.set(ref, pkg);
+	} else {
+		await setDoc(ref, pkg);
+	}
 }
 
-export async function deleteTransaction(uid: string, transaction: Transaction): Promise<void> {
-	await deleteDoc(transactionRef(uid, transaction));
+export async function deleteTransaction(
+	uid: string,
+	transaction: Transaction,
+	batch?: WriteBatch
+): Promise<void> {
+	const ref = transactionRef(uid, transaction);
+	if (batch) {
+		batch.delete(ref);
+	} else {
+		await deleteDoc(ref);
+	}
 }

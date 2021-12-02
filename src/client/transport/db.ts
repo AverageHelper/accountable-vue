@@ -9,9 +9,10 @@ import type {
 	QueryDocumentSnapshot,
 	QuerySnapshot,
 	Unsubscribe,
+	WriteBatch as _WriteBatch,
 } from "firebase/firestore";
 import type { EPackage, HashStore } from "./cryption";
-import { getFirestore, onSnapshot } from "firebase/firestore";
+import { getFirestore, onSnapshot, writeBatch as _writeBatch } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeApp } from "firebase/app";
 import { decrypt } from "./cryption";
@@ -110,4 +111,10 @@ export function recordFromSnapshot<G>(
 		throw new TypeError(`Failed to parse record from Firestore document ${doc.id}`);
 	}
 	return { id: doc.id, record };
+}
+
+export type WriteBatch = _WriteBatch;
+
+export function writeBatch(): WriteBatch {
+	return _writeBatch(db);
 }
