@@ -76,6 +76,7 @@ export const useTagsStore = defineStore("tags", {
 				},
 				error => {
 					this.loadError = error;
+					console.error(error);
 				}
 			);
 		},
@@ -93,7 +94,9 @@ export const useTagsStore = defineStore("tags", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createTag(uid, record, dek, batch);
+			const newTag = await createTag(uid, record, dek, batch);
+			this.items[newTag.id] = newTag;
+			return newTag;
 		},
 		async updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
@@ -105,6 +108,7 @@ export const useTagsStore = defineStore("tags", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTag(uid, tag, dek, batch);
+			this.items[tag.id] = tag;
 		},
 		async deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
@@ -112,6 +116,7 @@ export const useTagsStore = defineStore("tags", {
 			if (uid === null) throw new Error("Sign in first");
 
 			await deleteTag(uid, tag, batch);
+			delete this.items[tag.id];
 		},
 		async deleteAllTags(): Promise<void> {
 			for (const tags of chunk(this.allTags, 500)) {

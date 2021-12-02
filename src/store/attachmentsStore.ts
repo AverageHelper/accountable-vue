@@ -1,12 +1,13 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
-import type { HashStore } from "../transport";
+import type { HashStore, WriteBatch } from "../transport";
 import type { Unsubscribe } from "firebase/auth";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import chunk from "lodash/chunk";
 import {
 	attachmentsCollection,
 	createAttachment,
@@ -16,6 +17,7 @@ import {
 	updateAttachment,
 	attachmentFromSnapshot,
 	watchAllRecords,
+	writeBatch,
 } from "../transport";
 
 export const useAttachmentsStore = defineStore("attachments", {
@@ -79,6 +81,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 				},
 				error => {
 					this.loadError = error;
+					console.error(error);
 				}
 			);
 		},
@@ -94,7 +97,9 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createAttachment(uid, file, record, dek);
+			const newAttachment = await createAttachment(uid, file, record, dek);
+			this.items[newAttachment.id] = newAttachment;
+			return newAttachment;
 		},
 		async updateAttachment(attachment: Attachment, file?: File): Promise<void> {
 			const authStore = useAuthStore();
@@ -106,8 +111,9 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAttachment(uid, file ?? null, attachment, dek);
+			this.items[attachment.id] = attachment;
 		},
-		async deleteAttachment(this: void, attachment: Attachment): Promise<void> {
+		async deleteAttachment(attachment: Attachment, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
@@ -116,15 +122,26 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const transactions = useTransactionsStore();
 
 			// Remove this attachment from any transactions which reference it
-			await Promise.all(
-				transactions.allTransactions
-					.filter(t => t.attachmentIds.includes(attachment.id))
-					.map(t => transactions.removeAttachmentFromTransaction(attachment.id, t))
+			const relevantTransactions = transactions.allTransactions.filter(t =>
+				t.attachmentIds.includes(attachment.id)
 			);
-			await deleteAttachment(uid, attachment);
+			for (const ts of chunk(relevantTransactions, 500)) {
+				const tBatch = writeBatch();
+				await Promise.all(
+					ts.map(t => transactions.removeAttachmentFromTransaction(attachment.id, t, tBatch))
+				);
+				await tBatch.commit();
+			}
+
+			await deleteAttachment(uid, attachment, batch);
+			delete this.items[attachment.id];
 		},
 		async deleteAllAttachments(): Promise<void> {
-			await Promise.all(this.allAttachments.map(this.deleteAttachment));
+			for (const attachments of chunk(this.allAttachments, 500)) {
+				const batch = writeBatch();
+				await Promise.all(attachments.map(a => this.deleteAttachment(a, batch)));
+				await batch.commit();
+			}
 		},
 		async imageDataFromFile(file: Attachment, shouldCache: boolean = true): Promise<string> {
 			// If we already have the thing, don't redownload

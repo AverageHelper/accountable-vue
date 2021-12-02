@@ -84,6 +84,7 @@ export const useAccountsStore = defineStore("accounts", {
 				},
 				error => {
 					this.loadError = error;
+					console.error(error);
 				}
 			);
 		},

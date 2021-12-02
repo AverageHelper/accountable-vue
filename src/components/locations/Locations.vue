@@ -23,8 +23,8 @@ const numberOfLocations = computed(() => allLocations.value.length);
 		</li>
 		<li v-if="numberOfLocations > 0">
 			<p class="footer"
-				>{{ numberOfLocations }} file<span v-if="numberOfLocations !== 1">s</span></p
-			>
+				>{{ numberOfLocations }} file<span v-if="numberOfLocations !== 1">s</span>
+			</p>
 		</li>
 	</List>
 </template>

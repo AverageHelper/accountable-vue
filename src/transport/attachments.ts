@@ -2,6 +2,7 @@ import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
+	WriteBatch,
 } from "firebase/firestore";
 import type { StorageReference } from "firebase/storage";
 import type { AttachmentRecordParams } from "../model/Attachment";
@@ -115,7 +116,11 @@ export async function updateAttachment(
 	}
 }
 
-export async function deleteAttachment(uid: string, attachment: Attachment): Promise<void> {
+export async function deleteAttachment(
+	uid: string,
+	attachment: Attachment,
+	batch?: WriteBatch
+): Promise<void> {
 	// Delete the storage blob
 	try {
 		const storageRef = attachmentStorageRef(attachment.storagePath);
@@ -129,5 +134,10 @@ export async function deleteAttachment(uid: string, attachment: Attachment): Pro
 	}
 
 	// Delete the metadata entry
-	await deleteDoc(attachmentRef(uid, attachment));
+	const ref = attachmentRef(uid, attachment);
+	if (batch) {
+		batch.delete(ref);
+	} else {
+		await deleteDoc(ref);
+	}
 }

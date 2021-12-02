@@ -77,6 +77,7 @@ export const useLocationsStore = defineStore("locations", {
 				},
 				error => {
 					this.loadError = error;
+					console.error(error);
 				}
 			);
 		},
@@ -102,7 +103,10 @@ export const useLocationsStore = defineStore("locations", {
 				: // title matches
 				  this.allLocations.find(l => record.title === l.title && record.subtitle === l.subtitle);
 
-			return extantLocation ?? (await createLocation(uid, record, dek, batch));
+			const newLocation = extantLocation ?? (await createLocation(uid, record, dek, batch));
+
+			this.items[newLocation.id] = newLocation;
+			return newLocation;
 		},
 		async updateLocation(location: Location, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
@@ -114,6 +118,7 @@ export const useLocationsStore = defineStore("locations", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateLocation(uid, location, dek, batch);
+			this.items[location.id] = location;
 		},
 		async deleteAllLocation(): Promise<void> {
 			for (const locations of chunk(this.allLocations, 500)) {
@@ -131,6 +136,7 @@ export const useLocationsStore = defineStore("locations", {
 			// case where their linked location does not exist
 
 			await deleteLocation(uid, location, batch);
+			delete this.items[location.id];
 		},
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
