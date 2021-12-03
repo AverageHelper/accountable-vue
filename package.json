@@ -10,7 +10,7 @@
 		"dev:server": "cd ./server && npm start",
 		"prebuild": "npm run lint",
 		"build:client": "vue-tsc --noEmit --project tsconfig.prod.json && vite build",
-		"build:server": "tsc -p ./server/tsconfig.server.json",
+		"build:server": "cd ./server && npm run build",
 		"build": "npm run build:client && npm run build:server",
 		"serve": "vite preview",
 		"lint": "npm run export-version && eslint . --ext .vue && eslint . --ext .js,.ts",
