@@ -1,7 +1,8 @@
 import "source-map-support/register.js";
 import "./environment.js";
-import { OIDCAdapter, client_secret } from "./auth.js";
-import { Provider } from "oidc-provider";
+import { generateSecureToken } from "n-digit-token";
+import { client_secret } from "./auth.js";
+import { lol } from "./lol.js";
 import cors from "cors";
 // import csrf from "csurf"; // look into this
 import express from "express";
@@ -11,47 +12,59 @@ import methodOverride from "method-override";
 
 const port = 40850;
 
-const oidc = new Provider(`http://localhost:${port}`, {
-	clients: [
-		{
-			client_id: "oidcCLIENT",
-			client_secret,
-			grant_types: ["authorization_code"],
-			response_types: ["code"],
-		},
-	],
-	pkce: {
-		required: () => false,
-		methods: ["plain"],
-	},
-	cookies: {
-		keys: [],
-	},
-	jwks: {
-		keys: [],
-	},
-	interactions: {},
-	adapter: OIDCAdapter,
-});
-
 const app = express()
 	.use(methodOverride())
 	.use(helmet())
 	.use(cors())
-	.use("/oidc", oidc.callback())
-	.get("/", (req, res) => {
-		res.send(
-			'<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Yo</title>\n</head>\n<body>\n<pre>lol</pre>\n</body>\n</html>\n'
-		);
-	});
+	.use(express.json())
+	.get("/", lol);
 
 // Auth
-//   ¯\_(ツ)_/¯
+//   ¯\_(ツ)_/¯  Try https://thecodebarbarian.com/oauth-with-node-js-and-express.html
 //   Prevent brute-forcing same user ID
 //     Limit num of consecutive failed attempts by the same user name and IP
-app.post("/auth", (req, res) => {
-	res.send("Users will authenticate here.\n");
-});
+const authCodes = new Set();
+const accessTokens = new Set();
+app
+	.post("/authcode", (req, res) => {
+		// FIXME: We're vulnerable to CSRF attacks here
+
+		// Generate a string of 10 random digits
+		const authCode = generateSecureToken(10);
+
+		// Normally this would be a `redirect_uri` parameter, but for
+		// this example it is hard coded.
+		// res.redirect(`http://localhost:3000/oauth-callback.html?code=${authCode}`);
+		res.send(authCode);
+	})
+	.options("/authtoken", (req, res) => res.end())
+	.post("/authtoken", (req, res) => {
+		// Verify an auth code and exchange it for an access token
+		type AuthtokenRequestBody = { code?: string | undefined } | null | undefined;
+		const code = (req.body as AuthtokenRequestBody)?.code as string | undefined;
+
+		if (authCodes.has(code)) {
+			// Generate a string of 50 random chars
+			const access_token = generateSecureToken(50);
+
+			authCodes.delete(code);
+			accessTokens.add(access_token);
+			res.json({ access_token, expires_in: 60 * 60 * 24 });
+		} else {
+			res.status(400).json({ message: "Invalid auth token" });
+		}
+	});
+
+const checkAuth: express.RequestHandler = (req, res, next) => {
+	const authorization = req.get("authorization");
+	if (!accessTokens.has(authorization)) {
+		res.status(403).json({ message: "Unauthorized" });
+		return;
+	}
+	next();
+};
+
+app.use(checkAuth);
 
 // Database data storage
 //   CONNECT path -> open websocket to watch a database path
@@ -82,7 +95,7 @@ app
 	})
 	.put("/files", (req, res, next) => {
 		formidable({ multiples: true }).parse(req, (error, fields, files) => {
-			if (!!error) {
+			if (Boolean(error)) {
 				next(error);
 				return;
 			}
