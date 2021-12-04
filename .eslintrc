@@ -47,7 +47,8 @@
 		"@typescript-eslint/consistent-type-imports": "warn",
 		"@typescript-eslint/no-dynamic-delete": "off",
 		"new-cap": "off", // Many decorators do not follow normal function conventions
-		"unicorn/catch-error-name": ["warn", { "name": "error" }]
+		"unicorn/catch-error-name": ["warn", { "name": "error" }],
+		"unicorn/import-index": ["error", { "ignoreImports": true }]
 	},
 
 	"overrides": [
@@ -123,7 +124,7 @@
 		{
 			"files": ["./server/**/*.ts"],
 			"parserOptions": {
-				"project": "./tsconfig.server.json",
+				"project": "./tsconfig.json",
 				"tsconfigRootDir": "./server"
 			}
 		},
@@ -133,7 +134,7 @@
 			"plugins": ["prettier", "@typescript-eslint"],
 			"parser": "@typescript-eslint/parser",
 			"parserOptions": {
-				"project": "./tsconfig.server.json",
+				"project": "./tsconfig.json",
 				"tsconfigRootDir": "./server"
 			},
 			"env": {
