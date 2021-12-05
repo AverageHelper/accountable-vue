@@ -2,9 +2,9 @@ import type { DataItem } from "./database/index.js";
 import type { Request, Response } from "express";
 import type WebSocket from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
+import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
 import { ownersOnly } from "./auth.js";
 import { Router } from "express";
-import { deleteDataItemAtPath, getDataItemAtPath, setDataItemAtPath } from "./database/index.js";
 
 // Database data storage
 //   WS path -> open websocket to watch a document or a series of documents on a database path
@@ -88,17 +88,18 @@ export function db(this: void): Router {
 			asyncWrapper(async (req, res) => {
 				try {
 					const uid = requireUid(req, res);
+					const ref = new DocumentReference(`/users/${uid}`);
 					switch (req.method.toUpperCase()) {
 						case "GET": {
-							const data = await getDataItemAtPath(`/users/${uid}`);
+							const data = await getDocument(ref);
 							if (data === null) return respondNotFound(req, res);
 							return respondData(req, res, data);
 						}
 						case "POST": // set/update
-							await setDataItemAtPath(`/users/${uid}`, req.body as DataItem);
+							await setDocument(ref, req.body as DataItem);
 							return respondSuccess(req, res);
 						case "DELETE": // make gone
-							await deleteDataItemAtPath(`/users/${uid}`);
+							await deleteDocument(ref);
 							return respondSuccess(req, res);
 						default:
 							return respondBadMethod(req, res);
