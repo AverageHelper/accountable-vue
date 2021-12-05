@@ -12,12 +12,24 @@ import { deleteDataItemAtPath, getDataItemAtPath, setDataItemAtPath } from "./da
 //   POST path data -> database set
 //   DELETE path -> database delete
 
+function respondSuccess(this: void, req: Request, res: Response): void {
+	res.json({ message: "Success!" });
+}
+
+function respondData(this: void, req: Request, res: Response, data: unknown): void {
+	res.json(data);
+}
+
 function respondNotSignedIn(this: void, req: Request, res: Response): void {
 	res.status(403).json({ message: "You must sign in first" });
 }
 
 function respondNotFound(this: void, req: Request, res: Response): void {
 	res.status(404).json({ message: "No data found" });
+}
+
+function respondBadMethod(this: void, req: Request, res: Response): void {
+	res.status(405).json({ message: "That method is not allowed here. What are you trying to do?" });
 }
 
 function respondInternalError(this: void, req: Request, res: Response): void {
@@ -56,7 +68,7 @@ function requireUidWs(this: void, req: Request, ws: WebSocket): string {
 // See https://www.section.io/engineering-education/session-management-in-nodejs-using-expressjs-and-express-session/
 
 export function db(this: void): Router {
-	const dbRouter = Router().all("/users/:uid/*", ownersOnly);
+	const dbRouter = Router().all("/users/:uid/*", ownersOnly());
 
 	// ** User Preferences
 	dbRouter
@@ -64,49 +76,33 @@ export function db(this: void): Router {
 			ws.on("message", msg => {
 				try {
 					const uid = requireUidWs(req, ws);
-					console.log(`User '${uid}' sent message: '${JSON.stringify(msg.valueOf())}'`);
+					process.stdout.write(`User '${uid}' sent message: '${JSON.stringify(msg.valueOf())}'\n`);
 					ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
 				} catch (error: unknown) {
 					console.error(error);
 				}
 			});
 		})
-		.get(
+		.all(
 			"/",
 			asyncWrapper(async (req, res) => {
 				try {
 					const uid = requireUid(req, res);
-					const data = await getDataItemAtPath(`/users/${uid}`);
-					if (data === null) {
-						return respondNotFound(req, res);
+					switch (req.method.toUpperCase()) {
+						case "GET": {
+							const data = await getDataItemAtPath(`/users/${uid}`);
+							if (data === null) return respondNotFound(req, res);
+							return respondData(req, res, data);
+						}
+						case "POST": // set/update
+							await setDataItemAtPath(`/users/${uid}`, req.body as DataItem);
+							return respondSuccess(req, res);
+						case "DELETE": // make gone
+							await deleteDataItemAtPath(`/users/${uid}`);
+							return respondSuccess(req, res);
+						default:
+							return respondBadMethod(req, res);
 					}
-					res.json(data);
-				} catch (error: unknown) {
-					console.error(error);
-					respondInternalError(req, res);
-				}
-			})
-		)
-		.post(
-			"/",
-			asyncWrapper(async (req, res) => {
-				try {
-					const uid = requireUid(req, res);
-					await setDataItemAtPath(`/users/${uid}`, req.body as DataItem);
-					res.json({ message: "TODO: Set the user's encrypted preference doc" });
-				} catch (error: unknown) {
-					console.error(error);
-					respondInternalError(req, res);
-				}
-			})
-		)
-		.delete(
-			"/",
-			asyncWrapper(async (req, res) => {
-				try {
-					const uid = requireUid(req, res);
-					await deleteDataItemAtPath(`/users/${uid}`);
-					res.json({ message: "Success!" });
 				} catch (error: unknown) {
 					console.error(error);
 					respondInternalError(req, res);

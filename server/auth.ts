@@ -16,6 +16,15 @@ declare module "express-session" {
 	interface SessionData {
 		context: RequestContext;
 	}
+
+	interface Request {
+		body: unknown;
+	}
+}
+
+interface ReqBody {
+	account?: unknown;
+	password?: unknown;
 }
 
 // FIXME: This is bad. Write to disk instead. MongoDB?
@@ -121,10 +130,10 @@ export function auth(this: void): Router {
 				},
 			})
 		)
-		.post("/join", (req, res) => {
+		.post<unknown, unknown, ReqBody>("/join", (req, res) => {
 			// TODO: Get the user's username and (hashed) password, salt and hash it, and return an auth code
-			const givenAccountId = req.body["account"] as unknown;
-			const givenPassword = req.body["password"] as unknown;
+			const givenAccountId = req.body.account;
+			const givenPassword = req.body.password;
 			if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
 				res.status(400).json({ message: "Improper parameter types" });
 				return;
@@ -132,7 +141,7 @@ export function auth(this: void): Router {
 
 			res.json({ message: "Welcome" });
 		})
-		.post(
+		.post<unknown, unknown, ReqBody>(
 			"/login",
 			asyncWrapper(async (req, res) => {
 				// ** Start a session on an existing account
@@ -140,9 +149,10 @@ export function auth(this: void): Router {
 				// TODO: Limit num of consecutive failed attempts by the same user name and IP
 				// FIXME: We're vulnerable to CSRF attacks here
 
-				const givenAccountId = req.body["account"] as unknown;
-				const givenPassword = req.body["password"] as unknown;
+				const givenAccountId = req.body.account;
+				const givenPassword = req.body.password;
 				if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
+					req.session.context = { auth: null };
 					res.status(400).json({ message: "Improper parameter types" });
 					return;
 				}
@@ -150,6 +160,7 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = userWithAccountId(givenAccountId);
 				if (!storedUser) {
+					req.session.context = { auth: null };
 					res.status(403).json({ message: "Incorrect username or password" });
 					return;
 				}
@@ -176,12 +187,7 @@ export function auth(this: void): Router {
 					expires_in_seconds: 60 * 60 * 24, // one day
 				};
 				accessTokens.set(access_token, access);
-				req.session.cookie = {
-					expires: datePlusSeconds(access.created_at, access.expires_in_seconds),
-					originalMaxAge: access.expires_in_seconds * 1000,
-				};
 
-				req.session.context = { auth: access };
 				res.json({ access_token, expires_in: access.expires_in_seconds });
 			})
 		)
@@ -208,22 +214,32 @@ export function auth(this: void): Router {
 		});
 }
 
-/** Makes sure the calling user is authorized here. */
-export const requireAuth: RequestHandler = (req, res, next) => {
-	if (!req.session.context?.auth) {
-		res.status(403).json({ message: "Unauthorized" });
-		return;
-	}
-	next();
-};
+/** Returns a handler that makes sure the calling user is authorized here. */
+export function requireAuth(this: void): RequestHandler {
+	return (req, res, next): void => {
+		const access = validAccessFromToken(req.sessionID); // TODO: Is this necessary, or does the earlier `use` block handle this?
+		req.session.context = { auth: access };
 
-/** Makes sure the request's `uid` param matches the calling user's authorization. */
-export const ownersOnly: RequestHandler = (req, res, next) => {
-	const uid = req.params["uid"] ?? "";
-	const auth = req.session.context?.auth;
-	if (!auth || !uid || !safeCompare(uid, auth.uid)) {
-		res.status(403).json({ message: "Unauthorized" });
-		return;
-	}
-	next();
-};
+		if (!req.session.context.auth) {
+			res.status(403).json({ message: "Unauthorized" });
+			return;
+		}
+		next();
+	};
+}
+
+/** Returns a handler that makes sure the request's `uid` param matches the calling user's authorization. */
+export function ownersOnly(this: void): RequestHandler {
+	return (req, res, next): void => {
+		const access = validAccessFromToken(req.sessionID); // TODO: Is this necessary, or does the earlier `use` block handle this?
+		req.session.context = { auth: access };
+
+		const uid = req.params["uid"] ?? "";
+		const auth = req.session.context.auth;
+		if (!auth || !uid || !safeCompare(uid, auth.uid)) {
+			res.status(403).json({ message: "Unauthorized" });
+			return;
+		}
+		next();
+	};
+}

@@ -24,7 +24,7 @@ app
 	.use(express.urlencoded({ extended: true }))
 	.get("/", lol) // TODO: maybe we should serve the app here? idk
 	.use(auth())
-	.use(requireAuth)
+	.use(requireAuth()) // require auth from here on in
 	.use("/db", db())
 	.use("/files", storage());
 
