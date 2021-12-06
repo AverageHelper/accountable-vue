@@ -1,8 +1,3 @@
-export interface DataItem {
-	[key: string]: unknown;
-	_id: string;
-}
-
 abstract class _PathReference {
 	public readonly path: Readonly<string>;
 	public abstract readonly plurality: "single" | "plural";

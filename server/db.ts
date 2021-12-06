@@ -1,10 +1,10 @@
 import type { DataItem } from "./database/index.js";
-import type { Request, Response } from "express";
+import type { Request, RequestHandler, Response } from "express";
 import type WebSocket from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
 import { ownersOnly } from "./auth.js";
 import { Router } from "express";
+import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
 
 // Database data storage
 //   WS path -> open websocket to watch a document or a series of documents on a database path
@@ -67,6 +67,41 @@ function requireUidWs(this: void, req: Request, ws: WebSocket): string {
 
 // See https://www.section.io/engineering-education/session-management-in-nodejs-using-expressjs-and-express-session/
 
+/**
+ * Generates Create-Read-Update-Delete (CRUD) endpoints for the document at the given path.
+ *
+ * This handler accepts only GET, POST, and DELETE requests. Any other method will throw
+ * an HTTP 405 error.
+ *
+ * @param path The document path to handle here.
+ * @returns a handler that handles CRUD endpoints for the given document path.
+ */
+function documentCrud(this: void, path: string): RequestHandler {
+	return asyncWrapper(async (req, res) => {
+		try {
+			const ref = new DocumentReference(path);
+			switch (req.method.toUpperCase()) {
+				case "GET": {
+					const data = await getDocument(ref);
+					if (data === null) return respondNotFound(req, res);
+					return respondData(req, res, data);
+				}
+				case "POST":
+					await setDocument(ref, req.body as DataItem);
+					return respondSuccess(req, res);
+				case "DELETE":
+					await deleteDocument(ref);
+					return respondSuccess(req, res);
+				default:
+					return respondBadMethod(req, res);
+			}
+		} catch (error: unknown) {
+			console.error(error);
+			respondInternalError(req, res);
+		}
+	});
+}
+
 export function db(this: void): Router {
 	const dbRouter = Router().all("/users/:uid/*", ownersOnly());
 
@@ -83,45 +118,18 @@ export function db(this: void): Router {
 				}
 			});
 		})
-		.all(
-			"/",
-			asyncWrapper(async (req, res) => {
-				try {
-					const uid = requireUid(req, res);
-					const ref = new DocumentReference(`/users/${uid}`);
-					switch (req.method.toUpperCase()) {
-						case "GET": {
-							const data = await getDocument(ref);
-							if (data === null) return respondNotFound(req, res);
-							return respondData(req, res, data);
-						}
-						case "POST": // set/update
-							await setDocument(ref, req.body as DataItem);
-							return respondSuccess(req, res);
-						case "DELETE": // make gone
-							await deleteDocument(ref);
-							return respondSuccess(req, res);
-						default:
-							return respondBadMethod(req, res);
-					}
-				} catch (error: unknown) {
-					console.error(error);
-					respondInternalError(req, res);
-				}
-			})
-		);
+		.all("/", (req, res, next) => {
+			const uid = requireUid(req, res);
+			const path = `/users/${uid}`;
+			return documentCrud(path)(req, res, next);
+		});
 
 	// ** Encryption Keys
-	dbRouter
-		.get("/keys/main", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted encryption key" });
-		})
-		.post("/keys/main", (req, res) => {
-			res.json({ message: "TODO: Set the user's encrypted encryption key" });
-		})
-		.delete("/keys/main", (req, res) => {
-			res.json({ message: "TODO: Delete the user's encrypted encryption key" });
-		});
+	dbRouter.all("/keys/main", (req, res, next) => {
+		const uid = requireUid(req, res);
+		const path = `/users/${uid}/keys/main`;
+		return documentCrud(path)(req, res, next);
+	});
 
 	// ** Accounts
 	dbRouter

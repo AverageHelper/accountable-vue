@@ -1,4 +1,5 @@
-import type { DataItem, CollectionReference, DocumentReference } from "./references.js";
+import type { CollectionReference, DocumentReference } from "./references.js";
+import type { DataItem } from "./schemas.js";
 import { v4 as uuid } from "uuid";
 
 // Since all data is encrypted, we only need to bother
@@ -182,3 +183,4 @@ export async function setDocument(ref: DocumentReference, newData: DataItem): Pr
 }
 
 export * from "./references.js";
+export type { DataItem };
