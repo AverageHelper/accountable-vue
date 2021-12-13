@@ -2,6 +2,7 @@ import type { Request, RequestHandler } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { Context } from "./Context.js";
 import { Router } from "express";
+import { TemporarySet } from "./TemporarySet.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -18,6 +19,8 @@ interface User {
 	passwordHash: string;
 	passwordSalt: string;
 }
+
+const jwtBlacklist = new TemporarySet<string>();
 
 // FIXME: This is bad. Write to disk instead. MongoDB?
 const users = new Set<User>();
@@ -63,11 +66,18 @@ async function newAccessToken(user: User): Promise<string> {
 	});
 }
 
-async function userFromRequest(req: Request): Promise<User | null> {
+function jwtTokenFromRequest(req: Request): string | null {
 	const authHeader = req.headers.authorization ?? "";
 	if (!authHeader) return null;
 
-	const token = authHeader.split(" ")[1] ?? "";
+	return (authHeader.split(" ")[1] ?? "") || null;
+}
+
+async function userFromRequest(req: Request): Promise<User | null> {
+	const token = jwtTokenFromRequest(req);
+	if (token === null) return null;
+	if (jwtBlacklist.has(token)) return null;
+
 	const payload = await new Promise<jwt.JwtPayload>((resolve, reject) => {
 		jwt.verify(token, secret, (err, payload) => {
 			if (err) {
@@ -173,7 +183,21 @@ export function auth(this: void): Router {
 				const access_token = await newAccessToken(storedUser);
 				res.json({ access_token });
 			})
-		);
+		)
+		.post("/logout", (req, res) => {
+			const token = jwtTokenFromRequest(req);
+			if (token === null) {
+				res.json({ message: "Success!" });
+				return;
+			}
+
+			// ** Blacklist the JWT
+			// TODO: Only blacklist for the duration the token has remaining
+			const oneHour = 3600000;
+			// FIXME: Anybody can just flood us with logouts to blacklist
+			jwtBlacklist.add(token, oneHour);
+			res.json({ message: "Success!" });
+		});
 	// TODO: Endpoint to update user login data
 }
 
