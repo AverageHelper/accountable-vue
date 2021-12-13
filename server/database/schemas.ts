@@ -1,26 +1,45 @@
-import { Schema } from "mongoose";
-
-export interface DataItem {
-	[key: string]: unknown;
+interface MongoObject {
 	_id: string;
+	uid: string;
 }
 
-export const dataSchema = new Schema({
-	ciphertext: String,
-	objectType: String,
-	_id: String,
-});
+export interface DataItem extends MongoObject {
+	ciphertext: string;
+	objectType: string;
+}
 
-export const keySchema = new Schema({
-	_id: String,
-	dekMaterial: String,
-	passSalt: String,
-	oldDekMaterial: {
-		type: String,
-		required: false,
-	},
-	oldPassSalt: {
-		type: String,
-		required: false,
-	},
-});
+export function isDataItem(tbd: AnyDataItem): tbd is DataItem {
+	return "ciphertext" in tbd && "objectType" in tbd;
+}
+
+export interface Keys extends MongoObject {
+	dekMaterial: string;
+	passSalt: string;
+	oldDekMaterial?: string;
+	oldPassSalt?: string;
+}
+
+export function isKeys(tbd: AnyDataItem): tbd is Keys {
+	return "dekMaterial" in tbd && "passSalt" in tbd;
+}
+
+export type AnyDataItem = DataItem | Keys;
+
+export type CollectionID =
+	| "accounts" //
+	| "attachments"
+	| "locations"
+	| "tags"
+	| "transactions";
+
+const allCollectionIds = new Set<CollectionID>([
+	"accounts",
+	"attachments",
+	"locations",
+	"tags",
+	"transactions",
+]);
+
+export function isCollectionId(tbd: string): tbd is CollectionID {
+	return allCollectionIds.has(tbd as CollectionID);
+}

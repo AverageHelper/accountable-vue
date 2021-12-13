@@ -1,10 +1,17 @@
 import type { CollectionReference, DocumentReference } from "./references.js";
 import type { DataItem } from "./schemas.js";
-import { v4 as uuid } from "uuid";
+import { isDataItem } from "./schemas.js";
+import {
+	deleteDbCollection,
+	deleteDbDoc,
+	fetchDbCollection,
+	fetchDbDoc,
+	upsertDbDoc,
+} from "./mongo.js";
 
 // Since all data is encrypted, we only need to bother
-// about where that data goes and comes from. We leave
-// path-level security to Express.
+// about persistent I/O. We leave path-level access-
+// guarding to the Express frontend.
 
 interface DataAdd {
 	id: string;
@@ -36,12 +43,12 @@ type PDataChangeCallback = (change: DataChanges) => void;
 interface _Watcher {
 	plurality: "single" | "plural";
 	id: string;
-	path: string;
 	onChange: SDataChangeCallback | PDataChangeCallback;
 }
 
 interface DocumentWatcher extends _Watcher {
 	plurality: "single";
+	collectionId: string;
 	onChange: SDataChangeCallback;
 }
 
@@ -57,7 +64,12 @@ export async function watchUpdatesToDocument(
 	ref: DocumentReference,
 	onChange: SDataChangeCallback
 ): Promise<DocumentWatcher> {
-	const handle: DocumentWatcher = { ...ref, id: uuid(), onChange };
+	const handle: DocumentWatcher = {
+		id: ref.id,
+		collectionId: ref.parent.id,
+		onChange,
+		plurality: "single",
+	};
 	documentWatchers.set(handle.id, handle);
 
 	// Send "added" for all data at path
@@ -79,7 +91,7 @@ export async function watchUpdatesToCollection(
 	ref: CollectionReference,
 	onChange: PDataChangeCallback
 ): Promise<CollectionWatcher> {
-	const handle: CollectionWatcher = { ...ref, id: uuid(), onChange };
+	const handle: CollectionWatcher = { id: ref.id, onChange, plurality: "plural" };
 	collectionWatchers.set(handle.id, handle);
 
 	// Send "added" for all data at path
@@ -107,7 +119,9 @@ async function informWatchersForDocument(
 	ref: DocumentReference,
 	change: DataChange
 ): Promise<void> {
-	const listeners = [...documentWatchers.values()].filter(w => w.path === ref.path);
+	const listeners = [...documentWatchers.values()].filter(
+		w => w.id === ref.id && w.collectionId === ref.parent.id
+	);
 	await Promise.all(listeners.map(l => l.onChange(change)));
 }
 
@@ -115,25 +129,26 @@ async function informWatchersForCollection(
 	ref: CollectionReference,
 	changes: DataChanges
 ): Promise<void> {
-	const listeners = [...collectionWatchers.values()].filter(w => w.path === ref.path);
+	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
 	await Promise.all(listeners.map(l => l.onChange(changes)));
 }
 
 export async function getDocument(ref: DocumentReference): Promise<DataItem | null> {
-	// TODO: Fetch the data
-	return null;
+	const anything = await fetchDbDoc(ref);
+	if (!anything || !isDataItem(anything)) return null;
+	return anything;
 }
 
 export async function getCollection(ref: CollectionReference): Promise<Array<DataItem>> {
-	// TODO: Fetch the data
-	return [];
+	const anything = await fetchDbCollection(ref);
+	return anything.filter(isDataItem);
 }
 
 export async function deleteDocument(ref: DocumentReference): Promise<void> {
 	// Fetch the data
 	const oldData = await getDocument(ref);
 
-	// TODO: Remove the data
+	await deleteDbDoc(ref);
 
 	// Tell listeners what happened
 	if (oldData) {
@@ -152,7 +167,7 @@ export async function deleteCollection(ref: CollectionReference): Promise<void> 
 	// Fetch the data
 	const oldData = await getCollection(ref);
 
-	// TODO: Remove the data
+	await deleteDbCollection(ref);
 
 	// Tell listeners what happened
 	const changes: Array<DataRemove> = oldData.map<DataRemove>(oldData => ({
@@ -170,7 +185,7 @@ export async function setDocument(ref: DocumentReference, newData: DataItem): Pr
 	// Fetch the data
 	const oldData = await getDocument(ref);
 
-	// TODO: Upsert the data
+	await upsertDbDoc(ref, newData);
 
 	// Tell listeners what happened
 	let change: DataAdd | DataModify;

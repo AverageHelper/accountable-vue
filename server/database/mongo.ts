@@ -1,6 +1,5 @@
-import type { DataItem } from "./schemas.js";
-import type { DocumentReference } from "./references.js";
-import { dataSchema } from "./schemas.js";
+import type { AnyDataItem } from "./schemas.js";
+import type { CollectionReference, DocumentReference } from "./references.js";
 import { v4 as uuid } from "uuid";
 import mongoose from "mongoose";
 
@@ -12,28 +11,47 @@ export function newDocumentId(this: void): string {
 	return uuid();
 }
 
-/** Initializes our MongoDB client. Do not send requests until this resolves. */
-export async function initialize(): Promise<void> {
-	await mongoose.connect(DB_URI);
+export async function fetchDbCollection(ref: CollectionReference): Promise<Array<AnyDataItem>> {
+	const conn = mongoose.createConnection(DB_URI);
+	const db = conn.db;
+	const collection = db.collection<AnyDataItem>(ref.id);
+	const query = collection.find({}).stream();
+
+	return new Promise<Array<AnyDataItem>>((resolve, reject) => {
+		const results: Array<AnyDataItem> = [];
+		query.on("data", doc => {
+			results.push(doc as AnyDataItem);
+		});
+		query.on("error", reject);
+		query.on("close", () => {
+			resolve(results);
+		});
+	});
 }
 
-export async function fetchDoc(ref: DocumentReference): Promise<DataItem | null> {
+export async function fetchDbDoc(ref: DocumentReference): Promise<AnyDataItem | null> {
 	const conn = mongoose.createConnection(DB_URI);
-	const Data = conn.model("Data", dataSchema);
-
-	const data = await Data.findById(ref.id);
-
-	return data;
+	const db = conn.db;
+	const collection = db.collection<AnyDataItem>(ref.parent.id);
+	return await collection.findOne({ _id: ref.id });
 }
 
-export async function upsertDoc(data: DataItem, ref: DocumentReference): Promise<void> {
+export async function upsertDbDoc(ref: DocumentReference, data: AnyDataItem): Promise<void> {
 	const conn = mongoose.createConnection(DB_URI);
-	const Data = conn.model("Data", dataSchema);
-	await Data.replaceOne({ _id: ref.id }, data);
+	const db = conn.db;
+	const collection = db.collection(ref.parent.id);
+	await collection.replaceOne({ _id: ref.id }, data, { upsert: true });
 }
 
-export async function deleteDoc(ref: DocumentReference): Promise<void> {
+export async function deleteDbDoc(ref: DocumentReference): Promise<void> {
 	const conn = mongoose.createConnection(DB_URI);
-	const Data = conn.model("Data", dataSchema);
-	await Data.deleteOne({ _id: ref.id });
+	const db = conn.db;
+	const collection = db.collection(ref.parent.id);
+	await collection.deleteOne({ _id: ref.id });
+}
+
+export async function deleteDbCollection(ref: CollectionReference): Promise<void> {
+	const conn = mongoose.createConnection(DB_URI);
+	const db = conn.db;
+	await db.dropCollection(ref.id);
 }
