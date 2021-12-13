@@ -1,6 +1,6 @@
 import "source-map-support/register.js";
 import "./environment.js";
-import { auth, requireAuth } from "./auth.js";
+import { auth, requireAuth } from "./auth/index.js";
 import { db } from "./db.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage.js";

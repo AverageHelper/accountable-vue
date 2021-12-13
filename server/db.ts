@@ -2,7 +2,7 @@ import type { DataItem } from "./database/index.js";
 import type { Request, RequestHandler, Response } from "express";
 import type WebSocket from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { ownersOnly } from "./auth.js";
+import { Context, ownersOnly } from "./auth/index.js";
 import { Router } from "express";
 import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
 
@@ -37,13 +37,13 @@ function respondInternalError(this: void, req: Request, res: Response): void {
 }
 
 function _requireUid(this: void, req: Request, respondIfNoUid: () => void): string {
-	// ownersOnly garantees that there is an auth.uid on the session. Throw if this is not the case.
-	const uid = req.session.context?.auth?.uid ?? null;
+	// ownersOnly garantees that the request contains a valid JWT and that JWT points to the user whose data we're requesting. Throw if this is not the case.
+	const uid = Context.get(req)?.uid ?? null;
 	if (uid === null) {
 		respondIfNoUid();
 		// Force-stop if the UID is not found
 		throw new TypeError(
-			"No UID found on session. Make sure to use `ownersOnly` before reaching this point."
+			"No UID in request. Make sure to use `ownersOnly` before reaching this point."
 		);
 	}
 	return uid;
@@ -64,8 +64,6 @@ function requireUidWs(this: void, req: Request, ws: WebSocket): string {
 		});
 	});
 }
-
-// See https://www.section.io/engineering-education/session-management-in-nodejs-using-expressjs-and-express-session/
 
 /**
  * Generates Create-Read-Update-Delete (CRUD) endpoints for the document at the given path.
