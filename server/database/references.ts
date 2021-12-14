@@ -1,6 +1,7 @@
-import type { CollectionID } from "./schemas";
+import type { AnyDataItem, CollectionID } from "./schemas";
 
-export class CollectionReference {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export class CollectionReference<T extends AnyDataItem> {
 	public readonly id: Readonly<CollectionID>;
 
 	constructor(id: CollectionID) {
@@ -8,11 +9,11 @@ export class CollectionReference {
 	}
 }
 
-export class DocumentReference {
+export class DocumentReference<T extends AnyDataItem> {
 	public readonly id: Readonly<string>;
-	public readonly parent: Readonly<CollectionReference>;
+	public readonly parent: Readonly<CollectionReference<T>>;
 
-	constructor(parent: CollectionReference, id: string) {
+	constructor(parent: CollectionReference<T>, id: string) {
 		this.parent = parent;
 		this.id = id;
 	}

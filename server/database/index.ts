@@ -1,5 +1,5 @@
 import type { CollectionReference, DocumentReference } from "./references.js";
-import type { DataItem } from "./schemas.js";
+import type { AnyDataItem } from "./schemas.js";
 import { isDataItem } from "./schemas.js";
 import {
 	deleteDbCollection,
@@ -17,25 +17,26 @@ interface DataAdd {
 	id: string;
 	type: "added";
 	oldData: null;
-	newData: DataItem;
+	newData: AnyDataItem;
 }
 
 interface DataRemove {
 	id: string;
 	type: "removed";
-	oldData: DataItem;
+	oldData: AnyDataItem;
 	newData: null;
 }
 
 interface DataModify {
 	id: string;
 	type: "modified";
-	oldData: DataItem;
-	newData: DataItem;
+	oldData: AnyDataItem;
+	newData: AnyDataItem;
 }
 
 type DataChange = DataAdd | DataRemove | DataModify;
 type DataChanges = NonEmptyArray<DataChange>;
+type Unsubscribe = () => void;
 
 type SDataChangeCallback = (change: DataChange) => void;
 type PDataChangeCallback = (change: DataChanges) => void;
@@ -60,10 +61,10 @@ interface CollectionWatcher extends _Watcher {
 const documentWatchers = new Map<string, DocumentWatcher>();
 const collectionWatchers = new Map<string, CollectionWatcher>();
 
-export async function watchUpdatesToDocument(
-	ref: DocumentReference,
+export function watchUpdatesToDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
 	onChange: SDataChangeCallback
-): Promise<DocumentWatcher> {
+): Unsubscribe {
 	const handle: DocumentWatcher = {
 		id: ref.id,
 		collectionId: ref.parent.id,
@@ -73,50 +74,62 @@ export async function watchUpdatesToDocument(
 	documentWatchers.set(handle.id, handle);
 
 	// Send "added" for all data at path
-	const data = await getDocument(ref);
-	if (data) {
-		const change: DataAdd = {
-			id: ref.id,
-			type: "added",
-			oldData: null,
-			newData: data,
-		};
-		await informWatchersForDocument(ref, change);
-	}
+	/* eslint-disable promise/prefer-await-to-then */
+	void getDocument<T>(ref)
+		.then(async data => {
+			if (data) {
+				const change: DataAdd = {
+					id: ref.id,
+					type: "added",
+					oldData: null,
+					newData: data,
+				};
+				await informWatchersForDocument(ref, change);
+			}
+		})
+		.catch((error: unknown) => {
+			console.error(error);
+		});
+	/* eslint-enable promise/prefer-await-to-then */
 
-	return handle;
+	return (): void => {
+		documentWatchers.delete(handle.id);
+	};
 }
 
-export async function watchUpdatesToCollection(
-	ref: CollectionReference,
+export function watchUpdatesToCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>,
 	onChange: PDataChangeCallback
-): Promise<CollectionWatcher> {
+): Unsubscribe {
 	const handle: CollectionWatcher = { id: ref.id, onChange, plurality: "plural" };
 	collectionWatchers.set(handle.id, handle);
 
 	// Send "added" for all data at path
-	const data = await getCollection(ref);
-	const changes: Array<DataAdd> = data.map<DataAdd>(newData => ({
-		id: newData._id,
-		type: "added",
-		oldData: null,
-		newData,
-	}));
-	if (changes.length > 0) {
-		await informWatchersForCollection(ref, changes as DataChanges);
-	}
+	/* eslint-disable promise/prefer-await-to-then */
+	void getCollection<T>(ref)
+		.then(async data => {
+			const changes: Array<DataAdd> = data.map<DataAdd>(newData => ({
+				id: newData._id,
+				type: "added",
+				oldData: null,
+				newData,
+			}));
+			if (changes.length > 0) {
+				await informWatchersForCollection(ref, changes as DataChanges);
+			}
+		})
+		.catch((error: unknown) => {
+			console.error(error);
+		});
+	/* eslint-enable promise/prefer-await-to-then */
 
-	return handle;
+	return (): void => {
+		collectionWatchers.delete(handle.id);
+	};
 }
 
-export function stopWatchingUpdates(handle: DocumentWatcher | CollectionWatcher): void {
-	const isSingle = handle.plurality === "single";
-	const watchers = isSingle ? documentWatchers : collectionWatchers;
-	watchers.delete(handle.id);
-}
-
-async function informWatchersForDocument(
-	ref: DocumentReference,
+async function informWatchersForDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
 	change: DataChange
 ): Promise<void> {
 	const listeners = [...documentWatchers.values()].filter(
@@ -125,28 +138,34 @@ async function informWatchersForDocument(
 	await Promise.all(listeners.map(l => l.onChange(change)));
 }
 
-async function informWatchersForCollection(
-	ref: CollectionReference,
+async function informWatchersForCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>,
 	changes: DataChanges
 ): Promise<void> {
 	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
 	await Promise.all(listeners.map(l => l.onChange(changes)));
 }
 
-export async function getDocument(ref: DocumentReference): Promise<DataItem | null> {
+export async function getDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>
+): Promise<T | null> {
 	const anything = await fetchDbDoc(ref);
 	if (!anything || !isDataItem(anything)) return null;
 	return anything;
 }
 
-export async function getCollection(ref: CollectionReference): Promise<Array<DataItem>> {
+export async function getCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>
+): Promise<Array<T>> {
 	const anything = await fetchDbCollection(ref);
 	return anything.filter(isDataItem);
 }
 
-export async function deleteDocument(ref: DocumentReference): Promise<void> {
+export async function deleteDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>
+): Promise<void> {
 	// Fetch the data
-	const oldData = await getDocument(ref);
+	const oldData = await getDocument<T>(ref);
 
 	await deleteDbDoc(ref);
 
@@ -163,9 +182,11 @@ export async function deleteDocument(ref: DocumentReference): Promise<void> {
 	}
 }
 
-export async function deleteCollection(ref: CollectionReference): Promise<void> {
+export async function deleteCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>
+): Promise<void> {
 	// Fetch the data
-	const oldData = await getCollection(ref);
+	const oldData = await getCollection<T>(ref);
 
 	await deleteDbCollection(ref);
 
@@ -181,9 +202,12 @@ export async function deleteCollection(ref: CollectionReference): Promise<void> 
 	}
 }
 
-export async function setDocument(ref: DocumentReference, newData: DataItem): Promise<void> {
+export async function setDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
+	newData: T
+): Promise<void> {
 	// Fetch the data
-	const oldData = await getDocument(ref);
+	const oldData = await getDocument<T>(ref);
 
 	await upsertDbDoc(ref, newData);
 
@@ -198,4 +222,4 @@ export async function setDocument(ref: DocumentReference, newData: DataItem): Pr
 }
 
 export * from "./references.js";
-export type { DataItem };
+export * from "./schemas.js";

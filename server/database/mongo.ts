@@ -11,16 +11,18 @@ export function newDocumentId(this: void): string {
 	return uuid();
 }
 
-export async function fetchDbCollection(ref: CollectionReference): Promise<Array<AnyDataItem>> {
+export async function fetchDbCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>
+): Promise<Array<T>> {
 	const conn = mongoose.createConnection(DB_URI);
 	const db = conn.db;
-	const collection = db.collection<AnyDataItem>(ref.id);
+	const collection = db.collection<T>(ref.id);
 	const query = collection.find({}).stream();
 
-	return new Promise<Array<AnyDataItem>>((resolve, reject) => {
-		const results: Array<AnyDataItem> = [];
+	return new Promise<Array<T>>((resolve, reject) => {
+		const results: Array<T> = [];
 		query.on("data", doc => {
-			results.push(doc as AnyDataItem);
+			results.push(doc as T);
 		});
 		query.on("error", reject);
 		query.on("close", () => {
@@ -29,28 +31,35 @@ export async function fetchDbCollection(ref: CollectionReference): Promise<Array
 	});
 }
 
-export async function fetchDbDoc(ref: DocumentReference): Promise<AnyDataItem | null> {
+export async function fetchDbDoc<T extends AnyDataItem>(
+	ref: DocumentReference<T>
+): Promise<T | null> {
 	const conn = mongoose.createConnection(DB_URI);
 	const db = conn.db;
 	const collection = db.collection<AnyDataItem>(ref.parent.id);
-	return await collection.findOne({ _id: ref.id });
+	return (await collection.findOne({ _id: ref.id })) as T;
 }
 
-export async function upsertDbDoc(ref: DocumentReference, data: AnyDataItem): Promise<void> {
+export async function upsertDbDoc<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
+	data: T
+): Promise<void> {
 	const conn = mongoose.createConnection(DB_URI);
 	const db = conn.db;
 	const collection = db.collection(ref.parent.id);
 	await collection.replaceOne({ _id: ref.id }, data, { upsert: true });
 }
 
-export async function deleteDbDoc(ref: DocumentReference): Promise<void> {
+export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<T>): Promise<void> {
 	const conn = mongoose.createConnection(DB_URI);
 	const db = conn.db;
 	const collection = db.collection(ref.parent.id);
 	await collection.deleteOne({ _id: ref.id });
 }
 
-export async function deleteDbCollection(ref: CollectionReference): Promise<void> {
+export async function deleteDbCollection<T extends AnyDataItem>(
+	ref: CollectionReference<T>
+): Promise<void> {
 	const conn = mongoose.createConnection(DB_URI);
 	const db = conn.db;
 	await db.dropCollection(ref.id);

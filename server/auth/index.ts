@@ -215,11 +215,15 @@ export function requireAuth(this: void): RequestHandler {
 	});
 }
 
+interface Params {
+	uid?: string;
+}
+
 /** Returns a handler that makes sure the request's `uid` param matches the calling user's authorization. */
-export function ownersOnly(this: void): RequestHandler {
+export function ownersOnly(this: void): RequestHandler<Params> {
 	return (req, res, next): void => {
 		const auth = Context.get(req);
-		const uid = req.params["uid"] ?? "";
+		const uid = req.params.uid ?? "";
 
 		if (!auth || !uid || !safeCompare(uid, auth.uid)) {
 			res.status(403).json({ message: "Unauthorized" });

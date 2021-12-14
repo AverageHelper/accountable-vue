@@ -2,6 +2,7 @@ import "source-map-support/register.js";
 import "./environment.js";
 import { auth, requireAuth } from "./auth/index.js";
 import { db } from "./db.js";
+import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage.js";
 import cors from "cors";
@@ -26,7 +27,8 @@ app
 	.use(auth())
 	.use(requireAuth()) // require auth from here on in
 	.use("/db", db())
-	.use("/files", storage());
+	.use("/files", storage())
+	.use(handleErrors);
 
 app.listen(port, () => {
 	process.stdout.write(`Accountable storage server listening on port ${port}\n`);

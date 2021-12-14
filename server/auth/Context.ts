@@ -2,7 +2,7 @@ import type { Request } from "express";
 
 /** @see https://boltsource.io/blog/Request-Context-with-TypeScript-and-express/ */
 export class Context {
-	private static readonly _bindings = new WeakMap<Request, Context>();
+	private static readonly _bindings = new WeakMap<Request<unknown>, Context>();
 
 	public readonly uid: Readonly<string>;
 
@@ -15,7 +15,7 @@ export class Context {
 		Context._bindings.set(req, ctx);
 	}
 
-	static get(req: Request): Context | null {
+	static get<P = unknown>(req: Request<P>): Context | null {
 		return Context._bindings.get(req) ?? null;
 	}
 }

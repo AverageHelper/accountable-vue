@@ -1,223 +1,243 @@
-import type { DataItem } from "./database/index.js";
-import type { Request, RequestHandler, Response } from "express";
-import type WebSocket from "ws";
+import type { DataItem, Keys } from "./database/index.js";
+import type { Request } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { Context, ownersOnly } from "./auth/index.js";
+import { ownersOnly } from "./auth/index.js";
 import { Router } from "express";
-import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
+import { respondBadRequest, respondData, respondNotFound, respondSuccess } from "./responses.js";
+import {
+	CollectionReference,
+	DocumentReference,
+	deleteCollection,
+	deleteDocument,
+	getCollection,
+	getDocument,
+	isCollectionId,
+	isDataItem,
+	isKeys,
+	setDocument,
+	watchUpdatesToCollection,
+	watchUpdatesToDocument,
+} from "./database/index.js";
 
-// Database data storage
-//   WS path -> open websocket to watch a document or a series of documents on a database path
-//   GET path -> get data in JSON format
-//   POST path data -> database set
-//   DELETE path -> database delete
-
-function respondSuccess(this: void, req: Request, res: Response): void {
-	res.json({ message: "Success!" });
+interface Params {
+	uid?: string;
+	collectionId?: string;
+	documentId?: string;
 }
 
-function respondData(this: void, req: Request, res: Response, data: unknown): void {
-	res.json(data);
+function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
+	const collectionId = req.params.collectionId ?? "";
+	if (!isCollectionId(collectionId)) return null;
+
+	return new CollectionReference(collectionId);
 }
 
-function respondNotSignedIn(this: void, req: Request, res: Response): void {
-	res.status(403).json({ message: "You must sign in first" });
-}
+function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
+	const documentId = req.params.documentId ?? "";
+	const collection = collectionRef(req);
+	if (!collection) return null;
 
-function respondNotFound(this: void, req: Request, res: Response): void {
-	res.status(404).json({ message: "No data found" });
-}
-
-function respondBadMethod(this: void, req: Request, res: Response): void {
-	res.status(405).json({ message: "That method is not allowed here. What are you trying to do?" });
-}
-
-function respondInternalError(this: void, req: Request, res: Response): void {
-	res.status(500).json({ message: "Not sure what went wrong. Try again maybe?" });
-}
-
-function _requireUid(this: void, req: Request, respondIfNoUid: () => void): string {
-	// ownersOnly garantees that the request contains a valid JWT and that JWT points to the user whose data we're requesting. Throw if this is not the case.
-	const uid = Context.get(req)?.uid ?? null;
-	if (uid === null) {
-		respondIfNoUid();
-		// Force-stop if the UID is not found
-		throw new TypeError(
-			"No UID in request. Make sure to use `ownersOnly` before reaching this point."
-		);
-	}
-	return uid;
-}
-
-function requireUid(this: void, req: Request, res: Response): string {
-	return _requireUid(req, () => respondNotSignedIn(req, res));
-}
-
-function requireUidWs(this: void, req: Request, ws: WebSocket): string {
-	return _requireUid(req, () => {
-		const response = { code: 403, message: "You must sign in first" };
-		ws.send(JSON.stringify(response), error => {
-			if (error) {
-				console.error(error);
-			}
-			ws.close(403);
-		});
-	});
-}
-
-/**
- * Generates Create-Read-Update-Delete (CRUD) endpoints for the document at the given path.
- *
- * This handler accepts only GET, POST, and DELETE requests. Any other method will throw
- * an HTTP 405 error.
- *
- * @param path The document path to handle here.
- * @returns a handler that handles CRUD endpoints for the given document path.
- */
-function documentCrud(this: void, path: string): RequestHandler {
-	return asyncWrapper(async (req, res) => {
-		try {
-			const ref = new DocumentReference(path);
-			switch (req.method.toUpperCase()) {
-				case "GET": {
-					const data = await getDocument(ref);
-					if (data === null) return respondNotFound(req, res);
-					return respondData(req, res, data);
-				}
-				case "POST":
-					await setDocument(ref, req.body as DataItem);
-					return respondSuccess(req, res);
-				case "DELETE":
-					await deleteDocument(ref);
-					return respondSuccess(req, res);
-				default:
-					return respondBadMethod(req, res);
-			}
-		} catch (error: unknown) {
-			console.error(error);
-			respondInternalError(req, res);
-		}
-	});
+	return new DocumentReference(collection, documentId);
 }
 
 export function db(this: void): Router {
-	const dbRouter = Router().all("/users/:uid/*", ownersOnly());
+	return (
+		Router()
+			.use("/users/:uid/*", ownersOnly())
 
-	// ** User Preferences
-	dbRouter
-		.ws("/", (ws, req) => {
-			ws.on("message", msg => {
-				try {
-					const uid = requireUidWs(req, ws);
-					process.stdout.write(`User '${uid}' sent message: '${JSON.stringify(msg.valueOf())}'\n`);
-					ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
-				} catch (error: unknown) {
-					console.error(error);
+			// ** User Preferences
+			.ws("/users/:uid", (ws, req) => {
+				const uid = (req.params["uid"] ?? "") || null;
+				if (uid === null) {
+					ws.send(JSON.stringify({ message: "No data found" }));
+					return ws.close();
 				}
-			});
-		})
-		.all("/", (req, res, next) => {
-			const uid = requireUid(req, res);
-			const path = `/users/${uid}`;
-			return documentCrud(path)(req, res, next);
-		});
+				const collection = new CollectionReference<Keys>("users");
+				const ref = new DocumentReference(collection, uid);
 
-	// ** Encryption Keys
-	dbRouter.all("/keys/main", (req, res, next) => {
-		const uid = requireUid(req, res);
-		const path = `/users/${uid}/keys/main`;
-		return documentCrud(path)(req, res, next);
-	});
+				const unsubscribe = watchUpdatesToDocument(ref, changes => {
+					ws.send(JSON.stringify(changes));
+				});
 
-	// ** Accounts
-	dbRouter
-		.connect("/accounts", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted account docs" });
-		})
-		.get("/accounts", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted account docs" });
-		})
-		.get("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted account doc" });
-		})
-		.post("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted account doc" });
-		})
-		.delete("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted account doc" });
-		});
+				ws.on("message", msg => {
+					try {
+						const uid = (req.params["uid"] ?? "") || null;
+						if ((msg as Buffer).toString() === "STOP") {
+							process.stdout.write("Received STOP\n");
+							unsubscribe();
+							ws.send(JSON.stringify({ message: "Closed." }));
+							return ws.close();
+						}
+						process.stdout.write(
+							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
+						);
+						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
+					} catch (error: unknown) {
+						console.error(error);
+					}
+				});
+			})
+			.get<Params>(
+				"/users/:uid",
+				asyncWrapper(async (req, res) => {
+					const uid = (req.params.uid ?? "") || null;
+					if (uid === null) return respondNotFound(res);
 
-	// ** Transactions
-	dbRouter
-		.connect("/accounts/:accountId/transactions", (req, res) => {
-			res.json({ message: "TODO: Watch the account's encrypted transaction docs" });
-		})
-		.get("/accounts/:accountId/transactions", (req, res) => {
-			res.json({ message: "TODO: Get the account's encrypted transaction docs" });
-		})
-		.get("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted transaction doc" });
-		})
-		.post("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted transaction doc" });
-		})
-		.delete("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted transaction doc" });
-		});
+					const collection = new CollectionReference<Keys>("users");
+					const ref = new DocumentReference(collection, uid);
 
-	// ** Locations
-	dbRouter
-		.connect("/locations", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted location docs" });
-		})
-		.get("/locations", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted location docs" });
-		})
-		.get("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted location doc" });
-		})
-		.post("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted location doc" });
-		})
-		.delete("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted location doc" });
-		});
+					const item = await getDocument(ref);
+					respondData(res, item);
+				})
+			)
+			.post<Params>(
+				"/users/:uid",
+				asyncWrapper(async (req, res) => {
+					const uid = (req.params.uid ?? "") || null;
+					if (uid === null) return respondNotFound(res);
 
-	// ** Tags
-	dbRouter
-		.connect("/tags", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted tag dogs" });
-		})
-		.get("/tags", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted tag docs" });
-		})
-		.get("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted tag doc" });
-		})
-		.post("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted tag doc" });
-		})
-		.delete("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted tag doc" });
-		});
+					const collection = new CollectionReference<Keys>("users");
+					const ref = new DocumentReference(collection, uid);
 
-	// ** Attachments
-	dbRouter
-		.connect("/attachments", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted attachment docs" });
-		})
-		.get("/attachments", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted attachment docs" });
-		})
-		.get("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted attachment doc" });
-		})
-		.post("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted attachment doc" });
-		})
-		.delete("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted tag doc" });
-		});
+					const providedData = JSON.parse(req.body as string) as unknown;
+					if (!isKeys(providedData)) return respondBadRequest(res);
 
-	return dbRouter;
+					await setDocument(ref, {
+						...providedData,
+						_id: ref.id,
+						uid,
+					});
+					respondSuccess(res);
+				})
+			)
+			.delete<Params>(
+				"/users/:uid",
+				asyncWrapper(async (req, res) => {
+					const uid = (req.params.uid ?? "") || null;
+					if (uid === null) return respondNotFound(res);
+
+					const collection = new CollectionReference<Keys>("users");
+					const ref = new DocumentReference(collection, uid);
+
+					await deleteDocument(ref);
+					respondSuccess(res);
+				})
+			)
+
+			// ** Everything else
+			.ws("/users/:uid/:collectionId", (ws, req) => {
+				const ref = collectionRef(req);
+				if (!ref) {
+					ws.send(JSON.stringify({ message: "No data found" }));
+					return ws.close();
+				}
+				const unsubscribe = watchUpdatesToCollection(ref, changes => {
+					ws.send(JSON.stringify(changes));
+				});
+
+				ws.on("message", msg => {
+					try {
+						if ((msg as Buffer).toString() === "STOP") {
+							process.stdout.write("Received STOP\n");
+							unsubscribe();
+							ws.send(JSON.stringify({ message: "Closed." }));
+							return ws.close();
+						}
+						const uid = (req.params["uid"] ?? "") || null;
+						process.stdout.write(
+							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
+						);
+						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
+					} catch (error: unknown) {
+						console.error(error);
+					}
+				});
+			})
+			.ws("/users/:uid/:collectionId/:documentId", (ws, req) => {
+				const ref = documentRef(req);
+				if (!ref) {
+					ws.send(JSON.stringify({ message: "No data found" }));
+					return ws.close();
+				}
+				const unsubscribe = watchUpdatesToDocument(ref, change => {
+					ws.send(JSON.stringify(change));
+				});
+
+				ws.on("message", msg => {
+					try {
+						const uid = (req.params["uid"] ?? "") || null;
+						if ((msg as Buffer).toString() === "STOP") {
+							process.stdout.write("Received STOP\n");
+							unsubscribe();
+							ws.send(JSON.stringify({ message: "Closed." }));
+							return ws.close();
+						}
+						process.stdout.write(
+							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
+						);
+						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
+					} catch (error: unknown) {
+						console.error(error);
+					}
+				});
+			})
+			.get<Params>(
+				"/users/:uid/:collectionId",
+				asyncWrapper(async (req, res) => {
+					const ref = collectionRef(req);
+					if (!ref) return respondNotFound(res);
+
+					const items = await getCollection(ref);
+					respondData(res, items);
+				})
+			)
+			.get<Params>(
+				"/users/:uid/:collectionId/:documentId",
+				asyncWrapper(async (req, res) => {
+					const ref = documentRef(req);
+					if (!ref) return respondNotFound(res);
+
+					const item = await getDocument(ref);
+					respondData(res, item);
+				})
+			)
+			.post<Params>(
+				"/users/:uid/:collectionId/:documentId",
+				asyncWrapper(async (req, res) => {
+					const uid = (req.params.uid ?? "") || null;
+					const ref = documentRef(req);
+					if (!ref || uid === null) return respondNotFound(res);
+
+					const providedData = JSON.parse(req.body as string) as unknown;
+					if (!isDataItem(providedData)) return respondBadRequest(res);
+
+					await setDocument(ref, {
+						...providedData,
+						_id: ref.id,
+						uid,
+					});
+					respondSuccess(res);
+				})
+			)
+			.delete<Params>(
+				"/users/:uid/:collectionId",
+				asyncWrapper(async (req, res) => {
+					const ref = collectionRef(req);
+					if (!ref) return respondNotFound(res);
+
+					await deleteCollection(ref);
+					respondSuccess(res);
+				})
+			)
+			.delete<Params>(
+				"/users/:uid/:collectionId/:documentId",
+				asyncWrapper(async (req, res) => {
+					const ref = documentRef(req);
+					if (!ref) return respondNotFound(res);
+
+					await deleteDocument(ref);
+					respondSuccess(res);
+				})
+			)
+	);
 }
