@@ -26,6 +26,12 @@ function isMongoObject(tbd: unknown): tbd is MongoObject {
 	);
 }
 
+export interface User extends MongoObject {
+	currentAccountId: string;
+	passwordHash: string;
+	passwordSalt: string;
+}
+
 export interface DataItem extends MongoObject {
 	ciphertext: string;
 	objectType: string;
@@ -46,7 +52,7 @@ export function isKeys(tbd: unknown): tbd is Keys {
 	return isMongoObject(tbd) && "dekMaterial" in tbd && "passSalt" in tbd;
 }
 
-export type AnyDataItem = DataItem | Keys;
+export type AnyDataItem = DataItem | Keys | User;
 
 export type CollectionID =
 	| "accounts"

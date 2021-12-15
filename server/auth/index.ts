@@ -1,6 +1,10 @@
 import type { Request, RequestHandler } from "express";
+import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
+import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
+import { fetchDbCollection, fetchDbDoc, upsertDbDoc } from "../database/mongo.js";
+import { generateSecureToken } from "n-digit-token";
 import { Router } from "express";
 import { TemporarySet } from "./TemporarySet.js";
 import { v4 as uuid } from "uuid";
@@ -13,26 +17,20 @@ interface ReqBody {
 	password?: unknown;
 }
 
-interface User {
-	uid: string;
-	currentAccountId: string;
-	passwordHash: string;
-	passwordSalt: string;
-}
-
 const jwtBlacklist = new TemporarySet<string>();
 
-// FIXME: This is bad. Write to disk instead. MongoDB?
-const users = new Set<User>();
-
-function userWithAccountId(accountId: string): User | null {
+async function userWithAccountId(accountId: string): Promise<User | null> {
+	const ref = new CollectionReference<User>("users");
+	const users = await fetchDbCollection(ref);
 	// Find first user whose account ID matches
-	return [...users].find(u => safeCompare(accountId, u.currentAccountId)) ?? null;
+	return users.find(u => safeCompare(accountId, u.currentAccountId)) ?? null;
 }
 
-function userWithUid(uid: string): User | null {
+async function userWithUid(uid: string): Promise<User | null> {
+	const collection = new CollectionReference<User>("users");
+	const ref = new DocumentReference(collection, uid);
 	// Find first user whose UID matches
-	return [...users].find(u => safeCompare(uid, u.uid)) ?? null;
+	return await fetchDbDoc(ref);
 }
 
 async function generateSalt(): Promise<string> {
@@ -43,7 +41,10 @@ async function generateHash(input: string, salt: string): Promise<string> {
 	return await bcrypt.hash(input, salt);
 }
 
-const secret = "secretSquirrel"; // TODO: Just one, or a different one per user?
+// Generate a new JWT secret for every run.
+// Restarting the server will log out all users.
+const secret = generateSecureToken(25) as string;
+
 async function newAccessToken(user: User): Promise<string> {
 	const options: jwt.SignOptions = { expiresIn: "1h" };
 	const data = { uid: user.uid, hash: user.passwordHash };
@@ -122,7 +123,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Check credentials are unused
-				const storedUser = userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(givenAccountId);
 				if (storedUser) {
 					res.status(409).json({ message: "An account with that ID already exists" });
 					return;
@@ -131,13 +132,18 @@ export function auth(this: void): Router {
 				// ** Store credentials
 				const passwordSalt = await generateSalt();
 				const passwordHash = await generateHash(givenPassword, passwordSalt);
+				const uid = uuid();
 				const user: User = {
-					uid: uuid(),
+					uid,
+					_id: uid,
 					currentAccountId: givenAccountId,
 					passwordHash,
 					passwordSalt,
 				};
-				users.add(user);
+
+				const collection = new CollectionReference<User>("users");
+				const ref = new DocumentReference(collection, uid);
+				await upsertDbDoc(ref, user);
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(user);
@@ -160,7 +166,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Get credentials
-				const storedUser = userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
 					res.status(403).json({ message: "Incorrect account ID or password" });
 					return;
