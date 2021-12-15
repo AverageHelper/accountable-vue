@@ -2,7 +2,7 @@ import type { Response } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { ownersOnly } from "./auth/index.js";
 import { resolve as resolvePath } from "path";
-import { respondNotFound, respondSuccess } from "./responses.js";
+import { NotFoundError, respondNotFound, respondSuccess } from "./responses.js";
 import { Router } from "express";
 import { useJobQueue } from "@averagehelper/job-queue";
 import formidable from "formidable";
@@ -86,10 +86,10 @@ export function storage(this: void): Router {
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {
 				const path = filePath(req.params);
-				if (path === null) return respondNotFound(res);
+				if (path === null) throw new NotFoundError();
 
 				const exists = await fileExists(path);
-				if (!exists) return respondNotFound(res);
+				if (!exists) throw new NotFoundError();
 
 				res.sendFile(path, { dotfiles: "deny" });
 			})

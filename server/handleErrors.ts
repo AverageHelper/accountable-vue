@@ -1,10 +1,14 @@
 import type { ErrorRequestHandler } from "express";
-import { respondInternalError } from "./responses.js";
+import { InternalError, respondError, respondInternalError } from "./responses.js";
 
 export const handleErrors: ErrorRequestHandler = (err: unknown, req, res, next) => {
-	console.error(err);
 	if (res.headersSent) {
 		return next(err);
 	}
-	respondInternalError(res);
+	if (err instanceof InternalError) {
+		if (!err.harmless) console.error(err);
+		return respondError(res, err);
+	}
+	console.error(err);
+	return respondInternalError(res);
 };

@@ -3,7 +3,7 @@ import type { Request } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { ownersOnly } from "./auth/index.js";
 import { Router } from "express";
-import { respondBadRequest, respondData, respondNotFound, respondSuccess } from "./responses.js";
+import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
 import {
 	CollectionReference,
 	DocumentReference,
@@ -81,7 +81,7 @@ export function db(this: void): Router {
 				"/users/:uid",
 				asyncWrapper(async (req, res) => {
 					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) return respondNotFound(res);
+					if (uid === null) throw new NotFoundError();
 
 					const collection = new CollectionReference<Keys>("users");
 					const ref = new DocumentReference(collection, uid);
@@ -94,13 +94,13 @@ export function db(this: void): Router {
 				"/users/:uid",
 				asyncWrapper(async (req, res) => {
 					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) return respondNotFound(res);
+					if (uid === null) throw new NotFoundError();
 
 					const collection = new CollectionReference<Keys>("users");
 					const ref = new DocumentReference(collection, uid);
 
 					const providedData = JSON.parse(req.body as string) as unknown;
-					if (!isKeys(providedData)) return respondBadRequest(res);
+					if (!isKeys(providedData)) throw new BadRequestError();
 
 					await setDocument(ref, {
 						...providedData,
@@ -114,7 +114,7 @@ export function db(this: void): Router {
 				"/users/:uid",
 				asyncWrapper(async (req, res) => {
 					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) return respondNotFound(res);
+					if (uid === null) throw new NotFoundError();
 
 					const collection = new CollectionReference<Keys>("users");
 					const ref = new DocumentReference(collection, uid);
@@ -185,7 +185,7 @@ export function db(this: void): Router {
 				"/users/:uid/:collectionId",
 				asyncWrapper(async (req, res) => {
 					const ref = collectionRef(req);
-					if (!ref) return respondNotFound(res);
+					if (!ref) throw new NotFoundError();
 
 					const items = await getCollection(ref);
 					respondData(res, items);
@@ -195,7 +195,7 @@ export function db(this: void): Router {
 				"/users/:uid/:collectionId/:documentId",
 				asyncWrapper(async (req, res) => {
 					const ref = documentRef(req);
-					if (!ref) return respondNotFound(res);
+					if (!ref) throw new NotFoundError();
 
 					const item = await getDocument(ref);
 					respondData(res, item);
@@ -206,10 +206,10 @@ export function db(this: void): Router {
 				asyncWrapper(async (req, res) => {
 					const uid = (req.params.uid ?? "") || null;
 					const ref = documentRef(req);
-					if (!ref || uid === null) return respondNotFound(res);
+					if (!ref || uid === null) throw new NotFoundError();
 
 					const providedData = JSON.parse(req.body as string) as unknown;
-					if (!isDataItem(providedData)) return respondBadRequest(res);
+					if (!isDataItem(providedData)) throw new BadRequestError();
 
 					await setDocument(ref, {
 						...providedData,
@@ -223,7 +223,7 @@ export function db(this: void): Router {
 				"/users/:uid/:collectionId",
 				asyncWrapper(async (req, res) => {
 					const ref = collectionRef(req);
-					if (!ref) return respondNotFound(res);
+					if (!ref) throw new NotFoundError();
 
 					await deleteCollection(ref);
 					respondSuccess(res);
@@ -233,7 +233,7 @@ export function db(this: void): Router {
 				"/users/:uid/:collectionId/:documentId",
 				asyncWrapper(async (req, res) => {
 					const ref = documentRef(req);
-					if (!ref) return respondNotFound(res);
+					if (!ref) throw new NotFoundError();
 
 					await deleteDocument(ref);
 					respondSuccess(res);

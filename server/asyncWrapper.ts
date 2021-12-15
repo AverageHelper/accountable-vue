@@ -22,8 +22,12 @@ export const asyncWrapper = <P = ParamsDictionary, ResBody = unknown, ReqBody = 
 	return (req, res, next): void => {
 		/* eslint-disable promise/prefer-await-to-then, promise/no-callback-in-promise */
 		void fn(req, res, next)
-			.then(() => next())
-			.catch(error => next(error));
+			.then(() => {
+				if (!res.headersSent) next();
+			})
+			.catch(error => {
+				if (!res.headersSent) next(error);
+			});
 		/* eslint-enable promise/prefer-await-to-then, promise/no-callback-in-promise */
 	};
 };

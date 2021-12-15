@@ -1,5 +1,23 @@
 import type { Response } from "express";
 
+export class InternalError extends Error {
+	/** The HTTP status that should be reported to the caller. */
+	public readonly status: number;
+	/** `false` if we should log the error internally. */
+	public readonly harmless: boolean;
+
+	constructor(
+		status: number = 500,
+		message: string = "Not sure what went wrong. Try again maybe?",
+		harmless: boolean = false
+	) {
+		super(message);
+		this.status = status;
+		this.harmless = harmless;
+		this.name = "InternalError";
+	}
+}
+
 export function respondSuccess(this: void, res: Response): void {
 	res.json({ message: "Success!" });
 }
@@ -8,22 +26,42 @@ export function respondData(this: void, res: Response, data: unknown): void {
 	res.json(data);
 }
 
-export function respondBadRequest(this: void, res: Response): void {
-	res.status(400).json({ message: "Invalid data" });
+export class BadRequestError extends InternalError {
+	constructor(message: string = "Invalid data") {
+		super(400, message, true);
+		this.name = "BadRequestError";
+	}
 }
 
-export function respondNotSignedIn(this: void, res: Response): void {
-	res.status(403).json({ message: "You must sign in first" });
+export class NotSignedInError extends InternalError {
+	constructor() {
+		super(403, "You must sign in first", true);
+		this.name = "NotSignedInError";
+	}
+}
+
+export class NotFoundError extends InternalError {
+	constructor() {
+		super(404, "No data found", true);
+		this.name = "NotFoundError";
+	}
 }
 
 export function respondNotFound(this: void, res: Response): void {
-	res.status(404).json({ message: "No data found" });
+	respondError(res, new NotFoundError());
 }
 
-export function respondBadMethod(this: void, res: Response): void {
-	res.status(405).json({ message: "That method is not allowed here. What are you trying to do?" });
+export class BadMethodError extends InternalError {
+	constructor() {
+		super(405, "That method is not allowed here. What are you trying to do?", true);
+		this.name = "BadMethodError";
+	}
 }
 
 export function respondInternalError(this: void, res: Response): void {
-	res.status(500).json({ message: "Not sure what went wrong. Try again maybe?" });
+	respondError(res, new InternalError());
+}
+
+export function respondError(this: void, res: Response, err: InternalError): void {
+	res.status(err.status).json({ message: err.message });
 }

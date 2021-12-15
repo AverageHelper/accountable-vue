@@ -1,6 +1,7 @@
 import type { Request, RequestHandler } from "express";
 import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
+import { BadRequestError } from "../responses.js";
 import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
 import { fetchDbCollection, fetchDbDoc, upsertDbDoc } from "../database/mongo.js";
@@ -118,8 +119,7 @@ export function auth(this: void): Router {
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
 				if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
-					res.status(400).json({ message: "Improper parameter types" });
-					return;
+					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Check credentials are unused
@@ -166,8 +166,7 @@ export function auth(this: void): Router {
 					givenAccountId === "" ||
 					givenPassword === ""
 				) {
-					res.status(400).json({ message: "Improper parameter types" });
-					return;
+					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Get credentials
