@@ -20,8 +20,10 @@ export const asyncWrapper = <P = ParamsDictionary, ResBody = unknown, ReqBody = 
 	fn: AsyncRequestHandler<P, ResBody, ReqBody>
 ): RequestHandler<P, ResBody, ReqBody> => {
 	return (req, res, next): void => {
+		/* eslint-disable promise/prefer-await-to-then, promise/no-callback-in-promise */
 		void fn(req, res, next)
-			// eslint-disable-next-line promise/prefer-await-to-then, promise/no-callback-in-promise
+			.then(() => next())
 			.catch(error => next(error));
+		/* eslint-enable promise/prefer-await-to-then, promise/no-callback-in-promise */
 	};
 };

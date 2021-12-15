@@ -1,8 +1,8 @@
 import type { Response } from "express";
-import { asyncWrapper } from "./asyncWrapper";
-import { ownersOnly } from "./auth";
+import { asyncWrapper } from "./asyncWrapper.js";
+import { ownersOnly } from "./auth/index.js";
 import { resolve as resolvePath } from "path";
-import { respondNotFound, respondSuccess } from "./responses";
+import { respondNotFound, respondSuccess } from "./responses.js";
 import { Router } from "express";
 import { useJobQueue } from "@averagehelper/job-queue";
 import formidable from "formidable";

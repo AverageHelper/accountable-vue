@@ -154,13 +154,18 @@ export function auth(this: void): Router {
 			"/login",
 			asyncWrapper(async (req, res) => {
 				// ** Create a JWT for the caller to use later
-				// TODO: Prevent brute-forcing same user ID
+				// TODO: Prevent brute-forcing against same user ID
 				// TODO: Limit num of consecutive failed attempts by the same user name and IP
 				// FIXME: We're vulnerable to CSRF attacks here
 
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
-				if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
+				if (
+					typeof givenAccountId !== "string" ||
+					typeof givenPassword !== "string" ||
+					givenAccountId === "" ||
+					givenPassword === ""
+				) {
 					res.status(400).json({ message: "Improper parameter types" });
 					return;
 				}

@@ -30,6 +30,8 @@ app
 	.use("/files", storage())
 	.use(handleErrors);
 
+process.stdout.write(`NODE_ENV: ${process.env.NODE_ENV}\n`);
+
 app.listen(port, () => {
 	process.stdout.write(`Accountable storage server listening on port ${port}\n`);
 });

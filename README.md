@@ -25,6 +25,8 @@ $ npm -v
 7.20.3
 ```
 
+We also need MongoDB installed and running locally. Check out [this tutorial](https://rexben.medium.com/getting-started-with-mongodb-mongoose-2a6acbc34dd4) on how to install it on your system.
+
 ### Installation
 
 - Clone the repository
