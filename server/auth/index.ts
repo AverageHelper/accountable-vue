@@ -1,10 +1,10 @@
 import type { Request, RequestHandler } from "express";
 import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
-import { BadRequestError } from "../responses.js";
+import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
 import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
-import { fetchDbCollection, fetchDbDoc, upsertDbDoc } from "../database/mongo.js";
+import { fetchDbDoc, findDbDoc, upsertDbDoc } from "../database/mongo.js";
 import { generateSecureToken } from "n-digit-token";
 import { Router } from "express";
 import { TemporarySet } from "./TemporarySet.js";
@@ -22,9 +22,9 @@ const jwtBlacklist = new TemporarySet<string>();
 
 async function userWithAccountId(accountId: string): Promise<User | null> {
 	const ref = new CollectionReference<User>("users");
-	const users = await fetchDbCollection(ref);
+	// FIXME: This is slow
 	// Find first user whose account ID matches
-	return users.find(u => safeCompare(accountId, u.currentAccountId)) ?? null;
+	return await findDbDoc(ref, { currentAccountId: accountId });
 }
 
 async function userWithUid(uid: string): Promise<User | null> {
@@ -83,7 +83,7 @@ async function userFromRequest(req: Request): Promise<User | null> {
 	const payload = await new Promise<jwt.JwtPayload>((resolve, reject) => {
 		jwt.verify(token, secret, (err, payload) => {
 			if (err) {
-				reject(err);
+				reject(new UnauthorizedError());
 				return;
 			}
 			if (payload !== undefined) {
@@ -125,8 +125,7 @@ export function auth(this: void): Router {
 				// ** Check credentials are unused
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (storedUser) {
-					res.status(409).json({ message: "An account with that ID already exists" });
-					return;
+					throw new DuplicateAccountError();
 				}
 
 				// ** Store credentials
@@ -172,21 +171,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					res.status(403).json({ message: "Incorrect account ID or password" });
-					return;
+					throw new UnauthorizedError("Incorrect account ID or password");
 				}
 
 				// ** Verify credentials
-				try {
-					const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
-					if (!isPasswordGood) {
-						res.status(403).json({ message: "Incorrect account ID or password" });
-						return;
-					}
-				} catch (error: unknown) {
-					console.error(error);
-					res.status(500).json({ message: "Something went wrong. Try again?" });
-					return;
+				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
+				if (!isPasswordGood) {
+					throw new UnauthorizedError("Incorrect account ID or password");
 				}
 
 				// ** Generate an auth token and send it along
@@ -216,8 +207,7 @@ export function requireAuth(this: void): RequestHandler {
 	return asyncWrapper(async (req, res, next) => {
 		const user = await userFromRequest(req);
 		if (!user) {
-			res.status(403).json({ message: "Unauthorized" });
-			return;
+			throw new UnauthorizedError();
 		}
 
 		Context.bind(req, user.uid); // This reference drops when the request is done
@@ -236,8 +226,7 @@ export function ownersOnly(this: void): RequestHandler<Params> {
 		const uid = req.params.uid ?? "";
 
 		if (!auth || !uid || !safeCompare(uid, auth.uid)) {
-			res.status(403).json({ message: "Unauthorized" });
-			return;
+			throw new UnauthorizedError();
 		}
 		next();
 	};

@@ -38,10 +38,10 @@ export class BadRequestError extends InternalError {
 	}
 }
 
-export class NotSignedInError extends InternalError {
-	constructor() {
-		super({ status: 403, message: "You must sign in first", harmless: true });
-		this.name = "NotSignedInError";
+export class UnauthorizedError extends InternalError {
+	constructor(message: string = "Unauthorized") {
+		super({ status: 403, message, harmless: true });
+		this.name = "UnauthorizedError";
 	}
 }
 
@@ -64,6 +64,17 @@ export class BadMethodError extends InternalError {
 			harmless: true,
 		});
 		this.name = "BadMethodError";
+	}
+}
+
+export class DuplicateAccountError extends InternalError {
+	constructor() {
+		super({
+			status: 409,
+			message: "An account with that ID already exists",
+			harmless: true,
+		});
+		this.name = "DuplicateAccountError";
 	}
 }
 

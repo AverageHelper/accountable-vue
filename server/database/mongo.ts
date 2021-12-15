@@ -32,15 +32,24 @@ export async function fetchDbCollection<T extends AnyDataItem>(
 ): Promise<Array<T>> {
 	const db = await dbPromise;
 	const collection = db.collection<T>(ref.id);
-	const query = collection.find<T>({});
+	const q = collection.find<T>({});
 
 	const results: Array<T> = [];
-	let next = await query.next();
+	let next = await q.next();
 	while (next !== null) {
 		results.push(next);
-		next = await query.next();
+		next = await q.next();
 	}
 	return results;
+}
+
+export async function findDbDoc<T extends AnyDataItem>(
+	collectionRef: CollectionReference<T>,
+	query: Partial<T>
+): Promise<T | null> {
+	const db = await dbPromise;
+	const collection = db.collection<T>(collectionRef.id);
+	return await collection.findOne<T>(query);
 }
 
 export async function fetchDbDoc<T extends AnyDataItem>(
