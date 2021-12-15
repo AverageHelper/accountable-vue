@@ -13,21 +13,24 @@ export function newDocumentId(this: void): string {
 	return uuid();
 }
 
-async function getDb(): Promise<Db> {
-	console.log(`Connecting to MongoDB at '${DB_URI}'...`);
-	const mon = await timeout(() => mongoose.connect(DB_URI), 30000);
-	console.log("Connected!");
-	const conn = mon.connection;
-	const db = conn.db;
-	if (db === undefined) throw new EvalError("Database not initialized");
-
-	return db;
-}
+process.stdout.write(`Connecting to MongoDB at '${DB_URI}'...\n`);
+const dbPromise: Promise<Db> = timeout(() => mongoose.connect(DB_URI), 30000)
+	.then((mon): Db => {
+		process.stdout.write("Connected!\n");
+		const conn = mon.connection;
+		const db = conn.db;
+		if (db === undefined) throw new EvalError("Database not initialized");
+		return db;
+	})
+	.catch((error: unknown) => {
+		console.error(error);
+		throw error;
+	});
 
 export async function fetchDbCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>
 ): Promise<Array<T>> {
-	const db = await getDb();
+	const db = await dbPromise;
 	const collection = db.collection<T>(ref.id);
 	const query = collection.find<T>({});
 
@@ -43,7 +46,7 @@ export async function fetchDbCollection<T extends AnyDataItem>(
 export async function fetchDbDoc<T extends AnyDataItem>(
 	ref: DocumentReference<T>
 ): Promise<T | null> {
-	const db = await getDb();
+	const db = await dbPromise;
 	const collection = db.collection<AnyDataItem>(ref.parent.id);
 	return (await collection.findOne({ _id: ref.id })) as T;
 }
@@ -52,13 +55,13 @@ export async function upsertDbDoc<T extends AnyDataItem>(
 	ref: DocumentReference<T>,
 	data: T
 ): Promise<void> {
-	const db = await getDb();
+	const db = await dbPromise;
 	const collection = db.collection(ref.parent.id);
 	await collection.replaceOne({ _id: ref.id }, data, { upsert: true });
 }
 
 export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<T>): Promise<void> {
-	const db = await getDb();
+	const db = await dbPromise;
 	const collection = db.collection(ref.parent.id);
 	await collection.deleteOne({ _id: ref.id });
 }
@@ -66,6 +69,6 @@ export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<
 export async function deleteDbCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>
 ): Promise<void> {
-	const db = await getDb();
+	const db = await dbPromise;
 	await db.dropCollection(ref.id);
 }
