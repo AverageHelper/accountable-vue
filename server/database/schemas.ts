@@ -63,7 +63,7 @@ export type CollectionID =
 	| "transactions"
 	| "users";
 
-const allCollectionIds = new Set<CollectionID>([
+const allCollectionIds: ReadonlySet<CollectionID> = new Set([
 	"accounts",
 	"attachments",
 	"keys",

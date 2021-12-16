@@ -1,9 +1,10 @@
 import type { DataItem, Keys } from "./database/index.js";
 import type { Request } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
+import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
+import { handleErrors } from "./handleErrors.js";
 import { ownersOnly } from "./auth/index.js";
 import { Router } from "express";
-import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
 import {
 	CollectionReference,
 	DocumentReference,
@@ -40,10 +41,11 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 	return new DocumentReference(collection, documentId);
 }
 
+// Function so we defer creation of the router until after we've set up websocket support
 export function db(this: void): Router {
 	return (
 		Router()
-			.use("/users/:uid/*", ownersOnly())
+			.use("/users/:uid", ownersOnly())
 
 			// ** User Preferences
 			.ws("/users/:uid", (ws, req) => {
@@ -55,6 +57,7 @@ export function db(this: void): Router {
 				const collection = new CollectionReference<Keys>("users");
 				const ref = new DocumentReference(collection, uid);
 
+				// TODO: Assert the caller's ID is uid
 				const unsubscribe = watchUpdatesToDocument(ref, changes => {
 					ws.send(JSON.stringify(changes));
 				});
@@ -131,6 +134,7 @@ export function db(this: void): Router {
 					ws.send(JSON.stringify({ message: "No data found" }));
 					return ws.close();
 				}
+				// TODO: Assert the caller's ID is uid
 				const unsubscribe = watchUpdatesToCollection(ref, changes => {
 					ws.send(JSON.stringify(changes));
 				});
@@ -159,6 +163,7 @@ export function db(this: void): Router {
 					ws.send(JSON.stringify({ message: "No data found" }));
 					return ws.close();
 				}
+				// TODO: Assert the caller's ID is uid
 				const unsubscribe = watchUpdatesToDocument(ref, change => {
 					ws.send(JSON.stringify(change));
 				});
@@ -239,5 +244,6 @@ export function db(this: void): Router {
 					respondSuccess(res);
 				})
 			)
+			.use(handleErrors)
 	);
 }

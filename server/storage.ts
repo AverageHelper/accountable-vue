@@ -1,8 +1,9 @@
 import type { Response } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
+import { handleErrors } from "./handleErrors.js";
+import { NotFoundError, respondNotFound, respondSuccess } from "./responses.js";
 import { ownersOnly } from "./auth/index.js";
 import { resolve as resolvePath } from "path";
-import { NotFoundError, respondNotFound, respondSuccess } from "./responses.js";
 import { Router } from "express";
 import { useJobQueue } from "@averagehelper/job-queue";
 import formidable from "formidable";
@@ -81,7 +82,7 @@ function filePath(params: Params): string | null {
 
 export function storage(this: void): Router {
 	return Router()
-		.use("/users/:uid/*", ownersOnly())
+		.use("/users/:uid", ownersOnly())
 		.get<Params>(
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {
@@ -114,5 +115,6 @@ export function storage(this: void): Router {
 			const queue = useJobQueue<WriteAction>(path);
 			queue.process(handleWrite);
 			queue.createJob({ method: "delete", path, res });
-		});
+		})
+		.use(handleErrors);
 }

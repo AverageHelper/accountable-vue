@@ -131,7 +131,7 @@ export function auth(this: void): Router {
 				// ** Store credentials
 				const passwordSalt = await generateSalt();
 				const passwordHash = await generateHash(givenPassword, passwordSalt);
-				const uid = uuid();
+				const uid = uuid().replace(/-/gu, ""); // remove hyphens
 				const user: User = {
 					uid,
 					_id: uid,

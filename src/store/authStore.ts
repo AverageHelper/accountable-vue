@@ -159,8 +159,7 @@ export const useAuthStore = defineStore("auth", {
 			return material;
 		},
 		createAccountId(this: void): string {
-			const id = uuid();
-			return id.replace(/\W+/gu, "");
+			return uuid().replace(/\W+/gu, "");
 		},
 		async createVault(accountId: string, password: string) {
 			try {

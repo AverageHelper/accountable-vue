@@ -157,8 +157,7 @@ export async function getDocument<T extends AnyDataItem>(
 export async function getCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>
 ): Promise<Array<T>> {
-	const anything = await fetchDbCollection(ref);
-	return anything.filter(isDataItem);
+	return await fetchDbCollection(ref);
 }
 
 export async function deleteDocument<T extends AnyDataItem>(

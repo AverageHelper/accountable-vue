@@ -10,7 +10,7 @@ const DB_URI = `mongodb://localhost:${DB_PORT}/accountable`;
 
 /** Returns a fresh document ID that is virtually guaranteed not to have been used before. */
 export function newDocumentId(this: void): string {
-	return uuid();
+	return uuid().replace(/-/gu, ""); // remove hyphens
 }
 
 process.stdout.write(`Connecting to MongoDB at '${DB_URI}'...\n`);

@@ -6,7 +6,7 @@ export const handleErrors: ErrorRequestHandler = (err: unknown, req, res, next) 
 		return next(err);
 	}
 	if (err instanceof InternalError) {
-		if (!err.harmless) console.error(err);
+		if (!err.harmless || process.env.NODE_ENV === "development") console.error(err);
 		return respondError(res, err);
 	}
 	console.error(err);
