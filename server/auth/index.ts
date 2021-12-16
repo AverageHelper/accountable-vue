@@ -1,24 +1,18 @@
-import type { Request, RequestHandler } from "express";
 import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
 import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
-import { fetchDbDoc, findDbDoc, upsertDbDoc } from "../database/mongo.js";
-import { generateSecureToken } from "n-digit-token";
+import { findDbDoc, upsertDbDoc } from "../database/mongo.js";
+import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { Router } from "express";
-import { TemporarySet } from "./TemporarySet.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import safeCompare from "tsscmp";
 
 interface ReqBody {
 	account?: unknown;
 	password?: unknown;
 }
-
-const jwtBlacklist = new TemporarySet<string>();
 
 async function userWithAccountId(accountId: string): Promise<User | null> {
 	const ref = new CollectionReference<User>("users");
@@ -27,81 +21,12 @@ async function userWithAccountId(accountId: string): Promise<User | null> {
 	return await findDbDoc(ref, { currentAccountId: accountId });
 }
 
-async function userWithUid(uid: string): Promise<User | null> {
-	const collection = new CollectionReference<User>("users");
-	const ref = new DocumentReference(collection, uid);
-	// Find first user whose UID matches
-	return await fetchDbDoc(ref);
-}
-
 async function generateSalt(): Promise<string> {
 	return await bcrypt.genSalt(15);
 }
 
 async function generateHash(input: string, salt: string): Promise<string> {
 	return await bcrypt.hash(input, salt);
-}
-
-// Generate a new JWT secret for every run.
-// Restarting the server will log out all users.
-const secret = generateSecureToken(25) as string;
-
-async function newAccessToken(user: User): Promise<string> {
-	const options: jwt.SignOptions = { expiresIn: "1h" };
-	const data = { uid: user.uid, hash: user.passwordHash };
-
-	return new Promise<string>((resolve, reject) => {
-		jwt.sign(data, secret, options, (err, token) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-			if (token !== undefined) {
-				resolve(token);
-				return;
-			}
-			const error = new TypeError(
-				`Failed to create JWT for user ${user.uid}: Both error and token parameters were empty.`
-			);
-			reject(error);
-		});
-	});
-}
-
-function jwtTokenFromRequest(req: Request): string | null {
-	const authHeader = req.headers.authorization ?? "";
-	if (!authHeader) return null;
-
-	return (authHeader.split(" ")[1] ?? "") || null;
-}
-
-async function userFromRequest(req: Request): Promise<User | null> {
-	const token = jwtTokenFromRequest(req);
-	if (token === null) return null;
-	if (jwtBlacklist.has(token)) return null;
-
-	const payload = await new Promise<jwt.JwtPayload>((resolve, reject) => {
-		jwt.verify(token, secret, (err, payload) => {
-			if (err) {
-				reject(new UnauthorizedError());
-				return;
-			}
-			if (payload !== undefined) {
-				resolve(payload);
-				return;
-			}
-			const error = new TypeError(
-				"Failed to verify JWT: Both error and payload parameters were empty."
-			);
-			reject(error);
-		});
-	});
-
-	const uid = (payload["uid"] as string | undefined) ?? null;
-	if (uid === null || typeof uid !== "string")
-		throw new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`);
-
-	return userWithUid(uid);
 }
 
 /**
@@ -193,43 +118,13 @@ export function auth(this: void): Router {
 			}
 
 			// ** Blacklist the JWT
-			// TODO: Only blacklist for the duration the token has remaining
-			const oneHour = 3600000;
 			// FIXME: Anybody can just flood us with logouts to blacklist
-			jwtBlacklist.add(token, oneHour);
+			addJwtToBlacklist(token);
 			res.json({ message: "Success!" });
 		});
-	// TODO: Endpoint to update user login data
-}
-
-/** Returns a handler that makes sure the calling user is authorized here. */
-export function requireAuth(this: void): RequestHandler {
-	return asyncWrapper(async (req, res, next) => {
-		const user = await userFromRequest(req);
-		if (!user) {
-			throw new UnauthorizedError();
-		}
-
-		Context.bind(req, user.uid); // This reference drops when the request is done
-		next();
-	});
-}
-
-interface Params {
-	uid?: string;
-}
-
-/** Returns a handler that makes sure the request's `uid` param matches the calling user's authorization. */
-export function ownersOnly(this: void): RequestHandler<Params> {
-	return (req, res, next): void => {
-		const auth = Context.get(req);
-		const uid = req.params.uid ?? "";
-
-		if (!auth || !uid || !safeCompare(uid, auth.uid)) {
-			throw new UnauthorizedError();
-		}
-		next();
-	};
+	// TODO: Endpoint to update user login data. Ask for full credentials, so we aren't leaning on a repeatable token
 }
 
 export { Context };
+export * from "./ownersOnly.js";
+export * from "./requireAuth.js";
