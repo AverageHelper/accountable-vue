@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { handleErrors } from "./handleErrors.js";
-import { NotFoundError, respondNotFound, respondSuccess } from "./responses.js";
+import { NotFoundError, respondSuccess } from "./responses.js";
 import { ownersOnly } from "./auth/index.js";
 import { resolve as resolvePath } from "path";
 import { Router } from "express";
@@ -43,7 +43,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 			} else {
 				file = fileOrFiles;
 			}
-			if (file === null) return respondNotFound(job.res);
+			if (file === null) throw new NotFoundError();
 
 			await fs.writeFile(job.path, file?.toString());
 			break;
@@ -101,7 +101,7 @@ export function storage(this: void): Router {
 				if (Boolean(error)) return next(error);
 
 				const path = filePath(req.params);
-				if (path === null) return respondNotFound(res);
+				if (path === null) throw new NotFoundError();
 
 				const queue = useJobQueue<WriteAction>(path);
 				queue.process(handleWrite);
@@ -110,7 +110,7 @@ export function storage(this: void): Router {
 		})
 		.delete<Params>("/users/:uid/attachments/:fileName", (req, res) => {
 			const path = filePath(req.params);
-			if (path === null) return respondNotFound(res);
+			if (path === null) throw new NotFoundError();
 
 			const queue = useJobQueue<WriteAction>(path);
 			queue.process(handleWrite);

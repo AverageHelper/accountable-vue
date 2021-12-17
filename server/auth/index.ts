@@ -1,24 +1,20 @@
 import type { User } from "../database/schemas.js";
+import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
 import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
 import { findDbDoc, upsertDbDoc } from "../database/mongo.js";
-import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { Router } from "express";
+import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 
 interface ReqBody {
 	account?: unknown;
+	newaccount?: unknown;
 	password?: unknown;
-}
-
-async function userWithAccountId(accountId: string): Promise<User | null> {
-	const ref = new CollectionReference<User>("users");
-	// FIXME: This is slow
-	// Find first user whose account ID matches
-	return await findDbDoc(ref, { currentAccountId: accountId });
+	newpassword?: unknown;
 }
 
 async function generateSalt(): Promise<string> {
@@ -27,6 +23,18 @@ async function generateSalt(): Promise<string> {
 
 async function generateHash(input: string, salt: string): Promise<string> {
 	return await bcrypt.hash(input, salt);
+}
+
+async function userWithAccountId(accountId: string): Promise<User | null> {
+	// Find first user whose account ID matches
+	const ref = new CollectionReference<User>("users");
+	return await findDbDoc(ref, { currentAccountId: accountId });
+}
+
+async function upsertUser(user: User): Promise<void> {
+	const collection = new CollectionReference<User>("users");
+	const ref = new DocumentReference(collection, user.uid);
+	await upsertDbDoc(ref, user);
 }
 
 /**
@@ -40,6 +48,7 @@ export function auth(this: void): Router {
 	return Router()
 		.post<unknown, unknown, ReqBody>(
 			"/join",
+			throttle(),
 			asyncWrapper(async (req, res) => {
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
@@ -64,10 +73,7 @@ export function auth(this: void): Router {
 					passwordHash,
 					passwordSalt,
 				};
-
-				const collection = new CollectionReference<User>("users");
-				const ref = new DocumentReference(collection, uid);
-				await upsertDbDoc(ref, user);
+				await upsertUser(user);
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(user);
@@ -76,10 +82,9 @@ export function auth(this: void): Router {
 		)
 		.post<unknown, unknown, ReqBody>(
 			"/login",
+			throttle(),
 			asyncWrapper(async (req, res) => {
 				// ** Create a JWT for the caller to use later
-				// TODO: Prevent brute-forcing against same user ID
-				// TODO: Limit num of consecutive failed attempts by the same user name and IP
 				// FIXME: We're vulnerable to CSRF attacks here
 
 				const givenAccountId = req.body.account;
@@ -121,8 +126,98 @@ export function auth(this: void): Router {
 			// FIXME: Anybody can just flood us with logouts to blacklist
 			addJwtToBlacklist(token);
 			res.json({ message: "Success!" });
-		});
-	// TODO: Endpoint to update user login data. Ask for full credentials, so we aren't leaning on a repeatable token
+		})
+		.post<unknown, unknown, ReqBody>(
+			"updatepassword",
+			throttle(),
+			asyncWrapper(async (req, res) => {
+				// FIXME: We're vulnerable to CSRF attacks here
+
+				// Ask for full credentials, so we aren't leaning on a repeatable token
+				const givenAccountId = req.body.account;
+				const givenPassword = req.body.password;
+				const newGivenPassword = req.body.newpassword;
+				if (
+					typeof givenAccountId !== "string" ||
+					typeof givenPassword !== "string" ||
+					typeof newGivenPassword !== "string" ||
+					givenAccountId === "" ||
+					givenPassword === "" ||
+					newGivenPassword === ""
+				) {
+					throw new BadRequestError("Improper parameter types");
+				}
+
+				// ** Get credentials
+				const storedUser = await userWithAccountId(givenAccountId);
+				if (!storedUser) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Verify old credentials
+				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
+				if (!isPasswordGood) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Store new credentials
+				const passwordSalt = await generateSalt();
+				const passwordHash = await generateHash(newGivenPassword, passwordSalt);
+				await upsertUser({
+					...storedUser,
+					passwordHash,
+					passwordSalt,
+				});
+
+				// ** Generate an auth token and send it along
+				const access_token = await newAccessToken(storedUser);
+				res.json({ access_token });
+			})
+		)
+		.post<unknown, unknown, ReqBody>(
+			"updateaccountid",
+			throttle(),
+			asyncWrapper(async (req, res) => {
+				// FIXME: We're vulnerable to CSRF attacks here
+
+				// Ask for full credentials, so we aren't leaning on a repeatable token
+				const givenAccountId = req.body.account;
+				const newGivenAccountId = req.body.newaccount;
+				const givenPassword = req.body.password;
+				if (
+					typeof givenAccountId !== "string" ||
+					typeof newGivenAccountId !== "string" ||
+					typeof givenPassword !== "string" ||
+					givenAccountId === "" ||
+					newGivenAccountId === "" ||
+					givenPassword === ""
+				) {
+					throw new BadRequestError("Improper parameter types");
+				}
+
+				// ** Get credentials
+				const storedUser = await userWithAccountId(givenAccountId);
+				if (!storedUser) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Verify old credentials
+				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
+				if (!isPasswordGood) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Store new credentials
+				await upsertUser({
+					...storedUser,
+					currentAccountId: newGivenAccountId,
+				});
+
+				// ** Generate an auth token and send it along
+				const access_token = await newAccessToken(storedUser);
+				res.json({ access_token });
+			})
+		);
 }
 
 export { Context };

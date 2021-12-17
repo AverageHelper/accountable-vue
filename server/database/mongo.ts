@@ -1,9 +1,9 @@
 import type { AnyDataItem } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
 import type { Db } from "mongoose/node_modules/mongodb";
+import { timeout } from "../timeout.js";
 import { v4 as uuid } from "uuid";
 import mongoose from "mongoose";
-import { timeout } from "../timeout.js";
 
 const DB_PORT = 27017;
 const DB_URI = `mongodb://localhost:${DB_PORT}/accountable`;
@@ -14,7 +14,7 @@ export function newDocumentId(this: void): string {
 }
 
 process.stdout.write(`Connecting to MongoDB at '${DB_URI}'...\n`);
-const dbPromise: Promise<Db> = timeout(() => mongoose.connect(DB_URI), 30000)
+export const dbPromise: Promise<Db> = timeout(() => mongoose.connect(DB_URI), 30000)
 	.then((mon): Db => {
 		process.stdout.write("Connected!\n");
 		const conn = mon.connection;

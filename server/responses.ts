@@ -1,3 +1,4 @@
+import type { RateLimiterRes } from "rate-limiter-flexible";
 import type { Response } from "express";
 
 export class InternalError extends Error {
@@ -7,17 +8,23 @@ export class InternalError extends Error {
 	/** `false` if we should log the error internally. */
 	public readonly harmless: boolean;
 
+	/** Headers that should be sent along with the error. */
+	public readonly headers: ReadonlyMap<string, string | number | ReadonlyArray<string>>;
+
 	constructor({
-		status = 500,
 		message = "Not sure what went wrong. Try again maybe?",
+		status = 500,
+		headers = new Map(),
 		harmless = false,
 	}: {
-		status?: number;
 		message?: string;
+		status?: number;
+		headers?: Map<string, string | number | ReadonlyArray<string>>;
 		harmless?: boolean;
 	} = {}) {
 		super(message);
 		this.status = status;
+		this.headers = headers;
 		this.harmless = harmless;
 		this.name = "InternalError";
 	}
@@ -52,10 +59,6 @@ export class NotFoundError extends InternalError {
 	}
 }
 
-export function respondNotFound(this: void, res: Response): void {
-	respondError(res, new NotFoundError());
-}
-
 export class BadMethodError extends InternalError {
 	constructor() {
 		super({
@@ -78,10 +81,26 @@ export class DuplicateAccountError extends InternalError {
 	}
 }
 
+export class ThrottledError extends InternalError {
+	constructor(rateLimiterRes: RateLimiterRes) {
+		super({
+			status: 429,
+			message: "You are being throttled",
+			headers: new Map<string, string | number | ReadonlyArray<string>>([
+				["Retry-After", rateLimiterRes.msBeforeNext / 1000],
+			]),
+		});
+		this.name = "ThrottledError";
+	}
+}
+
 export function respondInternalError(this: void, res: Response): void {
 	respondError(res, new InternalError());
 }
 
 export function respondError(this: void, res: Response, err: InternalError): void {
+	err.headers.forEach((value, name) => {
+		res.setHeader(name, value);
+	});
 	res.status(err.status).json({ message: err.message });
 }

@@ -1,9 +1,5 @@
 import type { RequestHandler, Request, Response, NextFunction } from "express";
 
-// This matches the internal definition in express
-// eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/consistent-type-definitions
-type ParamsDictionary = {};
-
 type AsyncRequestHandler<P = ParamsDictionary, ResBody = unknown, ReqBody = unknown> = (
 	req: Request<P, ResBody, ReqBody>,
 	res: Response,
