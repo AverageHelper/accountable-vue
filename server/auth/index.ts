@@ -7,6 +7,7 @@ import { Context } from "./Context.js";
 import { findDbDoc, upsertDbDoc } from "../database/mongo.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
+import { userFromRequest } from "./requireAuth.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 
@@ -115,18 +116,22 @@ export function auth(this: void): Router {
 				res.json({ access_token });
 			})
 		)
-		.post("/logout", (req, res) => {
-			const token = jwtTokenFromRequest(req);
-			if (token === null) {
-				res.json({ message: "Success!" });
-				return;
-			}
+		.post(
+			"/logout",
+			throttle(),
+			asyncWrapper(async (req, res) => {
+				const token = jwtTokenFromRequest(req);
+				const user = await userFromRequest(req);
+				if (!user || token === null) {
+					res.json({ message: "Success!" });
+					return;
+				}
 
-			// ** Blacklist the JWT
-			// FIXME: Anybody can just flood us with logouts to blacklist
-			addJwtToBlacklist(token);
-			res.json({ message: "Success!" });
-		})
+				// ** Blacklist the JWT
+				addJwtToBlacklist(token);
+				res.json({ message: "Success!" });
+			})
+		)
 		.post<unknown, unknown, ReqBody>(
 			"updatepassword",
 			throttle(),

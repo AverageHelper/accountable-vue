@@ -14,7 +14,7 @@ async function userWithUid(uid: string): Promise<User | null> {
 	return await fetchDbDoc(ref);
 }
 
-async function userFromRequest(req: Request): Promise<User | null> {
+export async function userFromRequest(req: Request): Promise<User | null> {
 	const token = jwtTokenFromRequest(req);
 	if (token === null) return null;
 	if (blacklistHasJwt(token)) return null;

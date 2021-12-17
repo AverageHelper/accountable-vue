@@ -5,7 +5,7 @@ import { dbPromise } from "../database/mongo.js";
 import { RateLimiterMongo } from "rate-limiter-flexible";
 import { ThrottledError } from "../responses.js";
 
-const points = 5; // 5 tries
+const points = 10; // 10 tries
 const duration = 10 * 60; // per 10 minutes
 const blockDuration = 10 * 60; // block for 10 mins after points run out
 
@@ -20,7 +20,7 @@ const rateLimiterPromise: Promise<RateLimiterMongo> = dbPromise
 
 /**
  * Returns middleware that prevents an IP address from sending more than
- * 5 requests in 10 minutes.
+ * 10 requests in 10 minutes.
  */
 export function throttle<P = ParamsDictionary, ResBody = unknown, ReqBody = unknown>(
 	this: void
