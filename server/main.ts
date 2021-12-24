@@ -23,7 +23,7 @@ app
 	.use(cors())
 	.use(express.json())
 	.use(express.urlencoded({ extended: true }))
-	.get("/", lol) // TODO: maybe we should serve the app here? idk
+	.get("/", lol)
 	.use(auth())
 	.use(requireAuth()) // require auth from here on in
 	.use("/db", db())

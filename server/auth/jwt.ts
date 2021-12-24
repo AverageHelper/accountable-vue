@@ -15,9 +15,18 @@ export function blacklistHasJwt(token: string): boolean {
 }
 
 export function addJwtToBlacklist(token: string): void {
-	// TODO: Only blacklist for the duration the token has remaining
-	const oneHour = 3600000;
-	jwtBlacklist.add(token, oneHour);
+	const jwt = unverifiedJwt(token);
+
+	// Only blacklist for the duration the token has remaining
+	let timeout = 3600000; // default to one hour
+	if (jwt !== null && typeof jwt !== "string") {
+		const timeLeft = 3600000 - (Date.now() - (jwt.iat ?? timeout));
+		process.stdout.write(`JWT has ${timeLeft}ms left\n`);
+		timeout = Math.min(timeout, timeLeft);
+	}
+	if (timeout > 0) {
+		jwtBlacklist.add(token, timeout);
+	}
 }
 
 export async function newAccessToken(user: User): Promise<string> {
@@ -47,6 +56,10 @@ export function jwtTokenFromRequest(req: Request): string | null {
 	if (!authHeader) return null;
 
 	return (authHeader.split(" ")[1] ?? "") || null;
+}
+
+function unverifiedJwt(token: string): string | jwt.JwtPayload | null {
+	return jwt.decode(token);
 }
 
 export async function verifyJwt(token: string): Promise<jwt.JwtPayload> {
