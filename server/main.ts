@@ -6,7 +6,6 @@ import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage.js";
 import cors from "cors";
-// import csrf from "csurf"; // TODO: look into this
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";

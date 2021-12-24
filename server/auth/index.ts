@@ -86,7 +86,6 @@ export function auth(this: void): Router {
 			throttle(),
 			asyncWrapper(async (req, res) => {
 				// ** Create a JWT for the caller to use later
-				// FIXME: We're vulnerable to CSRF attacks here
 
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
@@ -136,8 +135,6 @@ export function auth(this: void): Router {
 			"updatepassword",
 			throttle(),
 			asyncWrapper(async (req, res) => {
-				// FIXME: We're vulnerable to CSRF attacks here
-
 				// Ask for full credentials, so we aren't leaning on a repeatable token
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
@@ -183,8 +180,6 @@ export function auth(this: void): Router {
 			"updateaccountid",
 			throttle(),
 			asyncWrapper(async (req, res) => {
-				// FIXME: We're vulnerable to CSRF attacks here
-
 				// Ask for full credentials, so we aren't leaning on a repeatable token
 				const givenAccountId = req.body.account;
 				const newGivenAccountId = req.body.newaccount;
