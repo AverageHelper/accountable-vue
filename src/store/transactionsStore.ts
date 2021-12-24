@@ -1,10 +1,9 @@
 import type { Account } from "../model/Account";
-import type { HashStore, WriteBatch } from "../transport";
+import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
-import type { Unsubscribe } from "firebase/auth";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";

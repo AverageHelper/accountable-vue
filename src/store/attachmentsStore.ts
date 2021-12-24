@@ -1,7 +1,6 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
-import type { HashStore, WriteBatch } from "../transport";
-import type { Unsubscribe } from "firebase/auth";
+import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";

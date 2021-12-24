@@ -1,7 +1,6 @@
 import type { Location, LocationRecordParams } from "../model/Location";
-import type { HashStore, WriteBatch } from "../transport";
+import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
-import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";

@@ -1,7 +1,6 @@
 import type { Tag, TagRecordParams } from "../model/Tag";
-import type { HashStore, WriteBatch } from "../transport";
+import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
-import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";

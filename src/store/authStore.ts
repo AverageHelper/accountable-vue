@@ -1,6 +1,6 @@
 import type { DatabaseSchema } from "../model/DatabaseSchema";
-import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
-import type { Unsubscribe, User } from "firebase/auth";
+import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../transport";
+import type { User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { getDoc } from "firebase/firestore";
 import { stores } from "./stores";

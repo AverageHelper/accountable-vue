@@ -1,8 +1,7 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
-import type { HashStore, WriteBatch } from "../transport";
-import type { Unsubscribe } from "firebase/auth";
+import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
 import { defineStore } from "pinia";
 import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";

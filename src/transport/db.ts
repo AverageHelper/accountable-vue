@@ -8,7 +8,6 @@ import type {
 	FirestoreError,
 	QueryDocumentSnapshot,
 	QuerySnapshot,
-	Unsubscribe,
 	WriteBatch as _WriteBatch,
 } from "firebase/firestore";
 import type { EPackage, HashStore } from "./cryption";
@@ -24,6 +23,8 @@ export let storage: FirebaseStorage;
 export function isWrapperInstantiated(): boolean {
 	return db !== undefined;
 }
+
+export type Unsubscribe = () => void;
 
 /**
  * Bootstrap our Firebase app using either environment variables or provided params.
