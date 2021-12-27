@@ -10,7 +10,7 @@ export interface UserPreferences {
 interface UserPreferencesRecordPackageMetadata {
 	objectType: "UserPreferences";
 }
-type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
+export type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
 
 export function defaultPrefs(this: void): UserPreferences {
 	return {

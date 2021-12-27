@@ -78,7 +78,7 @@ export function auth(this: void): Router {
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(user);
-				res.json({ access_token });
+				res.json({ access_token, uid });
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -112,7 +112,8 @@ export function auth(this: void): Router {
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(storedUser);
-				res.json({ access_token });
+				const uid = storedUser.uid;
+				res.json({ access_token, uid });
 			})
 		)
 		.post(
@@ -171,9 +172,8 @@ export function auth(this: void): Router {
 					passwordSalt,
 				});
 
-				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(storedUser);
-				res.json({ access_token });
+				// TODO: Invalidate the old jwt, send a new one
+				res.json({ message: "Success!" });
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -213,9 +213,8 @@ export function auth(this: void): Router {
 					currentAccountId: newGivenAccountId,
 				});
 
-				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(storedUser);
-				res.json({ access_token });
+				// TODO: Invalidate the old jwt, send a new one
+				res.json({ message: "Success!" });
 			})
 		);
 }

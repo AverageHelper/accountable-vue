@@ -1,6 +1,7 @@
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
-import { AccountableError, doc, db, getDoc, setDoc, deleteDoc } from "./db";
+import { doc, db, getDoc, setDoc, deleteDoc } from "./db";
+import { postTo } from "./networking";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
 	return doc<KeyMaterial>(db, "keys", uid);
@@ -48,18 +49,25 @@ export interface UserCredential {
  * Note: The account ID acts as a unique identifier for the user. This function will create a new user account and set the initial user password.
  *
  * @param db - The {@link AccountableDB} instance.
- * @param accountId - The user's account ID.
+ * @param account - The user's account ID.
  * @param password - The user's chosen password.
  */
 export async function createUserWithAccountIdAndPassword(
 	db: AccountableDB,
-	accountId: string,
+	account: string,
 	password: string
 ): Promise<UserCredential> {
-	if (!accountId) throw new TypeError("accountID parameter cannot be empty");
+	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
-	// TODO: Do account activity
-	throw new AccountableError("auth/invalid-argument");
+
+	const join = new URL(`${db.url.toString()}join`);
+	const { access_token, uid } = await postTo(join, { account, password });
+	if (access_token === undefined || uid === undefined)
+		throw new TypeError("Expected access token from server, but got none");
+
+	const user: User = { accountId: account, uid };
+	db.setJwt(access_token, user);
+	return { user };
 }
 
 /**
@@ -68,7 +76,12 @@ export async function createUserWithAccountIdAndPassword(
  * @param auth - The {@link AccountableDB} instance.
  */
 export async function signOut(db: AccountableDB): Promise<void> {
-	// TODO: Do account activity
+	const jwt = db.jwt;
+	if (jwt === null) return;
+
+	const logout = new URL(`${db.url.toString()}logout`);
+	await postTo(logout, {}, jwt);
+	db.clearJwt();
 }
 
 /**
@@ -82,16 +95,25 @@ export async function signOut(db: AccountableDB): Promise<void> {
  * the user's account in your Accountable instance. See also: {@link createUserWithAccountIdAndPassword}.
  *
  * @param db - The {@link AccountableDB} instance.
- * @param accountId - The user's account ID.
+ * @param account - The user's account ID.
  * @param password - The user's password.
  */
 export async function signInWithAccountIdAndPassword(
 	db: AccountableDB,
-	accountId: string,
+	account: string,
 	password: string
 ): Promise<UserCredential> {
-	// TODO: Do account activity
-	throw new AccountableError("auth/invalid-argument");
+	if (!account) throw new TypeError("accountID parameter cannot be empty");
+	if (!password) throw new TypeError("password parameter cannot be empty");
+
+	const login = new URL(`${db.url.toString()}login`);
+	const { access_token, uid } = await postTo(login, { account, password });
+	if (access_token === undefined || uid === undefined)
+		throw new TypeError("Expected access token from server, but got none");
+
+	const user: User = { accountId: account, uid };
+	db.setJwt(access_token, user);
+	return { user };
 }
 
 /**
@@ -103,6 +125,7 @@ export async function signInWithAccountIdAndPassword(
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
 	// TODO: Do account activity
+	throw new Error("Unimplemented");
 }
 
 /**
@@ -117,7 +140,15 @@ export async function updateAccountId(
 	newAccountId: string,
 	password: string
 ): Promise<void> {
-	// TODO: Do account activity
+	if (!newAccountId) throw new TypeError("accountID parameter cannot be empty");
+	if (!password) throw new TypeError("password parameter cannot be empty");
+
+	const updateaccountid = new URL(`${db.url.toString()}updateaccountid`);
+	await postTo(updateaccountid, {
+		account: user.accountId,
+		newaccount: newAccountId,
+		password,
+	});
 }
 
 /**
@@ -134,5 +165,13 @@ export async function updatePassword(
 	oldPassword: string,
 	newPassword: string
 ): Promise<void> {
-	// TODO: Do account activity
+	if (!oldPassword) throw new TypeError("old-password parameter cannot be empty");
+	if (!newPassword) throw new TypeError("new-password parameter cannot be empty");
+
+	const updatepassword = new URL(`${db.url.toString()}updatepassword`);
+	await postTo(updatepassword, {
+		account: user.accountId,
+		password: oldPassword,
+		newpassword: newPassword,
+	});
 }

@@ -7,7 +7,6 @@ import type {
 import type { StorageReference } from "./storage.js";
 import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
-import { AccountableError } from "./db.js";
 import { Attachment } from "../model/Attachment";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { deleteObject, downloadString, ref, uploadString } from "./storage.js";
@@ -125,16 +124,8 @@ export async function deleteAttachment(
 	batch?: WriteBatch
 ): Promise<void> {
 	// Delete the storage blob
-	try {
-		const storageRef = attachmentStorageRef(attachment.storagePath);
-		await deleteObject(storageRef);
-	} catch (error: unknown) {
-		if (error instanceof AccountableError && error.code === "storage/object-not-found") {
-			// File not found? Already deleted lol
-		} else {
-			throw error;
-		}
-	}
+	const storageRef = attachmentStorageRef(attachment.storagePath);
+	await deleteObject(storageRef);
 
 	// Delete the metadata entry
 	const ref = attachmentRef(uid, attachment);

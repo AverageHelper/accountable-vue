@@ -1,16 +1,23 @@
 import type { EPackage, HashStore } from "./cryption.js";
-import type { QueryDocumentSnapshot, Unsubscribe } from "./onSnapshot.js";
+import type { Unsubscribe } from "./onSnapshot.js";
 import type { User } from "./auth.js";
 import type { ValueIteratorTypeGuard } from "lodash";
+import { AccountableError } from "./AccountableError.js";
 import { decrypt } from "./cryption.js";
-import { DocumentSnapshot, onSnapshot, QuerySnapshot } from "./onSnapshot.js";
 import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
+import { deleteAt, getFrom, postTo } from "./networking.js";
 import { v4 as uuid } from "uuid";
 import isArray from "lodash/isArray";
 import isBoolean from "lodash/isBoolean";
 import isNumber from "lodash/isNumber";
 import isObject from "lodash/isObject";
 import isString from "lodash/isString";
+import {
+	DocumentSnapshot,
+	onSnapshot,
+	QueryDocumentSnapshot,
+	QuerySnapshot,
+} from "./onSnapshot.js";
 
 export class AccountableDB {
 	#jwt: string | null;
@@ -32,6 +39,7 @@ export class AccountableDB {
 	}
 
 	setJwt(jwt: string, user: User): void {
+		if (!jwt) throw new TypeError("jwt cannot be empty");
 		this.#jwt = jwt;
 		this.#currentUser = user;
 	}
@@ -52,6 +60,9 @@ export class AccountableDB {
 
 export type Primitive = string | number | boolean | undefined | null;
 export type DocumentData = Record<string, Primitive>;
+export type PrimitiveRecord<T> = {
+	[K in keyof T]: Primitive;
+};
 
 export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 	return (
@@ -173,6 +184,7 @@ export class DocumentReference<T = DocumentData> {
 	public readonly id: string;
 
 	constructor(parent: CollectionReference<T>, id: string) {
+		if (!id) throw new TypeError("ID cannot be empty");
 		this.parent = parent;
 		this.id = id;
 	}
@@ -341,9 +353,24 @@ export function bootstrap(url?: string): AccountableDB {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export async function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
-	// TODO: Call to the server and get the doc
-	return new DocumentSnapshot(reference, null);
+export async function getDoc<D, T extends PrimitiveRecord<D>>(
+	reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
+	const jwt = reference.db.jwt;
+	const currentUser = reference.db.currentUser;
+	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+
+	const uid = currentUser.uid;
+	const collection = reference.parent.id;
+	const doc = reference.id;
+	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+
+	const { data } = await getFrom(docPath, jwt);
+	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	if (isArray(data))
+		throw new TypeError("Expected a single document from server, but got an array");
+
+	return new DocumentSnapshot<T>(reference, data as T | null);
 }
 
 /**
@@ -355,8 +382,20 @@ export async function getDoc<T>(reference: DocumentReference<T>): Promise<Docume
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export async function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void> {
-	// TODO: Call to the server and set the doc
+export async function setDoc<D, T extends PrimitiveRecord<D>>(
+	reference: DocumentReference<T>,
+	data: T
+): Promise<void> {
+	const jwt = reference.db.jwt;
+	const currentUser = reference.db.currentUser;
+	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+
+	const uid = currentUser.uid;
+	const collection = reference.parent.id;
+	const doc = reference.id;
+	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+
+	await postTo(docPath, data, jwt);
 }
 
 /**
@@ -367,7 +406,16 @@ export async function setDoc<T>(reference: DocumentReference<T>, data: T): Promi
  * deleted from the backend (note that it won't resolve while you're offline).
  */
 export async function deleteDoc(reference: DocumentReference): Promise<void> {
-	// TODO: Call to the server and delete the doc
+	const jwt = reference.db.jwt;
+	const currentUser = reference.db.currentUser;
+	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+
+	const uid = currentUser.uid;
+	const collection = reference.parent.id;
+	const doc = reference.id;
+	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+
+	await deleteAt(docPath, jwt);
 }
 
 /**
@@ -375,9 +423,30 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export async function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-	// TODO: Call to the server and get the docs
-	return new QuerySnapshot(query, []);
+export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySnapshot<T>> {
+	const jwt = query.db.jwt;
+	const currentUser = query.db.currentUser;
+	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+
+	const uid = currentUser.uid;
+	const collection = query.id;
+	const collPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}`);
+
+	const { data } = await getFrom(collPath, jwt);
+	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	if (data === null || !isArray(data))
+		throw new TypeError("Expected an array of documents from server, but got data");
+
+	return new QuerySnapshot(
+		query,
+		data.map(data => {
+			const id = data["_id"];
+			if (!isString(id)) throw new TypeError("Expected ID to be string");
+			delete data["_id"];
+
+			return new QueryDocumentSnapshot(new DocumentReference(query, id), data as unknown as T);
+		})
+	);
 }
 
 export function watchAllRecords<T = DocumentData>(

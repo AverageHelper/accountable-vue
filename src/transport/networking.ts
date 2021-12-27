@@ -9,6 +9,7 @@ import { isDocumentData, isRecord } from "./db.js";
 interface RawServerResponse {
 	message?: string;
 	access_token?: string;
+	uid?: string;
 	data?: DocumentData | Array<DocumentData> | null;
 }
 
@@ -28,7 +29,7 @@ function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
 		isString(tbd) ||
 		isFunction(tbd) ||
 		isArray(tbd) ||
-		Object.keys(tbd).length > 3 // only enough keys for RawServerResponse
+		Object.keys(tbd).length > 4 // only enough keys for RawServerResponse
 	)
 		return false;
 
@@ -45,6 +46,11 @@ function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
 	if ("access_token" in tbd) {
 		const token = tbd["access_token"];
 		if (!isString(token)) return false;
+	}
+
+	if ("uid" in tbd) {
+		const uid = tbd["uid"];
+		if (!isString(uid)) return false;
 	}
 
 	if ("message" in tbd) {
