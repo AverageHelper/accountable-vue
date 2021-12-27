@@ -17,6 +17,7 @@ export interface MongoObject {
 }
 
 function isMongoObject(tbd: unknown): tbd is MongoObject {
+	// TODO: Use Joi to do this properly
 	return (
 		isRecord(tbd) &&
 		"_id" in tbd &&
@@ -32,12 +33,22 @@ export interface User extends MongoObject {
 	passwordSalt: string;
 }
 
+export type Primitive = string | number | boolean | undefined | null;
+
+/**
+ * An object whose properties may only be primitive values.
+ */
+export type DocumentData<T> = {
+	[K in keyof T]: Primitive;
+};
+
 export interface DataItem extends MongoObject {
 	ciphertext: string;
 	objectType: string;
 }
 
 export function isDataItem(tbd: unknown): tbd is DataItem {
+	// TODO: Use Joi to do this properly
 	return isMongoObject(tbd) && "ciphertext" in tbd && "objectType" in tbd;
 }
 
@@ -49,6 +60,7 @@ export interface Keys extends MongoObject {
 }
 
 export function isKeys(tbd: unknown): tbd is Keys {
+	// TODO: Use Joi to do this properly
 	return isMongoObject(tbd) && "dekMaterial" in tbd && "passSalt" in tbd;
 }
 

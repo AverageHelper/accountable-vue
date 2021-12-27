@@ -1,10 +1,16 @@
 import type { EPackage, HashStore } from "./cryption.js";
 import type { QueryDocumentSnapshot, Unsubscribe } from "./onSnapshot.js";
 import type { User } from "./auth.js";
+import type { ValueIteratorTypeGuard } from "lodash";
 import { decrypt } from "./cryption.js";
 import { DocumentSnapshot, onSnapshot, QuerySnapshot } from "./onSnapshot.js";
 import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
 import { v4 as uuid } from "uuid";
+import isArray from "lodash/isArray";
+import isBoolean from "lodash/isBoolean";
+import isNumber from "lodash/isNumber";
+import isObject from "lodash/isObject";
+import isString from "lodash/isString";
 
 export class AccountableDB {
 	#jwt: string | null;
@@ -47,14 +53,33 @@ export class AccountableDB {
 export type Primitive = string | number | boolean | undefined | null;
 export type DocumentData = Record<string, Primitive>;
 
-function isPrimitive(tbd: unknown): tbd is Primitive {
+export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 	return (
-		tbd === undefined ||
-		tbd === null ||
-		typeof tbd === "string" ||
-		typeof tbd === "number" ||
-		typeof tbd === "boolean"
+		tbd !== undefined && //
+		tbd !== null &&
+		isObject(tbd) &&
+		!isArray(tbd)
 	);
+}
+
+export function isPrimitive(tbd: unknown): tbd is Primitive {
+	return (
+		tbd === undefined || //
+		tbd === null ||
+		isString(tbd) ||
+		isNumber(tbd) ||
+		isBoolean(tbd)
+	);
+}
+
+export function isDocumentData(tbd: unknown): tbd is DocumentData {
+	if (!isRecord(tbd)) return false;
+
+	for (const value of Object.values(tbd)) {
+		if (!isPrimitive(value)) return false;
+	}
+
+	return true;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -387,12 +412,10 @@ export function watchRecord<T = DocumentData>(
 	};
 }
 
-type TypeGuard<G> = (toBeDetermined: unknown) => toBeDetermined is G;
-
 export function recordFromSnapshot<G>(
 	doc: QueryDocumentSnapshot<EPackage<unknown>>,
 	dek: HashStore,
-	typeGuard: TypeGuard<G>
+	typeGuard: ValueIteratorTypeGuard<unknown, G>
 ): { id: string; record: G } {
 	const pkg = doc.data();
 	const record = decrypt(pkg, dek);

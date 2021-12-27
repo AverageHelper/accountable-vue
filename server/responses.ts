@@ -1,3 +1,4 @@
+import type { DocumentData } from "./database/index.js";
 import type { RateLimiterRes } from "rate-limiter-flexible";
 import type { Response } from "express";
 
@@ -48,8 +49,12 @@ export function respondSuccess(this: void, res: Response): void {
 	res.json({ message: "Success!" });
 }
 
-export function respondData(this: void, res: Response, data: unknown): void {
-	res.json(data);
+export function respondData<T>(
+	this: void,
+	res: Response,
+	data: DocumentData<T> | Array<DocumentData<T>> | null
+): void {
+	res.json({ message: "Success!", data });
 }
 
 export class BadRequestError extends InternalError {
