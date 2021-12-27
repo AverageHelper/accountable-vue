@@ -156,4 +156,8 @@ export class Transaction
 	removeAttachmentId(id: string): void {
 		this._attachmentIds.delete(id);
 	}
+
+	toString(): string {
+		return JSON.stringify(this.toRecord());
+	}
 }

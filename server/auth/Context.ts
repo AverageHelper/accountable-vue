@@ -18,4 +18,10 @@ export class Context {
 	static get<P = unknown>(req: Request<P>): Context | null {
 		return Context._bindings.get(req) ?? null;
 	}
+
+	toString(): string {
+		return JSON.stringify({
+			uid: this.uid,
+		});
+	}
 }

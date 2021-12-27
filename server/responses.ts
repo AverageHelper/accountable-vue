@@ -28,6 +28,20 @@ export class InternalError extends Error {
 		this.harmless = harmless;
 		this.name = "InternalError";
 	}
+
+	toString(): string {
+		const headers: Record<string, string> = {};
+		this.headers.forEach((value, key) => {
+			headers[key] = value.toString();
+		});
+		return JSON.stringify({
+			name: this.name,
+			message: this.message,
+			status: this.status,
+			harmless: this.harmless,
+			headers,
+		});
+	}
 }
 
 export function respondSuccess(this: void, res: Response): void {

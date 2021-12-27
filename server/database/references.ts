@@ -7,6 +7,12 @@ export class CollectionReference<T extends AnyDataItem> {
 	constructor(id: CollectionID) {
 		this.id = id;
 	}
+
+	toString(): string {
+		return JSON.stringify({
+			id: this.id,
+		});
+	}
 }
 
 export class DocumentReference<T extends AnyDataItem> {
@@ -16,5 +22,12 @@ export class DocumentReference<T extends AnyDataItem> {
 	constructor(parent: CollectionReference<T>, id: string) {
 		this.parent = parent;
 		this.id = id;
+	}
+
+	toString(): string {
+		return JSON.stringify({
+			id: this.id,
+			parent: this.parent.id,
+		});
 	}
 }

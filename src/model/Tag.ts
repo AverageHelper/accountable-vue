@@ -45,4 +45,8 @@ export class Tag implements Identifiable<string>, TagRecordParams {
 		const thisRecord = this.toRecord();
 		return new Tag(this.id, { ...thisRecord, ...params });
 	}
+
+	toString(): string {
+		return JSON.stringify(this.toRecord());
+	}
 }
