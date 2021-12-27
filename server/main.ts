@@ -4,7 +4,7 @@ import { auth, requireAuth } from "./auth/index.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
-import { storage } from "./storage.js";
+import { storage } from "./storage/index.js";
 import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
