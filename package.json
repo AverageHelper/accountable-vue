@@ -24,7 +24,6 @@
 		"btoa-lite": "^1.0.0",
 		"crypto-js": "^4.1.1",
 		"dinero.js": "^2.0.0-alpha.8",
-		"firebase": "^9.1.1",
 		"fuse.js": "^6.4.6",
 		"joi": "^17.4.2",
 		"joi-extract-type": "^15.0.8",

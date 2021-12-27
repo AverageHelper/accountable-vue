@@ -1,15 +1,15 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
-import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
+import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	asyncMap,
 	createAccount,
+	getDocs,
 	deriveDEK,
 	updateAccount,
 	deleteAccount,
@@ -146,15 +146,11 @@ export const useAccountsStore = defineStore("accounts", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = accountsCollection(uid);
-			const snap = await getDocs(collection);
+			const snap = await getDocs<AccountRecordPackage>(collection);
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
 			return await asyncMap(accounts, async acct => {
 				const transactions = await transactionsStore.getAllTransactionsAsJson(acct);
-				return {
-					id: acct.id,
-					...acct.toRecord(),
-					transactions,
-				};
+				return { ...acct.toRecord(), id: acct.id, transactions };
 			});
 		},
 		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {

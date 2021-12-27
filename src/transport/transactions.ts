@@ -6,32 +6,29 @@ import type {
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
-import { db, recordFromSnapshot } from "./db";
+} from "./db";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc, getDocs } from "./db";
 import { encrypt } from "./cryption";
 import { Transaction } from "../model/Transaction";
-import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
 
 interface TransactionRecordPackageMetadata {
 	objectType: "Transaction";
 }
-type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
+export type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
 
 function transactionRef(
 	uid: string,
 	transaction: Transaction
 ): DocumentReference<TransactionRecordPackage> {
 	const { accountId, id } = transaction;
-	const path = `users/${uid}/accounts/${accountId}/transactions/${id}`;
-	return doc(db, path) as DocumentReference<TransactionRecordPackage>;
+	return doc<TransactionRecordPackage>(db, "transactions", id);
 }
 
 export function transactionsCollection(
 	uid: string,
 	account: Account
 ): CollectionReference<TransactionRecordPackage> {
-	const path = `users/${uid}/accounts/${account.id}/transactions`;
-	return collection(db, path) as CollectionReference<TransactionRecordPackage>;
+	return collection<TransactionRecordPackage>(db, "transactions");
 }
 
 export function transactionFromSnapshot(
@@ -48,7 +45,7 @@ export async function getTransactionsForAccount(
 	account: Account,
 	dek: HashStore
 ): Promise<Dictionary<Transaction>> {
-	const snap = await getDocs(transactionsCollection(uid, account));
+	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection(uid, account));
 
 	const result: Dictionary<Transaction> = {};
 	for (const doc of snap.docs) {

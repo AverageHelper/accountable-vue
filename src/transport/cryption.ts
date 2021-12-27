@@ -51,6 +51,12 @@ export class HashStore {
 		}
 		this._hashedValue = result;
 	}
+
+	toString(): string {
+		return JSON.stringify({
+			_hashedValue: this._hashedValue,
+		});
+	}
 }
 
 const ITERATIONS = 10000;

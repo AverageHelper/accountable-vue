@@ -1,12 +1,12 @@
 import type { Account } from "../model/Account";
-import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
+import type { HashStore, TransactionRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
+import { getDocs } from "../transport/index.js";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
@@ -286,13 +286,10 @@ export const useTransactionsStore = defineStore("transactions", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = transactionsCollection(uid, account);
-			const snap = await getDocs(collection);
+			const snap = await getDocs<TransactionRecordPackage>(collection);
 			return snap.docs
 				.map(doc => transactionFromSnapshot(account.id, doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,

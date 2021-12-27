@@ -3,27 +3,24 @@ import type {
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
+} from "./db";
 import type { TagRecordParams } from "../model/Tag";
 import type { EPackage, HashStore } from "./cryption";
 import { encrypt } from "./cryption";
-import { db, recordFromSnapshot } from "./db";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { Tag } from "../model/Tag";
 
 interface TagRecordPackageMetadata {
 	objectType: "Tag";
 }
-type TagRecordPackage = EPackage<TagRecordPackageMetadata>;
+export type TagRecordPackage = EPackage<TagRecordPackageMetadata>;
 
 export function tagsCollection(uid: string): CollectionReference<TagRecordPackage> {
-	const path = `users/${uid}/tags`;
-	return collection(db, path) as CollectionReference<TagRecordPackage>;
+	return collection<TagRecordPackage>(db, "tags");
 }
 
 function tagRef(uid: string, tag: Tag): DocumentReference<TagRecordPackage> {
-	const path = `users/${uid}/tags/${tag.id}`;
-	return doc(db, path) as DocumentReference<TagRecordPackage>;
+	return doc<TagRecordPackage>(db, "tags", tag.id);
 }
 
 export function tagFromSnapshot(doc: QueryDocumentSnapshot<TagRecordPackage>, dek: HashStore): Tag {

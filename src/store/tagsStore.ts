@@ -1,8 +1,7 @@
 import type { Tag, TagRecordParams } from "../model/Tag";
-import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
+import type { HashStore, TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
@@ -10,6 +9,7 @@ import {
 	deriveDEK,
 	updateTag,
 	deleteTag,
+	getDocs,
 	tagFromSnapshot,
 	tagsCollection,
 	watchAllRecords,
@@ -135,13 +135,10 @@ export const useTagsStore = defineStore("tags", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = tagsCollection(uid);
-			const snap = await getDocs(collection);
+			const snap = await getDocs<TagRecordPackage>(collection);
 			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const storedTag = this.items[tagToImport.id] ?? null;

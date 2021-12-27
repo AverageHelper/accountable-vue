@@ -3,44 +3,47 @@ import type {
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
-import type { StorageReference } from "firebase/storage";
+} from "./db";
+import type { StorageReference } from "./storage.js";
 import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
+import { AccountableError } from "./db.js";
 import { Attachment } from "../model/Attachment";
-import { db, storage, recordFromSnapshot } from "./db";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
+import { deleteObject, downloadString, ref, uploadString } from "./storage.js";
 import { encrypt, decrypt } from "./cryption";
-import { FirebaseError } from "@firebase/util";
-import { ref, uploadString, deleteObject, getDownloadURL } from "firebase/storage";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { dataUrlFromFile, getDataAtUrl } from "./getDataAtUrl";
+import { dataUrlFromFile } from "./getDataAtUrl";
 
 interface AttachmentRecordPackageMetadata {
 	objectType: "Attachment";
 }
-type AttachmentRecordPackage = EPackage<AttachmentRecordPackageMetadata>;
+export type AttachmentRecordPackage = EPackage<AttachmentRecordPackageMetadata>;
 
 export function attachmentsCollection(uid: string): CollectionReference<AttachmentRecordPackage> {
-	const path = `users/${uid}/attachments`;
-	return collection(db, path) as CollectionReference<AttachmentRecordPackage>;
+	return collection<AttachmentRecordPackage>(db, "attachments");
 }
 
 function attachmentRef(
 	uid: string,
 	attachment: Attachment
 ): DocumentReference<AttachmentRecordPackage> {
-	const path = `users/${uid}/attachments/${attachment.id}`;
-	return doc(db, path) as DocumentReference<AttachmentRecordPackage>;
+	return doc<AttachmentRecordPackage>(db, "attachments", attachment.id);
 }
 
 function attachmentStorageRef(storagePath: string): StorageReference {
-	return ref(storage, storagePath);
+	const parts = storagePath.match(/users\/(.*)\/attachments\/(.*)/gu);
+	console.log(`parts:`, parts);
+	if (parts === null) throw new TypeError(`Invalid storage ref: ${storagePath}`);
+
+	const uid = parts[1] as string;
+	const fileName = parts[2] as string;
+	return ref(db, uid, fileName);
 }
 
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
 	const storageRef = attachmentStorageRef(file.storagePath);
-	const downloadUrl = await getDownloadURL(storageRef);
-	const encryptedData = await getDataAtUrl(downloadUrl);
+	const encryptedData = await downloadString(storageRef);
+	if (encryptedData === null) throw new EvalError("No data found at the ref");
 	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
 	if (!("ciphertext" in pkg)) {
 		throw new TypeError("Improperly formatted payload.");
@@ -79,7 +82,7 @@ export async function createAttachment(
 
 	const storagePath = `users/${uid}/attachments/${storageName.id}.json`;
 	const storageRef = attachmentStorageRef(storagePath);
-	await uploadString(storageRef, fileToUpload, "raw"); // Store the attachment
+	await uploadString(storageRef, fileToUpload); // Store the attachment
 
 	const recordToSave = record as typeof record & { storagePath?: string };
 	recordToSave.storagePath = storagePath;
@@ -112,7 +115,7 @@ export async function updateAttachment(
 		const imageData = await dataUrlFromFile(file);
 		const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
 
-		await uploadString(storageRef, fileToUpload, "raw");
+		await uploadString(storageRef, fileToUpload);
 	}
 }
 
@@ -126,7 +129,7 @@ export async function deleteAttachment(
 		const storageRef = attachmentStorageRef(attachment.storagePath);
 		await deleteObject(storageRef);
 	} catch (error: unknown) {
-		if (error instanceof FirebaseError && error.code === "storage/object-not-found") {
+		if (error instanceof AccountableError && error.code === "storage/object-not-found") {
 			// File not found? Already deleted lol
 		} else {
 			throw error;

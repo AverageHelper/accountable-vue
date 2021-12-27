@@ -3,10 +3,8 @@ import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
 import { bootstrap, isWrapperInstantiated } from "./transport";
 import { ref, onMounted } from "vue";
-import { useAuthStore } from "./store/authStore";
 import { useUiStore } from "./store/uiStore";
 
-const auth = useAuthStore();
 const ui = useUiStore();
 
 const bootstrapError = ref<Error | null>(null);
@@ -17,7 +15,6 @@ onMounted(() => {
 
 	try {
 		bootstrap();
-		auth.watchAuthState();
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			bootstrapError.value = error;

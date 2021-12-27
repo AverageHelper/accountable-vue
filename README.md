@@ -1,6 +1,6 @@
 # Accountable
 
-A Vue app for managing monetary assets. All data is encrypted client-side and stored in a Firebase instance that you control.
+A Vue app for managing monetary assets. All data is encrypted client-side and stored on a server that you control.
 
 Note: DO NOT FORGET your ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
@@ -36,30 +36,27 @@ $ mongosh           # connects `mongosh` to the running instance
 ### Installation
 
 - Clone the repository
-- Set up a [Firebase](https://firebase.google.com/) project
-- Under "Your apps" select the Web platform and register a Firebase app
-- Note your app's `apiKey`, `projectId`, and `authDomain`
-- Save these values to a .env file at the root of the project, as shown below:
+- Set up the Accountable server on a publicly-accessible machine (instructions coming soon™)
+- Note your server's public URL
+- Save this value to a .env file at the root of the project, as shown below:
 
 ```sh
 # .env
 # Vite pulls these in at build time
 
-VITE_FIREBASE_API_KEY={your API key here}
-VITE_FIREBASE_STORAGE_BUCKET={your storage bucket here}
-VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
-VITE_FIREBASE_PROJECT_ID={your project ID here}
+VITE_ACCOUNTABLE_SERVER_URL={your server URL here}
 ```
 
-#### Install dependencies and run!
+#### Install dependencies, build, and run!
 
 ```sh
 $ cd accountable-vue
 $ npm install
-$ npm run export-version
+$ npm run build
+$ npm start
 ```
 
-#### Twiddle with Google Cloud Storage
+#### \[OBSOLETE\] Twiddle with Google Cloud Storage
 
 This is necessary for now. We're looking into alternatives.
 

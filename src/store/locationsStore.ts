@@ -1,14 +1,14 @@
 import type { Location, LocationRecordParams } from "../model/Location";
-import type { HashStore, Unsubscribe, WriteBatch } from "../transport";
+import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	createLocation,
 	deriveDEK,
+	getDocs,
 	updateLocation,
 	deleteLocation,
 	locationFromSnapshot,
@@ -148,7 +148,7 @@ export const useLocationsStore = defineStore("locations", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = locationsCollection(uid);
-			const snap = await getDocs(collection);
+			const snap = await getDocs<LocationRecordPackage>(collection);
 			snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
 				.forEach(l => {
@@ -166,13 +166,10 @@ export const useLocationsStore = defineStore("locations", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = locationsCollection(uid);
-			const snap = await getDocs(collection);
+			const snap = await getDocs<LocationRecordPackage>(collection);
 			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();

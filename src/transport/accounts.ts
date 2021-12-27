@@ -3,27 +3,24 @@ import type {
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
+} from "./db";
 import type { AccountRecordParams } from "../model/Account";
 import type { EPackage, HashStore } from "./cryption";
 import { encrypt } from "./cryption";
 import { Account } from "../model/Account";
-import { db, recordFromSnapshot } from "./db";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 
 interface AccountRecordPackageMetadata {
 	objectType: "Account";
 }
-type AccountRecordPackage = EPackage<AccountRecordPackageMetadata>;
+export type AccountRecordPackage = EPackage<AccountRecordPackageMetadata>;
 
 export function accountsCollection(uid: string): CollectionReference<AccountRecordPackage> {
-	const path = `users/${uid}/accounts`;
-	return collection(db, path) as CollectionReference<AccountRecordPackage>;
+	return collection<AccountRecordPackage>(db, "accounts");
 }
 
 function accountRef(uid: string, account: Account): DocumentReference<AccountRecordPackage> {
-	const path = `users/${uid}/accounts/${account.id}`;
-	return doc(db, path) as DocumentReference<AccountRecordPackage>;
+	return doc<AccountRecordPackage>(db, "accounts", account.id);
 }
 
 export function accountFromSnapshot(

@@ -1,15 +1,14 @@
 import type { EPackage, HashStore } from "./cryption";
 import type { LocationRecordParams } from "../model/Location";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
+import { encrypt } from "./cryption";
+import { Location } from "../model/Location";
 import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
-import { db, recordFromSnapshot } from "./db";
-import { encrypt } from "./cryption";
-import { Location } from "../model/Location";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+} from "./db";
 
 export type LocationPref = "none" | "vague" | "specific";
 export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
@@ -17,16 +16,14 @@ export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , 
 interface LocationRecordPackageMetadata {
 	objectType: "Location";
 }
-type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
+export type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
 
 function locationRef(uid: string, location: Location): DocumentReference<LocationRecordPackage> {
-	const path = `users/${uid}/locations/${location.id}`;
-	return doc(db, path) as DocumentReference<LocationRecordPackage>;
+	return doc<LocationRecordPackage>(db, "locations", location.id);
 }
 
 export function locationsCollection(uid: string): CollectionReference<LocationRecordPackage> {
-	const path = `users/${uid}/locations`;
-	return collection(db, path) as CollectionReference<LocationRecordPackage>;
+	return collection<LocationRecordPackage>(db, "locations");
 }
 
 export function locationFromSnapshot(
