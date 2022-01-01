@@ -86,7 +86,7 @@ async function doRequest(
 	const request: RequestInit = { ...req, headers };
 	console.log("Request:", request);
 	try {
-		const response = await fetch(url.toString(), request);
+		const response = await fetch(url.href, request);
 		console.log("Response:", response);
 
 		const json: unknown = await response.json();

@@ -60,7 +60,7 @@ export async function createUserWithAccountIdAndPassword(
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const join = new URL(`${db.url.toString()}join`);
+	const join = new URL("join", db.url);
 	const { access_token, uid } = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
@@ -79,7 +79,7 @@ export async function signOut(db: AccountableDB): Promise<void> {
 	const jwt = db.jwt;
 	if (jwt === null) return;
 
-	const logout = new URL(`${db.url.toString()}logout`);
+	const logout = new URL("logout", db.url);
 	await postTo(logout, {}, jwt);
 	db.clearJwt();
 }
@@ -106,7 +106,7 @@ export async function signInWithAccountIdAndPassword(
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const login = new URL(`${db.url.toString()}login`);
+	const login = new URL("login", db.url);
 	const { access_token, uid } = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
@@ -143,7 +143,7 @@ export async function updateAccountId(
 	if (!newAccountId) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const updateaccountid = new URL(`${db.url.toString()}updateaccountid`);
+	const updateaccountid = new URL("updateaccountid", db.url);
 	await postTo(updateaccountid, {
 		account: user.accountId,
 		newaccount: newAccountId,
@@ -168,7 +168,7 @@ export async function updatePassword(
 	if (!oldPassword) throw new TypeError("old-password parameter cannot be empty");
 	if (!newPassword) throw new TypeError("new-password parameter cannot be empty");
 
-	const updatepassword = new URL(`${db.url.toString()}updatepassword`);
+	const updatepassword = new URL("updatepassword", db.url);
 	await postTo(updatepassword, {
 		account: user.accountId,
 		password: oldPassword,

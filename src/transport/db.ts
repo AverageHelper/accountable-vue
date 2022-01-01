@@ -363,7 +363,7 @@ export async function getDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
 
 	const { data } = await getFrom(docPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");
@@ -393,7 +393,7 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
 
 	await postTo(docPath, data, jwt);
 }
@@ -413,7 +413,7 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}/${doc}`);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
 
 	await deleteAt(docPath, jwt);
 }
@@ -430,7 +430,7 @@ export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySn
 
 	const uid = currentUser.uid;
 	const collection = query.id;
-	const collPath = new URL(`${db.url.toString()}db/users/${uid}/${collection}`);
+	const collPath = new URL(`db/users/${uid}/${collection}`, db.url);
 
 	const { data } = await getFrom(collPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");
