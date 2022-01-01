@@ -1,3 +1,5 @@
+import { UnreachableError } from "./UnreachableError";
+
 export type AccountableErrorCode =
 	| "auth/account-already-exists"
 	| "auth/internal-error"
@@ -16,13 +18,6 @@ export type AccountableErrorCode =
 	| "storage/retry-limit-exceeded"
 	| "storage/server-file-wrong-size"
 	| "storage/unauthenticated";
-
-class UnreachableError extends Error {
-	constructor(value: never) {
-		super(`Unreachable case: ${JSON.stringify(value)}`);
-		this.name = "UnreachableError";
-	}
-}
 
 function messageFromCode(code: AccountableErrorCode): string {
 	switch (code) {

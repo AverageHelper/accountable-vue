@@ -441,8 +441,8 @@ export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySn
 		query,
 		data.map(data => {
 			const id = data["_id"];
-			if (!isString(id)) throw new TypeError("Expected ID to be string");
 			delete data["_id"];
+			if (!isString(id)) throw new TypeError("Expected ID to be string");
 
 			return new QueryDocumentSnapshot(new DocumentReference(query, id), data as unknown as T);
 		})

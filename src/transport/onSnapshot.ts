@@ -1,4 +1,11 @@
-import type { DocumentData, DocumentReference, Query } from "./db";
+import type { DocumentData, Query } from "./db";
+import { AccountableError } from "./AccountableError.js";
+import { DocumentReference, CollectionReference } from "./db.js";
+import { isRawServerResponse, UnexpectedResponseError } from "./networking.js";
+import { UnreachableError } from "./UnreachableError.js";
+import isArray from "lodash/isArray";
+import isString from "lodash/isString";
+import WebSocket from "ws";
 
 export class DocumentSnapshot<T = DocumentData> {
 	#data: T | null;
@@ -111,6 +118,14 @@ export class QuerySnapshot<T> {
 	 */
 	// eslint-disable-next-line @typescript-eslint/unified-signatures
 	constructor(query: Query<T>, docs: Array<QueryDocumentSnapshot<T>>);
+
+	/**
+	 * @param queryOrPrev The query used to generate the snapshot, or
+	 * the previous snapshot in the chain.
+	 * @param docs The documents in the snapshot.
+	 */
+	// eslint-disable-next-line @typescript-eslint/unified-signatures
+	constructor(queryOrPrev: Query<T> | QuerySnapshot<T>, docs: Array<QueryDocumentSnapshot<T>>);
 
 	constructor(queryOrPrev: Query<T> | QuerySnapshot<T>, docs: Array<QueryDocumentSnapshot<T>>) {
 		if ("type" in queryOrPrev) {
@@ -259,7 +274,10 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(query: Query<T>, observer: QuerySnapshotObserver<T>): Unsubscribe;
+export function onSnapshot<T>(
+	query: CollectionReference<T>,
+	observer: QuerySnapshotObserver<T>
+): Unsubscribe;
 
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
@@ -276,13 +294,13 @@ export function onSnapshot<T>(query: Query<T>, observer: QuerySnapshotObserver<T
  * the snapshot listener.
  */
 export function onSnapshot<T>(
-	query: Query<T>,
+	query: CollectionReference<T>,
 	onNext: QuerySnapshotCallback<T>,
 	onError?: (error: Error) => void
 ): Unsubscribe;
 
 export function onSnapshot<T>(
-	queryOrReference: Query<T> | DocumentReference<T>,
+	queryOrReference: CollectionReference<T> | DocumentReference<T>,
 	onNextOrObserver:
 		| QuerySnapshotCallback<T>
 		| DocumentSnapshotCallback<T>
@@ -291,21 +309,81 @@ export function onSnapshot<T>(
 	onError?: (error: Error) => void
 ): Unsubscribe {
 	const type = queryOrReference.type;
+	const db = queryOrReference.db;
 	let onNextCallback: QuerySnapshotCallback<T> | DocumentSnapshotCallback<T>;
 	let onErrorCallback: (error: Error) => void;
 
 	// Grab callback functions
 	if (typeof onNextOrObserver === "object") {
 		onNextCallback = onNextOrObserver.next ?? ((): void => undefined);
-		onErrorCallback = onNextOrObserver.error ?? onError ?? ((): void => undefined);
+		onErrorCallback = onNextOrObserver.error ?? onError ?? ((err): void => console.error(err));
 	} else {
 		onNextCallback = onNextOrObserver;
-		onErrorCallback = onError ?? ((): void => undefined);
+		onErrorCallback = onError ?? ((err): void => console.error(err));
 	}
 
-	// TODO: Start a websocket and plug callbacks in appropriately
+	if (!db.currentUser) throw new AccountableError("database/unauthenticated");
+
+	const uid = db.currentUser.uid;
+	let url = `ws://${db.url.hostname}:${db.url.port}/db/users/${uid}`;
+
+	switch (type) {
+		case "collection":
+			url += `/${queryOrReference.id}`;
+			break;
+		case "document":
+			url += `/${queryOrReference.parent.id}/${queryOrReference.id}`;
+			break;
+		default:
+			throw new UnreachableError(type);
+	}
+
+	const ws = new WebSocket(url);
+	ws.on("open", () => {
+		ws.send("START");
+	});
+
+	let previousSnap: QuerySnapshot<T> | null = null;
+	ws.on("message", res => {
+		const message = JSON.parse((res as Buffer).toString()) as unknown;
+		if (!isRawServerResponse(message)) throw new UnexpectedResponseError();
+		const data = message.data;
+		if (data === undefined) throw new UnexpectedResponseError();
+
+		if (type === "collection") {
+			if (!data || !isArray(data)) throw new UnexpectedResponseError();
+			const collectionRef = new CollectionReference(db, queryOrReference.id);
+			const snaps: Array<QueryDocumentSnapshot<T>> = data.map(doc => {
+				const id = doc["_id"];
+				if (!isString(id)) {
+					const err = new TypeError("Expected ID to be string");
+					onErrorCallback(err);
+					throw err;
+				}
+				const ref = new DocumentReference(collectionRef, id);
+				return new QueryDocumentSnapshot<T>(ref, doc as unknown as T);
+			});
+			previousSnap = new QuerySnapshot<T>(previousSnap ?? collectionRef, snaps);
+			(onNextCallback as QuerySnapshotCallback<T>)(previousSnap);
+
+			return;
+		} else if (type === "document") {
+			if (isArray(data)) throw new UnexpectedResponseError();
+			const collectionRef = new CollectionReference(db, queryOrReference.parent.id);
+			const ref = new DocumentReference(collectionRef, queryOrReference.id);
+			const snap = new QueryDocumentSnapshot<T>(ref, data as T | null);
+			(onNextCallback as DocumentSnapshotCallback<T>)(snap);
+			return;
+		}
+
+		throw new UnreachableError(type);
+	});
+
+	ws.on("error", err => {
+		onErrorCallback(err);
+	});
 
 	return (): void => {
-		// TODO: Shut off the websocket
+		ws.send("STOP");
 	};
 }

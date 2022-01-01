@@ -6,11 +6,12 @@ import isNumber from "lodash/isNumber";
 import isString from "lodash/isString";
 import { isDocumentData, isRecord } from "./db.js";
 
-interface RawServerResponse {
+export interface RawServerResponse {
 	message?: string;
 	access_token?: string;
 	uid?: string;
 	data?: DocumentData | Array<DocumentData> | null;
+	dataType?: "single" | "multiple";
 }
 
 interface ServerResponse extends RawServerResponse {
@@ -22,7 +23,7 @@ function isArrayWhere<T>(tbd: unknown, guard: ValueIteratorTypeGuard<unknown, T>
 	return isArray(tbd) && tbd.every(guard);
 }
 
-function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
+export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
 	if (
 		!isRecord(tbd) ||
 		isNumber(tbd) ||
@@ -43,6 +44,11 @@ function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
 			return false;
 	}
 
+	if ("dataType" in tbd) {
+		const data = tbd["dataType"];
+		if (data !== "single" && data !== "multiple") return false;
+	}
+
 	if ("access_token" in tbd) {
 		const token = tbd["access_token"];
 		if (!isString(token)) return false;
@@ -61,6 +67,13 @@ function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
 	return true;
 }
 
+export class UnexpectedResponseError extends TypeError {
+	constructor() {
+		super("Server response was unexpected");
+		this.name = "UnexpectedResponseError";
+	}
+}
+
 async function doRequest(
 	url: URL,
 	req: Omit<RequestInit, "headers">,
@@ -77,7 +90,7 @@ async function doRequest(
 		console.log("Response:", response);
 
 		const json: unknown = await response.json();
-		if (!isRawServerResponse(json)) throw new TypeError("Server response was unexpected");
+		if (!isRawServerResponse(json)) throw new UnexpectedResponseError();
 
 		return {
 			status: response.status,

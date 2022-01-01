@@ -1,5 +1,6 @@
-import type { DataItem, Keys } from "./database/index.js";
+import type { DataItem, Keys, Unsubscribe } from "./database/index.js";
 import type { Request } from "express";
+import type { WebSocket } from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
 import { handleErrors } from "./handleErrors.js";
@@ -41,209 +42,168 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 	return new DocumentReference(collection, documentId);
 }
 
+function webSocket(ws: WebSocket, req: Request<Params>): void {
+	const uid = (req.params.uid ?? "") || null;
+	const collectionId = (req.params.collectionId ?? "") || null;
+	const documentId = (req.params.documentId ?? "") || null;
+	if (uid === null || collectionId === null || !isCollectionId(collectionId)) {
+		ws.send(JSON.stringify({ message: "No data found" }));
+		return ws.close();
+	}
+	const collection = new CollectionReference<Keys>(collectionId);
+	let unsubscribe: Unsubscribe;
+
+	// TODO: Assert the caller's ID is uid
+	if (documentId !== null) {
+		const ref = new DocumentReference(collection, documentId);
+		unsubscribe = watchUpdatesToDocument(ref, data => {
+			ws.send(
+				JSON.stringify({
+					message: "Here's your data",
+					dataType: "single",
+					data,
+				})
+			);
+		});
+	} else {
+		unsubscribe = watchUpdatesToCollection(collection, data => {
+			ws.send(
+				JSON.stringify({
+					message: "Here's your data",
+					dataType: "multiple",
+					data,
+				})
+			);
+		});
+	}
+
+	ws.on("message", msg => {
+		try {
+			const uid = (req.params.uid ?? "") || null;
+			if ((msg as Buffer).toString() === "STOP") {
+				process.stdout.write("Received STOP\n");
+				unsubscribe();
+				ws.send(JSON.stringify({ message: "Closed." }));
+				return ws.close();
+			}
+			process.stdout.write(
+				`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
+			);
+		} catch (error: unknown) {
+			console.error(error);
+		}
+	});
+}
+
 // Function so we defer creation of the router until after we've set up websocket support
 export function db(this: void): Router {
-	return (
-		Router()
-			.use("/users/:uid", ownersOnly())
+	return Router()
+		.use("/users/:uid", ownersOnly())
+		.ws("/users/:uid/:collectionId", webSocket)
+		.ws("/users/:uid/:collectionId/:documentId", webSocket)
+		.get<Params>(
+			"/users/:uid",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
 
-			// ** User Preferences
-			.ws("/users/:uid", (ws, req) => {
-				const uid = (req.params["uid"] ?? "") || null;
-				if (uid === null) {
-					ws.send(JSON.stringify({ message: "No data found" }));
-					return ws.close();
-				}
 				const collection = new CollectionReference<Keys>("users");
 				const ref = new DocumentReference(collection, uid);
 
-				// TODO: Assert the caller's ID is uid
-				const unsubscribe = watchUpdatesToDocument(ref, changes => {
-					ws.send(JSON.stringify(changes));
-				});
-
-				ws.on("message", msg => {
-					try {
-						const uid = (req.params["uid"] ?? "") || null;
-						if ((msg as Buffer).toString() === "STOP") {
-							process.stdout.write("Received STOP\n");
-							unsubscribe();
-							ws.send(JSON.stringify({ message: "Closed." }));
-							return ws.close();
-						}
-						process.stdout.write(
-							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
-						);
-						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
-					} catch (error: unknown) {
-						console.error(error);
-					}
-				});
+				const item = await getDocument(ref);
+				respondData(res, item);
 			})
-			.get<Params>(
-				"/users/:uid",
-				asyncWrapper(async (req, res) => {
-					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) throw new NotFoundError();
+		)
+		.post<Params>(
+			"/users/:uid",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
 
-					const collection = new CollectionReference<Keys>("users");
-					const ref = new DocumentReference(collection, uid);
+				const collection = new CollectionReference<Keys>("users");
+				const ref = new DocumentReference(collection, uid);
 
-					const item = await getDocument(ref);
-					respondData(res, item);
-				})
-			)
-			.post<Params>(
-				"/users/:uid",
-				asyncWrapper(async (req, res) => {
-					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) throw new NotFoundError();
+				const providedData = JSON.parse(req.body as string) as unknown;
+				if (!isKeys(providedData)) throw new BadRequestError();
 
-					const collection = new CollectionReference<Keys>("users");
-					const ref = new DocumentReference(collection, uid);
+				await setDocument(ref, {
+					...providedData,
+					_id: ref.id,
+					uid,
+				});
+				respondSuccess(res);
+			})
+		)
+		.delete<Params>(
+			"/users/:uid",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
 
-					const providedData = JSON.parse(req.body as string) as unknown;
-					if (!isKeys(providedData)) throw new BadRequestError();
+				const collection = new CollectionReference<Keys>("users");
+				const ref = new DocumentReference(collection, uid);
 
-					await setDocument(ref, {
-						...providedData,
-						_id: ref.id,
-						uid,
-					});
-					respondSuccess(res);
-				})
-			)
-			.delete<Params>(
-				"/users/:uid",
-				asyncWrapper(async (req, res) => {
-					const uid = (req.params.uid ?? "") || null;
-					if (uid === null) throw new NotFoundError();
-
-					const collection = new CollectionReference<Keys>("users");
-					const ref = new DocumentReference(collection, uid);
-
-					await deleteDocument(ref);
-					respondSuccess(res);
-				})
-			)
-
-			// ** Everything else
-			.ws("/users/:uid/:collectionId", (ws, req) => {
+				await deleteDocument(ref);
+				respondSuccess(res);
+			})
+		)
+		.get<Params>(
+			"/users/:uid/:collectionId",
+			asyncWrapper(async (req, res) => {
 				const ref = collectionRef(req);
-				if (!ref) {
-					ws.send(JSON.stringify({ message: "No data found" }));
-					return ws.close();
-				}
-				// TODO: Assert the caller's ID is uid
-				const unsubscribe = watchUpdatesToCollection(ref, changes => {
-					ws.send(JSON.stringify(changes));
-				});
+				if (!ref) throw new NotFoundError();
 
-				ws.on("message", msg => {
-					try {
-						if ((msg as Buffer).toString() === "STOP") {
-							process.stdout.write("Received STOP\n");
-							unsubscribe();
-							ws.send(JSON.stringify({ message: "Closed." }));
-							return ws.close();
-						}
-						const uid = (req.params["uid"] ?? "") || null;
-						process.stdout.write(
-							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
-						);
-						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
-					} catch (error: unknown) {
-						console.error(error);
-					}
-				});
+				const items = await getCollection(ref);
+				respondData(res, items);
 			})
-			.ws("/users/:uid/:collectionId/:documentId", (ws, req) => {
+		)
+		.get<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
 				const ref = documentRef(req);
-				if (!ref) {
-					ws.send(JSON.stringify({ message: "No data found" }));
-					return ws.close();
-				}
-				// TODO: Assert the caller's ID is uid
-				const unsubscribe = watchUpdatesToDocument(ref, change => {
-					ws.send(JSON.stringify(change));
-				});
+				if (!ref) throw new NotFoundError();
 
-				ws.on("message", msg => {
-					try {
-						const uid = (req.params["uid"] ?? "") || null;
-						if ((msg as Buffer).toString() === "STOP") {
-							process.stdout.write("Received STOP\n");
-							unsubscribe();
-							ws.send(JSON.stringify({ message: "Closed." }));
-							return ws.close();
-						}
-						process.stdout.write(
-							`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
-						);
-						ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
-					} catch (error: unknown) {
-						console.error(error);
-					}
-				});
+				const item = await getDocument(ref);
+				respondData(res, item);
 			})
-			.get<Params>(
-				"/users/:uid/:collectionId",
-				asyncWrapper(async (req, res) => {
-					const ref = collectionRef(req);
-					if (!ref) throw new NotFoundError();
+		)
+		.post<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				const ref = documentRef(req);
+				if (!ref || uid === null) throw new NotFoundError();
 
-					const items = await getCollection(ref);
-					respondData(res, items);
-				})
-			)
-			.get<Params>(
-				"/users/:uid/:collectionId/:documentId",
-				asyncWrapper(async (req, res) => {
-					const ref = documentRef(req);
-					if (!ref) throw new NotFoundError();
+				const providedData = JSON.parse(req.body as string) as unknown;
+				if (!isDataItem(providedData)) throw new BadRequestError();
 
-					const item = await getDocument(ref);
-					respondData(res, item);
-				})
-			)
-			.post<Params>(
-				"/users/:uid/:collectionId/:documentId",
-				asyncWrapper(async (req, res) => {
-					const uid = (req.params.uid ?? "") || null;
-					const ref = documentRef(req);
-					if (!ref || uid === null) throw new NotFoundError();
+				await setDocument(ref, {
+					...providedData,
+					_id: ref.id,
+					uid,
+				});
+				respondSuccess(res);
+			})
+		)
+		.delete<Params>(
+			"/users/:uid/:collectionId",
+			asyncWrapper(async (req, res) => {
+				const ref = collectionRef(req);
+				if (!ref) throw new NotFoundError();
 
-					const providedData = JSON.parse(req.body as string) as unknown;
-					if (!isDataItem(providedData)) throw new BadRequestError();
+				await deleteCollection(ref);
+				respondSuccess(res);
+			})
+		)
+		.delete<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
+				const ref = documentRef(req);
+				if (!ref) throw new NotFoundError();
 
-					await setDocument(ref, {
-						...providedData,
-						_id: ref.id,
-						uid,
-					});
-					respondSuccess(res);
-				})
-			)
-			.delete<Params>(
-				"/users/:uid/:collectionId",
-				asyncWrapper(async (req, res) => {
-					const ref = collectionRef(req);
-					if (!ref) throw new NotFoundError();
-
-					await deleteCollection(ref);
-					respondSuccess(res);
-				})
-			)
-			.delete<Params>(
-				"/users/:uid/:collectionId/:documentId",
-				asyncWrapper(async (req, res) => {
-					const ref = documentRef(req);
-					if (!ref) throw new NotFoundError();
-
-					await deleteDocument(ref);
-					respondSuccess(res);
-				})
-			)
-			.use(handleErrors)
-	);
+				await deleteDocument(ref);
+				respondSuccess(res);
+			})
+		)
+		.use(handleErrors);
 }

@@ -13,33 +13,10 @@ import {
 // about persistent I/O. We leave path-level access-
 // guarding to the Express frontend.
 
-interface DataAdd {
-	id: string;
-	type: "added";
-	oldData: null;
-	newData: AnyDataItem;
-}
+export type Unsubscribe = () => void;
 
-interface DataRemove {
-	id: string;
-	type: "removed";
-	oldData: AnyDataItem;
-	newData: null;
-}
-
-interface DataModify {
-	id: string;
-	type: "modified";
-	oldData: AnyDataItem;
-	newData: AnyDataItem;
-}
-
-type DataChange = DataAdd | DataRemove | DataModify;
-type DataChanges = NonEmptyArray<DataChange>;
-type Unsubscribe = () => void;
-
-type SDataChangeCallback = (change: DataChange) => void;
-type PDataChangeCallback = (change: DataChanges) => void;
+type SDataChangeCallback = (newData: AnyDataItem | null) => void;
+type PDataChangeCallback = (newData: Array<AnyDataItem>) => void;
 
 interface _Watcher {
 	plurality: "single" | "plural";
@@ -73,18 +50,12 @@ export function watchUpdatesToDocument<T extends AnyDataItem>(
 	};
 	documentWatchers.set(handle.id, handle);
 
-	// Send "added" for all data at path
+	// Send all data at path
 	/* eslint-disable promise/prefer-await-to-then */
 	void getDocument<T>(ref)
 		.then(async data => {
 			if (data) {
-				const change: DataAdd = {
-					id: ref.id,
-					type: "added",
-					oldData: null,
-					newData: data,
-				};
-				await informWatchersForDocument(ref, change);
+				await informWatchersForDocument(ref, data);
 			}
 		})
 		.catch((error: unknown) => {
@@ -108,15 +79,7 @@ export function watchUpdatesToCollection<T extends AnyDataItem>(
 	/* eslint-disable promise/prefer-await-to-then */
 	void getCollection<T>(ref)
 		.then(async data => {
-			const changes: Array<DataAdd> = data.map<DataAdd>(newData => ({
-				id: newData._id,
-				type: "added",
-				oldData: null,
-				newData,
-			}));
-			if (changes.length > 0) {
-				await informWatchersForCollection(ref, changes as DataChanges);
-			}
+			await informWatchersForCollection(ref, data);
 		})
 		.catch((error: unknown) => {
 			console.error(error);
@@ -130,20 +93,20 @@ export function watchUpdatesToCollection<T extends AnyDataItem>(
 
 async function informWatchersForDocument<T extends AnyDataItem>(
 	ref: DocumentReference<T>,
-	change: DataChange
+	newItem: AnyDataItem | null
 ): Promise<void> {
 	const listeners = [...documentWatchers.values()].filter(
 		w => w.id === ref.id && w.collectionId === ref.parent.id
 	);
-	await Promise.all(listeners.map(l => l.onChange(change)));
+	await Promise.all(listeners.map(l => l.onChange(newItem)));
 }
 
 async function informWatchersForCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>,
-	changes: DataChanges
+	newItems: Array<AnyDataItem>
 ): Promise<void> {
 	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
-	await Promise.all(listeners.map(l => l.onChange(changes)));
+	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 
 export async function getDocument<T extends AnyDataItem>(
@@ -171,53 +134,27 @@ export async function deleteDocument<T extends AnyDataItem>(
 	// Tell listeners what happened
 	if (oldData) {
 		// Only call listeners about deletion if it wasn't gone in the first place
-		const change: DataRemove = {
-			id: ref.id,
-			type: "removed",
-			oldData,
-			newData: null,
-		};
-		await informWatchersForDocument(ref, change);
+		await informWatchersForDocument(ref, null);
 	}
 }
 
 export async function deleteCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>
 ): Promise<void> {
-	// Fetch the data
-	const oldData = await getCollection<T>(ref);
-
 	await deleteDbCollection(ref);
 
 	// Tell listeners what happened
-	const changes: Array<DataRemove> = oldData.map<DataRemove>(oldData => ({
-		id: oldData._id,
-		type: "removed",
-		oldData,
-		newData: null,
-	}));
-	if (changes.length > 0) {
-		await informWatchersForCollection(ref, changes as DataChanges);
-	}
+	await informWatchersForCollection(ref, []);
 }
 
 export async function setDocument<T extends AnyDataItem>(
 	ref: DocumentReference<T>,
 	newData: T
 ): Promise<void> {
-	// Fetch the data
-	const oldData = await getDocument<T>(ref);
-
 	await upsertDbDoc(ref, newData);
 
 	// Tell listeners what happened
-	let change: DataAdd | DataModify;
-	if (oldData === null) {
-		change = { type: "added", oldData, newData, id: ref.id };
-	} else {
-		change = { type: "modified", oldData, newData, id: ref.id };
-	}
-	await informWatchersForDocument(ref, change);
+	await informWatchersForDocument(ref, newData);
 }
 
 export * from "./references.js";
