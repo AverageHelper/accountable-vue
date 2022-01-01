@@ -1,37 +1,23 @@
-import isObject from "lodash/isObject.js";
-import isString from "lodash/isString.js";
+import Joi from "joi";
+import "joi-extract-type";
 
-function isRecord(tbd: unknown): tbd is Record<string, unknown> {
-	return (
-		tbd !== undefined &&
-		tbd !== null &&
-		isObject(tbd) &&
-		typeof tbd === "object" &&
-		!Array.isArray(tbd)
-	);
+function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
+	const { error } = schema.validate(data);
+	return !error;
 }
 
-export interface MongoObject {
-	_id: string;
-	uid: string;
-}
+const mongoObject = Joi.object({
+	_id: Joi.string().required(),
+	uid: Joi.string().required(),
+});
+export type MongoObject = Joi.extractType<typeof mongoObject>;
 
-function isMongoObject(tbd: unknown): tbd is MongoObject {
-	// TODO: Use Joi to do this properly
-	return (
-		isRecord(tbd) &&
-		"_id" in tbd &&
-		"uid" in tbd &&
-		isString((tbd as Record<keyof MongoObject, unknown>)._id) &&
-		isString((tbd as Record<keyof MongoObject, unknown>).uid)
-	);
-}
-
-export interface User extends MongoObject {
-	currentAccountId: string;
-	passwordHash: string;
-	passwordSalt: string;
-}
+const user = mongoObject.keys({
+	currentAccountId: Joi.string().required(),
+	passwordHash: Joi.string().required(),
+	passwordSalt: Joi.string().required(),
+});
+export type User = Joi.extractType<typeof user>;
 
 export type Primitive = string | number | boolean | undefined | null;
 
@@ -42,26 +28,26 @@ export type DocumentData<T> = {
 	[K in keyof T]: Primitive;
 };
 
-export interface DataItem extends MongoObject {
-	ciphertext: string;
-	objectType: string;
-}
+const dataItem = mongoObject.keys({
+	ciphertext: Joi.string().required(),
+	objectType: Joi.string().required(),
+});
+export type DataItem = Joi.extractType<typeof dataItem>;
 
 export function isDataItem(tbd: unknown): tbd is DataItem {
-	// TODO: Use Joi to do this properly
-	return isMongoObject(tbd) && "ciphertext" in tbd && "objectType" in tbd;
+	return isValidForSchema(tbd, dataItem);
 }
 
-export interface Keys extends MongoObject {
-	dekMaterial: string;
-	passSalt: string;
-	oldDekMaterial?: string;
-	oldPassSalt?: string;
-}
+const keys = mongoObject.keys({
+	dekMaterial: Joi.string().required(),
+	passSalt: Joi.string().required(),
+	oldDekMaterial: Joi.string(),
+	oldPassSalt: Joi.string(),
+});
+export type Keys = Joi.extractType<typeof keys>;
 
 export function isKeys(tbd: unknown): tbd is Keys {
-	// TODO: Use Joi to do this properly
-	return isMongoObject(tbd) && "dekMaterial" in tbd && "passSalt" in tbd;
+	return isValidForSchema(tbd, keys);
 }
 
 export type AnyDataItem = DataItem | Keys | User;

@@ -20,6 +20,8 @@
 		"express-ws": "^5.0.2",
 		"formidable": "^2.0.1",
 		"helmet": "^4.6.0",
+		"joi": "^17.5.0",
+		"joi-extract-type": "^15.0.8",
 		"jsonwebtoken": "^8.5.1",
 		"lodash": "^4.17.21",
 		"method-override": "^3.0.0",
