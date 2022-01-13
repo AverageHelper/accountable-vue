@@ -20,7 +20,7 @@ interface _WriteAction {
 }
 
 interface PutAction extends _WriteAction {
-	method: "put";
+	method: "post";
 	files: formidable.Files;
 }
 
@@ -35,7 +35,7 @@ type WriteAction = PutAction | DeleteAction;
 // should prevent race conditions against filesystem objects.
 async function handleWrite(job: WriteAction): Promise<void> {
 	switch (job.method) {
-		case "put": {
+		case "post": {
 			const fileOrFiles = job.files[0] ?? [];
 			let file: formidable.File | null;
 			if (Array.isArray(fileOrFiles)) {
@@ -95,7 +95,7 @@ export function storage(this: void): Router {
 				res.sendFile(path, { dotfiles: "deny" });
 			})
 		)
-		.put<Params>("/users/:uid/attachments/:fileName", (req, res, next) => {
+		.post<Params>("/users/:uid/attachments/:fileName", (req, res, next) => {
 			formidable({ multiples: true }).parse(req, (error, fields, files) => {
 				// eslint-disable-next-line no-extra-boolean-cast
 				if (Boolean(error)) return next(error);
@@ -105,7 +105,7 @@ export function storage(this: void): Router {
 
 				const queue = useJobQueue<WriteAction>(path);
 				queue.process(handleWrite);
-				queue.createJob({ method: "put", path, res, files });
+				queue.createJob({ method: "post", path, res, files });
 			});
 		})
 		.delete<Params>("/users/:uid/attachments/:fileName", (req, res) => {

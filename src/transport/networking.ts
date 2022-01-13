@@ -1,70 +1,26 @@
 import type { DocumentData } from "./db.js";
-import type { ValueIteratorTypeGuard } from "lodash";
-import isArray from "lodash/isArray";
-import isFunction from "lodash/isFunction";
-import isNumber from "lodash/isNumber";
-import isString from "lodash/isString";
-import { isDocumentData, isRecord } from "./db.js";
+import { describeCode } from "../helpers/HttpStatusCode.js";
+import { documentData } from "./db.js";
+import Joi from "joi";
+import "joi-extract-type";
 
-export interface RawServerResponse {
-	message?: string;
-	access_token?: string;
-	uid?: string;
-	data?: DocumentData | Array<DocumentData> | null;
-	dataType?: "single" | "multiple";
+const rawServerResponse = Joi.object({
+	message: Joi.string().allow(""),
+	access_token: Joi.string(),
+	uid: Joi.string(),
+	data: Joi.alt(documentData, Joi.array().items(documentData)).allow(null),
+	dataType: Joi.string().valid("single", "multiple"),
+});
+
+export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
+	return rawServerResponse.validate(tbd).error === undefined;
 }
+
+export type RawServerResponse = Joi.extractType<typeof rawServerResponse>;
 
 interface ServerResponse extends RawServerResponse {
 	status: number;
 	message: string;
-}
-
-function isArrayWhere<T>(tbd: unknown, guard: ValueIteratorTypeGuard<unknown, T>): tbd is Array<T> {
-	return isArray(tbd) && tbd.every(guard);
-}
-
-export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
-	if (
-		!isRecord(tbd) ||
-		isNumber(tbd) ||
-		isString(tbd) ||
-		isFunction(tbd) ||
-		isArray(tbd) ||
-		Object.keys(tbd).length > 4 // only enough keys for RawServerResponse
-	)
-		return false;
-
-	if ("data" in tbd) {
-		const data = tbd["data"];
-		if (
-			!isDocumentData(data) && //
-			!isArrayWhere(data, isDocumentData) &&
-			data !== null
-		)
-			return false;
-	}
-
-	if ("dataType" in tbd) {
-		const data = tbd["dataType"];
-		if (data !== "single" && data !== "multiple") return false;
-	}
-
-	if ("access_token" in tbd) {
-		const token = tbd["access_token"];
-		if (!isString(token)) return false;
-	}
-
-	if ("uid" in tbd) {
-		const uid = tbd["uid"];
-		if (!isString(uid)) return false;
-	}
-
-	if ("message" in tbd) {
-		const message = tbd["message"];
-		if (!isString(message)) return false;
-	}
-
-	return true;
 }
 
 export class UnexpectedResponseError extends TypeError {
@@ -93,8 +49,9 @@ async function doRequest(
 		if (!isRawServerResponse(json)) throw new UnexpectedResponseError();
 
 		return {
+			// `fetch` does not always return statusText, per spec: https://fetch.spec.whatwg.org/#concept-response-status-message
+			message: response.statusText || describeCode(response.status),
 			status: response.status,
-			message: response.statusText,
 			...json,
 		};
 	} catch (error: unknown) {
@@ -118,4 +75,19 @@ export async function postTo(url: URL, body: DocumentData, jwt?: string): Promis
 /** Performs a DELETE request at the provided URL using the given JWT. */
 export async function deleteAt(url: URL, jwt: string): Promise<ServerResponse> {
 	return await doRequest(url, { method: "DELETE" }, jwt);
+}
+
+/** Performs a multipart GET request at the provided URL using the given JWT. */
+export async function downloadFrom(url: URL, jwt: string): Promise<string> {
+	// TODO: Do the download
+	return "{}";
+}
+
+/** Performs a multipart POST request at the provided URL using the given body and JWT. */
+export async function uploadTo(url: URL, body: string, jwt: string): Promise<ServerResponse> {
+	// TODO: Do the upload
+	return {
+		status: 501,
+		message: "Not implemented",
+	};
 }

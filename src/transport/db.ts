@@ -8,10 +8,10 @@ import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
 import { deleteAt, getFrom, postTo } from "./networking.js";
 import { v4 as uuid } from "uuid";
 import isArray from "lodash/isArray";
-import isBoolean from "lodash/isBoolean";
-import isNumber from "lodash/isNumber";
 import isObject from "lodash/isObject";
 import isString from "lodash/isString";
+import Joi from "joi";
+import "joi-extract-type";
 import {
 	DocumentSnapshot,
 	onSnapshot,
@@ -58,8 +58,12 @@ export class AccountableDB {
 	}
 }
 
-export type Primitive = string | number | boolean | undefined | null;
-export type DocumentData = Record<string, Primitive>;
+export const primitive = Joi.alt(Joi.string(), Joi.number(), Joi.boolean()).allow(null, undefined);
+
+export const documentData = Joi.object().pattern(Joi.string(), primitive);
+
+export type Primitive = Joi.extractType<typeof primitive>;
+export type DocumentData = Joi.extractType<typeof documentData>; // Record<string, Primitive>;
 export type PrimitiveRecord<T> = {
 	[K in keyof T]: Primitive;
 };
@@ -74,23 +78,11 @@ export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 }
 
 export function isPrimitive(tbd: unknown): tbd is Primitive {
-	return (
-		tbd === undefined || //
-		tbd === null ||
-		isString(tbd) ||
-		isNumber(tbd) ||
-		isBoolean(tbd)
-	);
+	return primitive.validate(tbd).error === undefined;
 }
 
 export function isDocumentData(tbd: unknown): tbd is DocumentData {
-	if (!isRecord(tbd)) return false;
-
-	for (const value of Object.values(tbd)) {
-		if (!isPrimitive(value)) return false;
-	}
-
-	return true;
+	return documentData.validate(tbd).error === undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -363,7 +355,7 @@ export async function getDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	const { data } = await getFrom(docPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");
@@ -393,7 +385,7 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	await postTo(docPath, data, jwt);
 }
@@ -413,7 +405,7 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, db.url);
+	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	await deleteAt(docPath, jwt);
 }
@@ -430,12 +422,12 @@ export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySn
 
 	const uid = currentUser.uid;
 	const collection = query.id;
-	const collPath = new URL(`db/users/${uid}/${collection}`, db.url);
+	const collPath = new URL(`db/users/${uid}/${collection}`, query.db.url);
 
 	const { data } = await getFrom(collPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");
 	if (data === null || !isArray(data))
-		throw new TypeError("Expected an array of documents from server, but got data");
+		throw new TypeError("Expected an array of documents from server, but got one document");
 
 	return new QuerySnapshot(
 		query,
