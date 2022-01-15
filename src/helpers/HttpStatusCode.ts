@@ -6,7 +6,7 @@
  * Hypertext Transfer Protocol (HTTP) response status codes.
  * @see {@link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes}
  */
-enum HttpStatusCode {
+export enum HttpStatusCode {
 	/**
 	 * The server has received the request headers and the client should proceed to send the request body
 	 * (in the case of a request for which a body needs to be sent; for example, a POST request).
@@ -385,5 +385,3 @@ enum HttpStatusCode {
 export function describeCode(code: HttpStatusCode): string {
 	return HttpStatusCode[code] ?? `HTTP_${code}`;
 }
-
-export default HttpStatusCode;

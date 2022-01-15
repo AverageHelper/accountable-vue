@@ -1,65 +1,85 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
+import { createWriteStream } from "fs";
+import { stat as fsStat, unlink as fsUnlink } from "fs/promises";
 import { handleErrors } from "../handleErrors.js";
-import { NotFoundError, respondSuccess } from "../responses.js";
+import { BadRequestError, NotFoundError, respondSuccess } from "../responses.js";
 import { ownersOnly } from "../auth/index.js";
-import { resolve as resolvePath } from "path";
+import { resolve as resolvePath, sep as pathSeparator } from "path";
 import { Router } from "express";
 import { useJobQueue } from "@averagehelper/job-queue";
-import formidable from "formidable";
-import fs from "fs/promises";
 
 interface Params {
 	uid?: string;
 	fileName?: string;
 }
 
-interface _WriteAction {
+interface WriteAction {
+	method: "post" | "delete";
 	path: string;
+	req: Request<Params>;
 	res: Response;
 }
 
-interface PutAction extends _WriteAction {
-	method: "post";
-	files: formidable.Files;
-}
-
-interface DeleteAction extends _WriteAction {
-	method: "delete";
-}
-
-type WriteAction = PutAction | DeleteAction;
-
-// JobQueue should garantee that each instance of this function for a
-// given file path runs its course before running the next one. This
-// should prevent race conditions against filesystem objects.
+/**
+ * Performs the given filesystem action.
+ *
+ * This function executes asynchronously, but **must not** operate
+ * concurrently on the same filesystem path.
+ *
+ * {@link useJobQueue} may be used to garantee that each instance
+ * of this function for a given file path runs its course before
+ * starting the next job. This should prevent race conditions against
+ * filesystem objects.
+ */
 async function handleWrite(job: WriteAction): Promise<void> {
 	switch (job.method) {
 		case "post": {
-			const fileOrFiles = job.files[0] ?? [];
-			let file: formidable.File | null;
-			if (Array.isArray(fileOrFiles)) {
-				file = fileOrFiles[0] ?? null;
-			} else {
-				file = fileOrFiles;
+			// If the file already exists, delete it first
+			const exists = await fileExists(job.path);
+			if (exists) {
+				await fsUnlink(job.path);
 			}
-			if (file === null) throw new NotFoundError();
 
-			await fs.writeFile(job.path, file?.toString());
+			// Do the write
+			await new Promise<void>(resolve => {
+				const req = job.req;
+				req.pipe(req.busboy); // Pipe the data through busboy
+				req.busboy.on("file", (fieldName, file, fileInfo) => {
+					console.log(`Upload of '${fileInfo.filename}' started`);
+
+					// Create a write stream of the new file
+					const fstream = createWriteStream(job.path);
+					file.pipe(fstream); // pipe it through
+
+					// On finish
+					fstream.on("close", () => {
+						console.log(`Upload of '${fileInfo.filename}' finished`);
+						resolve();
+					});
+				});
+			});
 			break;
 		}
 		case "delete": {
-			await fs.unlink(job.path);
+			await fsUnlink(job.path);
 			break;
 		}
 	}
+
+	// When done, get back to the caller
 	respondSuccess(job.res);
 }
 
-/** @see https://stackoverflow.com/a/17699926 */
+/**
+ * Returns a `Promise` that resolves `true` if a file exists at
+ * the given path, `false` otherwise.
+ *
+ * @see https://stackoverflow.com/a/17699926
+ */
 async function fileExists(path: string): Promise<boolean> {
 	try {
-		await fs.stat(path);
+		await fsStat(path);
 		return true;
 	} catch (error: unknown) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -69,15 +89,21 @@ async function fileExists(path: string): Promise<boolean> {
 	}
 }
 
+/**
+ * Returns a filesystem path for the given file params,
+ * or `null` if unsufficient or invalid params were provided.
+ */
 function filePath(params: Params): string | null {
 	const { uid, fileName } = params;
-	if (uid === undefined || fileName === undefined) {
-		return null;
-	}
-	return resolvePath(
-		__dirname,
-		`./storage/files/users/${uid ?? "uid"}/attachments/${fileName ?? "fileName"}`
-	);
+	if (uid === undefined || fileName === undefined) return null;
+
+	// Make sure fileName doesn't contain a path separator
+	if (fileName.includes(pathSeparator)) return null;
+
+	// TODO: Make sure uid is a valid uid, so we don't let in stray path arguments there
+
+	// TODO: Put this somewhere more standard. The source folder is probs not the best place...
+	return resolvePath(__dirname, `./files/users/${uid}/attachments/${fileName}`);
 }
 
 export function storage(this: void): Router {
@@ -87,7 +113,8 @@ export function storage(this: void): Router {
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {
 				const path = filePath(req.params);
-				if (path === null) throw new NotFoundError();
+				if (path === null)
+					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
 
 				const exists = await fileExists(path);
 				if (!exists) throw new NotFoundError();
@@ -95,26 +122,23 @@ export function storage(this: void): Router {
 				res.sendFile(path, { dotfiles: "deny" });
 			})
 		)
-		.post<Params>("/users/:uid/attachments/:fileName", (req, res, next) => {
-			formidable({ multiples: true }).parse(req, (error, fields, files) => {
-				// eslint-disable-next-line no-extra-boolean-cast
-				if (Boolean(error)) return next(error);
-
-				const path = filePath(req.params);
-				if (path === null) throw new NotFoundError();
-
-				const queue = useJobQueue<WriteAction>(path);
-				queue.process(handleWrite);
-				queue.createJob({ method: "post", path, res, files });
-			});
-		})
-		.delete<Params>("/users/:uid/attachments/:fileName", (req, res) => {
+		.post<Params>("/users/:uid/attachments/:fileName", (req, res) => {
 			const path = filePath(req.params);
-			if (path === null) throw new NotFoundError();
+			if (path === null)
+				throw new BadRequestError("Your UID or that file name don't add up to a valid path");
 
 			const queue = useJobQueue<WriteAction>(path);
 			queue.process(handleWrite);
-			queue.createJob({ method: "delete", path, res });
+			queue.createJob({ method: "post", path, req, res });
+		})
+		.delete<Params>("/users/:uid/attachments/:fileName", (req, res) => {
+			const path = filePath(req.params);
+			if (path === null)
+				throw new BadRequestError("Your UID or that file name don't add up to a valid path");
+
+			const queue = useJobQueue<WriteAction>(path);
+			queue.process(handleWrite);
+			queue.createJob({ method: "delete", path, req, res });
 		})
 		.use(handleErrors);
 }

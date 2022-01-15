@@ -5,6 +5,7 @@ import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage/index.js";
+import busboy from "connect-busboy";
 import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
@@ -22,6 +23,11 @@ app
 	.use(cors())
 	.use(express.json())
 	.use(express.urlencoded({ extended: true }))
+	.use(
+		busboy({
+			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
+		})
+	)
 	.get("/", lol)
 	.use(auth())
 	.use(requireAuth()) // require auth from here on in
