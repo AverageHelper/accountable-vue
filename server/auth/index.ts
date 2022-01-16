@@ -7,7 +7,6 @@ import { Context } from "./Context.js";
 import { findDbDoc, upsertDbDoc } from "../database/mongo.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
-import { userFromRequest } from "./requireAuth.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 
@@ -37,6 +36,11 @@ async function upsertUser(user: User): Promise<void> {
 	const ref = new DocumentReference(collection, user.uid);
 	await upsertDbDoc(ref, user);
 }
+
+/* Headers */
+
+// See https://stackoverflow.com/a/54337073 for why "Vary: *" is necessary for Safari
+const cacheControl = "no-store";
 
 /**
  * Routes and middleware for a basic authentication flow. Installs a
@@ -78,7 +82,10 @@ export function auth(this: void): Router {
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(user);
-				res.json({ access_token, uid });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ access_token, uid });
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -113,19 +120,28 @@ export function auth(this: void): Router {
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(storedUser);
 				const uid = storedUser.uid;
-				res.json({ access_token, uid });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ access_token, uid });
 			})
 		)
 		.post("/logout", throttle(), (req, res) => {
 			const token = jwtTokenFromRequest(req);
 			if (token === null) {
-				res.json({ message: "Success!" });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ message: "Success!" });
 				return;
 			}
 
 			// ** Blacklist the JWT
 			addJwtToBlacklist(token);
-			res.json({ message: "Success!" });
+			res
+				.setHeader("Cache-Control", cacheControl)
+				.setHeader("Vary", "*")
+				.json({ message: "Success!" });
 		})
 		.post<unknown, unknown, ReqBody>(
 			"/updatepassword",
@@ -168,7 +184,10 @@ export function auth(this: void): Router {
 				});
 
 				// TODO: Invalidate the old jwt, send a new one
-				res.json({ message: "Success!" });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ message: "Success!" });
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -209,7 +228,10 @@ export function auth(this: void): Router {
 				});
 
 				// TODO: Invalidate the old jwt, send a new one
-				res.json({ message: "Success!" });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ message: "Success!" });
 			})
 		);
 }

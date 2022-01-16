@@ -107,6 +107,8 @@ function filePath(params: Params): string | null {
 	return resolvePath(__dirname, `./files/users/${uid}/attachments/${fileName}`);
 }
 
+const cacheControl = "no-store";
+
 export function storage(this: void): Router {
 	return Router()
 		.use("/users/:uid", ownersOnly())
@@ -120,7 +122,10 @@ export function storage(this: void): Router {
 				const exists = await fileExists(path);
 				if (!exists) throw new NotFoundError();
 
-				res.sendFile(path, { dotfiles: "deny" });
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.sendFile(path, { dotfiles: "deny" });
 			})
 		)
 		.post<Params>("/users/:uid/attachments/:fileName", (req, res) => {

@@ -49,10 +49,8 @@ async function doRequest(
 	}
 	const request: RequestInit = { ...req, headers };
 	let result: ServerResponse;
-	console.log(`Request to ${url.toString()}:`, request);
 	try {
 		const response = await fetch(url.href, request);
-		console.log("Response:", response);
 
 		const json: unknown = await response.json();
 		if (!isRawServerResponse(json)) throw new UnexpectedResponseError();

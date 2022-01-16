@@ -45,8 +45,14 @@ export class InternalError extends Error {
 	}
 }
 
+// See https://stackoverflow.com/a/54337073 for why "Vary: *" is necessary for Safari
+const cacheControl = "no-store";
+
 export function respondSuccess(this: void, res: Response): void {
-	res.json({ message: "Success!" });
+	res
+		.setHeader("Cache-Control", cacheControl) //
+		.setHeader("Vary", "*")
+		.json({ message: "Success!" });
 }
 
 export function respondData<T>(
@@ -54,7 +60,10 @@ export function respondData<T>(
 	res: Response,
 	data: DocumentData<T> | Array<DocumentData<T>> | null
 ): void {
-	res.json({ message: "Success!", data });
+	res
+		.setHeader("Cache-Control", cacheControl)
+		.setHeader("Vary", "*")
+		.json({ message: "Success!", data });
 }
 
 export class BadRequestError extends InternalError {
@@ -118,6 +127,8 @@ export function respondInternalError(this: void, res: Response): void {
 }
 
 export function respondError(this: void, res: Response, err: InternalError): void {
+	res.setHeader("Cache-Control", cacheControl);
+	res.setHeader("Vary", "*");
 	err.headers.forEach((value, name) => {
 		res.setHeader(name, value);
 	});
