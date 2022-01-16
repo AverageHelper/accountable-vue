@@ -2,6 +2,8 @@
 
 A Vue app for managing monetary assets. All data is encrypted client-side and stored on a server that you control.
 
+> This project is undergoing rapid development and should be considered experimental. Use it at your own risk. 🤙
+
 Note: DO NOT FORGET your ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
 Also note: This project is UNSTABLE for the moment, at least until it hits a proper 1.0 release. Feel free to try it out and let me know of any issues. Until I can trust this software, you probably should not trust it either.
@@ -56,11 +58,25 @@ $ npm run build
 
 #### Run
 
+To start the server and client on the same machine, run the following command:
+
 ```sh
 $ npm start
 ```
 
 Vite will give your a URL to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
+
+To run the server on its own, run the following command instead:
+
+```sh
+$ npm run prod:server
+```
+
+I recommend you install the client (the contents of the `<repository root>/dist` folder) on a webserver.
+
+TODO: Work out how the hay to securely manage .env secrets on a webserver. XD
+
+Since all the Accountable client is the URL to the Accountable server, you should be fine to publish the .env folder with the client stuff. (If anything goes wrong, that's on you. [Submit an issue](https://github.com/AverageHelper/accountable-vue/issues/new/choose) detailing what you think I can do to make this safer.)
 
 ## Acknowledgements
 
@@ -72,8 +88,8 @@ This project is entirely open source. Do with it what you will. If you're willin
 
 🧐 If you're feeling especially fantastic you might consider contributing to the project directly:
 
-- Fork this project.
-- Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
-- Submit a PR. (GitHub will ping me for you, so no need to @ me)
+1. Fork this project.
+2. Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+3. Submit a PR. (GitHub will ping me for you, so no need to @ me)
 
 I don't have all the time in the world, so PRs are especially appreciated.

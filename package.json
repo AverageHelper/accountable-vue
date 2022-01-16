@@ -8,6 +8,7 @@
 		"test:watch": "npm run test -- --watch",
 		"dev:client": "vite",
 		"dev:server": "cd ./server && npm start",
+		"prod:server": "NODE_ENV=production node ./server",
 		"build:client": "npm run lint && rm -rf ./dist && vue-tsc --noEmit --project tsconfig.prod.json && vite build",
 		"build:server": "cd ./server && npm run build",
 		"build": "npm run build:client && npm run build:server",

@@ -8,6 +8,7 @@
 		"start": "./node_modules/.bin/nodemon ./dist/main.js"
 	},
 	"type": "module",
+	"main": "./dist/main.js",
 	"dependencies": {
 		"@averagehelper/job-queue": "^1.0.1",
 		"atob-lite": "^2.0.0",
