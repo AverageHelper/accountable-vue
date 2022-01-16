@@ -53,7 +53,8 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 	const collection = new CollectionReference<Keys>(collectionId);
 	let unsubscribe: Unsubscribe;
 
-	// TODO: Assert the caller's ID is uid
+	// TODO: Do a dance within the websocket to assert the caller's ID is uid
+
 	if (documentId !== null) {
 		const ref = new DocumentReference(collection, documentId);
 		unsubscribe = watchUpdatesToDocument(ref, data => {
