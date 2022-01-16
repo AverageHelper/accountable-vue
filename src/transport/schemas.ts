@@ -43,3 +43,12 @@ export function isPrimitive(tbd: unknown): tbd is Primitive {
 export function isDocumentData(tbd: unknown): tbd is DocumentData {
 	return documentData.validate(tbd).error === undefined;
 }
+
+const fileData = Joi.object({
+	contents: Joi.string().required(),
+});
+export type FileData = Joi.extractType<typeof fileData>;
+
+export function isFileData(tbd: unknown): tbd is FileData {
+	return fileData.validate(tbd).error === undefined;
+}

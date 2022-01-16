@@ -1,6 +1,6 @@
 import type { DocumentData, RawServerResponse } from "./schemas.js";
 import { describeCode, HttpStatusCode } from "../helpers/HttpStatusCode.js";
-import { isRawServerResponse } from "./schemas.js";
+import { isFileData, isRawServerResponse } from "./schemas.js";
 
 interface ServerResponse extends RawServerResponse {
 	status: HttpStatusCode;
@@ -96,8 +96,10 @@ export async function deleteAt(url: URL, jwt: string): Promise<ServerResponse> {
 
 /** Performs a multipart GET request at the provided URL using the given JWT. */
 export async function downloadFrom(url: URL, jwt: string): Promise<string> {
-	// TODO: Do the download
-	throw new NotImplementedError();
+	const response = await getFrom(url, jwt);
+	const data = response.data as unknown;
+	if (!isFileData(data)) throw new UnexpectedResponseError();
+	return data.contents;
 }
 
 /** Performs a multipart POST request at the provided URL using the given body and JWT. */

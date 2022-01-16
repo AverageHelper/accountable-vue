@@ -1,9 +1,10 @@
+import type { DocumentData } from "../database/schemas.js";
 import type { Request, Response } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { createWriteStream } from "fs";
-import { stat as fsStat, unlink as fsUnlink } from "fs/promises";
+import { stat as fsStat, unlink as fsUnlink, readFile } from "fs/promises";
 import { handleErrors } from "../handleErrors.js";
-import { BadRequestError, NotFoundError, respondSuccess } from "../responses.js";
+import { BadRequestError, NotFoundError, respondData, respondSuccess } from "../responses.js";
 import { ownersOnly } from "../auth/index.js";
 import { resolve as resolvePath, sep as pathSeparator } from "path";
 import { Router } from "express";
@@ -50,7 +51,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 					console.log(`Upload of '${fileInfo.filename}' started`);
 
 					// Create a write stream of the new file
-					const fstream = createWriteStream(job.path);
+					const fstream = createWriteStream(job.path, { encoding: "utf-8" });
 					file.pipe(fstream); // pipe it through
 
 					// On finish
@@ -90,6 +91,17 @@ async function fileExists(path: string): Promise<boolean> {
 	}
 }
 
+async function getFileContents(path: string): Promise<string> {
+	try {
+		return await readFile(path, { encoding: "utf-8" });
+	} catch (error: unknown) {
+		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+			throw new NotFoundError();
+		}
+		throw error;
+	}
+}
+
 /**
  * Returns a filesystem path for the given file params,
  * or `null` if unsufficient or invalid params were provided.
@@ -107,7 +119,9 @@ function filePath(params: Params): string | null {
 	return resolvePath(__dirname, `./files/users/${uid}/attachments/${fileName}`);
 }
 
-const cacheControl = "no-store";
+interface FileData {
+	contents: string;
+}
 
 export function storage(this: void): Router {
 	return Router()
@@ -119,13 +133,11 @@ export function storage(this: void): Router {
 				if (path === null)
 					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
 
-				const exists = await fileExists(path);
-				if (!exists) throw new NotFoundError();
-
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.sendFile(path, { dotfiles: "deny" });
+				const contents = await getFileContents(path);
+				const fileData: DocumentData<FileData> = {
+					contents,
+				};
+				respondData(res, fileData);
 			})
 		)
 		.post<Params>("/users/:uid/attachments/:fileName", (req, res) => {
