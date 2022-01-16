@@ -1,6 +1,6 @@
 import type { CollectionReference, DocumentReference } from "./references.js";
 import type { AnyDataItem } from "./schemas.js";
-import { isDataItem } from "./schemas.js";
+import { isDataItem, isKeys } from "./schemas.js";
 import {
 	deleteDbCollection,
 	deleteDbDoc,
@@ -113,7 +113,7 @@ export async function getDocument<T extends AnyDataItem>(
 	ref: DocumentReference<T>
 ): Promise<T | null> {
 	const anything = await fetchDbDoc(ref);
-	if (!anything || !isDataItem(anything)) return null;
+	if (!isDataItem(anything) && !isKeys(anything)) return null;
 	return anything;
 }
 
