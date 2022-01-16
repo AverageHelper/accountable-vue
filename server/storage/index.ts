@@ -43,6 +43,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 
 			// Do the write
 			await new Promise<void>(resolve => {
+				// See https://medium.com/@vecera.petr/how-to-handle-large-file-upload-with-nodejs-express-server-7de9ab3f7af1
 				const req = job.req;
 				req.pipe(req.busboy); // Pipe the data through busboy
 				req.busboy.on("file", (fieldName, file, fileInfo) => {

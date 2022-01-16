@@ -1,11 +1,12 @@
-import type { DocumentData, Query } from "./db";
+import type { DocumentData } from "./schemas";
+import type { Query } from "./db";
 import { AccountableError } from "./AccountableError.js";
 import { DocumentReference, CollectionReference } from "./db.js";
-import { isRawServerResponse, UnexpectedResponseError } from "./networking.js";
+import { isRawServerResponse } from "./schemas";
+import { UnexpectedResponseError } from "./networking.js";
 import { UnreachableError } from "./UnreachableError.js";
 import isArray from "lodash/isArray";
 import isString from "lodash/isString";
-import WebSocket from "ws";
 
 export class DocumentSnapshot<T = DocumentData> {
 	#data: T | null;
@@ -339,13 +340,13 @@ export function onSnapshot<T>(
 	}
 
 	const ws = new WebSocket(url);
-	ws.on("open", () => {
+	ws.addEventListener("open", () => {
 		ws.send("START");
 	});
 
 	let previousSnap: QuerySnapshot<T> | null = null;
-	ws.on("message", res => {
-		const message = JSON.parse((res as Buffer).toString()) as unknown;
+	ws.addEventListener("message", res => {
+		const message = JSON.parse((res.data as Buffer).toString()) as unknown;
 		if (!isRawServerResponse(message)) throw new UnexpectedResponseError();
 		const data = message.data;
 		if (data === undefined) throw new UnexpectedResponseError();
@@ -379,8 +380,8 @@ export function onSnapshot<T>(
 		throw new UnreachableError(type);
 	});
 
-	ws.on("error", err => {
-		onErrorCallback(err);
+	ws.addEventListener("error", err => {
+		onErrorCallback(new Error(JSON.stringify(err))); // FIXME: Is this right?
 	});
 
 	return (): void => {

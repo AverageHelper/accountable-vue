@@ -1,22 +1,6 @@
-import type { DocumentData } from "./db.js";
+import type { DocumentData, RawServerResponse } from "./schemas.js";
 import { describeCode, HttpStatusCode } from "../helpers/HttpStatusCode.js";
-import { documentData } from "./db.js";
-import Joi from "joi";
-import "joi-extract-type";
-
-const rawServerResponse = Joi.object({
-	message: Joi.string().allow(""),
-	access_token: Joi.string(),
-	uid: Joi.string(),
-	data: Joi.alt(documentData, Joi.array().items(documentData)).allow(null),
-	dataType: Joi.string().valid("single", "multiple"),
-});
-
-export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
-	return rawServerResponse.validate(tbd).error === undefined;
-}
-
-export type RawServerResponse = Joi.extractType<typeof rawServerResponse>;
+import { isRawServerResponse } from "./schemas.js";
 
 interface ServerResponse extends RawServerResponse {
 	status: HttpStatusCode;
@@ -57,13 +41,15 @@ async function doRequest(
 	req: Omit<RequestInit, "headers">,
 	jwt?: string
 ): Promise<ServerResponse> {
-	const headers: HeadersInit = {};
+	const headers: HeadersInit = {
+		"Content-Type": "application/json",
+	};
 	if (jwt !== undefined) {
-		headers["Authorization"] = jwt;
+		headers["Authorization"] = `BEARER ${jwt}`;
 	}
 	const request: RequestInit = { ...req, headers };
 	let result: ServerResponse;
-	console.log("Request:", request);
+	console.log(`Request to ${url.toString()}:`, request);
 	try {
 		const response = await fetch(url.href, request);
 		console.log("Response:", response);

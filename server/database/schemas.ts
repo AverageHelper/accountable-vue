@@ -28,22 +28,36 @@ export type DocumentData<T> = {
 	[K in keyof T]: Primitive;
 };
 
-const dataItem = mongoObject.keys({
+const partialDataItem = {
 	ciphertext: Joi.string().required(),
 	objectType: Joi.string().required(),
-});
+};
+type PartialDataItem = Joi.extractType<typeof partialDataItem>;
+
+export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
+	return isValidForSchema(tbd, Joi.object(partialDataItem));
+}
+
+const dataItem = mongoObject.keys(partialDataItem);
 export type DataItem = Joi.extractType<typeof dataItem>;
 
 export function isDataItem(tbd: unknown): tbd is DataItem {
 	return isValidForSchema(tbd, dataItem);
 }
 
-const keys = mongoObject.keys({
+const partialKeys = {
 	dekMaterial: Joi.string().required(),
 	passSalt: Joi.string().required(),
 	oldDekMaterial: Joi.string(),
 	oldPassSalt: Joi.string(),
-});
+};
+type PartialKeys = Joi.extractType<typeof partialKeys>;
+
+export function isPartialKeys(tbd: unknown): tbd is PartialKeys {
+	return isValidForSchema(tbd, Joi.object(partialKeys));
+}
+
+const keys = mongoObject.keys(partialKeys);
 export type Keys = Joi.extractType<typeof keys>;
 
 export function isKeys(tbd: unknown): tbd is Keys {

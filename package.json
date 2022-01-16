@@ -8,8 +8,7 @@
 		"test:watch": "npm run test -- --watch",
 		"dev:client": "vite",
 		"dev:server": "cd ./server && npm start",
-		"prebuild": "npm run lint",
-		"build:client": "vue-tsc --noEmit --project tsconfig.prod.json && vite build",
+		"build:client": "npm run lint && rm -rf ./dist && vue-tsc --noEmit --project tsconfig.prod.json && vite build",
 		"build:server": "cd ./server && npm run build",
 		"build": "npm run build:client && npm run build:server",
 		"serve": "vite preview",
@@ -29,15 +28,14 @@
 		"joi-extract-type": "^15.0.8",
 		"jszip": "^3.7.1",
 		"lodash": "^4.17.21",
-		"node-forge": "^0.10.0",
+		"node-forge": "^1.2.1",
 		"pinia": "^2.0.3",
 		"source-map-support": "^0.5.20",
 		"uuid": "^8.3.2",
 		"vue": "^3.2.16",
 		"vue-router": "^4.0.11",
 		"vue-toastification": "^2.0.0-rc.1",
-		"vue3-date-time-picker": "^2.1.8",
-		"ws": "^8.4.0"
+		"vue3-date-time-picker": "^2.1.8"
 	},
 	"devDependencies": {
 		"@types/atob-lite": "^2.0.0",
@@ -45,10 +43,9 @@
 		"@types/crypto-js": "^4.0.2",
 		"@types/jest": "^27.0.2",
 		"@types/lodash": "^4.14.175",
-		"@types/node-forge": "^0.10.5",
+		"@types/node-forge": "^1.0.0",
 		"@types/source-map-support": "^0.5.4",
 		"@types/uuid": "^8.3.3",
-		"@types/ws": "^8.2.2",
 		"@typescript-eslint/eslint-plugin": "^5.1.0",
 		"@typescript-eslint/parser": "^5.1.0",
 		"@vitejs/plugin-vue": "^1.9.3",
@@ -63,7 +60,7 @@
 		"eslint-plugin-promise": "^5.1.1",
 		"eslint-plugin-unicorn": "^37.0.1",
 		"eslint-plugin-vue": "^7.20.0",
-		"genversion": "^3.0.1",
+		"genversion": "^3.0.2",
 		"jest": "^27.3.1",
 		"jest-environment-node": "^27.3.1",
 		"jest-extended": "^1.1.0",
@@ -72,9 +69,9 @@
 		"sass-mq": "^6.0.0-beta.1",
 		"ts-jest": "^27.0.7",
 		"typescript": "^4.4.3",
-		"vite": "^2.6.10",
+		"vite": "^2.7.12",
 		"vite-tsconfig-paths": "^3.3.17",
 		"vue-eslint-parser": "^8.0.0",
-		"vue-tsc": "^0.28.8"
+		"vue-tsc": "^0.30.2"
 	}
 }

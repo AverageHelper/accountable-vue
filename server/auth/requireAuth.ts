@@ -16,10 +16,17 @@ async function userWithUid(uid: string): Promise<User | null> {
 
 export async function userFromRequest(req: Request): Promise<User | null> {
 	const token = jwtTokenFromRequest(req);
-	if (token === null) return null;
-	if (blacklistHasJwt(token)) return null;
+	if (token === null) {
+		console.debug("Request has no JWT");
+		return null;
+	}
+	if (blacklistHasJwt(token)) {
+		console.debug("Request has a blacklisted JWT");
+		return null;
+	}
 
 	const payload = await verifyJwt(token).catch(() => {
+		console.debug("JWT failed to verify");
 		throw new UnauthorizedError();
 	});
 

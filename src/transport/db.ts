@@ -1,17 +1,16 @@
+import type { DocumentData, PrimitiveRecord } from "./schemas.js";
 import type { EPackage, HashStore } from "./cryption.js";
 import type { Unsubscribe } from "./onSnapshot.js";
 import type { User } from "./auth.js";
 import type { ValueIteratorTypeGuard } from "lodash";
 import { AccountableError } from "./AccountableError.js";
 import { decrypt } from "./cryption.js";
-import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
 import { deleteAt, getFrom, postTo } from "./networking.js";
+import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
+import { isPrimitive } from "./schemas.js";
 import { v4 as uuid } from "uuid";
 import isArray from "lodash/isArray";
-import isObject from "lodash/isObject";
 import isString from "lodash/isString";
-import Joi from "joi";
-import "joi-extract-type";
 import {
 	DocumentSnapshot,
 	onSnapshot,
@@ -56,33 +55,6 @@ export class AccountableDB {
 			currentUser: this.#currentUser ? "<signed in>" : null,
 		});
 	}
-}
-
-export const primitive = Joi.alt(Joi.string(), Joi.number(), Joi.boolean()).allow(null, undefined);
-
-export const documentData = Joi.object().pattern(Joi.string(), primitive);
-
-export type Primitive = Joi.extractType<typeof primitive>;
-export type DocumentData = Joi.extractType<typeof documentData>; // Record<string, Primitive>;
-export type PrimitiveRecord<T> = {
-	[K in keyof T]: Primitive;
-};
-
-export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
-	return (
-		tbd !== undefined && //
-		tbd !== null &&
-		isObject(tbd) &&
-		!isArray(tbd)
-	);
-}
-
-export function isPrimitive(tbd: unknown): tbd is Primitive {
-	return primitive.validate(tbd).error === undefined;
-}
-
-export function isDocumentData(tbd: unknown): tbd is DocumentData {
-	return documentData.validate(tbd).error === undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -21,7 +21,7 @@ export function addJwtToBlacklist(token: string): void {
 	let timeout = 3600000; // default to one hour
 	if (jwt !== null && typeof jwt !== "string") {
 		const timeLeft = 3600000 - (Date.now() - (jwt.iat ?? timeout));
-		process.stdout.write(`JWT has ${timeLeft}ms left\n`);
+		process.stdout.write(`JWT has ${-timeLeft}ms left\n`);
 		timeout = Math.min(timeout, timeLeft);
 	}
 	if (timeout > 0) {

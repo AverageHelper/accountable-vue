@@ -14,8 +14,8 @@ import {
 	getCollection,
 	getDocument,
 	isCollectionId,
-	isDataItem,
-	isKeys,
+	isPartialDataItem,
+	isPartialKeys,
 	setDocument,
 	watchUpdatesToCollection,
 	watchUpdatesToDocument,
@@ -102,52 +102,6 @@ export function db(this: void): Router {
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
 		.get<Params>(
-			"/users/:uid",
-			asyncWrapper(async (req, res) => {
-				const uid = (req.params.uid ?? "") || null;
-				if (uid === null) throw new NotFoundError();
-
-				const collection = new CollectionReference<Keys>("users");
-				const ref = new DocumentReference(collection, uid);
-
-				const item = await getDocument(ref);
-				respondData(res, item);
-			})
-		)
-		.post<Params>(
-			"/users/:uid",
-			asyncWrapper(async (req, res) => {
-				const uid = (req.params.uid ?? "") || null;
-				if (uid === null) throw new NotFoundError();
-
-				const collection = new CollectionReference<Keys>("users");
-				const ref = new DocumentReference(collection, uid);
-
-				const providedData = JSON.parse(req.body as string) as unknown;
-				if (!isKeys(providedData)) throw new BadRequestError();
-
-				await setDocument(ref, {
-					...providedData,
-					_id: ref.id,
-					uid,
-				});
-				respondSuccess(res);
-			})
-		)
-		.delete<Params>(
-			"/users/:uid",
-			asyncWrapper(async (req, res) => {
-				const uid = (req.params.uid ?? "") || null;
-				if (uid === null) throw new NotFoundError();
-
-				const collection = new CollectionReference<Keys>("users");
-				const ref = new DocumentReference(collection, uid);
-
-				await deleteDocument(ref);
-				respondSuccess(res);
-			})
-		)
-		.get<Params>(
 			"/users/:uid/:collectionId",
 			asyncWrapper(async (req, res) => {
 				const ref = collectionRef(req);
@@ -174,8 +128,9 @@ export function db(this: void): Router {
 				const ref = documentRef(req);
 				if (!ref || uid === null) throw new NotFoundError();
 
-				const providedData = JSON.parse(req.body as string) as unknown;
-				if (!isDataItem(providedData)) throw new BadRequestError();
+				const providedData = req.body as unknown;
+				if (!isPartialDataItem(providedData) && !isPartialKeys(providedData))
+					throw new BadRequestError();
 
 				await setDocument(ref, {
 					...providedData,
