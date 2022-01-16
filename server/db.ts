@@ -4,7 +4,7 @@ import type { WebSocket } from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
 import { handleErrors } from "./handleErrors.js";
-import { ownersOnly } from "./auth/index.js";
+import { ownersOnly, requireAuth } from "./auth/index.js";
 import { Router } from "express";
 import {
 	CollectionReference,
@@ -98,9 +98,10 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 // Function so we defer creation of the router until after we've set up websocket support
 export function db(this: void): Router {
 	return Router()
-		.use("/users/:uid", ownersOnly())
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
+		.use(requireAuth()) // require auth from here on in
+		.use("/users/:uid", ownersOnly())
 		.get<Params>(
 			"/users/:uid/:collectionId",
 			asyncWrapper(async (req, res) => {

@@ -8,6 +8,10 @@ export class CollectionReference<T extends AnyDataItem> {
 		this.id = id;
 	}
 
+	get path(): string {
+		return `/${this.id}`;
+	}
+
 	toString(): string {
 		return JSON.stringify({
 			id: this.id,
@@ -22,6 +26,10 @@ export class DocumentReference<T extends AnyDataItem> {
 	constructor(parent: CollectionReference<T>, id: string) {
 		this.parent = parent;
 		this.id = id;
+	}
+
+	get path(): string {
+		return this.parent.path.concat("/", this.id);
 	}
 
 	toString(): string {

@@ -30,8 +30,8 @@ app
 	)
 	.get("/", lol)
 	.use(auth())
-	.use(requireAuth()) // require auth from here on in
 	.use("/db", db())
+	.use(requireAuth()) // require auth from here on in
 	.use("/files", storage())
 	.use(handleErrors);
 

@@ -42,6 +42,7 @@ export function watchUpdatesToDocument<T extends AnyDataItem>(
 	ref: DocumentReference<T>,
 	onChange: SDataChangeCallback
 ): Unsubscribe {
+	console.debug(`Watching updates to document at ${ref.path}`);
 	const handle: DocumentWatcher = {
 		id: ref.id,
 		collectionId: ref.parent.id,
