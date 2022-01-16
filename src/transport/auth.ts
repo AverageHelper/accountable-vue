@@ -1,7 +1,7 @@
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
 import { doc, db, getDoc, setDoc, deleteDoc } from "./db";
-import { postTo } from "./networking";
+import { NotImplementedError, postTo } from "./networking";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
 	return doc<KeyMaterial>(db, "keys", uid);
@@ -125,7 +125,7 @@ export async function signInWithAccountIdAndPassword(
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
 	// TODO: Do account activity
-	throw new Error("Unimplemented");
+	throw new NotImplementedError();
 }
 
 /**

@@ -116,24 +116,19 @@ export function auth(this: void): Router {
 				res.json({ access_token, uid });
 			})
 		)
-		.post(
-			"/logout",
-			throttle(),
-			asyncWrapper(async (req, res) => {
-				const token = jwtTokenFromRequest(req);
-				const user = await userFromRequest(req);
-				if (!user || token === null) {
-					res.json({ message: "Success!" });
-					return;
-				}
-
-				// ** Blacklist the JWT
-				addJwtToBlacklist(token);
+		.post("/logout", throttle(), (req, res) => {
+			const token = jwtTokenFromRequest(req);
+			if (token === null) {
 				res.json({ message: "Success!" });
-			})
-		)
+				return;
+			}
+
+			// ** Blacklist the JWT
+			addJwtToBlacklist(token);
+			res.json({ message: "Success!" });
+		})
 		.post<unknown, unknown, ReqBody>(
-			"updatepassword",
+			"/updatepassword",
 			throttle(),
 			asyncWrapper(async (req, res) => {
 				// Ask for full credentials, so we aren't leaning on a repeatable token
@@ -177,7 +172,7 @@ export function auth(this: void): Router {
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
-			"updateaccountid",
+			"/updateaccountid",
 			throttle(),
 			asyncWrapper(async (req, res) => {
 				// Ask for full credentials, so we aren't leaning on a repeatable token
