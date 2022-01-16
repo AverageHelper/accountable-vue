@@ -36,39 +36,25 @@ $ mongosh           # connects `mongosh` to the running instance
 ### Installation
 
 - Clone the repository
-- Set up the Accountable server on a publicly-accessible machine (instructions coming soon™)
-- Note your server's public URL
-- Save this value to a .env file at the root of the project, as shown below:
+- Set up the Accountable server on a machine you can access from your network (instructions coming soon™)
+- Save the server's URL to a .env file at the root of the project, as shown below:
 
 ```sh
 # .env
-# Vite pulls these in at build time
+# Vite pulls this in at build time
 
-VITE_ACCOUNTABLE_SERVER_URL={your server URL here}
+VITE_ACCOUNTABLE_SERVER_URL={your server URL here}:40850
 ```
 
-#### Install dependencies, build, and run!
+#### Compile from source
 
 ```sh
 $ cd accountable-vue
 $ npm install
 $ npm run build
-$ npm start
 ```
 
-#### \[OBSOLETE\] Twiddle with Google Cloud Storage
-
-This is necessary for now. We're looking into alternatives.
-
-```sh
-$ gcloud auth login # log in using your project Google account
-$ gcloud config set project <your-project-ID>
-$ gsutil cors set cors.json gs://<your-cloud-storage-bucket>
-```
-
-See [Google's docs on the subject](https://firebase.google.com/docs/storage/web/download-files#cors_configuration).
-
-#### Run!
+#### Run
 
 ```sh
 $ npm start
