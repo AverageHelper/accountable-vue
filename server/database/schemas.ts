@@ -6,13 +6,8 @@ function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
 	return !error;
 }
 
-const mongoObject = Joi.object({
-	_id: Joi.string().required(),
+const user = Joi.object({
 	uid: Joi.string().required(),
-});
-export type MongoObject = Joi.extractType<typeof mongoObject>;
-
-const user = mongoObject.keys({
 	currentAccountId: Joi.string().required(),
 	passwordHash: Joi.string().required(),
 	passwordSalt: Joi.string().required(),
@@ -38,7 +33,7 @@ export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
 	return isValidForSchema(tbd, Joi.object(partialDataItem));
 }
 
-const dataItem = mongoObject.keys(partialDataItem);
+const dataItem = Joi.object(partialDataItem);
 export type DataItem = Joi.extractType<typeof dataItem>;
 
 export function isDataItem(tbd: unknown): tbd is DataItem {
@@ -57,7 +52,7 @@ export function isPartialKeys(tbd: unknown): tbd is PartialKeys {
 	return isValidForSchema(tbd, Joi.object(partialKeys));
 }
 
-const keys = mongoObject.keys(partialKeys);
+const keys = Joi.object(partialKeys);
 export type Keys = Joi.extractType<typeof keys>;
 
 export function isKeys(tbd: unknown): tbd is Keys {

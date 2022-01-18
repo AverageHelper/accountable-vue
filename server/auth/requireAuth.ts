@@ -2,16 +2,13 @@ import type { Request, RequestHandler } from "express";
 import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { blacklistHasJwt, jwtTokenFromRequest, verifyJwt } from "./jwt.js";
-import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
-import { fetchDbDoc } from "../database/mongo.js";
+import { findUserWithProperties } from "../database/io.js";
 import { UnauthorizedError } from "../responses.js";
 
 async function userWithUid(uid: string): Promise<User | null> {
 	// Find first user whose UID matches
-	const collection = new CollectionReference<User>("users");
-	const ref = new DocumentReference(collection, uid);
-	return await fetchDbDoc(ref);
+	return await findUserWithProperties({ uid });
 }
 
 export async function userFromRequest(req: Request): Promise<User | null> {

@@ -28,10 +28,11 @@ interface Params {
 }
 
 function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
+	const uid = (req.params.uid ?? "") || null;
 	const collectionId = req.params.collectionId ?? "";
-	if (!isCollectionId(collectionId)) return null;
+	if (uid === null || !isCollectionId(collectionId)) return null;
 
-	return new CollectionReference(collectionId);
+	return new CollectionReference(uid, collectionId);
 }
 
 function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
@@ -50,7 +51,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		ws.send(JSON.stringify({ message: "No data found" }));
 		return ws.close();
 	}
-	const collection = new CollectionReference<Keys>(collectionId);
+	const collection = new CollectionReference<Keys>(uid, collectionId);
 	let unsubscribe: Unsubscribe;
 
 	// TODO: Do a dance within the websocket to assert the caller's ID is uid
@@ -136,8 +137,6 @@ export function db(this: void): Router {
 
 				await setDocument(ref, {
 					...providedData,
-					_id: ref.id,
-					uid,
 				});
 				respondSuccess(res);
 			})

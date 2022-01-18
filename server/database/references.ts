@@ -1,15 +1,19 @@
 import type { AnyDataItem, CollectionID } from "./schemas";
+import { isCollectionId } from "./schemas.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class CollectionReference<T extends AnyDataItem> {
+	public readonly uid: Readonly<string>;
 	public readonly id: Readonly<CollectionID>;
 
-	constructor(id: CollectionID) {
+	constructor(uid: string, id: CollectionID) {
+		if (!isCollectionId(id)) throw new TypeError(`${JSON.stringify(id)} is not a collection ID`);
+		this.uid = uid;
 		this.id = id;
 	}
 
 	get path(): string {
-		return `/${this.id}`;
+		return `users/${this.uid}/${this.id}`;
 	}
 
 	toString(): string {
@@ -26,6 +30,10 @@ export class DocumentReference<T extends AnyDataItem> {
 	constructor(parent: CollectionReference<T>, id: string) {
 		this.parent = parent;
 		this.id = id;
+	}
+
+	get uid(): string {
+		return this.parent.uid.slice();
 	}
 
 	get path(): string {

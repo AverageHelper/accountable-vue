@@ -2,9 +2,8 @@ import type { User } from "../database/schemas.js";
 import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
-import { CollectionReference, DocumentReference } from "../database/references.js";
 import { Context } from "./Context.js";
-import { findDbDoc, upsertDbDoc } from "../database/mongo.js";
+import { findUserWithProperties, upsertUser } from "../database/io.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
@@ -27,14 +26,7 @@ async function generateHash(input: string, salt: string): Promise<string> {
 
 async function userWithAccountId(accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
-	const ref = new CollectionReference<User>("users");
-	return await findDbDoc(ref, { currentAccountId: accountId });
-}
-
-async function upsertUser(user: User): Promise<void> {
-	const collection = new CollectionReference<User>("users");
-	const ref = new DocumentReference(collection, user.uid);
-	await upsertDbDoc(ref, user);
+	return await findUserWithProperties({ currentAccountId: accountId });
 }
 
 /* Headers */
@@ -73,7 +65,6 @@ export function auth(this: void): Router {
 				const uid = uuid().replace(/-/gu, ""); // remove hyphens
 				const user: User = {
 					uid,
-					_id: uid,
 					currentAccountId: givenAccountId,
 					passwordHash,
 					passwordSalt,
@@ -108,12 +99,14 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
+					console.debug(`Found no user under account ${JSON.stringify(givenAccountId)}`);
 					throw new UnauthorizedError("Incorrect account ID or password");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
+					console.debug(`The given password doesn't match what's stored`);
 					throw new UnauthorizedError("Incorrect account ID or password");
 				}
 

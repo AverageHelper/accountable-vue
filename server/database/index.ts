@@ -7,7 +7,7 @@ import {
 	fetchDbCollection,
 	fetchDbDoc,
 	upsertDbDoc,
-} from "./mongo.js";
+} from "./io.js";
 
 // Since all data is encrypted, we only need to bother
 // about persistent I/O. We leave path-level access-
