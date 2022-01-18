@@ -11,8 +11,8 @@ logs
 node_modules
 
 # Generated files
-./db
-./db-test
+**/db/**
+**/db-test/**
 dist
 dist-ssr
 ./config

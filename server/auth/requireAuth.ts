@@ -1,3 +1,4 @@
+import type { JsonWebTokenError } from "jsonwebtoken";
 import type { Request, RequestHandler } from "express";
 import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
@@ -22,8 +23,8 @@ export async function userFromRequest(req: Request): Promise<User | null> {
 		return null;
 	}
 
-	const payload = await verifyJwt(token).catch(() => {
-		console.debug("JWT failed to verify");
+	const payload = await verifyJwt(token).catch((error: JsonWebTokenError) => {
+		console.debug(`JWT failed to verify because ${error.message}`);
 		throw new UnauthorizedError();
 	});
 

@@ -135,9 +135,7 @@ export function db(this: void): Router {
 				if (!isPartialDataItem(providedData) && !isPartialKeys(providedData))
 					throw new BadRequestError();
 
-				await setDocument(ref, {
-					...providedData,
-				});
+				await setDocument(ref, providedData);
 				respondSuccess(res);
 			})
 		)

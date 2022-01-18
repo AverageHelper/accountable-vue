@@ -1,12 +1,20 @@
 import type { AnyDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
+import { fileURLToPath } from "url";
 import { Low, JSONFile } from "lowdb";
-import { unlink } from "fs/promises";
+import { unlink, mkdir } from "fs/promises";
 import { v4 as uuid } from "uuid";
 import path from "path";
 
+async function ensure(path: string): Promise<void> {
+	process.stdout.write(`Ensuring directory is available at ${path}...\n`);
+	await mkdir(path, { recursive: true });
+}
+
 // TODO: Allow specifying a custom db directory
-const DB_DIR = path.resolve(__dirname, "../db");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DB_DIR = path.resolve(__dirname, "../../db");
 
 /**
  * Returns a fresh document ID that is virtually guaranteed
@@ -20,6 +28,7 @@ type UserIndexDb = Record<string, User>;
 type UserDb = Record<string, Record<string, AnyDataItem>>;
 
 async function userIndexDb(): Promise<Low<UserIndexDb>> {
+	await ensure(DB_DIR);
 	const file = path.join(DB_DIR, "users.json");
 	const adapter = new JSONFile<UserIndexDb>(file);
 	const db = new Low(adapter);
@@ -32,7 +41,9 @@ async function userIndexDb(): Promise<Low<UserIndexDb>> {
 async function dbForUser(uid: string): Promise<Low<UserDb>> {
 	if (!uid) throw new TypeError("uid should not be empty");
 
-	const file = path.join(DB_DIR, "users", uid, "db.json");
+	const folder = path.join(DB_DIR, "users", uid);
+	await ensure(folder);
+	const file = path.join(folder, "db.json");
 	const adapter = new JSONFile<UserDb>(file);
 	const db = new Low(adapter);
 
