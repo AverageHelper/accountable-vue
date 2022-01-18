@@ -121,6 +121,7 @@ function filePath(params: Params): string | null {
 
 interface FileData {
 	contents: string;
+	_id: string;
 }
 
 export function storage(this: void): Router {
@@ -136,6 +137,7 @@ export function storage(this: void): Router {
 				const contents = await getFileContents(path);
 				const fileData: DocumentData<FileData> = {
 					contents,
+					_id: req.params.fileName ?? "unknown",
 				};
 				respondData(res, fileData);
 			})

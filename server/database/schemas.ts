@@ -36,10 +36,6 @@ export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
 const dataItem = Joi.object(partialDataItem);
 export type DataItem = Joi.extractType<typeof dataItem>;
 
-export function isDataItem(tbd: unknown): tbd is DataItem {
-	return isValidForSchema(tbd, dataItem);
-}
-
 const partialKeys = {
 	dekMaterial: Joi.string().required(),
 	passSalt: Joi.string().required(),
@@ -52,12 +48,9 @@ export function isPartialKeys(tbd: unknown): tbd is PartialKeys {
 	return isValidForSchema(tbd, Joi.object(partialKeys));
 }
 
+// FIXME: This need not be Joi if we never validate it. Isn't it identical to PartialKeys?
 const keys = Joi.object(partialKeys);
 export type Keys = Joi.extractType<typeof keys>;
-
-export function isKeys(tbd: unknown): tbd is Keys {
-	return isValidForSchema(tbd, keys);
-}
 
 export type AnyDataItem = DataItem | Keys | User;
 
@@ -83,3 +76,6 @@ const allCollectionIds: ReadonlySet<CollectionID> = new Set([
 export function isCollectionId(tbd: string): tbd is CollectionID {
 	return allCollectionIds.has(tbd as CollectionID);
 }
+
+export type Identified<T> = T & { _id: string };
+export type IdentifiedDataItem = Identified<DataItem> | Identified<Keys> | User;

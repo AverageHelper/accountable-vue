@@ -1,6 +1,5 @@
 import type { CollectionReference, DocumentReference } from "./references.js";
-import type { AnyDataItem } from "./schemas.js";
-import { isDataItem, isKeys } from "./schemas.js";
+import type { AnyDataItem, IdentifiedDataItem } from "./schemas.js";
 import {
 	deleteDbCollection,
 	deleteDbDoc,
@@ -9,14 +8,14 @@ import {
 	upsertDbDoc,
 } from "./io.js";
 
-// Since all data is encrypted, we only need to bother
-// about persistent I/O. We leave path-level access-
-// guarding to the Express frontend.
+// Since all data is encrypted on the client, we only
+// need to bother about persistent I/O. We leave path-
+// level access-guarding to the Express frontend.
 
 export type Unsubscribe = () => void;
 
-type SDataChangeCallback = (newData: AnyDataItem | null) => void;
-type PDataChangeCallback = (newData: Array<AnyDataItem>) => void;
+type SDataChangeCallback = (newData: IdentifiedDataItem | null) => void;
+type PDataChangeCallback = (newData: Array<IdentifiedDataItem>) => void;
 
 interface _Watcher {
 	plurality: "single" | "plural";
@@ -38,8 +37,8 @@ interface CollectionWatcher extends _Watcher {
 const documentWatchers = new Map<string, DocumentWatcher>();
 const collectionWatchers = new Map<string, CollectionWatcher>();
 
-export function watchUpdatesToDocument<T extends AnyDataItem>(
-	ref: DocumentReference<T>,
+export function watchUpdatesToDocument(
+	ref: DocumentReference<AnyDataItem>,
 	onChange: SDataChangeCallback
 ): Unsubscribe {
 	console.debug(`Watching updates to document at ${ref.path}`);
@@ -53,7 +52,7 @@ export function watchUpdatesToDocument<T extends AnyDataItem>(
 
 	// Send all data at path
 	/* eslint-disable promise/prefer-await-to-then */
-	void getDocument<T>(ref)
+	void fetchDbDoc(ref)
 		.then(async data => {
 			if (data) {
 				await informWatchersForDocument(ref, data);
@@ -69,8 +68,8 @@ export function watchUpdatesToDocument<T extends AnyDataItem>(
 	};
 }
 
-export function watchUpdatesToCollection<T extends AnyDataItem>(
-	ref: CollectionReference<T>,
+export function watchUpdatesToCollection(
+	ref: CollectionReference<AnyDataItem>,
 	onChange: PDataChangeCallback
 ): Unsubscribe {
 	const handle: CollectionWatcher = { id: ref.id, onChange, plurality: "plural" };
@@ -78,7 +77,7 @@ export function watchUpdatesToCollection<T extends AnyDataItem>(
 
 	// Send "added" for all data at path
 	/* eslint-disable promise/prefer-await-to-then */
-	void getCollection<T>(ref)
+	void fetchDbCollection(ref)
 		.then(async data => {
 			await informWatchersForCollection(ref, data);
 		})
@@ -92,9 +91,9 @@ export function watchUpdatesToCollection<T extends AnyDataItem>(
 	};
 }
 
-async function informWatchersForDocument<T extends AnyDataItem>(
-	ref: DocumentReference<T>,
-	newItem: AnyDataItem | null
+async function informWatchersForDocument(
+	ref: DocumentReference<AnyDataItem>,
+	newItem: IdentifiedDataItem | null
 ): Promise<void> {
 	const listeners = [...documentWatchers.values()].filter(
 		w => w.id === ref.id && w.collectionId === ref.parent.id
@@ -102,33 +101,17 @@ async function informWatchersForDocument<T extends AnyDataItem>(
 	await Promise.all(listeners.map(l => l.onChange(newItem)));
 }
 
-async function informWatchersForCollection<T extends AnyDataItem>(
-	ref: CollectionReference<T>,
-	newItems: Array<AnyDataItem>
+async function informWatchersForCollection(
+	ref: CollectionReference<AnyDataItem>,
+	newItems: Array<IdentifiedDataItem>
 ): Promise<void> {
 	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
 	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 
-export async function getDocument<T extends AnyDataItem>(
-	ref: DocumentReference<T>
-): Promise<T | null> {
-	const anything = await fetchDbDoc(ref);
-	if (!isDataItem(anything) && !isKeys(anything)) return null;
-	return anything;
-}
-
-export async function getCollection<T extends AnyDataItem>(
-	ref: CollectionReference<T>
-): Promise<Array<T>> {
-	return await fetchDbCollection(ref);
-}
-
-export async function deleteDocument<T extends AnyDataItem>(
-	ref: DocumentReference<T>
-): Promise<void> {
+export async function deleteDocument(ref: DocumentReference<AnyDataItem>): Promise<void> {
 	// Fetch the data
-	const oldData = await getDocument<T>(ref);
+	const oldData = await fetchDbDoc(ref);
 
 	await deleteDbDoc(ref);
 
@@ -139,9 +122,7 @@ export async function deleteDocument<T extends AnyDataItem>(
 	}
 }
 
-export async function deleteCollection<T extends AnyDataItem>(
-	ref: CollectionReference<T>
-): Promise<void> {
+export async function deleteCollection(ref: CollectionReference<AnyDataItem>): Promise<void> {
 	await deleteDbCollection(ref);
 
 	// Tell listeners what happened
@@ -155,8 +136,17 @@ export async function setDocument<T extends AnyDataItem>(
 	await upsertDbDoc(ref, newData);
 
 	// Tell listeners what happened
-	await informWatchersForDocument(ref, newData);
+	let identifiedData: IdentifiedDataItem;
+	if ("uid" in newData) {
+		identifiedData = newData;
+	} else {
+		identifiedData = { ...newData, _id: ref.id };
+	}
+	await informWatchersForDocument(ref, identifiedData);
 }
 
 export * from "./references.js";
 export * from "./schemas.js";
+
+export { fetchDbDoc as getDocument };
+export { fetchDbCollection as getCollection };

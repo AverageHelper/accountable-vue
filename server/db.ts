@@ -85,7 +85,6 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 			if ((msg as Buffer).toString() === "STOP") {
 				process.stdout.write("Received STOP\n");
 				unsubscribe();
-				ws.send(JSON.stringify({ message: "Closed." }));
 				return ws.close();
 			}
 			process.stdout.write(
@@ -118,9 +117,11 @@ export function db(this: void): Router {
 			"/users/:uid/:collectionId/:documentId",
 			asyncWrapper(async (req, res) => {
 				const ref = documentRef(req);
+				console.debug(`Handling GET for document at ${ref?.path ?? "null"}`);
 				if (!ref) throw new NotFoundError();
 
 				const item = await getDocument(ref);
+				console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
 				respondData(res, item);
 			})
 		)

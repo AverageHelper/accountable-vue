@@ -55,7 +55,7 @@ export function respondSuccess(this: void, res: Response): void {
 		.json({ message: "Success!" });
 }
 
-export function respondData<T>(
+export function respondData<T extends { _id: string } | { uid: string }>(
 	this: void,
 	res: Response,
 	data: DocumentData<T> | Array<DocumentData<T>> | null

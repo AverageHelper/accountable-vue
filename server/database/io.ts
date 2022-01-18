@@ -1,4 +1,4 @@
-import type { AnyDataItem, User } from "./schemas.js";
+import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
 import { fileURLToPath } from "url";
 import { Low, JSONFile } from "lowdb";
@@ -52,21 +52,24 @@ async function dbForUser(uid: string): Promise<Low<UserDb>> {
 	return db;
 }
 
-export async function fetchDbCollection<T extends AnyDataItem>(
-	ref: CollectionReference<T>
-): Promise<Array<T>> {
+export async function fetchDbCollection(
+	ref: CollectionReference<AnyDataItem>
+): Promise<Array<IdentifiedDataItem>> {
+	let collection: Record<string, AnyDataItem>;
+
 	if (ref.id === "users") {
 		// Special handling, fetch all users
 		const db = await userIndexDb();
 		if (!db.data) return [];
-		return Object.values(db.data) as Array<T>;
+		collection = db.data;
+	} else {
+		const db = await dbForUser(ref.uid);
+		if (!db.data) return [];
+		collection = db.data[ref.id] ?? {};
 	}
 
-	const db = await dbForUser(ref.uid);
-	if (!db.data) return [];
-
-	const collection = db.data[ref.id] ?? {};
-	return Object.values(collection) as Array<T>;
+	const entries = Object.entries(collection);
+	return entries.map(([key, value]) => ({ ...value, _id: key }));
 }
 
 export async function findUserWithProperties(query: Partial<User>): Promise<User | null> {
@@ -87,14 +90,17 @@ export async function findUserWithProperties(query: Partial<User>): Promise<User
 
 export async function fetchDbDoc<T extends AnyDataItem>(
 	ref: DocumentReference<T>
-): Promise<T | null> {
+): Promise<Identified<T> | null> {
 	const db = await dbForUser(ref.uid);
+	console.debug("fetchDbDoc db has data:", db.data !== null);
 	if (!db.data) return null;
 
+	console.debug("fetchDbDoc collection exists:", db.data[ref.parent.id] !== undefined);
 	const collection = db.data[ref.parent.id] ?? {};
 	const data = collection[ref.id] as T | undefined;
+	console.debug("fetchDbDoc data exists:", data !== undefined);
 	if (!data) return null;
-	return { ...data };
+	return { ...data, _id: ref.id };
 }
 
 export async function upsertUser(user: User): Promise<void> {

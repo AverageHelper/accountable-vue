@@ -46,6 +46,7 @@ export function isDocumentData(tbd: unknown): tbd is DocumentData {
 
 const fileData = Joi.object({
 	contents: Joi.string().required(),
+	_id: Joi.string().required(),
 });
 export type FileData = Joi.extractType<typeof fileData>;
 

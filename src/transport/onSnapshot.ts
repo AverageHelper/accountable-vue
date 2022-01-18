@@ -347,12 +347,15 @@ export function onSnapshot<T>(
 	let previousSnap: QuerySnapshot<T> | null = null;
 	ws.addEventListener("message", res => {
 		const message = JSON.parse((res.data as Buffer).toString()) as unknown;
-		if (!isRawServerResponse(message)) throw new UnexpectedResponseError();
+		if (!isRawServerResponse(message))
+			throw new UnexpectedResponseError(
+				`Invalid server response: ${JSON.stringify(message, undefined, "  ")}`
+			);
 		const data = message.data;
-		if (data === undefined) throw new UnexpectedResponseError();
+		if (data === undefined) throw new UnexpectedResponseError("Message data is undefined");
 
 		if (type === "collection") {
-			if (!data || !isArray(data)) throw new UnexpectedResponseError();
+			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array");
 			const collectionRef = new CollectionReference(db, queryOrReference.id);
 			const snaps: Array<QueryDocumentSnapshot<T>> = data.map(doc => {
 				const id = doc["_id"];
@@ -369,7 +372,7 @@ export function onSnapshot<T>(
 
 			return;
 		} else if (type === "document") {
-			if (isArray(data)) throw new UnexpectedResponseError();
+			if (isArray(data)) throw new UnexpectedResponseError("Data is an array");
 			const collectionRef = new CollectionReference(db, queryOrReference.parent.id);
 			const ref = new DocumentReference(collectionRef, queryOrReference.id);
 			const snap = new QueryDocumentSnapshot<T>(ref, data as T | null);

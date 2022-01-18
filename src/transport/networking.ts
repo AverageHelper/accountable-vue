@@ -8,8 +8,8 @@ interface ServerResponse extends RawServerResponse {
 }
 
 export class UnexpectedResponseError extends TypeError {
-	constructor() {
-		super("Server response was unexpected");
+	constructor(message: string) {
+		super(`Server response was unexpected: ${message}`);
 		this.name = "UnexpectedResponseError";
 	}
 }
@@ -53,7 +53,10 @@ async function doRequest(
 		const response = await fetch(url.href, request);
 
 		const json: unknown = await response.json();
-		if (!isRawServerResponse(json)) throw new UnexpectedResponseError();
+		if (!isRawServerResponse(json))
+			throw new UnexpectedResponseError(
+				`Invalid server response: ${JSON.stringify(json, undefined, "  ")}`
+			);
 
 		result = {
 			// `fetch` does not always return statusText, per spec: https://fetch.spec.whatwg.org/#concept-response-status-message
@@ -98,7 +101,7 @@ export async function deleteAt(url: URL, jwt: string): Promise<ServerResponse> {
 export async function downloadFrom(url: URL, jwt: string): Promise<string> {
 	const response = await getFrom(url, jwt);
 	const data = response.data as unknown;
-	if (!isFileData(data)) throw new UnexpectedResponseError();
+	if (!isFileData(data)) throw new UnexpectedResponseError("Invalid file data");
 	return data.contents;
 }
 
