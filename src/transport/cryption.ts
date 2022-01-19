@@ -64,7 +64,7 @@ function random(byteCount: number): string {
 	return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
 }
 
-/** Makes potatoes, but special potatoes that only the same input can make again. */
+/** Makes special potatoes that are unique to the `input`. */
 export async function hashed(input: string): Promise<string> {
 	return btoa((await derivePKey(input, "salt")).value);
 }
