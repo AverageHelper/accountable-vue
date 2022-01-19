@@ -2,7 +2,7 @@
 	"name": "server",
 	"version": "0.1.0",
 	"scripts": {
-		"export-version": "genversion ./version.ts -es",
+		"export-version": "./node_modules/.bin/genversion ./version.ts -es",
 		"prebuild": "rm -rf ./dist && npm run export-version",
 		"build": "./node_modules/.bin/tsc -p ./tsconfig.json",
 		"start": "./node_modules/.bin/nodemon --watch ./server/dist ./dist/main.js"
