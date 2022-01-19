@@ -13,11 +13,11 @@ import {
 	db as auth,
 	getDoc,
 	getAuthMaterial,
+	hashed,
 	newDataEncryptionKeyMaterial,
 	newMaterialFromOldKey,
 	setAuthMaterial,
 	setUserPreferences,
-	sha512,
 	userPreferencesFromSnapshot,
 	userRef,
 	watchRecord,
@@ -94,7 +94,11 @@ export const useAuthStore = defineStore("auth", {
 				this.loginProcessState = "AUTHENTICATING";
 				// TODO: Also salt the password hash
 				// Salt using the user's account ID
-				const { user } = await signInWithAccountIdAndPassword(auth, accountId, sha512(password));
+				const { user } = await signInWithAccountIdAndPassword(
+					auth,
+					accountId,
+					await hashed(password)
+				);
 
 				// Get the salt and dek material from Firestore
 				this.loginProcessState = "FETCHING_KEYS";
@@ -102,7 +106,7 @@ export const useAuthStore = defineStore("auth", {
 
 				// Derive a pKey from the password, and remember it
 				this.loginProcessState = "DERIVING_PKEY";
-				this.pKey = derivePKey(password, material.passSalt);
+				this.pKey = await derivePKey(password, material.passSalt);
 				this.onSignedIn(user);
 			} finally {
 				// In any event, error or not:
@@ -126,7 +130,7 @@ export const useAuthStore = defineStore("auth", {
 				const { user } = await createUserWithAccountIdAndPassword(
 					auth,
 					accountId,
-					sha512(password)
+					await hashed(password)
 				);
 
 				this.loginProcessState = "GENERATING_KEYS";
@@ -134,7 +138,7 @@ export const useAuthStore = defineStore("auth", {
 				await setAuthMaterial(user.uid, material);
 
 				this.loginProcessState = "DERIVING_PKEY";
-				this.pKey = derivePKey(password, material.passSalt);
+				this.pKey = await derivePKey(password, material.passSalt);
 				this.isNewLogin = true;
 				this.onSignedIn(user);
 			} finally {
@@ -157,7 +161,7 @@ export const useAuthStore = defineStore("auth", {
 			await deleteUserPreferences(auth.currentUser.uid);
 			await deleteAuthMaterial(auth.currentUser.uid);
 
-			await deleteUser(auth, auth.currentUser, sha512(password));
+			await deleteUser(auth, auth.currentUser, await hashed(password));
 			await this.onSignedOut();
 		},
 		async updateUserPreferences(prefs: Partial<UserPreferences>) {
@@ -177,7 +181,7 @@ export const useAuthStore = defineStore("auth", {
 			}
 
 			const newAccountId = this.createAccountId();
-			await updateAccountId(user, newAccountId, sha512(currentPassword));
+			await updateAccountId(user, newAccountId, await hashed(currentPassword));
 			this.accountId = newAccountId;
 			this.isNewLogin = true;
 		},
@@ -198,17 +202,17 @@ export const useAuthStore = defineStore("auth", {
 
 			// Store new pKey
 			await setAuthMaterial(user.uid, newMaterial);
-			this.pKey = derivePKey(newPassword, newMaterial.passSalt);
+			this.pKey = await derivePKey(newPassword, newMaterial.passSalt);
 			delete newMaterial.oldDekMaterial;
 			delete newMaterial.oldPassSalt;
 
 			// Update auth password
 			try {
-				await updatePassword(auth, user, sha512(oldPassword), sha512(newPassword));
+				await updatePassword(auth, user, await hashed(oldPassword), await hashed(newPassword));
 			} catch (error: unknown) {
 				// Overwrite the new key with the old key, and have user try again
 				await setAuthMaterial(user.uid, oldMaterial);
-				this.pKey = derivePKey(oldPassword, oldMaterial.passSalt);
+				this.pKey = await derivePKey(oldPassword, oldMaterial.passSalt);
 				throw error;
 			}
 
