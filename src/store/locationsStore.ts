@@ -47,12 +47,10 @@ export const useLocationsStore = defineStore("locations", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = locationsCollection(uid);
+			const collection = locationsCollection();
 			this.locationsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -116,7 +114,7 @@ export const useLocationsStore = defineStore("locations", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateLocation(uid, location, dek, batch);
+			await updateLocation(location, dek, batch);
 			this.items[location.id] = location;
 		},
 		async deleteAllLocation(): Promise<void> {
@@ -127,27 +125,21 @@ export const useLocationsStore = defineStore("locations", {
 			}
 		},
 		async deleteLocation(location: Location, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
-
 			// Transaction views should gracefully handle the
 			// case where their linked location does not exist
 
-			await deleteLocation(uid, location, batch);
+			await deleteLocation(location, batch);
 			delete this.items[location.id];
 		},
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = locationsCollection(uid);
+			const collection = locationsCollection();
 			const snap = await getDocs<LocationRecordPackage>(collection);
 			snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
@@ -157,15 +149,13 @@ export const useLocationsStore = defineStore("locations", {
 		},
 		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = locationsCollection(uid);
+			const collection = locationsCollection();
 			const snap = await getDocs<LocationRecordPackage>(collection);
 			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))

@@ -48,7 +48,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 				const req = job.req;
 				req.pipe(req.busboy); // Pipe the data through busboy
 				req.busboy.on("file", (fieldName, file, fileInfo) => {
-					console.log(`Upload of '${fileInfo.filename}' started`);
+					console.debug(`Upload of '${fileInfo.filename}' started`);
 
 					// Create a write stream of the new file
 					const fstream = createWriteStream(job.path, { encoding: "utf-8" });
@@ -56,7 +56,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 
 					// On finish
 					fstream.on("close", () => {
-						console.log(`Upload of '${fileInfo.filename}' finished`);
+						console.debug(`Upload of '${fileInfo.filename}' finished`);
 						resolve();
 					});
 				});

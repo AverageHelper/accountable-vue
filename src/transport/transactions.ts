@@ -16,18 +16,15 @@ interface TransactionRecordPackageMetadata {
 }
 export type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
 
-function transactionRef(
-	uid: string,
-	transaction: Transaction
-): DocumentReference<TransactionRecordPackage> {
-	const { accountId, id } = transaction;
+function transactionRef(transaction: Transaction): DocumentReference<TransactionRecordPackage> {
+	const id = transaction.id;
 	return doc<TransactionRecordPackage>(db, "transactions", id);
 }
 
 export function transactionsCollection(
-	uid: string,
 	account: Account
 ): CollectionReference<TransactionRecordPackage> {
+	// FIXME: Does this properly filter transactions by account?
 	return collection<TransactionRecordPackage>(db, "transactions");
 }
 
@@ -41,11 +38,10 @@ export function transactionFromSnapshot(
 }
 
 export async function getTransactionsForAccount(
-	uid: string,
 	account: Account,
 	dek: HashStore
 ): Promise<Dictionary<Transaction>> {
-	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection(uid, account));
+	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection(account));
 
 	const result: Dictionary<Transaction> = {};
 	for (const doc of snap.docs) {
@@ -55,7 +51,6 @@ export async function getTransactionsForAccount(
 }
 
 export async function createTransaction(
-	uid: string,
 	account: Account,
 	record: TransactionRecordParams,
 	dek: HashStore,
@@ -65,7 +60,7 @@ export async function createTransaction(
 		objectType: "Transaction",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(transactionsCollection(uid, account));
+	const ref = doc(transactionsCollection(account));
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -75,7 +70,6 @@ export async function createTransaction(
 }
 
 export async function updateTransaction(
-	uid: string,
 	transaction: Transaction,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -85,7 +79,7 @@ export async function updateTransaction(
 	};
 	const record: TransactionRecordParams = transaction.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	const ref = transactionRef(uid, transaction);
+	const ref = transactionRef(transaction);
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -94,11 +88,10 @@ export async function updateTransaction(
 }
 
 export async function deleteTransaction(
-	uid: string,
 	transaction: Transaction,
 	batch?: WriteBatch
 ): Promise<void> {
-	const ref = transactionRef(uid, transaction);
+	const ref = transactionRef(transaction);
 	if (batch) {
 		batch.delete(ref);
 	} else {

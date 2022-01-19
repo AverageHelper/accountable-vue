@@ -15,11 +15,11 @@ interface TagRecordPackageMetadata {
 }
 export type TagRecordPackage = EPackage<TagRecordPackageMetadata>;
 
-export function tagsCollection(uid: string): CollectionReference<TagRecordPackage> {
+export function tagsCollection(): CollectionReference<TagRecordPackage> {
 	return collection<TagRecordPackage>(db, "tags");
 }
 
-function tagRef(uid: string, tag: Tag): DocumentReference<TagRecordPackage> {
+function tagRef(tag: Tag): DocumentReference<TagRecordPackage> {
 	return doc<TagRecordPackage>(db, "tags", tag.id);
 }
 
@@ -29,7 +29,6 @@ export function tagFromSnapshot(doc: QueryDocumentSnapshot<TagRecordPackage>, de
 }
 
 export async function createTag(
-	uid: string,
 	record: TagRecordParams,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -38,7 +37,7 @@ export async function createTag(
 		objectType: "Tag",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(tagsCollection(uid));
+	const ref = doc(tagsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -47,18 +46,13 @@ export async function createTag(
 	return new Tag(ref.id, record);
 }
 
-export async function updateTag(
-	uid: string,
-	tag: Tag,
-	dek: HashStore,
-	batch?: WriteBatch
-): Promise<void> {
+export async function updateTag(tag: Tag, dek: HashStore, batch?: WriteBatch): Promise<void> {
 	const meta: TagRecordPackageMetadata = {
 		objectType: "Tag",
 	};
 	const record: TagRecordParams = tag.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	const ref = tagRef(uid, tag);
+	const ref = tagRef(tag);
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -66,8 +60,8 @@ export async function updateTag(
 	}
 }
 
-export async function deleteTag(uid: string, tag: Tag, batch?: WriteBatch): Promise<void> {
-	const ref = tagRef(uid, tag);
+export async function deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
+	const ref = tagRef(tag);
 	if (batch) {
 		batch.delete(ref);
 	} else {

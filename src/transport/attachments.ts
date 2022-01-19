@@ -18,7 +18,7 @@ interface AttachmentRecordPackageMetadata {
 }
 export type AttachmentRecordPackage = EPackage<AttachmentRecordPackageMetadata>;
 
-export function attachmentsCollection(uid: string): CollectionReference<AttachmentRecordPackage> {
+export function attachmentsCollection(): CollectionReference<AttachmentRecordPackage> {
 	return collection<AttachmentRecordPackage>(db, "attachments");
 }
 
@@ -31,7 +31,6 @@ function attachmentRef(
 
 function attachmentStorageRef(storagePath: string): StorageReference {
 	const parts = storagePath.match(/users\/(.*)\/attachments\/(.*)/gu);
-	console.log(`parts:`, parts);
 	if (parts === null) throw new TypeError(`Invalid storage ref: ${storagePath}`);
 
 	const uid = parts[1] as string;
@@ -76,8 +75,8 @@ export async function createAttachment(
 	const imageData = await dataUrlFromFile(file);
 	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
 
-	const ref = doc(attachmentsCollection(uid)); // generates unique document ID
-	const storageName = doc(attachmentsCollection(uid)); // generates unique file name
+	const ref = doc(attachmentsCollection()); // generates unique document ID
+	const storageName = doc(attachmentsCollection()); // generates unique file name
 
 	const storagePath = `users/${uid}/attachments/${storageName.id}.json`;
 	const storageRef = attachmentStorageRef(storagePath);

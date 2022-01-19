@@ -18,11 +18,11 @@ interface LocationRecordPackageMetadata {
 }
 export type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
 
-function locationRef(uid: string, location: Location): DocumentReference<LocationRecordPackage> {
+function locationRef(location: Location): DocumentReference<LocationRecordPackage> {
 	return doc<LocationRecordPackage>(db, "locations", location.id);
 }
 
-export function locationsCollection(uid: string): CollectionReference<LocationRecordPackage> {
+export function locationsCollection(): CollectionReference<LocationRecordPackage> {
 	return collection<LocationRecordPackage>(db, "locations");
 }
 
@@ -44,7 +44,7 @@ export async function createLocation(
 		objectType: "Location",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(locationsCollection(uid));
+	const ref = doc(locationsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -54,7 +54,6 @@ export async function createLocation(
 }
 
 export async function updateLocation(
-	uid: string,
 	location: Location,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -64,7 +63,7 @@ export async function updateLocation(
 	};
 	const record: LocationRecordParams = location.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	const ref = locationRef(uid, location);
+	const ref = locationRef(location);
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -72,12 +71,8 @@ export async function updateLocation(
 	}
 }
 
-export async function deleteLocation(
-	uid: string,
-	location: Location,
-	batch?: WriteBatch
-): Promise<void> {
-	const ref = locationRef(uid, location);
+export async function deleteLocation(location: Location, batch?: WriteBatch): Promise<void> {
+	const ref = locationRef(location);
 	if (batch) {
 		batch.delete(ref);
 	} else {

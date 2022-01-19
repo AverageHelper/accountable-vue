@@ -51,12 +51,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = attachmentsCollection(uid);
+			const collection = attachmentsCollection();
 			this.attachmentsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -166,15 +164,13 @@ export const useAttachmentsStore = defineStore("attachments", {
 		},
 		async getAllAttachmentsAsJson(): Promise<Array<AttachmentSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = attachmentsCollection(uid);
+			const collection = attachmentsCollection();
 			const snap = await getDocs<AttachmentRecordPackage>(collection);
 			return snap.docs
 				.map(doc => attachmentFromSnapshot(doc, dek))

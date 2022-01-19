@@ -15,11 +15,11 @@ interface AccountRecordPackageMetadata {
 }
 export type AccountRecordPackage = EPackage<AccountRecordPackageMetadata>;
 
-export function accountsCollection(uid: string): CollectionReference<AccountRecordPackage> {
+export function accountsCollection(): CollectionReference<AccountRecordPackage> {
 	return collection<AccountRecordPackage>(db, "accounts");
 }
 
-function accountRef(uid: string, account: Account): DocumentReference<AccountRecordPackage> {
+function accountRef(account: Account): DocumentReference<AccountRecordPackage> {
 	return doc<AccountRecordPackage>(db, "accounts", account.id);
 }
 
@@ -32,7 +32,6 @@ export function accountFromSnapshot(
 }
 
 export async function createAccount(
-	uid: string,
 	record: AccountRecordParams,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -41,7 +40,7 @@ export async function createAccount(
 		objectType: "Account",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(accountsCollection(uid));
+	const ref = doc(accountsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -51,7 +50,6 @@ export async function createAccount(
 }
 
 export async function updateAccount(
-	uid: string,
 	account: Account,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -61,7 +59,7 @@ export async function updateAccount(
 	};
 	const record: AccountRecordParams = account.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	const ref = accountRef(uid, account);
+	const ref = accountRef(account);
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -69,12 +67,8 @@ export async function updateAccount(
 	}
 }
 
-export async function deleteAccount(
-	uid: string,
-	account: Account,
-	batch?: WriteBatch
-): Promise<void> {
-	const ref = accountRef(uid, account);
+export async function deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
+	const ref = accountRef(account);
 	if (batch) {
 		batch.delete(ref);
 	} else {

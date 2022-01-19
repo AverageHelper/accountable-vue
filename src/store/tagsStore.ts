@@ -46,12 +46,10 @@ export const useTagsStore = defineStore("tags", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = tagsCollection(uid);
+			const collection = tagsCollection();
 			this.tagsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -86,35 +84,27 @@ export const useTagsStore = defineStore("tags", {
 
 			// Otherwise, go ahead and make one
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			const newTag = await createTag(uid, record, dek, batch);
+			const newTag = await createTag(record, dek, batch);
 			this.items[newTag.id] = newTag;
 			return newTag;
 		},
 		async updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateTag(uid, tag, dek, batch);
+			await updateTag(tag, dek, batch);
 			this.items[tag.id] = tag;
 		},
 		async deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
-
-			await deleteTag(uid, tag, batch);
+			await deleteTag(tag, batch);
 			delete this.items[tag.id];
 		},
 		async deleteAllTags(): Promise<void> {
@@ -126,15 +116,13 @@ export const useTagsStore = defineStore("tags", {
 		},
 		async getAllTagsAsJson(): Promise<Array<TagSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = tagsCollection(uid);
+			const collection = tagsCollection();
 			const snap = await getDocs<TagRecordPackage>(collection);
 			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
