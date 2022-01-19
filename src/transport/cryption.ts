@@ -1,8 +1,7 @@
-import AES from "crypto-js/aes";
-import CryptoJS from "crypto-js"; // TODO: prefer this over node-forge
-import forge from "node-forge";
 import atob from "atob-lite";
+import AES from "crypto-js/aes";
 import btoa from "btoa-lite";
+import CryptoJS from "crypto-js";
 import isString from "lodash/isString";
 
 class DecryptionError extends Error {
@@ -61,23 +60,24 @@ export class HashStore {
 
 const ITERATIONS = 10000;
 
-async function random(byteCount: number): Promise<string> {
-	return new Promise((resolve, reject) => {
-		forge.random.getBytes(byteCount, (err, bytes) => {
-			if (err) {
-				return reject(err);
-			}
-			return resolve(bytes);
-		});
-	});
+function random(byteCount: number): string {
+	return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
 }
 
-export function sha512(input: string): string {
-	return btoa(CryptoJS.SHA512(input).toString(CryptoJS.enc.Base64));
+/** Makes potatoes, but special potatoes that only the same input can make again. */
+export async function hashed(input: string): Promise<string> {
+	return btoa((await derivePKey(input, "salt")).value);
 }
 
-export function derivePKey(password: string, salt: string): HashStore {
-	return new HashStore(forge.pkcs5.pbkdf2(password, atob(salt), ITERATIONS, 256));
+export async function derivePKey(password: string, salt: string): Promise<HashStore> {
+	await new Promise(resolve => setTimeout(resolve, 10)); // wait 10 ms for UI
+	return new HashStore(
+		CryptoJS.PBKDF2(password, salt, {
+			iterations: ITERATIONS,
+			hasher: CryptoJS.algo.SHA512,
+			keySize: 256,
+		}).toString(CryptoJS.enc.Base64)
+	);
 }
 
 export function deriveDEK(pKey: HashStore, dekMaterial: string): HashStore {
@@ -92,10 +92,10 @@ async function newDataEncryptionKeyMaterialForDEK(
 	dek: HashStore
 ): Promise<KeyMaterial> {
 	// To make passwords harder to guess
-	const passSalt = btoa(await random(32));
+	const passSalt = btoa(random(32));
 
 	// To encrypt the dek
-	const pKey = derivePKey(password, passSalt);
+	const pKey = await derivePKey(password, passSalt);
 	const dekObject = btoa(dek.value);
 	const dekMaterial = encrypt(dekObject, {}, pKey).ciphertext;
 
@@ -104,8 +104,8 @@ async function newDataEncryptionKeyMaterialForDEK(
 
 export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
 	// To encrypt data
-	const dek = new HashStore(await random(256));
-	return newDataEncryptionKeyMaterialForDEK(password, dek);
+	const dek = new HashStore(random(256));
+	return await newDataEncryptionKeyMaterialForDEK(password, dek);
 }
 
 export async function newMaterialFromOldKey(
@@ -113,7 +113,7 @@ export async function newMaterialFromOldKey(
 	newPassword: string,
 	oldKey: KeyMaterial
 ): Promise<KeyMaterial> {
-	const oldPKey = derivePKey(oldPassword, oldKey.passSalt);
+	const oldPKey = await derivePKey(oldPassword, oldKey.passSalt);
 	const dek = deriveDEK(oldPKey, oldKey.dekMaterial);
 	const newPKey = await newDataEncryptionKeyMaterialForDEK(newPassword, dek);
 

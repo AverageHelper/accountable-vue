@@ -27,5 +27,11 @@
 		"noEmit": false
 	},
 	"include": ["./**/*.ts", "./**/*.d.ts", "./**/*.json"],
-	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts", "./package*.json", "./tsconfig.json"]
+	"exclude": [
+		"**/*.test.ts",
+		"**/__mocks__/**/*.ts",
+		"./package*.json",
+		"./tsconfig.json",
+		"**/db/**"
+	]
 }
