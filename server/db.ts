@@ -59,6 +59,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 	if (documentId !== null) {
 		const ref = new DocumentReference(collection, documentId);
 		unsubscribe = watchUpdatesToDocument(ref, data => {
+			console.debug(`Got update for document at ${ref.path}`);
 			ws.send(
 				JSON.stringify({
 					message: "Here's your data",
@@ -69,6 +70,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		});
 	} else {
 		unsubscribe = watchUpdatesToCollection(collection, data => {
+			console.debug(`Got update for collection at ${collection.path}`);
 			ws.send(
 				JSON.stringify({
 					message: "Here's your data",

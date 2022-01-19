@@ -64,6 +64,7 @@ export function watchUpdatesToDocument(
 	/* eslint-enable promise/prefer-await-to-then */
 
 	return (): void => {
+		console.debug(`Removing listener ${handle.id} for document ${ref.path}`);
 		documentWatchers.delete(handle.id);
 	};
 }
@@ -87,6 +88,7 @@ export function watchUpdatesToCollection(
 	/* eslint-enable promise/prefer-await-to-then */
 
 	return (): void => {
+		console.debug(`Removing listener ${handle.id} for collection ${ref.path}`);
 		collectionWatchers.delete(handle.id);
 	};
 }
@@ -95,10 +97,20 @@ async function informWatchersForDocument(
 	ref: DocumentReference<AnyDataItem>,
 	newItem: IdentifiedDataItem | null
 ): Promise<void> {
-	const listeners = [...documentWatchers.values()].filter(
+	const docListeners = [...documentWatchers.values()].filter(
 		w => w.id === ref.id && w.collectionId === ref.parent.id
 	);
-	await Promise.all(listeners.map(l => l.onChange(newItem)));
+	const collectionListeners = [...collectionWatchers.values()].filter(w => w.id === ref.parent.id);
+	console.debug(
+		`Informing ${
+			docListeners.length + collectionListeners.length
+		} listeners about changes to document ${ref.path}`
+	);
+	await Promise.all(docListeners.map(l => l.onChange(newItem)));
+	if (collectionListeners.length > 0) {
+		const newCollection = await fetchDbCollection(ref.parent);
+		await Promise.all(collectionListeners.map(l => l.onChange(newCollection)));
+	}
 }
 
 async function informWatchersForCollection(
@@ -106,6 +118,7 @@ async function informWatchersForCollection(
 	newItems: Array<IdentifiedDataItem>
 ): Promise<void> {
 	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
+	console.debug(`Informing ${listeners.length} listeners about changes to collection ${ref.path}`);
 	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 

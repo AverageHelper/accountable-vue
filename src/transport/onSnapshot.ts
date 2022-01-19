@@ -346,7 +346,14 @@ export function onSnapshot<T>(
 
 	let previousSnap: QuerySnapshot<T> | null = null;
 	ws.addEventListener("message", res => {
-		const message = JSON.parse((res.data as Buffer).toString()) as unknown;
+		let message: unknown;
+		try {
+			message = JSON.parse((res.data as Buffer).toString()) as unknown;
+		} catch (error: unknown) {
+			throw new UnexpectedResponseError(
+				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
+			);
+		}
 		if (!isRawServerResponse(message))
 			throw new UnexpectedResponseError(
 				`Invalid server response: ${JSON.stringify(message, undefined, "  ")}`
@@ -354,6 +361,7 @@ export function onSnapshot<T>(
 		const data = message.data;
 		if (data === undefined) throw new UnexpectedResponseError("Message data is undefined");
 
+		console.debug(`Got ${type} message from ${url}`);
 		if (type === "collection") {
 			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array");
 			const collectionRef = new CollectionReference(db, queryOrReference.id);
