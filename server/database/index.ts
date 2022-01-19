@@ -1,47 +1,31 @@
 import type { CollectionReference, DocumentReference } from "./references.js";
-import type { DataItem } from "./schemas.js";
-import { v4 as uuid } from "uuid";
+import type { AnyDataItem, IdentifiedDataItem } from "./schemas.js";
+import {
+	deleteDbCollection,
+	deleteDbDoc,
+	fetchDbCollection,
+	fetchDbDoc,
+	upsertDbDoc,
+} from "./io.js";
 
-// Since all data is encrypted, we only need to bother
-// about where that data goes and comes from. We leave
-// path-level security to Express.
+// Since all data is encrypted on the client, we only
+// need to bother about persistent I/O. We leave path-
+// level access-guarding to the Express frontend.
 
-interface DataAdd {
-	id: string;
-	type: "added";
-	oldData: null;
-	newData: DataItem;
-}
+export type Unsubscribe = () => void;
 
-interface DataRemove {
-	id: string;
-	type: "removed";
-	oldData: DataItem;
-	newData: null;
-}
-
-interface DataModify {
-	id: string;
-	type: "modified";
-	oldData: DataItem;
-	newData: DataItem;
-}
-
-type DataChange = DataAdd | DataRemove | DataModify;
-type DataChanges = NonEmptyArray<DataChange>;
-
-type SDataChangeCallback = (change: DataChange) => void;
-type PDataChangeCallback = (change: DataChanges) => void;
+type SDataChangeCallback = (newData: IdentifiedDataItem | null) => void;
+type PDataChangeCallback = (newData: Array<IdentifiedDataItem>) => void;
 
 interface _Watcher {
 	plurality: "single" | "plural";
 	id: string;
-	path: string;
 	onChange: SDataChangeCallback | PDataChangeCallback;
 }
 
 interface DocumentWatcher extends _Watcher {
 	plurality: "single";
+	collectionId: string;
 	onChange: SDataChangeCallback;
 }
 
@@ -53,134 +37,129 @@ interface CollectionWatcher extends _Watcher {
 const documentWatchers = new Map<string, DocumentWatcher>();
 const collectionWatchers = new Map<string, CollectionWatcher>();
 
-export async function watchUpdatesToDocument(
-	ref: DocumentReference,
+export function watchUpdatesToDocument(
+	ref: DocumentReference<AnyDataItem>,
 	onChange: SDataChangeCallback
-): Promise<DocumentWatcher> {
-	const handle: DocumentWatcher = { ...ref, id: uuid(), onChange };
+): Unsubscribe {
+	console.debug(`Watching updates to document at ${ref.path}`);
+	const handle: DocumentWatcher = {
+		id: ref.id,
+		collectionId: ref.parent.id,
+		onChange,
+		plurality: "single",
+	};
 	documentWatchers.set(handle.id, handle);
 
-	// Send "added" for all data at path
-	const data = await getDocument(ref);
-	if (data) {
-		const change: DataAdd = {
-			id: ref.id,
-			type: "added",
-			oldData: null,
-			newData: data,
-		};
-		await informWatchersForDocument(ref, change);
-	}
+	// Send all data at path
+	/* eslint-disable promise/prefer-await-to-then */
+	void fetchDbDoc(ref)
+		.then(async data => {
+			if (data) {
+				await informWatchersForDocument(ref, data);
+			}
+		})
+		.catch((error: unknown) => {
+			console.error(error);
+		});
+	/* eslint-enable promise/prefer-await-to-then */
 
-	return handle;
+	return (): void => {
+		console.debug(`Removing listener ${handle.id} for document ${ref.path}`);
+		documentWatchers.delete(handle.id);
+	};
 }
 
-export async function watchUpdatesToCollection(
-	ref: CollectionReference,
+export function watchUpdatesToCollection(
+	ref: CollectionReference<AnyDataItem>,
 	onChange: PDataChangeCallback
-): Promise<CollectionWatcher> {
-	const handle: CollectionWatcher = { ...ref, id: uuid(), onChange };
+): Unsubscribe {
+	const handle: CollectionWatcher = { id: ref.id, onChange, plurality: "plural" };
 	collectionWatchers.set(handle.id, handle);
 
 	// Send "added" for all data at path
-	const data = await getCollection(ref);
-	const changes: Array<DataAdd> = data.map<DataAdd>(newData => ({
-		id: newData._id,
-		type: "added",
-		oldData: null,
-		newData,
-	}));
-	if (changes.length > 0) {
-		await informWatchersForCollection(ref, changes as DataChanges);
-	}
+	/* eslint-disable promise/prefer-await-to-then */
+	void fetchDbCollection(ref)
+		.then(async data => {
+			await informWatchersForCollection(ref, data);
+		})
+		.catch((error: unknown) => {
+			console.error(error);
+		});
+	/* eslint-enable promise/prefer-await-to-then */
 
-	return handle;
-}
-
-export function stopWatchingUpdates(handle: DocumentWatcher | CollectionWatcher): void {
-	const isSingle = handle.plurality === "single";
-	const watchers = isSingle ? documentWatchers : collectionWatchers;
-	watchers.delete(handle.id);
+	return (): void => {
+		console.debug(`Removing listener ${handle.id} for collection ${ref.path}`);
+		collectionWatchers.delete(handle.id);
+	};
 }
 
 async function informWatchersForDocument(
-	ref: DocumentReference,
-	change: DataChange
+	ref: DocumentReference<AnyDataItem>,
+	newItem: IdentifiedDataItem | null
 ): Promise<void> {
-	const listeners = [...documentWatchers.values()].filter(w => w.path === ref.path);
-	await Promise.all(listeners.map(l => l.onChange(change)));
+	const docListeners = [...documentWatchers.values()].filter(
+		w => w.id === ref.id && w.collectionId === ref.parent.id
+	);
+	const collectionListeners = [...collectionWatchers.values()].filter(w => w.id === ref.parent.id);
+	console.debug(
+		`Informing ${
+			docListeners.length + collectionListeners.length
+		} listeners about changes to document ${ref.path}`
+	);
+	await Promise.all(docListeners.map(l => l.onChange(newItem)));
+	if (collectionListeners.length > 0) {
+		const newCollection = await fetchDbCollection(ref.parent);
+		await Promise.all(collectionListeners.map(l => l.onChange(newCollection)));
+	}
 }
 
 async function informWatchersForCollection(
-	ref: CollectionReference,
-	changes: DataChanges
+	ref: CollectionReference<AnyDataItem>,
+	newItems: Array<IdentifiedDataItem>
 ): Promise<void> {
-	const listeners = [...collectionWatchers.values()].filter(w => w.path === ref.path);
-	await Promise.all(listeners.map(l => l.onChange(changes)));
+	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
+	console.debug(`Informing ${listeners.length} listeners about changes to collection ${ref.path}`);
+	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 
-export async function getDocument(ref: DocumentReference): Promise<DataItem | null> {
-	// TODO: Fetch the data
-	return null;
-}
-
-export async function getCollection(ref: CollectionReference): Promise<Array<DataItem>> {
-	// TODO: Fetch the data
-	return [];
-}
-
-export async function deleteDocument(ref: DocumentReference): Promise<void> {
+export async function deleteDocument(ref: DocumentReference<AnyDataItem>): Promise<void> {
 	// Fetch the data
-	const oldData = await getDocument(ref);
+	const oldData = await fetchDbDoc(ref);
 
-	// TODO: Remove the data
+	await deleteDbDoc(ref);
 
 	// Tell listeners what happened
 	if (oldData) {
 		// Only call listeners about deletion if it wasn't gone in the first place
-		const change: DataRemove = {
-			id: ref.id,
-			type: "removed",
-			oldData,
-			newData: null,
-		};
-		await informWatchersForDocument(ref, change);
+		await informWatchersForDocument(ref, null);
 	}
 }
 
-export async function deleteCollection(ref: CollectionReference): Promise<void> {
-	// Fetch the data
-	const oldData = await getCollection(ref);
-
-	// TODO: Remove the data
+export async function deleteCollection(ref: CollectionReference<AnyDataItem>): Promise<void> {
+	await deleteDbCollection(ref);
 
 	// Tell listeners what happened
-	const changes: Array<DataRemove> = oldData.map<DataRemove>(oldData => ({
-		id: oldData._id,
-		type: "removed",
-		oldData,
-		newData: null,
-	}));
-	if (changes.length > 0) {
-		await informWatchersForCollection(ref, changes as DataChanges);
-	}
+	await informWatchersForCollection(ref, []);
 }
 
-export async function setDocument(ref: DocumentReference, newData: DataItem): Promise<void> {
-	// Fetch the data
-	const oldData = await getDocument(ref);
-
-	// TODO: Upsert the data
+export async function setDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
+	newData: T
+): Promise<void> {
+	await upsertDbDoc(ref, newData);
 
 	// Tell listeners what happened
-	let change: DataAdd | DataModify;
-	if (oldData === null) {
-		change = { type: "added", oldData, newData, id: ref.id };
+	let identifiedData: IdentifiedDataItem;
+	if ("uid" in newData) {
+		identifiedData = newData;
 	} else {
-		change = { type: "modified", oldData, newData, id: ref.id };
+		identifiedData = { ...newData, _id: ref.id };
 	}
-	await informWatchersForDocument(ref, change);
+	await informWatchersForDocument(ref, identifiedData);
 }
 
 export * from "./references.js";
-export type { DataItem };
+export * from "./schemas.js";
+
+export { fetchDbDoc as getDocument };
+export { fetchDbCollection as getCollection };

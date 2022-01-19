@@ -64,4 +64,8 @@ export class Location implements Identifiable<string>, LocationRecordParams {
 		const thisRecord = this.toRecord();
 		return new Location(this.id, params.title ?? this.title, { ...thisRecord, ...params });
 	}
+
+	toString(): string {
+		return JSON.stringify(this.toRecord());
+	}
 }

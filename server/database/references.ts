@@ -1,34 +1,49 @@
-abstract class _PathReference {
-	public readonly path: Readonly<string>;
-	public abstract readonly plurality: "single" | "plural";
+import type { AnyDataItem, CollectionID } from "./schemas";
+import { isCollectionId } from "./schemas.js";
 
-	constructor(path: string) {
-		if (path === "") {
-			throw new TypeError("Argument 'path' must not be empty");
-		}
-		this.path = path;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export class CollectionReference<T extends AnyDataItem> {
+	public readonly uid: Readonly<string>;
+	public readonly id: Readonly<CollectionID>;
+
+	constructor(uid: string, id: CollectionID) {
+		if (!isCollectionId(id)) throw new TypeError(`${JSON.stringify(id)} is not a collection ID`);
+		this.uid = uid;
+		this.id = id;
 	}
 
-	get id(): Readonly<string> {
-		const components = this.path.split("/");
-		return components[components.length - 1] ?? this.path;
+	get path(): string {
+		return `users/${this.uid}/${this.id}`;
+	}
+
+	toString(): string {
+		return JSON.stringify({
+			id: this.id,
+		});
 	}
 }
 
-export class DocumentReference extends _PathReference {
-	public readonly plurality: "single";
+export class DocumentReference<T extends AnyDataItem> {
+	public readonly id: Readonly<string>;
+	public readonly parent: Readonly<CollectionReference<T>>;
 
-	constructor(path: string) {
-		super(path);
-		this.plurality = "single";
+	constructor(parent: CollectionReference<T>, id: string) {
+		this.parent = parent;
+		this.id = id;
 	}
-}
 
-export class CollectionReference extends _PathReference {
-	public readonly plurality: "plural";
+	get uid(): string {
+		return this.parent.uid.slice();
+	}
 
-	constructor(path: string) {
-		super(path);
-		this.plurality = "plural";
+	get path(): string {
+		return this.parent.path.concat("/", this.id);
+	}
+
+	toString(): string {
+		return JSON.stringify({
+			id: this.id,
+			parent: this.parent.id,
+		});
 	}
 }

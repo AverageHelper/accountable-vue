@@ -80,4 +80,8 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 			...params,
 		});
 	}
+
+	toString(): string {
+		return JSON.stringify(this.toRecord());
+	}
 }

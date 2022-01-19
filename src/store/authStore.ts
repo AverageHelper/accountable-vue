@@ -1,8 +1,7 @@
 import type { DatabaseSchema } from "../model/DatabaseSchema";
-import type { HashStore, KeyMaterial, UserPreferences } from "../transport";
-import type { Unsubscribe, User } from "firebase/auth";
+import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../transport";
+import type { User } from "../transport/auth.js";
 import { defineStore } from "pinia";
-import { getDoc } from "firebase/firestore";
 import { stores } from "./stores";
 import { v4 as uuid } from "uuid";
 import {
@@ -11,6 +10,8 @@ import {
 	deleteUserPreferences,
 	deriveDEK,
 	derivePKey,
+	db as auth,
+	getDoc,
 	getAuthMaterial,
 	newDataEncryptionKeyMaterial,
 	newMaterialFromOldKey,
@@ -22,40 +23,15 @@ import {
 	watchRecord,
 } from "../transport";
 import {
-	createUserWithEmailAndPassword,
+	createUserWithAccountIdAndPassword,
 	deleteUser,
-	EmailAuthProvider,
-	getAuth,
-	onAuthStateChanged,
-	reauthenticateWithCredential,
-	signInWithEmailAndPassword,
+	signInWithAccountIdAndPassword,
 	signOut,
-	updateEmail,
+	updateAccountId,
 	updatePassword,
-} from "firebase/auth";
+} from "../transport/auth.js";
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
-
-function emailFromAccountId(accountId: string): string;
-function emailFromAccountId(accountId: null): null;
-function emailFromAccountId(accountId: string | null): string | null;
-function emailFromAccountId(accountId: string | null): string | null {
-	if (accountId === null) return null;
-	// @example.com is meant as a dummy domain that doesn't 404. Sending emails to it should be fine, since all we usually send are UUID usernames
-	return `${accountId}@example.com`;
-}
-
-function accountIdFromEmail(email: string): string;
-function accountIdFromEmail(email: null): null;
-function accountIdFromEmail(email: string | null): string | null;
-function accountIdFromEmail(email: string | null): string | null {
-	if (email === null) return null;
-	const result = email.split("@")[0] ?? "";
-	if (!result) {
-		throw new TypeError(`${email} is not a valid email address`);
-	}
-	return result;
-}
 
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
@@ -65,15 +41,12 @@ export const useAuthStore = defineStore("auth", {
 		pKey: null as HashStore | null,
 		loginProcessState: null as LoginProcessState | null,
 		preferences: defaultPrefs(),
-		authStateWatcher: null as null | Unsubscribe,
 		userPrefsWatcher: null as null | Unsubscribe,
 	}),
 	actions: {
 		clearCache() {
 			if (this.userPrefsWatcher) this.userPrefsWatcher(); // needs to die before auth watcher
 			this.userPrefsWatcher = null;
-			if (this.authStateWatcher) this.authStateWatcher();
-			this.authStateWatcher = null;
 			this.pKey?.destroy();
 			this.pKey = null;
 			this.loginProcessState = null;
@@ -83,19 +56,8 @@ export const useAuthStore = defineStore("auth", {
 			this.preferences = defaultPrefs();
 			console.debug("authStore: cache cleared");
 		},
-		watchAuthState() {
-			if (this.authStateWatcher) this.authStateWatcher();
-
-			const auth = getAuth();
-			this.authStateWatcher = onAuthStateChanged(auth, user => {
-				if (user === null) {
-					// Signed out
-					void this.onSignedOut();
-				}
-			});
-		},
 		onSignedIn(user: User) {
-			this.accountId = accountIdFromEmail(user.email);
+			this.accountId = user.accountId;
 			this.uid = user.uid;
 
 			if (this.userPrefsWatcher) {
@@ -129,12 +91,10 @@ export const useAuthStore = defineStore("auth", {
 		},
 		async login(accountId: string, password: string) {
 			try {
-				const email = emailFromAccountId(accountId);
-				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
 				// TODO: Also salt the password hash
 				// Salt using the user's account ID
-				const { user } = await signInWithEmailAndPassword(auth, email, sha512(password));
+				const { user } = await signInWithAccountIdAndPassword(auth, accountId, sha512(password));
 
 				// Get the salt and dek material from Firestore
 				this.loginProcessState = "FETCHING_KEYS";
@@ -150,7 +110,6 @@ export const useAuthStore = defineStore("auth", {
 			}
 		},
 		async getDekMaterial(this: void): Promise<KeyMaterial> {
-			const auth = getAuth();
 			const user = auth.currentUser;
 			if (!user) throw new Error("You must sign in first");
 
@@ -159,15 +118,16 @@ export const useAuthStore = defineStore("auth", {
 			return material;
 		},
 		createAccountId(this: void): string {
-			const id = uuid();
-			return id.replace(/\W+/gu, "");
+			return uuid().replace(/\W+/gu, "");
 		},
 		async createVault(accountId: string, password: string) {
 			try {
-				const email = emailFromAccountId(accountId);
-				const auth = getAuth();
 				this.loginProcessState = "AUTHENTICATING";
-				const { user } = await createUserWithEmailAndPassword(auth, email, sha512(password));
+				const { user } = await createUserWithAccountIdAndPassword(
+					auth,
+					accountId,
+					sha512(password)
+				);
 
 				this.loginProcessState = "GENERATING_KEYS";
 				const material = await newDataEncryptionKeyMaterial(password);
@@ -186,12 +146,7 @@ export const useAuthStore = defineStore("auth", {
 			this.isNewLogin = false;
 		},
 		async destroyVault(password: string) {
-			const auth = getAuth();
-			const email = emailFromAccountId(this.accountId);
-			if (!auth.currentUser || email === null) throw new Error("Not signed in to any account.");
-
-			const oldCredential = EmailAuthProvider.credential(email, sha512(password));
-			await reauthenticateWithCredential(auth.currentUser, oldCredential);
+			if (!auth.currentUser) throw new Error("Not signed in to any account.");
 
 			const { accounts, attachments, locations, tags, transactions } = await stores();
 			await attachments.deleteAllAttachments();
@@ -202,7 +157,7 @@ export const useAuthStore = defineStore("auth", {
 			await deleteUserPreferences(auth.currentUser.uid);
 			await deleteAuthMaterial(auth.currentUser.uid);
 
-			await deleteUser(auth.currentUser);
+			await deleteUser(auth, auth.currentUser, sha512(password));
 			await this.onSignedOut();
 		},
 		async updateUserPreferences(prefs: Partial<UserPreferences>) {
@@ -216,31 +171,21 @@ export const useAuthStore = defineStore("auth", {
 			await setUserPreferences(uid, prefs, dek);
 		},
 		async regenerateAccountId(currentPassword: string) {
-			const auth = getAuth();
 			const user = auth.currentUser;
-			const currentEmail = emailFromAccountId(this.accountId);
-			if (user === null || currentEmail === null) {
+			if (user === null) {
 				throw new Error("Not logged in");
 			}
 
-			const credential = EmailAuthProvider.credential(currentEmail, sha512(currentPassword));
-			await reauthenticateWithCredential(user, credential);
-
-			const newEmail = emailFromAccountId(this.createAccountId());
-			await updateEmail(user, newEmail);
-			this.accountId = accountIdFromEmail(newEmail);
+			const newAccountId = this.createAccountId();
+			await updateAccountId(user, newAccountId, sha512(currentPassword));
+			this.accountId = newAccountId;
 			this.isNewLogin = true;
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
-			const auth = getAuth();
 			const user = auth.currentUser;
-			const email = emailFromAccountId(this.accountId);
-			if (user === null || email === null) {
+			if (user === null) {
 				throw new Error("Not logged in");
 			}
-
-			const oldCredential = EmailAuthProvider.credential(email, sha512(oldPassword));
-			await reauthenticateWithCredential(user, oldCredential);
 
 			// Get old DEK material
 			const oldMaterial = await getAuthMaterial(user.uid);
@@ -259,7 +204,7 @@ export const useAuthStore = defineStore("auth", {
 
 			// Update auth password
 			try {
-				await updatePassword(user, sha512(newPassword));
+				await updatePassword(auth, user, sha512(oldPassword), sha512(newPassword));
 			} catch (error: unknown) {
 				// Overwrite the new key with the old key, and have user try again
 				await setAuthMaterial(user.uid, oldMaterial);
@@ -271,7 +216,6 @@ export const useAuthStore = defineStore("auth", {
 			await setAuthMaterial(user.uid, newMaterial);
 		},
 		async logout() {
-			const auth = getAuth();
 			await signOut(auth);
 			await this.onSignedOut();
 		},

@@ -61,4 +61,8 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 		const thisRecord = this.toRecord();
 		return new Account(this.id, { ...thisRecord, ...params });
 	}
+
+	toString(): string {
+		return JSON.stringify(this.toRecord());
+	}
 }

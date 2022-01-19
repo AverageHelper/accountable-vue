@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { FirebaseError } from "firebase/app";
+import { AccountableError } from "../transport/db.js";
 import { useToast } from "vue-toastification";
 import Joi from "joi";
 
@@ -42,7 +42,7 @@ export const useUiStore = defineStore("ui", {
 			let message: string;
 			if (error instanceof Error) {
 				message = error.message;
-			} else if (error instanceof FirebaseError) {
+			} else if (error instanceof AccountableError) {
 				message = error.code;
 			} else if (error instanceof Joi.ValidationError) {
 				message = `ValidationError: ${error.message}`;

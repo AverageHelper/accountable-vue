@@ -1,15 +1,14 @@
 import type { Location, LocationRecordParams } from "../model/Location";
-import type { HashStore, WriteBatch } from "../transport";
+import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
-import type { Unsubscribe } from "firebase/auth";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	createLocation,
 	deriveDEK,
+	getDocs,
 	updateLocation,
 	deleteLocation,
 	locationFromSnapshot,
@@ -48,12 +47,10 @@ export const useLocationsStore = defineStore("locations", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = locationsCollection(uid);
+			const collection = locationsCollection();
 			this.locationsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -117,7 +114,7 @@ export const useLocationsStore = defineStore("locations", {
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateLocation(uid, location, dek, batch);
+			await updateLocation(location, dek, batch);
 			this.items[location.id] = location;
 		},
 		async deleteAllLocation(): Promise<void> {
@@ -128,28 +125,22 @@ export const useLocationsStore = defineStore("locations", {
 			}
 		},
 		async deleteLocation(location: Location, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
-
 			// Transaction views should gracefully handle the
 			// case where their linked location does not exist
 
-			await deleteLocation(uid, location, batch);
+			await deleteLocation(location, batch);
 			delete this.items[location.id];
 		},
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = locationsCollection(uid);
-			const snap = await getDocs(collection);
+			const collection = locationsCollection();
+			const snap = await getDocs<LocationRecordPackage>(collection);
 			snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
 				.forEach(l => {
@@ -158,22 +149,17 @@ export const useLocationsStore = defineStore("locations", {
 		},
 		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = locationsCollection(uid);
-			const snap = await getDocs(collection);
+			const collection = locationsCollection();
+			const snap = await getDocs<LocationRecordPackage>(collection);
 			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();

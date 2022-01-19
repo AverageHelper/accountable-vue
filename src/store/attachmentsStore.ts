@@ -1,10 +1,8 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
-import type { HashStore, WriteBatch } from "../transport";
-import type { Unsubscribe } from "firebase/auth";
+import type { AttachmentRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
@@ -14,6 +12,7 @@ import {
 	deleteAttachment,
 	deriveDEK,
 	embeddableDataForFile,
+	getDocs,
 	updateAttachment,
 	attachmentFromSnapshot,
 	watchAllRecords,
@@ -52,12 +51,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = attachmentsCollection(uid);
+			const collection = attachmentsCollection();
 			this.attachmentsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -167,22 +164,17 @@ export const useAttachmentsStore = defineStore("attachments", {
 		},
 		async getAllAttachmentsAsJson(): Promise<Array<AttachmentSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = attachmentsCollection(uid);
-			const snap = await getDocs(collection);
+			const collection = attachmentsCollection();
+			const snap = await getDocs<AttachmentRecordPackage>(collection);
 			return snap.docs
 				.map(doc => attachmentFromSnapshot(doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
 			const storedAttachment = this.items[attachmentToImport.id];

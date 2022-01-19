@@ -2,7 +2,7 @@
 import type { LocationPref } from "../../transport";
 import ActionButton from "../ActionButton.vue";
 import Checkmark from "../../icons/Checkmark.vue";
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
@@ -27,6 +27,12 @@ function reset() {
 }
 
 onMounted(() => {
+	reset();
+});
+
+watch(currentSensitivity, () => {
+	// For some reason, we keep resetting `selectedSensitivity` to "none" when the preference changes.
+	// This should fix that.
 	reset();
 });
 

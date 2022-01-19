@@ -1,15 +1,14 @@
 import type { EPackage, HashStore } from "./cryption";
 import type { LocationRecordParams } from "../model/Location";
+import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
+import { encrypt } from "./cryption";
+import { Location } from "../model/Location";
 import type {
 	CollectionReference,
 	DocumentReference,
 	QueryDocumentSnapshot,
 	WriteBatch,
-} from "firebase/firestore";
-import { db, recordFromSnapshot } from "./db";
-import { encrypt } from "./cryption";
-import { Location } from "../model/Location";
-import { collection, doc, setDoc, deleteDoc } from "firebase/firestore";
+} from "./db";
 
 export type LocationPref = "none" | "vague" | "specific";
 export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
@@ -17,16 +16,14 @@ export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , 
 interface LocationRecordPackageMetadata {
 	objectType: "Location";
 }
-type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
+export type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
 
-function locationRef(uid: string, location: Location): DocumentReference<LocationRecordPackage> {
-	const path = `users/${uid}/locations/${location.id}`;
-	return doc(db, path) as DocumentReference<LocationRecordPackage>;
+function locationRef(location: Location): DocumentReference<LocationRecordPackage> {
+	return doc<LocationRecordPackage>(db, "locations", location.id);
 }
 
-export function locationsCollection(uid: string): CollectionReference<LocationRecordPackage> {
-	const path = `users/${uid}/locations`;
-	return collection(db, path) as CollectionReference<LocationRecordPackage>;
+export function locationsCollection(): CollectionReference<LocationRecordPackage> {
+	return collection<LocationRecordPackage>(db, "locations");
 }
 
 export function locationFromSnapshot(
@@ -47,7 +44,7 @@ export async function createLocation(
 		objectType: "Location",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(locationsCollection(uid));
+	const ref = doc(locationsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -57,7 +54,6 @@ export async function createLocation(
 }
 
 export async function updateLocation(
-	uid: string,
 	location: Location,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -67,7 +63,7 @@ export async function updateLocation(
 	};
 	const record: LocationRecordParams = location.toRecord();
 	const pkg = encrypt(record, meta, dek);
-	const ref = locationRef(uid, location);
+	const ref = locationRef(location);
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
@@ -75,12 +71,8 @@ export async function updateLocation(
 	}
 }
 
-export async function deleteLocation(
-	uid: string,
-	location: Location,
-	batch?: WriteBatch
-): Promise<void> {
-	const ref = locationRef(uid, location);
+export async function deleteLocation(location: Location, batch?: WriteBatch): Promise<void> {
+	const ref = locationRef(location);
 	if (batch) {
 		batch.delete(ref);
 	} else {

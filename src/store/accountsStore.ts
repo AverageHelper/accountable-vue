@@ -1,16 +1,15 @@
 import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
-import type { HashStore, WriteBatch } from "../transport";
-import type { Unsubscribe } from "firebase/auth";
+import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	asyncMap,
 	createAccount,
+	getDocs,
 	deriveDEK,
 	updateAccount,
 	deleteAccount,
@@ -55,12 +54,10 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = accountsCollection(uid);
+			const collection = accountsCollection();
 			this.accountsWatcher = watchAllRecords(
 				collection,
 				async snap => {
@@ -90,42 +87,35 @@ export const useAccountsStore = defineStore("accounts", {
 		},
 		async createAccount(record: AccountRecordParams, batch?: WriteBatch): Promise<Account> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createAccount(uid, record, dek, batch);
+			return await createAccount(record, dek, batch);
 		},
 		async updateAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateAccount(uid, account, dek, batch);
+			await updateAccount(account, dek, batch);
 		},
 		async deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
-
 			// Don't delete if we have transactions
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
 			await transactions.getTransactionsForAccount(account);
+
 			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
 			const transactionCount = Object.keys(accountTransactions).length;
 			if (transactionCount !== 0) {
 				throw new Error("Cannot delete an account that has transactions.");
 			}
 
-			await deleteAccount(uid, account, batch);
+			await deleteAccount(account, batch);
 		},
 		async deleteAllAccounts(): Promise<void> {
 			for (const accounts of chunk(this.allAccounts, 500)) {
@@ -136,26 +126,20 @@ export const useAccountsStore = defineStore("accounts", {
 		},
 		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { transactions: transactionsStore } = await stores();
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = accountsCollection(uid);
-			const snap = await getDocs(collection);
+			const collection = accountsCollection();
+			const snap = await getDocs<AccountRecordPackage>(collection);
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
 			return await asyncMap(accounts, async acct => {
 				const transactions = await transactionsStore.getAllTransactionsAsJson(acct);
-				return {
-					id: acct.id,
-					...acct.toRecord(),
-					transactions,
-				};
+				return { ...acct.toRecord(), id: acct.id, transactions };
 			});
 		},
 		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {

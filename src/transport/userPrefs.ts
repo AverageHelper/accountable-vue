@@ -1,8 +1,7 @@
-import type { DocumentReference, QueryDocumentSnapshot } from "firebase/firestore";
+import type { DocumentReference, QueryDocumentSnapshot } from "./db";
 import type { EPackage, HashStore } from "./cryption";
 import type { LocationPref } from "./locations";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import { db, recordFromSnapshot } from "./db";
+import { db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { encrypt } from "./cryption";
 
 export interface UserPreferences {
@@ -11,7 +10,7 @@ export interface UserPreferences {
 interface UserPreferencesRecordPackageMetadata {
 	objectType: "UserPreferences";
 }
-type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
+export type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
 
 export function defaultPrefs(this: void): UserPreferences {
 	return {
@@ -32,8 +31,7 @@ function isUserPreferences(tbd: unknown): tbd is UserPreferences {
 }
 
 export function userRef(uid: string): DocumentReference<UserPreferencesRecordPackage> {
-	const path = `users/${uid}`;
-	return doc(db, path) as DocumentReference<UserPreferencesRecordPackage>;
+	return doc<UserPreferencesRecordPackage>(db, "users", uid);
 }
 
 export async function setUserPreferences(

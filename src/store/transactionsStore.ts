@@ -1,13 +1,12 @@
 import type { Account } from "../model/Account";
-import type { HashStore, WriteBatch } from "../transport";
+import type { HashStore, TransactionRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
-import type { Unsubscribe } from "firebase/auth";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
-import { getDocs } from "firebase/firestore";
+import { getDocs } from "../transport/index.js";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAuthStore } from "./authStore";
@@ -60,12 +59,10 @@ export const useTransactionsStore = defineStore("transactions", {
 			}
 
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
-			const collection = transactionsCollection(uid, account);
+			const collection = transactionsCollection(account);
 
 			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
 				const { useAccountsStore } = await import("./accountsStore");
@@ -136,14 +133,12 @@ export const useTransactionsStore = defineStore("transactions", {
 		},
 		async getTransactionsForAccount(account: Account) {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			this.transactionsForAccount[account.id] = await getTransactionsForAccount(uid, account, dek);
+			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account, dek);
 		},
 		async getAllTransactions() {
 			const { accounts } = await stores();
@@ -201,32 +196,24 @@ export const useTransactionsStore = defineStore("transactions", {
 			batch?: WriteBatch
 		): Promise<Transaction> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createTransaction(uid, account, record, dek, batch);
+			return await createTransaction(account, record, dek, batch);
 		},
 		async updateTransaction(transaction: Transaction, batch?: WriteBatch) {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			await updateTransaction(uid, transaction, dek, batch);
+			await updateTransaction(transaction, dek, batch);
 		},
 		async deleteTransaction(transaction: Transaction, batch?: WriteBatch) {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
-
-			await deleteTransaction(uid, transaction, batch);
+			await deleteTransaction(transaction, batch);
 		},
 		async deleteAllTransactions(): Promise<void> {
 			for (const transactions of chunk(this.allTransactions, 500)) {
@@ -278,22 +265,17 @@ export const useTransactionsStore = defineStore("transactions", {
 		},
 		async getAllTransactionsAsJson(account: Account): Promise<Array<TransactionSchema>> {
 			const authStore = useAuthStore();
-			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const collection = transactionsCollection(uid, account);
-			const snap = await getDocs(collection);
+			const collection = transactionsCollection(account);
+			const snap = await getDocs<TransactionRecordPackage>(collection);
 			return snap.docs
 				.map(doc => transactionFromSnapshot(account.id, doc, dek))
-				.map(t => ({
-					id: t.id,
-					...t.toRecord(),
-				}));
+				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,

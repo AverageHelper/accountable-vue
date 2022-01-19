@@ -1,225 +1,166 @@
-import type { DataItem } from "./database/index.js";
-import type { Request, RequestHandler, Response } from "express";
-import type WebSocket from "ws";
+import type { DataItem, Keys, Unsubscribe } from "./database/index.js";
+import type { Request } from "express";
+import type { WebSocket } from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { ownersOnly } from "./auth.js";
+import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
+import { handleErrors } from "./handleErrors.js";
+import { ownersOnly, requireAuth } from "./auth/index.js";
 import { Router } from "express";
-import { DocumentReference, deleteDocument, getDocument, setDocument } from "./database/index.js";
+import {
+	CollectionReference,
+	DocumentReference,
+	deleteCollection,
+	deleteDocument,
+	getCollection,
+	getDocument,
+	isCollectionId,
+	isPartialDataItem,
+	isPartialKeys,
+	setDocument,
+	watchUpdatesToCollection,
+	watchUpdatesToDocument,
+} from "./database/index.js";
 
-// Database data storage
-//   WS path -> open websocket to watch a document or a series of documents on a database path
-//   GET path -> get data in JSON format
-//   POST path data -> database set
-//   DELETE path -> database delete
-
-function respondSuccess(this: void, req: Request, res: Response): void {
-	res.json({ message: "Success!" });
+interface Params {
+	uid?: string;
+	collectionId?: string;
+	documentId?: string;
 }
 
-function respondData(this: void, req: Request, res: Response, data: unknown): void {
-	res.json(data);
+function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
+	const uid = (req.params.uid ?? "") || null;
+	const collectionId = req.params.collectionId ?? "";
+	if (uid === null || !isCollectionId(collectionId)) return null;
+
+	return new CollectionReference(uid, collectionId);
 }
 
-function respondNotSignedIn(this: void, req: Request, res: Response): void {
-	res.status(403).json({ message: "You must sign in first" });
+function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
+	const documentId = req.params.documentId ?? "";
+	const collection = collectionRef(req);
+	if (!collection) return null;
+
+	return new DocumentReference(collection, documentId);
 }
 
-function respondNotFound(this: void, req: Request, res: Response): void {
-	res.status(404).json({ message: "No data found" });
-}
-
-function respondBadMethod(this: void, req: Request, res: Response): void {
-	res.status(405).json({ message: "That method is not allowed here. What are you trying to do?" });
-}
-
-function respondInternalError(this: void, req: Request, res: Response): void {
-	res.status(500).json({ message: "Not sure what went wrong. Try again maybe?" });
-}
-
-function _requireUid(this: void, req: Request, respondIfNoUid: () => void): string {
-	// ownersOnly garantees that there is an auth.uid on the session. Throw if this is not the case.
-	const uid = req.session.context?.auth?.uid ?? null;
-	if (uid === null) {
-		respondIfNoUid();
-		// Force-stop if the UID is not found
-		throw new TypeError(
-			"No UID found on session. Make sure to use `ownersOnly` before reaching this point."
-		);
+function webSocket(ws: WebSocket, req: Request<Params>): void {
+	const uid = (req.params.uid ?? "") || null;
+	const collectionId = (req.params.collectionId ?? "") || null;
+	const documentId = (req.params.documentId ?? "") || null;
+	if (uid === null || collectionId === null || !isCollectionId(collectionId)) {
+		ws.send(JSON.stringify({ message: "No data found" }));
+		return ws.close();
 	}
-	return uid;
-}
+	const collection = new CollectionReference<Keys>(uid, collectionId);
+	let unsubscribe: Unsubscribe;
 
-function requireUid(this: void, req: Request, res: Response): string {
-	return _requireUid(req, () => respondNotSignedIn(req, res));
-}
+	// TODO: Do a dance within the websocket to assert the caller's ID is uid
 
-function requireUidWs(this: void, req: Request, ws: WebSocket): string {
-	return _requireUid(req, () => {
-		const response = { code: 403, message: "You must sign in first" };
-		ws.send(JSON.stringify(response), error => {
-			if (error) {
-				console.error(error);
-			}
-			ws.close(403);
+	if (documentId !== null) {
+		const ref = new DocumentReference(collection, documentId);
+		unsubscribe = watchUpdatesToDocument(ref, data => {
+			console.debug(`Got update for document at ${ref.path}`);
+			ws.send(
+				JSON.stringify({
+					message: "Here's your data",
+					dataType: "single",
+					data,
+				})
+			);
 		});
-	});
-}
+	} else {
+		unsubscribe = watchUpdatesToCollection(collection, data => {
+			console.debug(`Got update for collection at ${collection.path}`);
+			ws.send(
+				JSON.stringify({
+					message: "Here's your data",
+					dataType: "multiple",
+					data,
+				})
+			);
+		});
+	}
 
-// See https://www.section.io/engineering-education/session-management-in-nodejs-using-expressjs-and-express-session/
-
-/**
- * Generates Create-Read-Update-Delete (CRUD) endpoints for the document at the given path.
- *
- * This handler accepts only GET, POST, and DELETE requests. Any other method will throw
- * an HTTP 405 error.
- *
- * @param path The document path to handle here.
- * @returns a handler that handles CRUD endpoints for the given document path.
- */
-function documentCrud(this: void, path: string): RequestHandler {
-	return asyncWrapper(async (req, res) => {
+	ws.on("message", msg => {
 		try {
-			const ref = new DocumentReference(path);
-			switch (req.method.toUpperCase()) {
-				case "GET": {
-					const data = await getDocument(ref);
-					if (data === null) return respondNotFound(req, res);
-					return respondData(req, res, data);
-				}
-				case "POST":
-					await setDocument(ref, req.body as DataItem);
-					return respondSuccess(req, res);
-				case "DELETE":
-					await deleteDocument(ref);
-					return respondSuccess(req, res);
-				default:
-					return respondBadMethod(req, res);
+			const uid = (req.params.uid ?? "") || null;
+			if ((msg as Buffer).toString() === "STOP") {
+				process.stdout.write("Received STOP\n");
+				unsubscribe();
+				return ws.close();
 			}
+			process.stdout.write(
+				`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
+			);
 		} catch (error: unknown) {
 			console.error(error);
-			respondInternalError(req, res);
 		}
 	});
 }
 
+// Function so we defer creation of the router until after we've set up websocket support
 export function db(this: void): Router {
-	const dbRouter = Router().all("/users/:uid/*", ownersOnly());
+	return Router()
+		.ws("/users/:uid/:collectionId", webSocket)
+		.ws("/users/:uid/:collectionId/:documentId", webSocket)
+		.use(requireAuth()) // require auth from here on in
+		.use("/users/:uid", ownersOnly())
+		.get<Params>(
+			"/users/:uid/:collectionId",
+			asyncWrapper(async (req, res) => {
+				const ref = collectionRef(req);
+				if (!ref) throw new NotFoundError();
 
-	// ** User Preferences
-	dbRouter
-		.ws("/", (ws, req) => {
-			ws.on("message", msg => {
-				try {
-					const uid = requireUidWs(req, ws);
-					process.stdout.write(`User '${uid}' sent message: '${JSON.stringify(msg.valueOf())}'\n`);
-					ws.send(JSON.stringify({ message: "TODO: Watch the user's encrypted preference doc" }));
-				} catch (error: unknown) {
-					console.error(error);
-				}
-			});
-		})
-		.all("/", (req, res, next) => {
-			const uid = requireUid(req, res);
-			const path = `/users/${uid}`;
-			return documentCrud(path)(req, res, next);
-		});
+				const items = await getCollection(ref);
+				respondData(res, items);
+			})
+		)
+		.get<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
+				const ref = documentRef(req);
+				console.debug(`Handling GET for document at ${ref?.path ?? "null"}`);
+				if (!ref) throw new NotFoundError();
 
-	// ** Encryption Keys
-	dbRouter.all("/keys/main", (req, res, next) => {
-		const uid = requireUid(req, res);
-		const path = `/users/${uid}/keys/main`;
-		return documentCrud(path)(req, res, next);
-	});
+				const item = await getDocument(ref);
+				console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
+				respondData(res, item);
+			})
+		)
+		.post<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				const ref = documentRef(req);
+				if (!ref || uid === null) throw new NotFoundError();
 
-	// ** Accounts
-	dbRouter
-		.connect("/accounts", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted account docs" });
-		})
-		.get("/accounts", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted account docs" });
-		})
-		.get("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted account doc" });
-		})
-		.post("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted account doc" });
-		})
-		.delete("/accounts/:accountId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted account doc" });
-		});
+				const providedData = req.body as unknown;
+				if (!isPartialDataItem(providedData) && !isPartialKeys(providedData))
+					throw new BadRequestError();
 
-	// ** Transactions
-	dbRouter
-		.connect("/accounts/:accountId/transactions", (req, res) => {
-			res.json({ message: "TODO: Watch the account's encrypted transaction docs" });
-		})
-		.get("/accounts/:accountId/transactions", (req, res) => {
-			res.json({ message: "TODO: Get the account's encrypted transaction docs" });
-		})
-		.get("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted transaction doc" });
-		})
-		.post("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted transaction doc" });
-		})
-		.delete("/accounts/:accountId/transactions/:transactionId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted transaction doc" });
-		});
+				await setDocument(ref, providedData);
+				respondSuccess(res);
+			})
+		)
+		.delete<Params>(
+			"/users/:uid/:collectionId",
+			asyncWrapper(async (req, res) => {
+				const ref = collectionRef(req);
+				if (!ref) throw new NotFoundError();
 
-	// ** Locations
-	dbRouter
-		.connect("/locations", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted location docs" });
-		})
-		.get("/locations", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted location docs" });
-		})
-		.get("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted location doc" });
-		})
-		.post("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted location doc" });
-		})
-		.delete("/locations/:locationId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted location doc" });
-		});
+				await deleteCollection(ref);
+				respondSuccess(res);
+			})
+		)
+		.delete<Params>(
+			"/users/:uid/:collectionId/:documentId",
+			asyncWrapper(async (req, res) => {
+				const ref = documentRef(req);
+				if (!ref) throw new NotFoundError();
 
-	// ** Tags
-	dbRouter
-		.connect("/tags", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted tag dogs" });
-		})
-		.get("/tags", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted tag docs" });
-		})
-		.get("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted tag doc" });
-		})
-		.post("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted tag doc" });
-		})
-		.delete("/tags/:tagId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted tag doc" });
-		});
-
-	// ** Attachments
-	dbRouter
-		.connect("/attachments", (req, res) => {
-			res.json({ message: "TODO: Watch the user's encrypted attachment docs" });
-		})
-		.get("/attachments", (req, res) => {
-			res.json({ message: "TODO: Get the user's encrypted attachment docs" });
-		})
-		.get("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Get an encrypted attachment doc" });
-		})
-		.post("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Set an encrypted attachment doc" });
-		})
-		.delete("/attachments/:attachmentId", (req, res) => {
-			res.json({ message: "TODO: Delete an encrypted tag doc" });
-		});
-
-	return dbRouter;
+				await deleteDocument(ref);
+				respondSuccess(res);
+			})
+		)
+		.use(handleErrors);
 }

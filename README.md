@@ -1,6 +1,8 @@
 # Accountable
 
-A Vue app for managing monetary assets. All data is encrypted client-side and stored in a Firebase instance that you control.
+A Vue app for managing monetary assets. All data is encrypted client-side and stored on a server that you control.
+
+> This project is undergoing rapid development and should be considered experimental. Use it at your own risk. 🤙
 
 Note: DO NOT FORGET your ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
@@ -28,48 +30,45 @@ $ npm -v
 ### Installation
 
 - Clone the repository
-- Set up a [Firebase](https://firebase.google.com/) project
-- Under "Your apps" select the Web platform and register a Firebase app
-- Note your app's `apiKey`, `projectId`, and `authDomain`
-- Save these values to a .env file at the root of the project, as shown below:
+- Set up the Accountable server on a machine you can access from your network (instructions coming soon™)
+- Save the server's URL to a .env file at the root of the project, as shown below:
 
 ```sh
 # .env
-# Vite pulls these in at build time
+# Vite pulls this in at build time
 
-VITE_FIREBASE_API_KEY={your API key here}
-VITE_FIREBASE_STORAGE_BUCKET={your storage bucket here}
-VITE_FIREBASE_AUTH_DOMAIN={your auth domain here}
-VITE_FIREBASE_PROJECT_ID={your project ID here}
+VITE_ACCOUNTABLE_SERVER_URL={your server URL here}:40850
 ```
 
-#### Install dependencies and run!
+#### Compile from source
 
 ```sh
 $ cd accountable-vue
 $ npm install
-$ npm run export-version
+$ npm run build
 ```
 
-#### Twiddle with Google Cloud Storage
+#### Run
 
-This is necessary for now. We're looking into alternatives.
-
-```sh
-$ gcloud auth login # log in using your project Google account
-$ gcloud config set project <your-project-ID>
-$ gsutil cors set cors.json gs://<your-cloud-storage-bucket>
-```
-
-See [Google's docs on the subject](https://firebase.google.com/docs/storage/web/download-files#cors_configuration).
-
-#### Run!
+To start the server and client on the same machine, run the following command:
 
 ```sh
 $ npm start
 ```
 
 Vite will give your a URL to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
+
+To run the server on its own, run the following command instead:
+
+```sh
+$ npm run prod:server
+```
+
+I recommend you install the client (the contents of the `<repository root>/dist` folder) on a webserver.
+
+TODO: Work out how the hay to securely manage .env secrets on a webserver. XD
+
+Since all the Accountable client is the URL to the Accountable server, you should be fine to publish the .env folder with the client stuff. (If anything goes wrong, that's on you. [Submit an issue](https://github.com/AverageHelper/accountable-vue/issues/new/choose) detailing what you think I can do to make this safer.)
 
 ## Acknowledgements
 
@@ -81,8 +80,8 @@ This project is entirely open source. Do with it what you will. If you're willin
 
 🧐 If you're feeling especially fantastic you might consider contributing to the project directly:
 
-- Fork this project.
-- Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
-- Submit a PR. (GitHub will ping me for you, so no need to @ me)
+1. Fork this project.
+2. Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+3. Submit a PR. (GitHub will ping me for you, so no need to @ me)
 
 I don't have all the time in the world, so PRs are especially appreciated.

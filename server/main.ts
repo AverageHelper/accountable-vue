@@ -1,11 +1,12 @@
 import "source-map-support/register.js";
 import "./environment.js";
-import { auth, requireAuth } from "./auth.js";
+import { auth, requireAuth } from "./auth/index.js";
 import { db } from "./db.js";
+import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
-import { storage } from "./storage.js";
+import { storage } from "./storage/index.js";
+import busboy from "connect-busboy";
 import cors from "cors";
-// import csrf from "csurf"; // TODO: look into this
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";
@@ -22,11 +23,19 @@ app
 	.use(cors())
 	.use(express.json())
 	.use(express.urlencoded({ extended: true }))
-	.get("/", lol) // TODO: maybe we should serve the app here? idk
+	.use(
+		busboy({
+			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
+		})
+	)
+	.get("/", lol)
 	.use(auth())
-	.use(requireAuth()) // require auth from here on in
 	.use("/db", db())
-	.use("/files", storage());
+	.use(requireAuth()) // require auth from here on in
+	.use("/files", storage())
+	.use(handleErrors);
+
+process.stdout.write(`NODE_ENV: ${process.env.NODE_ENV}\n`);
 
 app.listen(port, () => {
 	process.stdout.write(`Accountable storage server listening on port ${port}\n`);

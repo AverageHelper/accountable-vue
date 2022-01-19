@@ -1,9 +1,5 @@
 import type { RequestHandler, Request, Response, NextFunction } from "express";
 
-// This matches the internal definition in express
-// eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/consistent-type-definitions
-type ParamsDictionary = {};
-
 type AsyncRequestHandler<P = ParamsDictionary, ResBody = unknown, ReqBody = unknown> = (
 	req: Request<P, ResBody, ReqBody>,
 	res: Response,
@@ -19,9 +15,10 @@ type AsyncRequestHandler<P = ParamsDictionary, ResBody = unknown, ReqBody = unkn
 export const asyncWrapper = <P = ParamsDictionary, ResBody = unknown, ReqBody = unknown>(
 	fn: AsyncRequestHandler<P, ResBody, ReqBody>
 ): RequestHandler<P, ResBody, ReqBody> => {
-	return (req, res, next): void => {
-		void fn(req, res, next)
-			// eslint-disable-next-line promise/prefer-await-to-then, promise/no-callback-in-promise
-			.catch(error => next(error));
+	// Don't sneeze on this, it works
+	return function asyncUtilWrap(this: void, req, res, next): void {
+		const fnReturn = fn(req, res, next);
+		// eslint-disable-next-line promise/prefer-await-to-then, promise/no-callback-in-promise
+		Promise.resolve(fnReturn).catch(next);
 	};
 };
