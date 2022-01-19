@@ -1,6 +1,6 @@
 {
 	"name": "accountable-vue",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
 		"start": "./node_modules/.bin/concurrently -rkn SERVER,APP -s first \"npm run dev:server\" \"npm run dev:client\"",
