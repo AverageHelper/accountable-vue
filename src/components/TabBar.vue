@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import type { Tab } from "../model/ui/tabs";
 import TabItem from "./TabItem.vue";
-import { isTab, allTabs } from "../model/ui/tabs";
+import { isAppTab, appTabs } from "../model/ui/tabs";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 
-const tabs = computed(() => allTabs);
+const tabs = computed(() => appTabs);
 const currentTab = computed<Tab | null>(() => {
 	const t: string | undefined = route.path
 		.split("/") // split path by delimiters
 		.find(s => s !== ""); // get first nonempty path segment
 
-	if (t === undefined || !isTab(t)) return null;
+	if (t === undefined || !isAppTab(t)) return null;
 
 	return t;
 });
