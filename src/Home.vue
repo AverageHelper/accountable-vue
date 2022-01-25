@@ -4,7 +4,11 @@ import Footer from "./Footer.vue";
 
 <template>
 	<main class="content">
-		<p>Stuff goes here</p>
+		<p
+			>If you're the sort to be obsessive about where your money is going, this might be the tool
+			for you.</p
+		>
+
 		<Footer />
 	</main>
 </template>

@@ -38,11 +38,12 @@ body {
 }
 
 main.content {
-	margin: 0;
+	margin: 0 auto;
 	padding: 1em;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	height: calc(100vh - 44pt);
+	max-width: 600pt;
 
 	.error {
 		color: color($red);

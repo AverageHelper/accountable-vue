@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExternalLink from "./ExternalLink.vue";
 import { computed } from "vue";
 import { version as v } from "../version";
 
@@ -9,22 +10,7 @@ const repositoryUrl = computed(
 </script>
 
 <template>
-	<a :href="repositoryUrl" target="_blank" title="Check out this project's GitHub"
-		>Accountable v{{ version }}</a
+	<ExternalLink :to="repositoryUrl" title="Check out this project's GitHub"
+		>Accountable v{{ version }}</ExternalLink
 	>
 </template>
-
-<style scoped lang="scss">
-@use "styles/colors" as *;
-
-a {
-	color: color($secondary-label);
-	text-decoration: none;
-
-	@media (hover: hover) {
-		&:hover {
-			text-decoration: underline;
-		}
-	}
-}
-</style>

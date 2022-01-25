@@ -34,9 +34,8 @@ h5,
 h6 {
 	font-weight: 700;
 	line-height: 1.2;
-	margin-bottom: 0;
-	margin-top: 0.75em;
-	margin-bottom: 0.5em;
+	margin-top: 28pt;
+	margin-bottom: 14pt;
 	color: color($label);
 	transition: color $color-transition-duration;
 }
@@ -80,6 +79,8 @@ p {
 	margin-bottom: 1.2rem;
 	color: color($label);
 	transition: color $color-transition-duration;
+	line-height: 1.8;
+	text-align: justify;
 }
 
 a {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppVersion from "./components/AppVersion.vue";
+import ExternalLink from "./components/ExternalLink.vue";
 import GitHubIcon from "./icons/GitHub.vue";
 </script>
 
@@ -8,29 +9,29 @@ import GitHubIcon from "./icons/GitHub.vue";
 		<p><AppVersion /></p>
 		<p
 			>This project is licensed under the
-			<a
-				href="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
-				target="_blank"
+			<ExternalLink
+				to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
 				title="View the full license"
-				>GNU General Public License v3.0</a
+				>GNU General Public License v3.0</ExternalLink
 			>.</p
 		>
 		<p
 			>Feel free to
-			<a href="https://github.com/AverageHelper/accountable-vue/issues/new/choose" target="_blank"
-				>open an issue</a
+			<ExternalLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
+				>open an issue</ExternalLink
 			>
 			or submit a pull request on this project's
-			<a href="https://github.com/AverageHelper/accountable-vue" target="_blank">GitHub page</a>.</p
+			<ExternalLink href="https://github.com/AverageHelper/accountable-vue"
+				>GitHub page</ExternalLink
+			>.</p
 		>
 		<p>
-			<a
+			<ExternalLink
 				href="https://github.com/AverageHelper/accountable-vue"
-				target="_blank"
 				title="View this project's source code"
 			>
 				<GitHubIcon alt="Check out my GitHub" title="Check out my GitHub" />
-			</a>
+			</ExternalLink>
 		</p>
 	</footer>
 </template>
@@ -43,6 +44,7 @@ footer {
 	flex-direction: column;
 	align-items: center;
 	margin: 16pt 0;
+	margin-top: 48pt;
 
 	p {
 		color: color($secondary-label);
