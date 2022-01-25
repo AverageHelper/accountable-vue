@@ -10,6 +10,8 @@ interface Page {
 const pages = computed<Array<Page>>(() => [
 	{ path: "/", title: "Home" },
 	{ path: "/about", title: "About" },
+	{ path: "/security", title: "Security" },
+	{ path: "/pricing", title: "Pricing" },
 	{ path: "/login", title: "Login" },
 ]);
 
@@ -19,7 +21,9 @@ const currentPath = computed(() => route.path);
 
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
-		<router-link to="/" class="navbar-brand">Accountable</router-link>
+		<router-link to="/" class="navbar-brand" role="img" alt="Accountable"
+			>A&cent;countable</router-link
+		>
 		<!-- FIXME: toggler does nothing rn -->
 		<button
 			class="navbar-toggler"

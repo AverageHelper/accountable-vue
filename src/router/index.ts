@@ -7,6 +7,8 @@ import EmptyRoute from "../components/EmptyRoute.vue";
 import Home from "../Home.vue";
 import Locations from "../components/locations/Locations.vue";
 import Login from "../components/Login.vue";
+import Pricing from "../Pricing.vue";
+import Security from "../Security.vue";
 import Settings from "../components/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
 import TransactionView from "../components/transactions/TransactionView.vue";
@@ -27,7 +29,7 @@ import { useAuthStore } from "../store/authStore";
 
 export const APP_ROOTS = appTabs //
 	.map(tab => `/${tab}`)
-	.concat(["/", "/about", "/login"]);
+	.concat(["/", "/about", "/security", "/pricing", "/login"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -100,6 +102,14 @@ export const router = createRouter({
 		{
 			path: "/about",
 			component: About,
+		},
+		{
+			path: "/security",
+			component: Security,
+		},
+		{
+			path: "/pricing",
+			component: Pricing,
 		},
 		{
 			path: "/logout",

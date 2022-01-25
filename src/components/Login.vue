@@ -166,11 +166,11 @@ async function submit() {
 		<div v-if="!isLoading">
 			<p v-if="isLoginMode"
 				>Need to create an account?
-				<a href="#" @click="enterSignupMode">Create one here.</a>
+				<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
 			</p>
 			<p v-if="isSignupMode"
 				>Already have an account?
-				<a href="#" @click="enterLoginMode">Log in here.</a>
+				<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
 			</p>
 		</div>
 

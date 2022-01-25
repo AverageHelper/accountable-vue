@@ -25,8 +25,9 @@ import Footer from "./Footer.vue";
 			<ExternalLink to="https://opensource.com/life/17/10/personal-finance-tools-linux"
 				>open-source desktop balance keepers</ExternalLink
 			>
-			out there, but none I've found that I like. Feel free to use them if you'd like. I'm not
-			sponsored by any of them. Their respective names are trademarks of their owners.</p
+			out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use
+			them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of
+			their owners:</p
 		>
 		<ul>
 			<li

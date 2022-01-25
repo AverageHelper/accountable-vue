@@ -110,7 +110,7 @@ button {
 			}
 
 			&-secondary {
-				background-color: color($gray);
+				background-color: color($gray2);
 				color: color($label-dark);
 
 				@media (hover: hover) {
