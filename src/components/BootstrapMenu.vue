@@ -21,7 +21,7 @@ const currentPath = computed(() => route.path);
 
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
-		<router-link to="/" class="navbar-brand" role="img" alt="Accountable"
+		<router-link to="/" class="navbar-brand" role="text" aria-label="Accountable"
 			>A&cent;countable</router-link
 		>
 		<!-- FIXME: toggler does nothing rn -->

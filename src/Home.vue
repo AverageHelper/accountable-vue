@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import ActionButton from "./components/ActionButton.vue";
 import Footer from "./Footer.vue";
+import EncryptionIcon from "./icons/Lock.vue";
+import LedgerIcon from "./icons/MoneyTower.vue";
+import OpenSourceIcon from "./icons/IdeaBox.vue";
 </script>
 
 <template>
@@ -8,22 +11,20 @@ import Footer from "./Footer.vue";
 		<p class="tagline">Free, open-source, respectful digital financial records.</p>
 
 		<!-- Get started now -->
-		<div class="get-started">
+		<section id="get-started">
 			<router-link to="/about">
 				<ActionButton kind="bordered-secondary">Learn More</ActionButton>
 			</router-link>
 			<router-link to="/login">
 				<ActionButton kind="bordered-primary">Get Started</ActionButton>
 			</router-link>
-		</div>
+		</section>
 
 		<!-- Your money, where it's been, in your pocket -->
-		<section>
+		<section id="ledger">
+			<LedgerIcon class="section-icon" />
 			<h1>Keep Yourself Accountable</h1>
-			<p
-				>Everything Accountable does is encrypted end-to-end. The server knows nothing about who you
-				are.</p
-			>
+			<p>Keep a close eye on your spending.</p>
 			<p
 				>If you're the sort to be obsessive about where your money is going, this might be the tool
 				for you.</p
@@ -31,16 +32,19 @@ import Footer from "./Footer.vue";
 		</section>
 
 		<!-- E2E Encrypted -->
-		<section>
-			<h1>Security</h1>
+		<section id="encrypted">
+			<EncryptionIcon class="section-icon" />
+			<h1>Your Ledger, Not Mine.</h1>
 			<p
 				>Accountable, by design, cannot see your data, even on our own servers. We don't need or
-				want to see what you do with your money, that's not our job.</p
+				want to see what you do with your money. That's not my job.</p
 			>
+			<p>I'd rather you didn't do illegal stuff with this. (I shouldn't have to say that, wow.)</p>
 		</section>
 
 		<!-- Open-source and Free -->
-		<section>
+		<section id="open-source">
+			<OpenSourceIcon class="section-icon" />
 			<h1>Keep Me Accountable</h1>
 			<p>Always open-source, free to host yourself</p>
 			<ul>
@@ -54,25 +58,34 @@ import Footer from "./Footer.vue";
 </template>
 
 <style scoped lang="scss">
-section {
-	margin-top: 32pt;
-}
-
 .tagline {
 	text-align: center;
 }
 
-.get-started {
-	display: flex;
-	flex-flow: row nowrap;
-	width: fit-content;
-	margin: 0 auto;
+p {
+	text-align: left;
+}
 
-	a {
-		text-decoration: none;
+section {
+	margin-top: 36pt;
 
-		&:not(:first-of-type) {
-			margin-left: 8pt;
+	.section-icon {
+		float: right;
+		margin-left: 24pt;
+	}
+
+	&#get-started {
+		display: flex;
+		flex-flow: row nowrap;
+		width: fit-content;
+		margin: 0 auto;
+
+		a {
+			text-decoration: none;
+
+			&:not(:first-of-type) {
+				margin-left: 8pt;
+			}
 		}
 	}
 }

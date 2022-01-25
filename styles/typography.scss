@@ -87,6 +87,11 @@ p {
 	text-align: justify;
 }
 
+section {
+	margin: 0 auto;
+	max-width: 600pt;
+}
+
 a {
 	text-decoration: none;
 
@@ -173,7 +178,6 @@ textarea {
 	height: 5em;
 	margin: 1em auto -0.5em;
 	display: block;
-	color: color($gray4);
 
 	&.icon {
 		text-align: center;
