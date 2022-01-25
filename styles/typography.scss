@@ -32,6 +32,8 @@ h3,
 h4,
 h5,
 h6 {
+	margin: auto;
+	max-width: 600pt;
 	font-weight: 700;
 	line-height: 1.2;
 	margin-top: 28pt;
@@ -75,8 +77,10 @@ h6 {
 }
 
 p {
+	margin: auto;
 	margin-top: 0;
 	margin-bottom: 1.2rem;
+	max-width: 600pt;
 	color: color($label);
 	transition: color $color-transition-duration;
 	line-height: 1.8;
@@ -95,8 +99,10 @@ a {
 
 ul,
 ol {
+	margin: auto;
 	margin-top: 0.5rem;
 	margin-bottom: 1.5rem;
+	max-width: 600pt;
 }
 
 ul ul,
