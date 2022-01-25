@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import GitHubIcon from "../icons/GitHub.vue";
 import { computed } from "vue";
 import { version as v } from "../version";
 
@@ -10,33 +9,21 @@ const repositoryUrl = computed(
 </script>
 
 <template>
-	<div class="version">
-		<a :href="repositoryUrl" target="_blank"><GitHubIcon /></a>
-		<a :href="repositoryUrl" target="_blank">Accountable v{{ version }}</a>
-	</div>
+	<a :href="repositoryUrl" target="_blank" title="Check out this project's GitHub"
+		>Accountable v{{ version }}</a
+	>
 </template>
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-.version {
-	display: flex;
-	flex-flow: row nowrap;
+a {
 	color: color($secondary-label);
-	margin: 0;
+	text-decoration: none;
 
-	.icon {
-		margin-right: 4pt;
-	}
-
-	a {
-		color: color($secondary-label);
-		text-decoration: none;
-
-		@media (hover: hover) {
-			&:hover {
-				text-decoration: underline;
-			}
+	@media (hover: hover) {
+		&:hover {
+			text-decoration: underline;
 		}
 	}
 }

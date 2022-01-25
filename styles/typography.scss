@@ -82,6 +82,16 @@ p {
 	transition: color $color-transition-duration;
 }
 
+a {
+	text-decoration: none;
+
+	@media (hover: hover) {
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
 ul,
 ol {
 	margin-top: 0.5rem;

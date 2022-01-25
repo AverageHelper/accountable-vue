@@ -9,6 +9,7 @@ interface Page {
 
 const pages = computed<Array<Page>>(() => [
 	{ path: "/", title: "Home" },
+	{ path: "/about", title: "About" },
 	{ path: "/login", title: "Login" },
 ]);
 
@@ -32,13 +33,12 @@ const currentPath = computed(() => route.path);
 			<span class="navbar-toggler-icon" />
 		</button>
 
-		<!-- TODO: Change these styles. Too similar to lab 1 -->
 		<div id="navbarSupportedContent" class="collapse navbar-collapse">
 			<ul class="navbar-nav mr-auto">
 				<li
 					v-for="page in pages"
 					:key="page.path"
-					class="nav-item active"
+					class="nav-item"
 					:class="{ active: currentPath === page.path }"
 				>
 					<router-link
@@ -55,6 +55,7 @@ const currentPath = computed(() => route.path);
 </template>
 
 <style scoped lang="scss">
+@use "styles/colors" as *;
 @import "styles/bootstrap"; // Let's only use this here, if we can
 
 .navbar-brand {
@@ -73,5 +74,15 @@ ul,
 	right: 0;
 	margin: 0;
 	margin-right: 8pt;
+}
+
+.active {
+	font-weight: bold;
+}
+
+nav.navbar {
+	.nav-item.active {
+		color: color($link);
+	}
 }
 </style>

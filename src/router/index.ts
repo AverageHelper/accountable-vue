@@ -1,4 +1,5 @@
 import type { NavigationGuard, RouteRecordRaw } from "vue-router";
+import About from "../About.vue";
 import Accounts from "../components/accounts/Accounts.vue";
 import AccountView from "../components/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
@@ -26,7 +27,7 @@ import { useAuthStore } from "../store/authStore";
 
 export const APP_ROOTS = appTabs //
 	.map(tab => `/${tab}`)
-	.concat(["/", "/login"]);
+	.concat(["/", "/about", "/login"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -95,7 +96,10 @@ export const router = createRouter({
 		{
 			path: "/",
 			component: Home,
-			// redirect: "/login",
+		},
+		{
+			path: "/about",
+			component: About,
 		},
 		{
 			path: "/logout",

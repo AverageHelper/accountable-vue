@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
-import AppVersion from "./AppVersion.vue";
 import ErrorNotice from "./ErrorNotice.vue";
+import Footer from "../Footer.vue";
 import TextField from "./TextField.vue";
 import { bootstrap, isWrapperInstantiated } from "../transport";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
@@ -119,8 +119,11 @@ async function submit() {
 </script>
 
 <template>
-	<ErrorNotice :error="bootstrapError" />
-	<form v-if="!bootstrapError" @submit.prevent="submit">
+	<main v-if="bootstrapError" class="content">
+		<ErrorNotice :error="bootstrapError" />
+		<Footer />
+	</main>
+	<form v-else @submit.prevent="submit">
 		<TextField
 			ref="accountIdField"
 			v-model="accountId"
@@ -171,6 +174,6 @@ async function submit() {
 			</p>
 		</div>
 
-		<AppVersion v-if="!isLoading" />
+		<Footer />
 	</form>
 </template>
