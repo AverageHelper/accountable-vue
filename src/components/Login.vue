@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
 import AppVersion from "./AppVersion.vue";
+import ErrorNotice from "./ErrorNotice.vue";
 import TextField from "./TextField.vue";
+import { bootstrap, isWrapperInstantiated } from "../transport";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -13,6 +15,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isLoggedIn = computed(() => auth.uid !== null);
+const bootstrapError = ref<Error | null>(null);
 const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
@@ -27,6 +30,17 @@ const passwordField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
 	accountIdField.value?.focus();
+
+	if (isWrapperInstantiated()) return;
+	try {
+		bootstrap();
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			bootstrapError.value = error;
+		} else {
+			bootstrapError.value = new Error(JSON.stringify(error));
+		}
+	}
 });
 
 watch(mode, mode => {
@@ -105,7 +119,8 @@ async function submit() {
 </script>
 
 <template>
-	<form @submit.prevent="submit">
+	<ErrorNotice :error="bootstrapError" />
+	<form v-if="!bootstrapError" @submit.prevent="submit">
 		<TextField
 			ref="accountIdField"
 			v-model="accountId"
