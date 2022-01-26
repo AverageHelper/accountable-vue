@@ -8,7 +8,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 
 <template>
 	<main class="content">
-		<p class="tagline">Free, open-source, respectful digital financial records.</p>
+		<p class="tagline">Respectful digital financial records.</p>
 
 		<!-- Get started now -->
 		<section id="get-started">
@@ -20,14 +20,14 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 			</router-link>
 		</section>
 
-		<!-- Your money, where it's been, in your pocket -->
+		<!-- Your money, where it's been -->
 		<section id="ledger">
 			<LedgerIcon class="section-icon" />
-			<h1>Keep Yourself Accountable</h1>
-			<p>Keep a close eye on your spending.</p>
+			<h1>Accountable To Yourself.</h1>
 			<p
-				>If you're the sort to be obsessive about where your money is going, this might be the tool
-				for you.</p
+				>Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess
+				about where your money is going,
+				<router-link to="/about">this might be the tool for you</router-link>.</p
 			>
 		</section>
 
@@ -37,19 +37,18 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 			<h1>Your Ledger, Not Mine.</h1>
 			<p
 				>Accountable, by design, cannot see your data, even on our own servers. We don't need or
-				want to see what you do with your money. That's not my job.</p
-			>
-			<p>I'd rather you didn't do illegal stuff with this. (I shouldn't have to say that, wow.)</p>
+				want to see what you do with your money. That's not my job.
+				<small>(I'd rather you <em>not</em> do illegal stuff with this.)</small>
+			</p>
 		</section>
 
 		<!-- Open-source and Free -->
 		<section id="open-source">
 			<OpenSourceIcon class="section-icon" />
-			<h1>Keep Me Accountable</h1>
-			<p>Always open-source, free to host yourself</p>
+			<h1>Keep Me Accountable.</h1>
 			<ul>
-				<li>You can see everything Accountable does on our GitHub page.</li>
-				<li>Open-source, with a copy-left license.</li>
+				<li>All of Accountable's source code is open to read.</li>
+				<li>Let me know if anything needs fixed.</li>
 			</ul>
 		</section>
 
@@ -58,6 +57,8 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 </template>
 
 <style scoped lang="scss">
+@use "styles/setup" as *;
+
 .tagline {
 	text-align: center;
 }
@@ -72,6 +73,15 @@ section {
 	.section-icon {
 		float: right;
 		margin-left: 24pt;
+		margin-bottom: 24pt;
+	}
+
+	@include mq($until: mobile) {
+		.section-icon {
+			float: initial;
+			margin: 24pt auto;
+			margin-top: 0;
+		}
 	}
 
 	&#get-started {

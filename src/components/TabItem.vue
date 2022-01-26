@@ -65,6 +65,7 @@ const label = computed<string>(() => {
 	@media (hover: hover) {
 		&:hover {
 			background: color($gray4);
+			text-decoration: none;
 		}
 	}
 }

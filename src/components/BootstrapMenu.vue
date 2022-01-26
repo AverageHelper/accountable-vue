@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import "bootstrap";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
 interface Page {
 	path: string;
 	title: string;
 }
+
+const navButton = ref<HTMLButtonElement | null>(null);
 
 const pages = computed<Array<Page>>(() => [
 	{ path: "/", title: "Home" },
@@ -17,6 +20,16 @@ const pages = computed<Array<Page>>(() => [
 
 const route = useRoute();
 const currentPath = computed(() => route.path);
+
+/**
+ * Clicks the nav button if Bootstrap indicates that the menu is open.
+ */
+function closeNav() {
+	const button = navButton.value;
+	// For some reason, button.ariaExpanded is undefined, even when button is defined
+	const isExpanded = button?.attributes.getNamedItem("aria-expanded")?.value === "true";
+	if (isExpanded) button?.click();
+}
 </script>
 
 <template>
@@ -24,20 +37,20 @@ const currentPath = computed(() => route.path);
 		<router-link to="/" class="navbar-brand" role="text" aria-label="Accountable"
 			>A&cent;countable</router-link
 		>
-		<!-- FIXME: toggler does nothing rn -->
 		<button
+			ref="navButton"
 			class="navbar-toggler"
 			type="button"
-			data-toggle="collapse"
-			data-target="#navbarSupportedContent"
-			aria-controls="navbarSupportedContent"
+			data-bs-toggle="collapse"
+			data-bs-target="#navbarNav"
+			aria-controls="navbarNav"
 			aria-expanded="false"
 			aria-label="Toggle navigation"
 		>
 			<span class="navbar-toggler-icon" />
 		</button>
 
-		<div id="navbarSupportedContent" class="collapse navbar-collapse">
+		<div id="navbarNav" class="collapse navbar-collapse">
 			<ul class="navbar-nav mr-auto">
 				<li
 					v-for="page in pages"
@@ -49,6 +62,7 @@ const currentPath = computed(() => route.path);
 						class="nav-link"
 						:class="{ active: currentPath === page.path }"
 						:to="page.path"
+						@click="closeNav"
 						>{{ page.title }}
 						<span v-if="currentPath === page.path" class="visually-hidden">(current)</span>
 					</router-link>
@@ -59,6 +73,7 @@ const currentPath = computed(() => route.path);
 </template>
 
 <style scoped lang="scss">
+@use "styles/setup" as *;
 @use "styles/colors" as *;
 @import "styles/bootstrap"; // Let's only use this here, if we can
 
@@ -71,6 +86,14 @@ const currentPath = computed(() => route.path);
 	font-size: x-large;
 }
 
+@include mq($until: desktop) {
+	.navbar-brand {
+		width: 100%;
+		text-align: left;
+		margin-left: 16pt;
+	}
+}
+
 ul,
 .navbar-toggler {
 	list-style-type: none;
@@ -78,6 +101,22 @@ ul,
 	right: 0;
 	margin: 0;
 	margin-right: 8pt;
+}
+
+@include mq($until: 575px) {
+	.navbar {
+		position: relative;
+
+		&-nav {
+			z-index: 100;
+			margin-right: 0;
+			margin-top: 22pt;
+			padding: 0 8pt;
+			text-align: right;
+			width: 100%;
+			background-color: color($navbar-background);
+		}
+	}
 }
 
 .active {

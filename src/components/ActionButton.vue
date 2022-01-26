@@ -99,12 +99,12 @@ button {
 			}
 
 			&-primary {
-				background-color: color($blue);
+				background-color: color($green);
 				color: color($label-dark);
 
 				@media (hover: hover) {
 					&:hover {
-						background-color: color($blue-highlight);
+						background-color: color($green-highlight);
 					}
 				}
 			}

@@ -22,7 +22,7 @@ function goBack() {
 
 <template>
 	<nav class="navbar">
-		<aside class="leading-actions actions-container">
+		<aside v-if="isLoggedIn" class="leading-actions actions-container">
 			<ActionButton v-show="!isRoute" @click="goBack">
 				<span>&lt;</span>
 			</ActionButton>
