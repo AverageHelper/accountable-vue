@@ -124,8 +124,16 @@ ul,
 }
 
 nav.navbar {
-	.nav-item.active {
-		color: color($link);
+	.nav-item {
+		&.active {
+			color: color($link);
+		}
+
+		@media (hover: hover) {
+			.nav-link:hover {
+				text-decoration: none;
+			}
+		}
 	}
 }
 </style>
