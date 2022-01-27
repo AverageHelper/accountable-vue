@@ -5,9 +5,9 @@ import AccountView from "../components/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
 import Home from "../Home.vue";
+import Install from "../Install.vue";
 import Locations from "../components/locations/Locations.vue";
 import Login from "../components/Login.vue";
-import Pricing from "../Pricing.vue";
 import Security from "../Security.vue";
 import Settings from "../components/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
@@ -29,7 +29,7 @@ import { useAuthStore } from "../store/authStore";
 
 export const APP_ROOTS = appTabs //
 	.map(tab => `/${tab}`)
-	.concat(["/", "/about", "/security", "/pricing", "/login"]);
+	.concat(["/", "/about", "/security", "/install", "/login"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -108,8 +108,8 @@ export const router = createRouter({
 			component: Security,
 		},
 		{
-			path: "/pricing",
-			component: Pricing,
+			path: "/install",
+			component: Install,
 		},
 		{
 			path: "/logout",
