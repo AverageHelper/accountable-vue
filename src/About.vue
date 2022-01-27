@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ExternalLink from "./components/ExternalLink.vue";
 import Footer from "./Footer.vue";
+import OutLink from "./components/OutLink.vue";
 </script>
 
 <template>
@@ -9,58 +9,49 @@ import Footer from "./Footer.vue";
 		<p
 			>The aim of Accountable is to be a cross-platform and portable spot to keep your transaction
 			records and receipts. I plan to have proper mobile clients eventually. The
-			<ExternalLink to="https://en.wikipedia.org/wiki/Self-hosting_(web_services)"
-				>self-host</ExternalLink
-			>
+			<OutLink to="https://en.wikipedia.org/wiki/Self-hosting_(web_services)">self-host</OutLink>
 			option will always be available, and I intend for this project to always be
-			<ExternalLink to="https://en.wikipedia.org/wiki/Open-source_software"
-				>open-source</ExternalLink
-			>. You will always have access to the financial records that you give to Accountable, and
-			Accountable cannot share those records with anyone else.</p
+			<OutLink to="https://en.wikipedia.org/wiki/Open-source_software">open-source</OutLink>. You
+			will always have access to the financial records that you give to Accountable, and Accountable
+			cannot share those records with anyone else.</p
 		>
 
 		<h1 id="alternatives">Alternatives</h1>
 		<p
 			>There are a few
-			<ExternalLink to="https://opensource.com/life/17/10/personal-finance-tools-linux"
-				>open-source desktop balance keepers</ExternalLink
+			<OutLink to="https://opensource.com/life/17/10/personal-finance-tools-linux"
+				>open-source desktop balance keepers</OutLink
 			>
 			out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use
 			them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of
 			their owners:</p
 		>
 		<ul>
-			<li
-				>You may have heard of
-				<ExternalLink to="https://www.youneedabudget.com">YNAB</ExternalLink>.</li
+			<li>You may have heard of <OutLink to="https://www.youneedabudget.com">YNAB</OutLink>.</li>
+			<li>
+				<OutLink to="https://www.intuit.com">Intuit</OutLink> makes
+				<OutLink to="https://mint.intuit.com">Mint</OutLink>. These guys also make
+				<OutLink to="https://turbotax.intuit.com">TurboTax</OutLink> and other fintech products you
+				might have heard about.</li
 			>
 			<li>
-				<ExternalLink to="https://www.intuit.com">Intuit</ExternalLink> makes
-				<ExternalLink to="https://mint.intuit.com">Mint</ExternalLink>. These guys also make
-				<ExternalLink to="https://turbotax.intuit.com">TurboTax</ExternalLink> and other fintech
-				products you might have heard about.</li
-			>
-			<li>
-				<ExternalLink to="https://www.ramseysolutions.com/">Dave Ramsey</ExternalLink> makes
-				<ExternalLink to="https://www.ramseysolutions.com/ramseyplus/everydollar"
-					>EveryDollar</ExternalLink
-				>. I subscribe to many of Ramsey's financial principles. Stay out of debt, folks.</li
+				<OutLink to="https://www.ramseysolutions.com/">Dave Ramsey</OutLink> makes
+				<OutLink to="https://www.ramseysolutions.com/ramseyplus/everydollar">EveryDollar</OutLink>.
+				I subscribe to many of Ramsey's financial principles. Stay out of debt, folks.</li
 			>
 			<li
 				>There are
-				<ExternalLink to="https://www.nerdwallet.com/article/finance/best-budget-apps"
-					>lots of others</ExternalLink
+				<OutLink to="https://www.nerdwallet.com/article/finance/best-budget-apps"
+					>lots of others</OutLink
 				>, but I've only tried these. Check them out if you're curious! I'm sure they're great.</li
 			>
 		</ul>
 		<p
 			>I'm sure these are brilliant, but none of them are
-			<ExternalLink to="https://en.wikipedia.org/wiki/Open-source_software"
-				>open-source</ExternalLink
-			>. All of these keep your data for you, and hang onto the encryption keys to that data;
-			they're not
-			<ExternalLink to="https://en.wikipedia.org/wiki/End-to-end_encryption"
-				>end-to-end encrypted</ExternalLink
+			<OutLink to="https://en.wikipedia.org/wiki/Open-source_software">open-source</OutLink>. All of
+			these keep your data for you, and hang onto the encryption keys to that data; they're not
+			<OutLink to="https://en.wikipedia.org/wiki/End-to-end_encryption"
+				>end-to-end encrypted</OutLink
 			>. I don't know what all they do with your data, and I don't trust them to tell you.</p
 		>
 		<p

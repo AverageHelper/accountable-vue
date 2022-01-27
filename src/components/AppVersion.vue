@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ExternalLink from "./ExternalLink.vue";
+import OutLink from "./OutLink.vue";
 import { computed } from "vue";
 import { version as v } from "../version";
 
@@ -10,7 +10,7 @@ const repositoryUrl = computed(
 </script>
 
 <template>
-	<ExternalLink :to="repositoryUrl" title="Check out this project's GitHub"
-		>Accountable v{{ version }}</ExternalLink
+	<OutLink :to="repositoryUrl" title="Check out this project's GitHub"
+		>Accountable v{{ version }}</OutLink
 	>
 </template>

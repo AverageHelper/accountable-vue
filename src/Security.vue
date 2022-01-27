@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Footer from "./Footer.vue";
-import OutLink from "./components/ExternalLink.vue";
+import OutLink from "./components/OutLink.vue";
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import type { LocationPref } from "../../transport";
 import ActionButton from "../ActionButton.vue";
 import Checkmark from "../../icons/Checkmark.vue";
-import ExternalLink from "../ExternalLink.vue";
+import OutLink from "../OutLink.vue";
 import { computed, ref, onMounted, watch } from "vue";
 import { locationPrefs } from "../../transport";
 import { useAuthStore } from "../../store/authStore";
@@ -92,8 +92,7 @@ async function submitNewLocationPref() {
 		<p style="font-size: small"
 			>Note that we have no "automatic" location features. We only fetch your current location when
 			you press a button to request it. We use the
-			<ExternalLink to="https://www.iplocate.io">IPLocate</ExternalLink> API to obtain vague
-			location data.</p
+			<OutLink to="https://www.iplocate.io">IPLocate</OutLink> API to obtain vague location data.</p
 		>
 
 		<div class="buttons">

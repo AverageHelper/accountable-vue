@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppVersion from "./components/AppVersion.vue";
-import ExternalLink from "./components/ExternalLink.vue";
 import GitHubIcon from "./icons/GitHub.vue";
+import OutLink from "./components/OutLink.vue";
 </script>
 
 <template>
@@ -9,29 +9,27 @@ import GitHubIcon from "./icons/GitHub.vue";
 		<p><AppVersion /></p>
 		<p
 			>This project is licensed under the
-			<ExternalLink
+			<OutLink
 				to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
 				title="View the full license"
-				>GNU General Public License v3.0</ExternalLink
+				>GNU General Public License v3.0</OutLink
 			>.</p
 		>
 		<p
 			>Feel free to
-			<ExternalLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
-				>open an issue</ExternalLink
+			<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
+				>open an issue</OutLink
 			>
 			or submit a pull request on this project's
-			<ExternalLink href="https://github.com/AverageHelper/accountable-vue"
-				>GitHub page</ExternalLink
-			>.</p
+			<OutLink href="https://github.com/AverageHelper/accountable-vue">GitHub page</OutLink>.</p
 		>
 		<p>
-			<ExternalLink
+			<OutLink
 				href="https://github.com/AverageHelper/accountable-vue"
 				title="View this project's source code"
 			>
 				<GitHubIcon alt="Check out my GitHub" title="Check out my GitHub" />
-			</ExternalLink>
+			</OutLink>
 		</p>
 	</footer>
 </template>
