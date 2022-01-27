@@ -35,9 +35,13 @@ $ npm -v
 
 ```sh
 # .env
-# Vite pulls this in at build time
+# Vite pulls these in at build time
 
+# Where your server lives
 VITE_ACCOUNTABLE_SERVER_URL={your server URL here}:40850
+
+# Enables the "Login" menu item
+VITE_ENABLE_LOGIN=true
 ```
 
 #### Compile from source

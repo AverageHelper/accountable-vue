@@ -9,14 +9,22 @@ interface Page {
 }
 
 const navButton = ref<HTMLButtonElement | null>(null);
+const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true");
 
-const pages = computed<Array<Page>>(() => [
-	{ path: "/", title: "Home" },
-	{ path: "/about", title: "About" },
-	{ path: "/security", title: "Security" },
-	{ path: "/pricing", title: "Pricing" },
-	{ path: "/login", title: "Login" },
-]);
+const pages = computed<Array<Page>>(() => {
+	const pages = [
+		{ path: "/", title: "Home" },
+		{ path: "/about", title: "About" },
+		{ path: "/security", title: "Security" },
+		{ path: "/pricing", title: "Pricing" },
+	];
+
+	if (loginEnabled.value) {
+		pages.push({ path: "/login", title: "Login" });
+	}
+
+	return pages;
+});
 
 const route = useRoute();
 const currentPath = computed(() => route.path);
