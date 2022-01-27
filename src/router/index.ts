@@ -1,15 +1,19 @@
 import type { NavigationGuard, RouteRecordRaw } from "vue-router";
+import About from "../About.vue";
 import Accounts from "../components/accounts/Accounts.vue";
 import AccountView from "../components/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../components/EmptyRoute.vue";
+import Home from "../Home.vue";
 import Locations from "../components/locations/Locations.vue";
 import Login from "../components/Login.vue";
+import Pricing from "../Pricing.vue";
+import Security from "../Security.vue";
 import Settings from "../components/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
 import TransactionView from "../components/transactions/TransactionView.vue";
+import { appTabs } from "../model/ui/tabs";
 import { createRouter, createWebHistory } from "vue-router";
-import { allTabs } from "../model/ui/tabs";
 import { useAuthStore } from "../store/authStore";
 
 // See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
@@ -23,9 +27,9 @@ import { useAuthStore } from "../store/authStore";
 // 	}
 // }
 
-export const APP_ROOTS = allTabs //
+export const APP_ROOTS = appTabs //
 	.map(tab => `/${tab}`)
-	.concat(["/login"]);
+	.concat(["/", "/about", "/security", "/pricing", "/login"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -93,7 +97,19 @@ export const router = createRouter({
 	routes: [
 		{
 			path: "/",
-			redirect: "/login",
+			component: Home,
+		},
+		{
+			path: "/about",
+			component: About,
+		},
+		{
+			path: "/security",
+			component: Security,
+		},
+		{
+			path: "/pricing",
+			component: Pricing,
 		},
 		{
 			path: "/logout",

@@ -146,7 +146,7 @@
 			}
 		},
 		{
-			"files": ["*.js"],
+			"files": ["*.js", "*.cjs"],
 			"parser": "null"
 		}
 	]

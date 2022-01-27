@@ -1,16 +1,17 @@
 {
 	"name": "accountable-vue",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"license": "GPL-3.0",
 	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
 		"start": "./node_modules/.bin/concurrently -rkn SERVER,APP -s first \"npm run dev:server\" \"npm run dev:client\"",
 		"test": "jest",
 		"test:watch": "npm run test -- --watch",
+		"vite:build": "./node_modules/.bin/vite build",
 		"dev:client": "./node_modules/.bin/vite",
 		"dev:server": "cd ./server && npm start",
 		"prod:server": "NODE_ENV=production node ./server",
-		"build:client": "npm run lint && rm -rf ./dist && ./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json && ./node_modules/.bin/vite build",
+		"build:client": "npm run lint && rm -rf ./dist && ./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json && npm run vite:build",
 		"build:server": "cd ./server && npm run build",
 		"build": "npm run build:client && npm run build:server",
 		"serve": "./node_modules/.bin/vite preview",
@@ -22,6 +23,7 @@
 	"dependencies": {
 		"@averagehelper/job-queue": "^1.0.1",
 		"atob-lite": "^2.0.0",
+		"bootstrap": "^5.1.3",
 		"btoa-lite": "^1.0.0",
 		"crypto-js": "^4.1.1",
 		"dinero.js": "^2.0.0-alpha.8",
@@ -39,6 +41,7 @@
 		"vue3-date-time-picker": "^2.1.8"
 	},
 	"devDependencies": {
+		"@fullhuman/postcss-purgecss": "^4.1.3",
 		"@types/atob-lite": "^2.0.0",
 		"@types/btoa-lite": "^1.0.0",
 		"@types/crypto-js": "^4.0.2",
@@ -50,6 +53,7 @@
 		"@typescript-eslint/parser": "^5.1.0",
 		"@vitejs/plugin-vue": "^1.9.3",
 		"@vue/eslint-config-typescript": "^8.0.0",
+		"autoprefixer": "^10.4.2",
 		"concurrently": "^6.4.0",
 		"eslint": "^7.32.0",
 		"eslint-config-prettier": "^8.3.0",
@@ -64,6 +68,7 @@
 		"jest": "^27.3.1",
 		"jest-environment-node": "^27.3.1",
 		"jest-extended": "^1.1.0",
+		"postcss": "^8.4.5",
 		"prettier": "^2.4.1",
 		"sass": "^1.42.1",
 		"sass-mq": "^6.0.0-beta.1",

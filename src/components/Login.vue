@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
-import AppVersion from "./AppVersion.vue";
+import ErrorNotice from "./ErrorNotice.vue";
+import Footer from "../Footer.vue";
 import TextField from "./TextField.vue";
+import { bootstrap, isWrapperInstantiated } from "../transport";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -13,6 +15,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isLoggedIn = computed(() => auth.uid !== null);
+const bootstrapError = ref<Error | null>(null);
 const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
@@ -27,6 +30,17 @@ const passwordField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
 	accountIdField.value?.focus();
+
+	if (isWrapperInstantiated()) return;
+	try {
+		bootstrap();
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			bootstrapError.value = error;
+		} else {
+			bootstrapError.value = new Error(JSON.stringify(error));
+		}
+	}
 });
 
 watch(mode, mode => {
@@ -105,7 +119,11 @@ async function submit() {
 </script>
 
 <template>
-	<form @submit.prevent="submit">
+	<main v-if="bootstrapError" class="content">
+		<ErrorNotice :error="bootstrapError" />
+		<Footer />
+	</main>
+	<form v-else @submit.prevent="submit">
 		<TextField
 			ref="accountIdField"
 			v-model="accountId"
@@ -148,14 +166,14 @@ async function submit() {
 		<div v-if="!isLoading">
 			<p v-if="isLoginMode"
 				>Need to create an account?
-				<a href="#" @click="enterSignupMode">Create one here.</a>
+				<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
 			</p>
 			<p v-if="isSignupMode"
 				>Already have an account?
-				<a href="#" @click="enterLoginMode">Log in here.</a>
+				<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
 			</p>
 		</div>
 
-		<AppVersion v-if="!isLoading" />
+		<Footer />
 	</form>
 </template>

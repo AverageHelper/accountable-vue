@@ -32,11 +32,12 @@ h3,
 h4,
 h5,
 h6 {
+	margin: auto;
+	max-width: 600pt;
 	font-weight: 700;
 	line-height: 1.2;
-	margin-bottom: 0;
-	margin-top: 0.75em;
-	margin-bottom: 0.5em;
+	margin-top: 28pt;
+	margin-bottom: 14pt;
 	color: color($label);
 	transition: color $color-transition-duration;
 }
@@ -76,16 +77,37 @@ h6 {
 }
 
 p {
+	margin: auto;
 	margin-top: 0;
 	margin-bottom: 1.2rem;
+	max-width: 600pt;
 	color: color($label);
 	transition: color $color-transition-duration;
+	line-height: 1.8;
+	text-align: justify;
+}
+
+section {
+	margin: 0 auto;
+	max-width: 600pt;
+}
+
+a {
+	text-decoration: none;
+
+	@media (hover: hover) {
+		&:hover {
+			text-decoration: underline;
+		}
+	}
 }
 
 ul,
 ol {
+	margin: auto;
 	margin-top: 0.5rem;
 	margin-bottom: 1.5rem;
+	max-width: 600pt;
 }
 
 ul ul,
@@ -156,7 +178,6 @@ textarea {
 	height: 5em;
 	margin: 1em auto -0.5em;
 	display: block;
-	color: color($gray4);
 
 	&.icon {
 		text-align: center;

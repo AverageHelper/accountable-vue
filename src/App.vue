@@ -1,45 +1,25 @@
 <script setup lang="ts">
-import ErrorNotice from "./components/ErrorNotice.vue";
 import Navbar from "./components/Navbar.vue";
-import { bootstrap, isWrapperInstantiated } from "./transport";
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useUiStore } from "./store/uiStore";
 
 const ui = useUiStore();
 
-const bootstrapError = ref<Error | null>(null);
-
 onMounted(() => {
 	ui.watchColorScheme();
-	if (isWrapperInstantiated()) return;
-
-	try {
-		bootstrap();
-	} catch (error: unknown) {
-		if (error instanceof Error) {
-			bootstrapError.value = error;
-		} else {
-			bootstrapError.value = new Error(JSON.stringify(error));
-		}
-	}
 });
 </script>
 
 <template>
 	<Navbar />
-	<main class="content">
-		<ErrorNotice :error="bootstrapError" />
-		<template v-if="!bootstrapError">
+	<keep-alive>
+		<router-view />
+	</keep-alive>
+	<!-- <router-view v-slot="{ Component }">
 			<keep-alive>
-				<router-view />
+				<component :is="Component" />
 			</keep-alive>
-			<!-- <router-view v-slot="{ Component }">
-				<keep-alive>
-					<component :is="Component" />
-				</keep-alive>
-			</router-view> -->
-		</template>
-	</main>
+		</router-view> -->
 	<div id="modal" />
 </template>
 
@@ -59,7 +39,7 @@ body {
 
 main.content {
 	margin: 0;
-	padding: 1em;
+	padding: 16pt 24pt;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	height: calc(100vh - 44pt);
