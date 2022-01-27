@@ -16,7 +16,7 @@ const pages = computed<Array<Page>>(() => {
 		{ path: "/", title: "Home" },
 		{ path: "/about", title: "About" },
 		{ path: "/security", title: "Security" },
-		{ path: "/pricing", title: "Pricing" },
+		{ path: "/install", title: "Install" },
 	];
 
 	if (loginEnabled.value) {
