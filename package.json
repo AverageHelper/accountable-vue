@@ -1,6 +1,6 @@
 {
 	"name": "accountable-vue",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"license": "GPL-3.0",
 	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
@@ -11,7 +11,7 @@
 		"dev:client": "./node_modules/.bin/vite",
 		"dev:server": "cd ./server && npm start",
 		"prod:server": "NODE_ENV=production node ./server",
-		"build:client": "npm run lint && rm -rf ./dist && ./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json && ./node_modules/.bin/vite build",
+		"build:client": "npm run lint && rm -rf ./dist && ./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json && npm run vite:build",
 		"build:server": "cd ./server && npm run build",
 		"build": "npm run build:client && npm run build:server",
 		"serve": "./node_modules/.bin/vite preview",
