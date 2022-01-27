@@ -8,12 +8,17 @@ import OutLink from "./components/OutLink.vue";
 		<h1>Security FAQs</h1>
 		<!-- FIXME: This document is a draft. Please take everything here with a grain of *salt* ;) -->
 
-		<!-- <h2>TL;DR</h2> -->
 		<p><strong>TL;DR</strong> Your data is unreadable by anyone but you (as far as I know.)</p>
 
 		<!-- What kind of encryption? -->
 		<h2>What sort of encryption does Accountable do?</h2>
-		<p>We use only the best "military-grade" encryption everyone else uses.</p>
+		<p
+			>We use only the best
+			<OutLink to="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard"
+				>&quot;military-grade encryption&quot;</OutLink
+			>
+			everyone else uses.</p
+		>
 
 		<!-- Who does encryption? Who has keys? -->
 		<h2>Who holds the encryption keys?</h2>
@@ -86,7 +91,7 @@ import OutLink from "./components/OutLink.vue";
 			easily-cracked. Give it a go!) Without your password, nobody can generate the KEK that
 			encrypts the DEK that encrypts your data. Without that password, your data is lost.</p
 		>
-		<p>Don't lose your password.</p>
+		<p><OutLink to="https://bitwarden.com">Don't lose your password.</OutLink></p>
 
 		<!-- Database loss -->
 		<h2>What happens if someone steals the database?</h2>
