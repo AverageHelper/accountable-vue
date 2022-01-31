@@ -1,6 +1,6 @@
 {
 	"name": "server",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"scripts": {
 		"export-version": "./node_modules/.bin/genversion ./version.ts -es",
 		"prebuild": "rm -rf ./dist && npm run export-version",
