@@ -39,9 +39,9 @@ VITE_ACCOUNTABLE_SERVER_URL={your Accountable backend URL here}:40850
 VITE_ENABLE_LOGIN=true
 ```
 
-Note: If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
-
-Using `localhost` for this will cause clients to try _themselves_ as the Accountable server, and that's usually not what you want.
+> Note: If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
+>
+> Using `localhost` for this will cause clients to try _themselves_ as the Accountable server, and that's usually not what you want.
 
 #### Compile and Run the Client
 
@@ -52,13 +52,13 @@ $ npm run build:client:quick  # Compile the client
 $ npm run dev:client          # Start a local webserver
 ```
 
-Note: The build script injects your .env values at build time. If you must change .env, remember to re-build the client.
+> Note: The build script injects your .env values at build time. If you must change .env, remember to re-build the client.
 
 Vite will print a URL in your terminal to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
 
 I recommend you deploy the client (the contents of the `accountable-vue/dist` folder) on a webserver like [nginx](https://nginx.org/en/).
 
-Note: DO NOT FORGET your Accountable ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
+> Note: DO NOT FORGET your Accountable ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
 #### Compile and Run the Server
 
