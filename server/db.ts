@@ -123,7 +123,7 @@ export function db(this: void): Router {
 				if (!ref) throw new NotFoundError();
 
 				const item = await getDocument(ref);
-				console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
+				// console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
 				respondData(res, item);
 			})
 		)

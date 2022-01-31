@@ -69,7 +69,7 @@ export async function downloadString(ref: StorageReference): Promise<string> {
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `users/${uid}/attachments/${ref.name}`;
+	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
 	const url = new URL(itemPath, ref.db.url);
 	return await downloadFrom(url, jwt);
 }
@@ -86,7 +86,7 @@ export async function uploadString(ref: StorageReference, value: string): Promis
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `users/${uid}/attachments/${ref.name}`;
+	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
 	const url = new URL(itemPath, ref.db.url);
 	await uploadTo(url, value, jwt);
 }
@@ -103,7 +103,7 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `users/${uid}/attachments/${ref.name}`;
+	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
 	const url = new URL(itemPath, ref.db.url);
 	await deleteAt(url, jwt);
 }

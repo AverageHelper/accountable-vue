@@ -21,37 +21,35 @@ function transactionRef(transaction: Transaction): DocumentReference<Transaction
 	return doc<TransactionRecordPackage>(db, "transactions", id);
 }
 
-export function transactionsCollection(
-	account: Account
-): CollectionReference<TransactionRecordPackage> {
-	// FIXME: Does this properly filter transactions by account?
+export function transactionsCollection(): CollectionReference<TransactionRecordPackage> {
 	return collection<TransactionRecordPackage>(db, "transactions");
 }
 
 export function transactionFromSnapshot(
-	accountId: string,
 	doc: QueryDocumentSnapshot<TransactionRecordPackage>,
 	dek: HashStore
 ): Transaction {
 	const { id, record } = recordFromSnapshot(doc, dek, Transaction.isRecord);
-	return new Transaction(accountId, id, record);
+	return new Transaction(id, record);
 }
 
 export async function getTransactionsForAccount(
 	account: Account,
 	dek: HashStore
 ): Promise<Dictionary<Transaction>> {
-	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection(account));
+	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection());
 
 	const result: Dictionary<Transaction> = {};
 	for (const doc of snap.docs) {
-		result[doc.id] = transactionFromSnapshot(account.id, doc, dek);
+		const transaction = transactionFromSnapshot(doc, dek);
+		if (transaction.accountId === account.id) {
+			result[doc.id] = transaction;
+		}
 	}
 	return result;
 }
 
 export async function createTransaction(
-	account: Account,
 	record: TransactionRecordParams,
 	dek: HashStore,
 	batch?: WriteBatch
@@ -60,13 +58,13 @@ export async function createTransaction(
 		objectType: "Transaction",
 	};
 	const pkg = encrypt(record, meta, dek);
-	const ref = doc(transactionsCollection(account));
+	const ref = doc(transactionsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Transaction(account.id, ref.id, record);
+	return new Transaction(ref.id, record);
 }
 
 export async function updateTransaction(

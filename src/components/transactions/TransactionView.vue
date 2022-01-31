@@ -125,16 +125,20 @@ function cancelDeleteFile() {
 async function onFileReceived(file: File) {
 	if (!transaction.value) return;
 
-	const metadata = {
-		type: file.type,
-		title: file.name,
-		notes: null,
-		createdAt: new Date(),
-	};
-	const attachment = await attachments.createAttachment(metadata, file);
+	try {
+		const metadata = {
+			type: file.type,
+			title: file.name,
+			notes: null,
+			createdAt: new Date(),
+		};
+		const attachment = await attachments.createAttachment(metadata, file);
 
-	transaction.value.addAttachmentId(attachment.id);
-	await transactions.updateTransaction(transaction.value);
+		transaction.value.addAttachmentId(attachment.id);
+		await transactions.updateTransaction(transaction.value);
+	} catch (error: unknown) {
+		ui.handleError(error);
+	}
 }
 </script>
 
