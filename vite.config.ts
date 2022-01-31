@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import analyze from "rollup-plugin-analyzer";
+import autoprefixer from "autoprefixer";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
 import vue from "@vitejs/plugin-vue";
@@ -29,7 +30,9 @@ export default defineConfig({
 	css: {
 		postcss: {
 			plugins: [
+				autoprefixer(),
 				{
+					// Fixes a benign error about charset being improperly placed
 					postcssPlugin: "internal:charset-removal",
 					AtRule: {
 						charset: (atRule): void => {
