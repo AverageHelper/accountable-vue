@@ -2,7 +2,7 @@ import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schema
 import type { CollectionReference, DocumentReference } from "./references.js";
 import { fileURLToPath } from "url";
 import { Low, JSONFile } from "lowdb";
-import { unlink, mkdir } from "fs/promises";
+import { mkdir, rm, unlink } from "fs/promises";
 import { v4 as uuid } from "uuid";
 import path from "path";
 
@@ -51,6 +51,13 @@ async function dbForUser(uid: string): Promise<Low<UserDb>> {
 	await db.read();
 
 	return db;
+}
+
+async function destroyDbForUser(uid: string): Promise<void> {
+	if (!uid) throw new TypeError("uid should not be empty");
+
+	const folder = path.join(DB_DIR, "users", uid);
+	await rm(folder, { recursive: true, force: true });
 }
 
 export async function fetchDbCollection(
@@ -108,10 +115,12 @@ export async function upsertUser(user: User): Promise<void> {
 	const uid = user.uid;
 	if (!uid) throw new TypeError("uid property was empty");
 
+	// Upsert to index
 	const userIndex = await userIndexDb();
 	userIndex.data ??= {};
 	userIndex.data[uid] = { ...user };
 
+	// Set meetadata
 	const db = await dbForUser(uid);
 	if (!db.data) db.data = {};
 
@@ -119,9 +128,24 @@ export async function upsertUser(user: User): Promise<void> {
 	const collection = db.data["users"];
 	collection[uid] = { ...user };
 
-	// commit the databases
+	// Commit the databases
 	await userIndex.write();
 	await db.write();
+}
+
+export async function destroyUser(uid: string): Promise<void> {
+	if (!uid) throw new TypeError("uid was empty");
+
+	// Delete index
+	const userIndex = await userIndexDb();
+	userIndex.data ??= {};
+	delete userIndex.data[uid];
+
+	// Erase user data folder
+	await destroyDbForUser(uid);
+
+	// Commit the database
+	await userIndex.write();
 }
 
 export async function upsertDbDoc<T extends AnyDataItem>(

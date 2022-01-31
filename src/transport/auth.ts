@@ -1,7 +1,8 @@
+import { AccountableError } from "./AccountableError";
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
 import { doc, db, getDoc, setDoc, deleteDoc } from "./db";
-import { NotImplementedError, postTo } from "./networking";
+import { postTo } from "./networking";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
 	return doc<KeyMaterial>(db, "keys", uid);
@@ -124,8 +125,14 @@ export async function signInWithAccountIdAndPassword(
  * @param password - The user's chosen password.
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
-	// TODO: Do account activity
-	throw new NotImplementedError();
+	if (db.jwt === null || !db.jwt) throw new AccountableError("auth/unauthenticated");
+	if (!password) throw new TypeError("password parameter cannot be empty");
+
+	const leave = new URL("leave", db.url);
+	await postTo(leave, {
+		account: user.accountId,
+		password,
+	});
 }
 
 /**
