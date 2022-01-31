@@ -16,7 +16,7 @@ The aim of Accountable is to be cross-platform and portable. Eventually, I plan 
 
 ### Prerequesites
 
-This project requires Node 14 and NPM v7 or above. You can check what version you have installed by running `npm -v`:
+This project requires Node 14 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
 
 ```sh
 $ npm -v && node -v
