@@ -6,7 +6,7 @@ import { unlink, mkdir } from "fs/promises";
 import { v4 as uuid } from "uuid";
 import path from "path";
 
-async function ensure(path: string): Promise<void> {
+export async function ensure(path: string): Promise<void> {
 	process.stdout.write(`Ensuring directory is available at ${path}...\n`);
 	await mkdir(path, { recursive: true });
 }
@@ -14,7 +14,8 @@ async function ensure(path: string): Promise<void> {
 // TODO: Allow specifying a custom db directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_DIR = path.resolve(__dirname, "../../db");
+// TODO: Move storage stuffs in here too
+export const DB_DIR = path.resolve(__dirname, "../../db");
 
 /**
  * Returns a fresh document ID that is virtually guaranteed

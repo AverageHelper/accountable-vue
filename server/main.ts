@@ -1,6 +1,6 @@
 import "source-map-support/register.js";
 import "./environment.js";
-import { auth, requireAuth } from "./auth/index.js";
+import { auth } from "./auth/index.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
@@ -21,18 +21,17 @@ app
 	.use(methodOverride())
 	.use(helmet())
 	.use(cors())
-	.use(express.json())
-	.use(express.urlencoded({ extended: true }))
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
 		})
 	)
+	.use("/files", storage())
+	.use(express.json())
+	.use(express.urlencoded({ extended: true }))
 	.get("/", lol)
 	.use(auth())
 	.use("/db", db())
-	.use(requireAuth()) // require auth from here on in
-	.use("/files", storage())
 	.use(handleErrors);
 
 process.stdout.write(`NODE_ENV: ${process.env.NODE_ENV}\n`);

@@ -30,11 +30,15 @@ function attachmentRef(
 }
 
 function attachmentStorageRef(storagePath: string): StorageReference {
-	const parts = storagePath.match(/users\/(.*)\/attachments\/(.*)/gu);
-	if (parts === null) throw new TypeError(`Invalid storage ref: ${storagePath}`);
+	// For some reason, String.prototype.match does not work for this
+	const parts =
+		[...storagePath.matchAll(/users\/([\w\d]+)\/attachments\/([\w\d]+)\.json/gu)][0] ?? [];
+	const errMsg = `Invalid storage ref: ${storagePath}`;
 
-	const uid = parts[1] as string;
-	const fileName = parts[2] as string;
+	const uid = parts[1];
+	const fileName = parts[2];
+	if (uid === undefined) throw new TypeError(errMsg);
+	if (fileName === undefined) throw new TypeError(errMsg);
 	return ref(db, uid, fileName);
 }
 

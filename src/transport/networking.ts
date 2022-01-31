@@ -38,12 +38,18 @@ const OK = HttpStatusCode.OK;
 
 async function doRequest(
 	url: URL,
-	req: Omit<RequestInit, "headers">,
+	req: Omit<RequestInit, "headers"> & { headers?: Record<string, string | null> },
 	jwt?: string
 ): Promise<ServerResponse> {
 	const headers: HeadersInit = {
 		"Content-Type": "application/json",
+		...req.headers,
 	};
+	Object.entries(headers).forEach(([key, value]) => {
+		if (value === null) {
+			delete headers[key];
+		}
+	});
 	if (jwt !== undefined) {
 		headers["Authorization"] = `BEARER ${jwt}`;
 	}
@@ -80,11 +86,7 @@ async function doRequest(
 
 /** Performs a GET request at the provided URL, optionally using the given JWT. */
 export async function getFrom(url: URL, jwt?: string): Promise<ServerResponse> {
-	const response = await doRequest(url, { method: "GET" }, jwt);
-	if (response.status !== OK) {
-		throw new NetworkError(response);
-	}
-	return response;
+	return await doRequest(url, { method: "GET" }, jwt);
 }
 
 /** Performs a POST request at the provided URL using the given body and optional JWT. */
@@ -111,6 +113,17 @@ export async function uploadTo(url: URL, fileBody: string, jwt: string): Promise
 	const fileName = urlString.slice(Math.max(0, urlString.lastIndexOf("/") + 1));
 	if (!fileName) throw new TypeError(`Couldn't get file name from '${urlString}'`);
 
-	const body = new File([fileBody], "file.json", { type: "application/json" });
-	return await doRequest(url, { method: "POST", body }, jwt);
+	const file = new File([fileBody], "file.json", { type: "application/json" });
+	const body = new FormData();
+	body.append("name", file.name);
+	body.append("size", `${file.size}`);
+	body.append("type", file.type);
+	body.append("file", file);
+
+	// Don't set "Content-Type"
+	// See https://muffinman.io/blog/uploading-files-using-fetch-multipart-form-data/
+	const headers: Record<string, string | null> = {
+		"Content-Type": null,
+	};
+	return await doRequest(url, { method: "POST", headers, body }, jwt);
 }
