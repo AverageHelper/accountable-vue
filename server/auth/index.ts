@@ -3,7 +3,7 @@ import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js
 import { asyncWrapper } from "../asyncWrapper.js";
 import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
 import { Context } from "./Context.js";
-import { findUserWithProperties, upsertUser } from "../database/io.js";
+import { destroyUser, findUserWithProperties, upsertUser } from "../database/io.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
@@ -136,6 +136,43 @@ export function auth(this: void): Router {
 				.setHeader("Vary", "*")
 				.json({ message: "Success!" });
 		})
+		.post<unknown, unknown, ReqBody>(
+			"/leave",
+			throttle(),
+			asyncWrapper(async (req, res) => {
+				// Ask for full credentials, so we aren't leaning on a repeatable token
+				const givenAccountId = req.body.account;
+				const givenPassword = req.body.password;
+				if (
+					typeof givenAccountId !== "string" ||
+					typeof givenPassword !== "string" ||
+					givenAccountId === "" ||
+					givenPassword === ""
+				) {
+					throw new BadRequestError("Improper parameter types");
+				}
+
+				// ** Get credentials
+				const storedUser = await userWithAccountId(givenAccountId);
+				if (!storedUser) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Verify credentials
+				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
+				if (!isPasswordGood) {
+					throw new UnauthorizedError("Incorrect account ID or password");
+				}
+
+				// ** Delete the user
+				await destroyUser(storedUser.uid);
+
+				res
+					.setHeader("Cache-Control", cacheControl)
+					.setHeader("Vary", "*")
+					.json({ message: "Success!" });
+			})
+		)
 		.post<unknown, unknown, ReqBody>(
 			"/updatepassword",
 			throttle(),

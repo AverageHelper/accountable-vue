@@ -6,6 +6,7 @@ export type AccountableErrorCode =
 	| "auth/invalid-argument"
 	| "auth/invalid-credential"
 	| "auth/quota-exceeded"
+	| "auth/unauthenticated"
 	| "database/deadline-exceeded"
 	| "database/failed-precondition"
 	| "database/internal-error"
@@ -38,8 +39,6 @@ function messageFromCode(code: AccountableErrorCode): string {
 			return "Internal database error";
 		case "database/invalid-argument":
 			return "Invalid database argument";
-		case "database/unauthenticated":
-			return "You must sign in first";
 		case "storage/internal-error":
 			return "Internal storage error";
 		case "storage/invalid-argument":
@@ -51,6 +50,8 @@ function messageFromCode(code: AccountableErrorCode): string {
 			return "You are being throttled";
 		case "storage/server-file-wrong-size":
 			return "The uploaded file does not match the provided file size. Please reupload";
+		case "auth/unauthenticated":
+		case "database/unauthenticated":
 		case "storage/unauthenticated":
 			return "You must sign in first";
 		default:
