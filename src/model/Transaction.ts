@@ -34,9 +34,12 @@ export class Transaction
 	private readonly _tagIds: Set<string>;
 	private readonly _attachmentIds: Set<string>;
 
-	constructor(accountId: string, id: string, record?: Partial<TransactionRecordParams>) {
+	constructor(
+		id: string,
+		record: Partial<TransactionRecordParams> & Pick<TransactionRecordParams, "accountId">
+	) {
 		this.id = id;
-		this.accountId = accountId;
+		this.accountId = record.accountId;
 		const defaultRecord = Transaction.defaultRecord(record);
 		this.amount =
 			typeof record?.amount === "number"
@@ -135,7 +138,7 @@ export class Transaction
 
 	updatedWith(params: Partial<TransactionRecordParams>): Transaction {
 		const thisRecord = this.toRecord();
-		return new Transaction(params.accountId ?? this.accountId, this.id, {
+		return new Transaction(this.id, {
 			...thisRecord,
 			...params,
 		});

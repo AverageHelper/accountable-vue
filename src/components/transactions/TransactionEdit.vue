@@ -146,11 +146,9 @@ async function submit() {
 			attachmentIds: ogTransaction.value?.attachmentIds ?? [],
 		};
 		if (ogTransaction.value === null) {
-			await transactions.createTransaction(account.value, params);
+			await transactions.createTransaction(params);
 		} else {
-			await transactions.updateTransaction(
-				new Transaction(account.value.id, ogTransaction.value.id, params)
-			);
+			await transactions.updateTransaction(new Transaction(ogTransaction.value.id, params));
 		}
 
 		emit("finished");

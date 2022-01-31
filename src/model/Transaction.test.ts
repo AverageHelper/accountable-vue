@@ -20,9 +20,10 @@ describe("Transaction record", () => {
 		"amount $amount USD",
 		(params: { type: TransactionRecordType; amount: number; formatted: string }) => {
 			const { type, amount, formatted } = params;
-			const transaction = new Transaction("", "", {
+			const transaction = new Transaction("", {
 				// "amount" is number of smallest unit (cents). Multiply by 100 for USD.
 				amount: toSnapshot(dinero({ amount: amount * 100, currency: USD })),
+				accountId: "",
 			});
 
 			test(`returns a type of '${type}'`, () => {

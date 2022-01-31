@@ -11,6 +11,7 @@
 		"declaration": false,
 		"removeComments": true,
 		"sourceMap": true,
+		"baseUrl": "./src",
 		"outDir": "./dist",
 		"isolatedModules": true,
 		"strict": true,
