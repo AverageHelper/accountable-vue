@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import "bootstrap";
+import "bootstrap"; // FIXME: bootstrap is too big
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
