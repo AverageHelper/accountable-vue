@@ -72,6 +72,7 @@
 		"jest-extended": "^1.1.0",
 		"postcss": "^8.4.5",
 		"prettier": "^2.4.1",
+		"rollup-plugin-analyzer": "^4.0.0",
 		"sass": "^1.42.1",
 		"sass-mq": "^6.0.0-beta.1",
 		"ts-jest": "^27.0.7",
