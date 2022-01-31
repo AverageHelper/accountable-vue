@@ -7,6 +7,7 @@ type ActionButtonKind =
 	| "bordered"
 	| "bordered-destructive"
 	| "bordered-primary"
+	| "bordered-primary-green"
 	| "bordered-secondary";
 
 const emit = defineEmits(["click", "focus", "blur"]);
@@ -68,6 +69,7 @@ button {
 		&--bordered,
 		&--bordered-destructive,
 		&--bordered-primary,
+		&--bordered-primary-green,
 		&--bordered-secondary {
 			font-size: 100%;
 			font-weight: bold;
@@ -99,6 +101,17 @@ button {
 			}
 
 			&-primary {
+				background-color: color($blue);
+				color: color($label-dark);
+
+				@media (hover: hover) {
+					&:hover {
+						background-color: color($blue-highlight);
+					}
+				}
+			}
+
+			&-primary-green {
 				background-color: color($green);
 				color: color($label-dark);
 

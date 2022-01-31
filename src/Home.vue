@@ -16,7 +16,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 				<ActionButton kind="bordered-secondary">Learn More</ActionButton>
 			</router-link>
 			<router-link to="/login">
-				<ActionButton kind="bordered-primary">Get Started</ActionButton>
+				<ActionButton kind="bordered-primary-green">Get Started</ActionButton>
 			</router-link>
 		</section>
 

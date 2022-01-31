@@ -31,6 +31,10 @@ defineProps({
 </template>
 
 <style scoped lang="scss">
+p {
+	text-align: left;
+}
+
 .buttons {
 	display: flex;
 	flex-flow: row nowrap;
