@@ -14,4 +14,20 @@ export default defineConfig({
 			"~bootstrap": "bootstrap",
 		},
 	},
+	css: {
+		postcss: {
+			plugins: [
+				{
+					postcssPlugin: "internal:charset-removal",
+					AtRule: {
+						charset: (atRule): void => {
+							if (atRule.name === "charset") {
+								atRule.remove();
+							}
+						},
+					},
+				},
+			],
+		},
+	},
 });
