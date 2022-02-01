@@ -10,6 +10,11 @@ export default defineConfig({
 		vue(),
 		tsconfigPaths({ projects: ["./tsconfig.prod.json"] }),
 		analyze({
+			onAnalysis: () => {
+				// Add a newline before the analysis
+				// for vanity
+				process.stdout.write("\n");
+			},
 			filter: module => {
 				// Decide which modules are important enough to warn about:
 				return (

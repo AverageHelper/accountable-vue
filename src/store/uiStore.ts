@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { AccountableError } from "../transport/db.js";
 import { useToast } from "vue-toastification";
-import Joi from "joi";
+import { StructError } from "superstruct";
 
 type ColorScheme = "light" | "dark";
 
@@ -44,7 +44,7 @@ export const useUiStore = defineStore("ui", {
 				message = error.message;
 			} else if (error instanceof AccountableError) {
 				message = error.code;
-			} else if (error instanceof Joi.ValidationError) {
+			} else if (error instanceof StructError) {
 				message = `ValidationError: ${error.message}`;
 			} else {
 				message = JSON.stringify(error);

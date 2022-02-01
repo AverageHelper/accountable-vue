@@ -1,86 +1,98 @@
-import Joi from "joi";
-import "joi-extract-type";
+import type { Infer } from "superstruct";
+import {
+	array,
+	boolean,
+	date,
+	defaulted,
+	enums,
+	min,
+	nullable,
+	number,
+	object,
+	optional,
+	string,
+} from "superstruct";
 
-// NOTE: TypeScript will say that `default` cases may be undefined, but Joi garantees that these values are present. Using `required` would appease TS, but Joi will demand that the key is found, which defeats the point of `default`. Just to be safe, heed TypeScript's warnings as they appear by providing reasonable default values at the site.
+// NOTE: TypeScript will say that `default` cases may be undefined, but Superstruct garantees that these values are present. Avoiding `optional` would appease TS, but Superstruct will demand that the key is found, which defeats the point of `default`. Just to be safe, heed TypeScript's warnings as they appear by providing reasonable default values at the use site.
 
-const attachmentSchema = Joi.object({
-	id: Joi.string().required(),
-	title: Joi.string().required(),
-	notes: Joi.string().allow(null, "").default(null),
-	type: Joi.string().default("unknown"),
-	createdAt: Joi.date().required(),
-	storagePath: Joi.string().required(),
+const attachmentSchema = object({
+	id: string(),
+	title: string(),
+	notes: defaulted(optional(nullable(string())), null),
+	type: defaulted(optional(string()), "unknown"),
+	createdAt: date(),
+	storagePath: string(),
 });
 
-export type AttachmentSchema = Joi.extractType<typeof attachmentSchema>;
+export type AttachmentSchema = Infer<typeof attachmentSchema>;
 
-const tagSchema = Joi.object({
-	id: Joi.string().required(),
-	name: Joi.string().allow("").required(),
-	colorId: Joi.string().valid("red", "orange", "yellow", "green", "blue", "purple").required(),
+const tagSchema = object({
+	id: string(),
+	name: string(),
+	colorId: enums(["red", "orange", "yellow", "green", "blue", "purple"] as const),
 });
 
-export type TagSchema = Joi.extractType<typeof tagSchema>;
+export type TagSchema = Infer<typeof tagSchema>;
 
-const currencySchema = Joi.object({
-	code: Joi.string().required(),
-	base: Joi.number().required(),
-	exponent: Joi.number().min(0).required(),
+const currencySchema = object({
+	code: string(),
+	base: number(),
+	exponent: min(number(), 0),
 });
 
-const amountSchema = Joi.object({
-	amount: Joi.number().required(),
-	currency: currencySchema.required(),
-	scale: Joi.number().required(),
+const amountSchema = object({
+	amount: number(),
+	currency: currencySchema,
+	scale: number(),
 });
 
-const transactionSchema = Joi.object({
-	id: Joi.string().required(),
-	amount: amountSchema.required(),
-	createdAt: Joi.date().required(),
-	title: Joi.string().allow(null).default(null),
-	notes: Joi.string().allow(null, "").default(null),
-	locationId: Joi.string().allow(null, "").default(null),
-	isReconciled: Joi.boolean().default(false),
-	accountId: Joi.string().required(),
-	tagIds: Joi.array().items(Joi.string()).default([]),
-	attachmentIds: Joi.array().items(Joi.string()).default([]),
+const transactionSchema = object({
+	id: string(),
+	amount: amountSchema,
+	createdAt: date(),
+	title: defaulted(optional(nullable(string())), null),
+	notes: defaulted(optional(nullable(string())), null),
+	locationId: defaulted(optional(nullable(string())), null),
+	isReconciled: defaulted(optional(boolean()), false),
+	accountId: string(),
+	tagIds: defaulted(optional(array(string())), []),
+	attachmentIds: defaulted(optional(array(string())), []),
 });
 
-export type TransactionSchema = Joi.extractType<typeof transactionSchema>;
+export type TransactionSchema = Infer<typeof transactionSchema>;
 
-const coordinateSchema = Joi.object({
-	lat: Joi.number().required(),
-	lng: Joi.number().required(),
+const coordinateSchema = object({
+	lat: number(),
+	lng: number(),
 });
 
-const locationSchema = Joi.object({
-	id: Joi.string().required(),
-	title: Joi.string().required(),
-	subtitle: Joi.string().allow(null, "").default(null),
-	coordinate: coordinateSchema.allow(null).default(null),
-	lastUsed: Joi.date().required(),
+const locationSchema = object({
+	id: string(),
+	title: string(),
+	subtitle: defaulted(optional(nullable(string())), null),
+	coordinate: defaulted(optional(nullable(coordinateSchema)), null),
+	lastUsed: date(),
 });
 
-export type LocationSchema = Joi.extractType<typeof locationSchema>;
+export type LocationSchema = Infer<typeof locationSchema>;
 
-const accountSchema = Joi.object({
-	id: Joi.string().required(),
-	title: Joi.string().required(),
-	notes: Joi.string().allow(null, "").default(null),
-	createdAt: Joi.date().required(),
-	transactions: Joi.array().items(transactionSchema).default([]),
+const accountSchema = object({
+	id: string(),
+	title: string(),
+	notes: defaulted(optional(nullable(string())), null),
+	createdAt: date(),
+	transactions: defaulted(optional(array(transactionSchema)), []),
 });
 
-export type AccountSchema = Joi.extractType<typeof accountSchema>;
+export type AccountSchema = Infer<typeof accountSchema>;
 
-export const schema = Joi.object({
-	uid: Joi.string().required(),
-	locationSensitivity: Joi.string().valid("none", "vague", "specific").default("none"),
-	accounts: Joi.array().items(accountSchema).default([]),
-	attachments: Joi.array().items(attachmentSchema).default([]),
-	locations: Joi.array().items(locationSchema).default([]),
-	tags: Joi.array().items(tagSchema).default([]),
+export const schema = object({
+	uid: string(),
+	locationSensitivity: defaulted(optional(enums(["none", "vague", "specific"] as const)), "none"),
+	accounts: defaulted(optional(array(accountSchema)), []),
+	attachments: defaulted(optional(array(attachmentSchema)), []),
+	locations: defaulted(optional(array(locationSchema)), []),
+	tags: defaulted(optional(array(tagSchema)), []),
 });
 
-export type DatabaseSchema = Joi.extractType<typeof schema>;
+export type DatabaseSchema = Infer<typeof schema>;
