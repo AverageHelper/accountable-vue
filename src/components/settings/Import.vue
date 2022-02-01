@@ -4,8 +4,9 @@ import ActionButton from "../ActionButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import ImportProcessModal from "./ImportProcessModal.vue";
 import JSZip from "jszip";
-import { schema } from "../../model/DatabaseSchema";
+import { create } from "superstruct";
 import { ref } from "vue";
+import { schema } from "../../model/DatabaseSchema";
 import { useUiStore } from "../../store";
 import { useRouter } from "vue-router";
 
@@ -30,7 +31,7 @@ async function onFileReceived(file: File) {
 
 		const jsonString = await dbFile.async("string");
 		const json = JSON.parse(jsonString) as unknown;
-		db.value = (await schema.validateAsync(json)) as DatabaseSchema;
+		db.value = create(json, schema);
 		dbName.value = file.name;
 		zip.value = zipFile;
 	} catch (error: unknown) {

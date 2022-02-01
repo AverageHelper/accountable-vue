@@ -71,7 +71,7 @@ $ npm start      # Start the server in development mode
 
 If you've set `VITE_ACCOUNTABLE_SERVER_URL` to a URL that can reach this server, then you should be good to go.
 
-I recommend using something like [PM2](https://pm2.keymetrics.io) to run the server properly. (Instructions coming soon:tm:)
+I recommend using something like [PM2](https://pm2.keymetrics.io) to run the server properly. (Instructions coming soon™)
 
 ## Acknowledgements
 

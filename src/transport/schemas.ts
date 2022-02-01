@@ -1,31 +1,31 @@
+import type { Infer } from "superstruct";
 import isArray from "lodash/isArray";
 import isObject from "lodash/isObject";
-import Joi from "joi";
-import "joi-extract-type";
+import {
+	array,
+	boolean,
+	define,
+	enums,
+	is,
+	nullable,
+	number,
+	object,
+	optional,
+	string,
+	union,
+} from "superstruct";
 
-export const primitive = Joi.alt(Joi.string(), Joi.number(), Joi.boolean()).allow(null);
+export const primitive = nullable(union([string(), number(), boolean()]));
+export type Primitive = Infer<typeof primitive>;
 
-export const documentData = Joi.object().pattern(Joi.string(), primitive);
+export function isPrimitive(tbd: unknown): tbd is Primitive {
+	return is(tbd, primitive);
+}
 
-export type Primitive = Joi.extractType<typeof primitive>;
-export type DocumentData = Joi.extractType<typeof documentData>; // Record<string, Primitive>;
+export type DocumentData = Record<string, Primitive>;
 export type PrimitiveRecord<T> = {
 	[K in keyof T]: Primitive;
 };
-
-const rawServerResponse = Joi.object({
-	message: Joi.string().allow(""),
-	access_token: Joi.string(),
-	uid: Joi.string(),
-	data: Joi.alt(documentData, Joi.array().items(documentData)).allow(null),
-	dataType: Joi.string().valid("single", "multiple"),
-});
-
-export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
-	return rawServerResponse.validate(tbd).error === undefined;
-}
-
-export type RawServerResponse = Joi.extractType<typeof rawServerResponse>;
 
 export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 	return (
@@ -36,20 +36,35 @@ export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 	);
 }
 
-export function isPrimitive(tbd: unknown): tbd is Primitive {
-	return primitive.validate(tbd).error === undefined;
-}
+export const documentData = define<DocumentData>(
+	"documentData",
+	value => isRecord(value) && Object.values(value).every(isPrimitive)
+);
 
 export function isDocumentData(tbd: unknown): tbd is DocumentData {
-	return documentData.validate(tbd).error === undefined;
+	return is(tbd, documentData);
 }
 
-const fileData = Joi.object({
-	contents: Joi.string().required(),
-	_id: Joi.string().required(),
+const rawServerResponse = object({
+	message: optional(string()),
+	access_token: optional(string()),
+	uid: optional(string()),
+	data: optional(nullable(union([documentData, array(documentData)]))),
+	dataType: optional(enums(["single", "multiple"] as const)),
 });
-export type FileData = Joi.extractType<typeof fileData>;
+
+export function isRawServerResponse(tbd: unknown): tbd is RawServerResponse {
+	return is(tbd, rawServerResponse);
+}
+
+export type RawServerResponse = Infer<typeof rawServerResponse>;
+
+const fileData = object({
+	contents: string(),
+	_id: string(),
+});
+export type FileData = Infer<typeof fileData>;
 
 export function isFileData(tbd: unknown): tbd is FileData {
-	return fileData.validate(tbd).error === undefined;
+	return is(tbd, fileData);
 }
