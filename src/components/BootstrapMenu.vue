@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import "bootstrap"; // FIXME: bootstrap is too big
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -9,6 +8,7 @@ interface Page {
 }
 
 const navButton = ref<HTMLButtonElement | null>(null);
+const isNavButtonOpen = ref(false); // This is exactly what Bootstrap does lol
 const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true");
 
 const pages = computed<Array<Page>>(() => {
@@ -28,16 +28,6 @@ const pages = computed<Array<Page>>(() => {
 
 const route = useRoute();
 const currentPath = computed(() => route.path);
-
-/**
- * Clicks the nav button if Bootstrap indicates that the menu is open.
- */
-function closeNav() {
-	const button = navButton.value;
-	// For some reason, button.ariaExpanded is undefined, even when button is defined
-	const isExpanded = button?.attributes.getNamedItem("aria-expanded")?.value === "true";
-	if (isExpanded) button?.click();
-}
 </script>
 
 <template>
@@ -48,17 +38,19 @@ function closeNav() {
 		<button
 			ref="navButton"
 			class="navbar-toggler"
+			:class="{ collapsed: !isNavButtonOpen }"
 			type="button"
 			data-bs-toggle="collapse"
 			data-bs-target="#navbarNav"
 			aria-controls="navbarNav"
-			aria-expanded="false"
+			:aria-expanded="isNavButtonOpen"
 			aria-label="Toggle navigation"
+			@click="isNavButtonOpen = !isNavButtonOpen"
 		>
 			<span class="navbar-toggler-icon" />
 		</button>
 
-		<div id="navbarNav" class="collapse navbar-collapse">
+		<div id="navbarNav" class="collapse navbar-collapse" :class="{ show: isNavButtonOpen }">
 			<ul class="navbar-nav mr-auto">
 				<li
 					v-for="page in pages"
@@ -70,7 +62,7 @@ function closeNav() {
 						class="nav-link"
 						:class="{ active: currentPath === page.path }"
 						:to="page.path"
-						@click="closeNav"
+						@click="isNavButtonOpen = false"
 						>{{ page.title }}
 						<span v-if="currentPath === page.path" class="visually-hidden">(current)</span>
 					</router-link>
