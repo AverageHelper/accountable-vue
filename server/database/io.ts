@@ -139,13 +139,9 @@ export async function upsertUser(user: User): Promise<void> {
 	userIndex.data ??= {};
 	userIndex.data[uid] = { ...user };
 
-	// Set meetadata
+	// Prep database
 	const db = await dbForUser(uid);
 	if (!db.data) db.data = {};
-
-	db.data["users"] ??= {};
-	const collection = db.data["users"];
-	collection[uid] = { ...user };
 
 	// Commit the databases
 	await userIndex.write();
