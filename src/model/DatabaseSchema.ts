@@ -2,6 +2,7 @@ import type { Infer } from "superstruct";
 import {
 	array,
 	boolean,
+	coerce,
 	date,
 	defaulted,
 	enums,
@@ -15,12 +16,14 @@ import {
 
 // NOTE: TypeScript will say that `default` cases may be undefined, but Superstruct garantees that these values are present. Avoiding `optional` would appease TS, but Superstruct will demand that the key is found, which defeats the point of `default`. Just to be safe, heed TypeScript's warnings as they appear by providing reasonable default values at the use site.
 
+const coercedDate = coerce(date(), string(), v => new Date(v));
+
 const attachmentSchema = object({
 	id: string(),
 	title: string(),
 	notes: defaulted(optional(nullable(string())), null),
 	type: defaulted(optional(string()), "unknown"),
-	createdAt: date(),
+	createdAt: coercedDate,
 	storagePath: string(),
 });
 
@@ -49,7 +52,7 @@ const amountSchema = object({
 const transactionSchema = object({
 	id: string(),
 	amount: amountSchema,
-	createdAt: date(),
+	createdAt: coercedDate,
 	title: defaulted(optional(nullable(string())), null),
 	notes: defaulted(optional(nullable(string())), null),
 	locationId: defaulted(optional(nullable(string())), null),
@@ -71,7 +74,7 @@ const locationSchema = object({
 	title: string(),
 	subtitle: defaulted(optional(nullable(string())), null),
 	coordinate: defaulted(optional(nullable(coordinateSchema)), null),
-	lastUsed: date(),
+	lastUsed: coercedDate,
 });
 
 export type LocationSchema = Infer<typeof locationSchema>;
@@ -80,7 +83,7 @@ const accountSchema = object({
 	id: string(),
 	title: string(),
 	notes: defaulted(optional(nullable(string())), null),
-	createdAt: date(),
+	createdAt: coercedDate,
 	transactions: defaulted(optional(array(transactionSchema)), []),
 });
 

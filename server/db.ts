@@ -1,4 +1,5 @@
-import type { DataItem, Keys, Unsubscribe } from "./database/index.js";
+import type { DataItem, Unsubscribe, UserKeys } from "./database/index.js";
+import type { DocUpdate } from "./database/io.js";
 import type { Request } from "express";
 import type { WebSocket } from "ws";
 import { asyncWrapper } from "./asyncWrapper.js";
@@ -11,12 +12,17 @@ import {
 	DocumentReference,
 	deleteCollection,
 	deleteDocument,
+	deleteDocuments,
 	getCollection,
 	getDocument,
+	isArrayOf,
 	isCollectionId,
+	isDocumentWriteBatch,
+	isNonEmptyArray,
 	isPartialDataItem,
-	isPartialKeys,
+	isUserKeys,
 	setDocument,
+	setDocuments,
 	watchUpdatesToCollection,
 	watchUpdatesToDocument,
 } from "./database/index.js";
@@ -51,7 +57,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		ws.send(JSON.stringify({ message: "No data found" }));
 		return ws.close();
 	}
-	const collection = new CollectionReference<Keys>(uid, collectionId);
+	const collection = new CollectionReference<UserKeys>(uid, collectionId);
 	let unsubscribe: Unsubscribe;
 
 	// TODO: Do a dance within the websocket to assert the caller's ID is uid
@@ -128,15 +134,60 @@ export function db(this: void): Router {
 			})
 		)
 		.post<Params>(
+			"/users/:uid",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
+				// ** Batched writes
+				const providedData = req.body as unknown;
+				if (!isArrayOf(providedData, isDocumentWriteBatch)) throw new BadRequestError();
+
+				// Ignore an empty batch
+				if (!isNonEmptyArray(providedData)) return respondSuccess(res);
+
+				// Separate delete and set operations
+				const setOperations: Array<DocUpdate<DataItem>> = [];
+				const deleteOperations: Array<DocumentReference<DataItem>> = [];
+				for (const write of providedData) {
+					const collection = new CollectionReference(uid, write.ref.collectionId);
+					const ref = new DocumentReference<DataItem>(collection, write.ref.documentId);
+
+					switch (write.type) {
+						case "set":
+							setOperations.push({ ref, data: write.data });
+							break;
+						case "delete":
+							deleteOperations.push(ref);
+							break;
+					}
+				}
+
+				// Run sets
+				if (isNonEmptyArray(setOperations)) {
+					await setDocuments(setOperations);
+				}
+
+				// Run deletes
+				if (isNonEmptyArray(deleteOperations)) {
+					await deleteDocuments(deleteOperations);
+				}
+
+				respondSuccess(res);
+			})
+		)
+		.post<Params>(
 			"/users/:uid/:collectionId/:documentId",
 			asyncWrapper(async (req, res) => {
 				const uid = (req.params.uid ?? "") || null;
-				const ref = documentRef(req);
-				if (!ref || uid === null) throw new NotFoundError();
+				if (uid === null) throw new NotFoundError();
 
 				const providedData = req.body as unknown;
-				if (!isPartialDataItem(providedData) && !isPartialKeys(providedData))
+				if (!isPartialDataItem(providedData) && !isUserKeys(providedData))
 					throw new BadRequestError();
+
+				const ref = documentRef(req);
+				if (!ref) throw new NotFoundError();
 
 				await setDocument(ref, providedData);
 				respondSuccess(res);

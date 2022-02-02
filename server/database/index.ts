@@ -1,11 +1,14 @@
-import type { CollectionReference, DocumentReference } from "./references.js";
 import type { AnyDataItem, IdentifiedDataItem } from "./schemas.js";
+import type { CollectionReference, DocumentReference } from "./references.js";
+import type { DocUpdate } from "./io.js";
 import {
 	deleteDbCollection,
 	deleteDbDoc,
+	deleteDbDocs,
 	fetchDbCollection,
 	fetchDbDoc,
-	upsertDbDoc,
+	fetchDbDocs,
+	upsertDbDocs,
 } from "./io.js";
 
 // Since all data is encrypted on the client, we only
@@ -122,6 +125,24 @@ async function informWatchersForCollection(
 	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 
+export async function deleteDocuments(
+	refs: NonEmptyArray<DocumentReference<AnyDataItem>>
+): Promise<void> {
+	// TODO: Assert no more than 500 docs (so we aren't loading up EVERYTHING in one go)
+
+	// Fetch the data
+	const before = await fetchDbDocs(refs);
+
+	await deleteDbDocs(refs);
+
+	// Tell listeners what happened
+	for (const [ref, data] of before) {
+		// Only call listeners about deletion if it wasn't gone in the first place
+		if (!data) continue;
+		await informWatchersForDocument(ref, null);
+	}
+}
+
 export async function deleteDocument(ref: DocumentReference<AnyDataItem>): Promise<void> {
 	// Fetch the data
 	const oldData = await fetchDbDoc(ref);
@@ -142,20 +163,31 @@ export async function deleteCollection(ref: CollectionReference<AnyDataItem>): P
 	await informWatchersForCollection(ref, []);
 }
 
-export async function setDocument<T extends AnyDataItem>(
-	ref: DocumentReference<T>,
-	newData: T
+export async function setDocuments<T extends AnyDataItem>(
+	updates: NonEmptyArray<DocUpdate<T>>
 ): Promise<void> {
-	await upsertDbDoc(ref, newData);
+	// TODO: Assert no more than 500 docs (so we aren't loading up EVERYTHING in one go)
+
+	await upsertDbDocs(updates);
 
 	// Tell listeners what happened
-	let identifiedData: IdentifiedDataItem;
-	if ("uid" in newData) {
-		identifiedData = newData;
-	} else {
-		identifiedData = { ...newData, _id: ref.id };
+	// TODO: Do we need to read a "before" value for these too?
+	for (const { ref, data } of updates) {
+		let identifiedData: IdentifiedDataItem;
+		if ("uid" in data) {
+			identifiedData = data;
+		} else {
+			identifiedData = { ...data, _id: ref.id };
+		}
+		await informWatchersForDocument(ref, identifiedData);
 	}
-	await informWatchersForDocument(ref, identifiedData);
+}
+
+export async function setDocument<T extends AnyDataItem>(
+	ref: DocumentReference<T>,
+	data: T
+): Promise<void> {
+	await setDocuments([{ ref, data }]);
 }
 
 export * from "./references.js";

@@ -1,4 +1,4 @@
-import type { DocumentData, RawServerResponse } from "./schemas.js";
+import type { DocumentData, DocumentWriteBatch, RawServerResponse } from "./schemas.js";
 import { describeCode, HttpStatusCode } from "../helpers/HttpStatusCode.js";
 import { isFileData, isRawServerResponse } from "./schemas.js";
 
@@ -90,7 +90,11 @@ export async function getFrom(url: URL, jwt?: string): Promise<ServerResponse> {
 }
 
 /** Performs a POST request at the provided URL using the given body and optional JWT. */
-export async function postTo(url: URL, body: DocumentData, jwt?: string): Promise<ServerResponse> {
+export async function postTo(
+	url: URL,
+	body: DocumentData | Array<DocumentWriteBatch>,
+	jwt?: string
+): Promise<ServerResponse> {
 	return await doRequest(url, { method: "POST", body: JSON.stringify(body) }, jwt);
 }
 

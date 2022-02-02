@@ -294,6 +294,7 @@ export const useTransactionsStore = defineStore("transactions", {
 					tagIds: [],
 					attachmentIds: [],
 					...transactionToImport,
+					accountId: account.id,
 					title: transactionToImport.title?.trim() ?? null,
 					notes: transactionToImport.notes?.trim() ?? null,
 				};

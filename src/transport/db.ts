@@ -1,4 +1,4 @@
-import type { DocumentData, PrimitiveRecord } from "./schemas.js";
+import type { DocumentData, DocumentWriteBatch, PrimitiveRecord } from "./schemas.js";
 import type { EPackage, HashStore } from "./cryption.js";
 import type { Unsubscribe } from "./onSnapshot.js";
 import type { User } from "./auth.js";
@@ -235,10 +235,30 @@ interface DeleteOperation {
 type WriteOperation = PutOperation | DeleteOperation;
 
 export class WriteBatch {
+	#db: AccountableDB | null;
 	#operations: Array<WriteOperation>;
 
 	constructor() {
+		this.#db = null;
 		this.#operations = [];
+	}
+
+	#pushOperation(op: WriteOperation): void {
+		// Ensure limit
+		const OP_LIMIT = 500;
+		if (this.#operations.length >= OP_LIMIT) {
+			throw new RangeError(`Cannot batch more than ${OP_LIMIT} write operations.`);
+		}
+
+		// Same db
+		if (!this.#db) {
+			this.#db = op.ref.db;
+		} else if (op.ref.db !== this.#db) {
+			throw new EvalError("Must use exactly one database in a write batch");
+		}
+
+		// Push operation
+		this.#operations.push(op);
 	}
 
 	set<T>(ref: DocumentReference<T>, data: T): void {
@@ -247,28 +267,43 @@ export class WriteBatch {
 			if (!isPrimitive(value)) return;
 			primitiveData[key] = value;
 		});
-		this.#operations.push({ type: "set", ref, primitiveData });
+		this.#pushOperation({ type: "set", ref, primitiveData });
 	}
 
 	delete<T = DocumentData>(ref: DocumentReference<T>): void {
-		this.#operations.push({ type: "delete", ref });
+		this.#pushOperation({ type: "delete", ref });
 	}
 
 	async commit(): Promise<void> {
-		// TODO: Build and commit the list of operations in one go
-		// Promise.all the operations. Probs bad, but we'll try this for now
-		await Promise.all(
-			this.#operations.map(async op => {
-				switch (op.type) {
-					case "delete":
-						await deleteDoc(op.ref);
-						break;
-					case "set":
-						await setDoc(op.ref, op.primitiveData);
-						break;
-				}
-			})
-		);
+		if (!this.#db) return; // nothing to commit
+
+		// Build and commit the list of operations in one go
+		const jwt = this.#db.jwt;
+		const currentUser = this.#db.currentUser;
+		if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+
+		const uid = currentUser.uid;
+		const batch = new URL(`db/users/${uid}`, this.#db.url);
+
+		const data: Array<DocumentWriteBatch> = [];
+
+		this.#operations.forEach(op => {
+			const collectionId = op.ref.parent.id;
+			const documentId = op.ref.id;
+			const ref = { collectionId, documentId };
+
+			switch (op.type) {
+				case "delete":
+					data.push({ type: "delete", ref });
+					break;
+				case "set":
+					data.push({ type: "set", ref, data: op.primitiveData });
+					break;
+			}
+		});
+		console.debug("Committing batch:", data);
+
+		await postTo(batch, data, jwt);
 	}
 
 	toString(): string {

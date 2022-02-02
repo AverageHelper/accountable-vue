@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
+import ConfirmGotNewAccountId from "./ConfirmGotNewAccountId.vue";
 import Modal from "./Modal.vue";
+import OutLink from "./OutLink.vue";
 import { useAuthStore } from "../store";
 import { computed, ref } from "vue";
-import ConfirmGotNewAccountId from "./ConfirmGotNewAccountId.vue";
 
 const auth = useAuthStore();
 
@@ -32,7 +33,7 @@ function cancelClearNewLoginStatus() {
 		<p
 			>REMEMBER THIS: <code v-if="isNewLogin">{{ accountId }}</code></p
 		>
-		<p>Write it down.</p>
+		<p>Write it down. (Try a <OutLink to="https://bitwarden.com">password manager</OutLink>.)</p>
 		<p>If you lose it, we won't be able to get it back for you.</p>
 
 		<ActionButton kind="bordered-primary" @click.prevent="askToClearNewLoginStatus"
