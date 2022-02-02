@@ -96,19 +96,38 @@ export async function findUserWithProperties(query: Partial<User>): Promise<User
 	return { ...result };
 }
 
+export async function fetchDbDocs<T extends AnyDataItem>(
+	refs: NonEmptyArray<DocumentReference<T>>
+): Promise<Array<[DocumentReference<T>, Identified<T> | null]>> {
+	// Assert same UID on all refs
+	const uid = refs[0].uid;
+	if (!refs.every(u => u.uid === uid))
+		throw new TypeError(`Not every UID matches the first: ${uid}`);
+
+	const db = await dbForUser(uid);
+	if (!db.data) return [];
+
+	const results: Array<[DocumentReference<T>, Identified<T> | null]> = [];
+
+	for (const ref of refs) {
+		const collection = db.data[ref.parent.id] ?? {};
+		const data = collection[ref.id] as T | undefined;
+		if (!data) {
+			results.push([ref, null]);
+		} else {
+			results.push([ref, { ...data, _id: ref.id }]);
+		}
+	}
+
+	return results;
+}
+
 export async function fetchDbDoc<T extends AnyDataItem>(
 	ref: DocumentReference<T>
 ): Promise<Identified<T> | null> {
-	const db = await dbForUser(ref.uid);
-	console.debug("fetchDbDoc db has data:", db.data !== null);
-	if (!db.data) return null;
-
-	console.debug("fetchDbDoc collection exists:", db.data[ref.parent.id] !== undefined);
-	const collection = db.data[ref.parent.id] ?? {};
-	const data = collection[ref.id] as T | undefined;
-	console.debug("fetchDbDoc data exists:", data !== undefined);
-	if (!data) return null;
-	return { ...data, _id: ref.id };
+	const [pair] = await fetchDbDocs([ref]);
+	if (!pair) return null;
+	return pair[1];
 }
 
 export async function upsertUser(user: User): Promise<void> {
@@ -148,28 +167,52 @@ export async function destroyUser(uid: string): Promise<void> {
 	await userIndex.write();
 }
 
-export async function upsertDbDoc<T extends AnyDataItem>(
-	ref: DocumentReference<T>,
-	data: T
+export interface DocUpdate<T extends AnyDataItem> {
+	ref: DocumentReference<T>;
+	data: T;
+}
+
+export async function upsertDbDocs<T extends AnyDataItem>(
+	updates: NonEmptyArray<DocUpdate<T>>
 ): Promise<void> {
-	const db = await dbForUser(ref.uid);
+	// Assert same UID on all refs
+	const uid = updates[0].ref.uid;
+	if (!updates.every(u => u.ref.uid === uid))
+		throw new TypeError(`Not every UID matches the first: ${uid}`);
+
+	const db = await dbForUser(uid);
 	if (!db.data) db.data = {};
 
-	db.data[ref.parent.id] ??= {}; // upsert an empty object
-	const collection = db.data[ref.parent.id] ?? {};
-	collection[ref.id] = { ...data };
+	for (const { ref, data } of updates) {
+		db.data[ref.parent.id] ??= {}; // upsert an empty object
+		const collection = db.data[ref.parent.id] ?? {};
+		collection[ref.id] = { ...data };
+	}
+
+	await db.write(); // commit the database
+}
+
+export async function deleteDbDocs<T extends AnyDataItem>(
+	refs: NonEmptyArray<DocumentReference<T>>
+): Promise<void> {
+	// Assert same UID on all refs
+	const uid = refs[0].uid;
+	if (!refs.every(u => u.uid === uid))
+		throw new TypeError(`Not every UID matches the first: ${uid}`);
+
+	const db = await dbForUser(uid);
+	if (!db.data) return;
+
+	for (const ref of refs) {
+		const collection = db.data[ref.parent.id] ?? {};
+		delete collection[ref.id]; // eat the document
+	}
 
 	await db.write(); // commit the database
 }
 
 export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<T>): Promise<void> {
-	const db = await dbForUser(ref.uid);
-	if (!db.data) return;
-
-	const collection = db.data[ref.parent.id] ?? {};
-	delete collection[ref.id]; // eat the document
-
-	await db.write(); // commit the database
+	await deleteDbDocs([ref]);
 }
 
 export async function deleteDbCollection<T extends AnyDataItem>(

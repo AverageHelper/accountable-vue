@@ -1,3 +1,4 @@
+import type { CollectionID } from "./db";
 import type { Infer } from "superstruct";
 import isArray from "lodash/isArray";
 import isObject from "lodash/isObject";
@@ -26,6 +27,24 @@ export type DocumentData = Record<string, Primitive>;
 export type PrimitiveRecord<T> = {
 	[K in keyof T]: Primitive;
 };
+
+interface DocumentRef {
+	collectionId: CollectionID;
+	documentId: string;
+}
+
+interface SetBatch {
+	type: "set";
+	ref: DocumentRef;
+	data: DocumentData;
+}
+
+interface DeleteBatch {
+	type: "delete";
+	ref: DocumentRef;
+}
+
+export type DocumentWriteBatch = SetBatch | DeleteBatch;
 
 export function isRecord(tbd: unknown): tbd is Record<string, unknown> {
 	return (

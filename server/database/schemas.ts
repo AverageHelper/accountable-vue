@@ -1,5 +1,18 @@
+import type { ValueIteratorTypeGuard } from "lodash";
+import isArray from "lodash/isArray.js";
 import Joi from "joi";
 import "joi-extract-type";
+
+export function isArrayOf<T>(
+	tbd: unknown,
+	elementGuard: ValueIteratorTypeGuard<unknown, T>
+): tbd is Array<T> {
+	return isArray(tbd) && tbd.every(elementGuard);
+}
+
+export function isNonEmptyArray<T>(tbd: Array<T>): tbd is NonEmptyArray<T> {
+	return tbd.length > 0;
+}
 
 function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
 	const { error } = schema.validate(data);
@@ -36,34 +49,21 @@ export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
 const dataItem = Joi.object(partialDataItem);
 export type DataItem = Joi.extractType<typeof dataItem>;
 
-const partialKeys = {
+const userKeys = Joi.object({
 	dekMaterial: Joi.string().required(),
 	passSalt: Joi.string().required(),
 	oldDekMaterial: Joi.string(),
 	oldPassSalt: Joi.string(),
-};
-type PartialKeys = Joi.extractType<typeof partialKeys>;
+});
+export type UserKeys = Joi.extractType<typeof userKeys>;
 
-export function isPartialKeys(tbd: unknown): tbd is PartialKeys {
-	return isValidForSchema(tbd, Joi.object(partialKeys));
+export function isUserKeys(tbd: unknown): tbd is UserKeys {
+	return isValidForSchema(tbd, userKeys);
 }
 
-// FIXME: This need not be Joi if we never validate it. Isn't it identical to PartialKeys?
-const keys = Joi.object(partialKeys);
-export type Keys = Joi.extractType<typeof keys>;
+export type AnyDataItem = DataItem | UserKeys | User;
 
-export type AnyDataItem = DataItem | Keys | User;
-
-export type CollectionID =
-	| "accounts"
-	| "attachments"
-	| "keys"
-	| "locations"
-	| "tags"
-	| "transactions"
-	| "users";
-
-const allCollectionIds: ReadonlySet<CollectionID> = new Set([
+const allCollectionIds = [
 	"accounts",
 	"attachments",
 	"keys",
@@ -71,11 +71,38 @@ const allCollectionIds: ReadonlySet<CollectionID> = new Set([
 	"tags",
 	"transactions",
 	"users",
-]);
+] as const;
+
+export type CollectionID = typeof allCollectionIds[number];
 
 export function isCollectionId(tbd: string): tbd is CollectionID {
-	return allCollectionIds.has(tbd as CollectionID);
+	return allCollectionIds.includes(tbd as CollectionID);
+}
+
+const documentRef = Joi.object({
+	collectionId: Joi.string()
+		.valid(...allCollectionIds)
+		.required(),
+	documentId: Joi.string().required(),
+});
+
+const setBatch = Joi.object({
+	type: Joi.string().valid("set").required(),
+	ref: documentRef.required(),
+	data: dataItem.required(),
+});
+
+const deleteBatch = Joi.object({
+	type: Joi.string().valid("delete").required(),
+	ref: documentRef.required(),
+});
+
+const documentWriteBatch = Joi.alt(setBatch, deleteBatch);
+export type DocumentWriteBatch = Joi.extractType<typeof documentWriteBatch>;
+
+export function isDocumentWriteBatch(tbd: unknown): tbd is DocumentWriteBatch {
+	return isValidForSchema(tbd, documentWriteBatch);
 }
 
 export type Identified<T> = T & { _id: string };
-export type IdentifiedDataItem = Identified<DataItem> | Identified<Keys> | User;
+export type IdentifiedDataItem = Identified<DataItem> | Identified<UserKeys> | User;
