@@ -137,7 +137,8 @@ export const useTagsStore = defineStore("tags", {
 			} else {
 				// If new, create a new tag
 				const params: TagRecordParams = {
-					...tagToImport,
+					colorId: tagToImport.colorId,
+					name: tagToImport.name,
 				};
 				await this.createTag(params, batch);
 			}

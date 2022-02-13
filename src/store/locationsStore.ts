@@ -172,8 +172,8 @@ export const useLocationsStore = defineStore("locations", {
 			} else {
 				// If new, create a new location
 				const params: LocationRecordParams = {
-					coordinate: null,
-					...locationToImport,
+					lastUsed: locationToImport.lastUsed,
+					coordinate: locationToImport.coordinate ?? null,
 					title: locationToImport.title.trim(),
 					subtitle: locationToImport.subtitle?.trim() ?? null,
 				};

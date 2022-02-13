@@ -7,6 +7,8 @@ import { USD } from "@dinero.js/currencies";
 
 export type TransactionRecordType = "expense" | "income" | "transaction";
 
+// TODO: Add a date-last-modified field to this and every stored document (so database lurkers can't correlate data modifications to encrypted representations)
+
 export interface TransactionRecordParams {
 	amount: DineroSnapshot<number>;
 	createdAt: Date;

@@ -18,6 +18,7 @@ const isLoading = ref(false);
 async function downloadStuff(shouldMinify: boolean) {
 	isLoading.value = true;
 	try {
+		// TODO: Use zip.js instead
 		const zip = new JSZip();
 		const root = zip.folder("accountable");
 		if (!root) throw new Error("Zip failed, not sure why. Try again maybe?");

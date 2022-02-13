@@ -19,7 +19,7 @@ export default defineConfig({
 				// Decide which modules are important enough to warn about:
 				return (
 					// Only modules that themselves take >8.6% of the bundle
-					module.percent > 8.6 &&
+					module.percent > 8.6 && // TODO: Fix this percentage for new dependency balance
 					// Not Vue (that's bound to be big no matter what)
 					module.id !== "/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js"
 				);

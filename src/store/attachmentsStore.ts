@@ -1,7 +1,8 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
 import type { AttachmentRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
-import type JSZip from "jszip";
+import type { Entry as ZipEntry } from "@zip.js/zip.js";
+import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
@@ -176,16 +177,19 @@ export const useAttachmentsStore = defineStore("attachments", {
 				.map(doc => attachmentFromSnapshot(doc, dek))
 				.map(t => ({ ...t.toRecord(), id: t.id }));
 		},
-		async importAttachment(attachmentToImport: AttachmentSchema, zip: JSZip | null): Promise<void> {
+		async importAttachment(
+			attachmentToImport: AttachmentSchema,
+			zip: Array<ZipEntry> | null
+		): Promise<void> {
 			const storedAttachment = this.items[attachmentToImport.id];
 
 			const path = `accountable/storage/${attachmentToImport.storagePath.split(".")[0] as string}/${
 				attachmentToImport.title
 			}`;
-			const fileRef = zip?.files[path] ?? null;
+			const fileRef = zip?.find(f => f.filename === path) ?? null;
+			if (!fileRef?.getData) return; // no blob? leave the reference broken.
 
-			const blobToImport = (await fileRef?.async("blob")) ?? null;
-			if (!blobToImport) return; // no blob? leave the reference broken.
+			const blobToImport = (await fileRef?.getData(new BlobWriter())) as Blob;
 			const fileToImport = new File([blobToImport], attachmentToImport.title.trim(), {
 				type: attachmentToImport.type?.trim(),
 			});
@@ -197,7 +201,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 			} else {
 				// If new, create a new attachment
 				const params: AttachmentRecordParams = {
-					...attachmentToImport,
+					createdAt: attachmentToImport.createdAt,
+					storagePath: attachmentToImport.storagePath,
 					title: attachmentToImport.title.trim(),
 					type: attachmentToImport.type?.trim() ?? "unknown",
 					notes: attachmentToImport.notes?.trim() ?? null,
@@ -219,7 +224,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 				}
 			}
 		},
-		async importAttachments(data: Array<AttachmentSchema>, zip: JSZip | null): Promise<void> {
+		async importAttachments(
+			data: Array<AttachmentSchema>,
+			zip: Array<ZipEntry> | null
+		): Promise<void> {
 			await Promise.all(data.map(a => this.importAttachment(a, zip)));
 		},
 	},

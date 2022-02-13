@@ -154,7 +154,7 @@ export const useAccountsStore = defineStore("accounts", {
 			} else {
 				// If new, create a new account
 				const params: AccountRecordParams = {
-					...accountToImport,
+					createdAt: accountToImport.createdAt,
 					title: accountToImport.title.trim(),
 					notes: accountToImport.notes?.trim() ?? null,
 				};

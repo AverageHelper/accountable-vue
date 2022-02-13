@@ -1,41 +1,58 @@
 <script setup lang="ts">
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
+import type { Entry } from "@zip.js/zip.js";
 import ActionButton from "../ActionButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import ImportProcessModal from "./ImportProcessModal.vue";
-import JSZip from "jszip";
+import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { create } from "superstruct";
 import { ref } from "vue";
 import { schema } from "../../model/DatabaseSchema";
 import { useUiStore } from "../../store";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const ui = useUiStore();
 const router = useRouter();
+const toast = useToast();
 
 const isLoading = ref(false);
-const zip = ref<JSZip | null>(null);
+const archive = ref<Array<Entry> | null>(null);
 const dbName = ref("");
 const db = ref<DatabaseSchema | null>(null);
 
 async function onFileReceived(file: File) {
-	zip.value = null;
+	archive.value = null;
 	dbName.value = "";
 	db.value = null;
 	isLoading.value = true;
 
-	try {
-		const zipFile = await JSZip.loadAsync(file);
-		const dbFile = zipFile.files["accountable/database.json"] ?? null;
-		if (!dbFile) throw new TypeError("accountable/database.json not present at root of zip");
+	let progressMessage = `Loading ${file.name}`;
+	const progressMeter = toast.info(progressMessage);
 
-		const jsonString = await dbFile.async("string");
+	const reader = new ZipReader(new BlobReader(file));
+	try {
+		const zipFile = await reader.getEntries({
+			onprogress: progress => {
+				progressMessage = `Loading ${file.name}: ${progress}%`;
+				toast.update(progressMeter, { content: progressMessage });
+			},
+		});
+
+		const dbFile = zipFile.find(f => f.filename === "accountable/database.json");
+		if (!dbFile?.getData)
+			throw new TypeError("accountable/database.json not present at root of zip");
+
+		const jsonString = (await dbFile.getData(new TextWriter())) as string;
 		const json = JSON.parse(jsonString) as unknown;
 		db.value = create(json, schema);
 		dbName.value = file.name;
-		zip.value = zipFile;
+		archive.value = zipFile;
 	} catch (error: unknown) {
 		ui.handleError(error);
+	} finally {
+		toast.dismiss(progressMeter);
+		await reader.close();
 	}
 
 	isLoading.value = false;
@@ -63,7 +80,7 @@ function forgetFile() {
 		</div>
 	</form>
 
-	<ImportProcessModal :file-name="dbName" :db="db" :zip="zip" @finished="forgetFile" />
+	<ImportProcessModal :file-name="dbName" :db="db" :zip="archive" @finished="forgetFile" />
 </template>
 
 <style scoped lang="scss">

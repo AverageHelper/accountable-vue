@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
-import type JSZip from "jszip";
+import type { Entry } from "@zip.js/zip.js";
 import ActionButton from "../ActionButton.vue";
 import AccountListItem from "../accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
@@ -22,7 +22,7 @@ const emit = defineEmits(["finished"]);
 
 const props = defineProps({
 	fileName: { type: String, default: "" },
-	zip: { type: Object as PropType<JSZip | null>, default: null },
+	zip: { type: Array as PropType<Array<Entry> | null>, default: null },
 	db: { type: Object as PropType<DatabaseSchema | null>, default: null },
 });
 const { db, zip, fileName } = toRefs(props);
