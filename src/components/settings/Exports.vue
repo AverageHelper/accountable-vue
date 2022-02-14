@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { AttachmentSchema } from "../../model/DatabaseSchema";
 import ActionButton from "../ActionButton.vue";
-import btoa from "btoa-lite";
-import JSZip from "jszip";
 import { Attachment } from "../../model/Attachment";
 import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
+import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
 import { ref } from "vue";
 import { useAttachmentsStore, useAuthStore, useUiStore } from "../../store";
 
@@ -17,51 +16,66 @@ const isLoading = ref(false);
 // TODO: Move this into a store
 async function downloadStuff(shouldMinify: boolean) {
 	isLoading.value = true;
+	console.debug("Preparing zip writer");
+	const writer = new ZipWriter(new Data64URIWriter("application/zip"));
+	console.debug("Prepared zip writer");
+
 	try {
-		// TODO: Use zip.js instead
-		const zip = new JSZip();
-		const root = zip.folder("accountable");
-		if (!root) throw new Error("Zip failed, not sure why. Try again maybe?");
+		const rootName = "accountable";
+		console.debug("Writing root folder");
+		console.debug("Wrote root folder");
 
-		// Prepare database
+		// ** Prepare database
+		console.debug("Getting user data");
 		const rawData = await auth.getAllUserDataAsJson();
+		console.debug("Got user data");
+		console.debug("Encoding user data");
 		const data = JSON.stringify(rawData, undefined, shouldMinify ? undefined : "\t");
-		const encodedData = btoa(data);
-		root.file(`database${shouldMinify ? "-raw" : ""}.json`, encodedData, {
-			base64: true,
-		});
+		const encodedData = data; // btoa(data);
+		console.debug("Encoded user data");
+		console.debug("Writing user data");
+		await writer.add(
+			`${rootName}/database${shouldMinify ? "-raw" : ""}.json`,
+			new TextReader(encodedData)
+		);
+		console.debug("Wrote user data");
 
-		// Prepare attachments
+		// ** Prepare attachments
+
+		/** Mirrors the storage bucket layout */
+		const userFilesPath = `${rootName}/storage/users/${rawData.uid}/attachments`;
+
 		const filesToGet: Array<AttachmentSchema> = rawData.attachments ?? [];
-		// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB
+		// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB. Maybe operate on the attachments a few at a time?
+		console.debug("Downloading attachments");
 		const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
 			const file = new Attachment(a.id, a.storagePath, a);
 			const data = await attachments.imageDataFromFile(file, false);
 			return [file, data];
 		});
-		// mirror the storage bucket layout
-		const userFiles =
-			filesGotten.length > 0
-				? root.folder("storage")?.folder("users")?.folder(rawData.uid)?.folder("attachments")
-				: null;
-		filesGotten.forEach(([f, d]) => {
+		console.debug("Downloaded attachments");
+		for (const [f, d] of filesGotten) {
 			// Get storage file name without extension, so that explorers don't try to treat the folder as JSON
 			const mystifiedName = f.storagePath
 				.slice(Math.max(0, f.storagePath.lastIndexOf("/") + 1))
 				.split(".")[0] as string;
-			const imageFolder = userFiles?.folder(mystifiedName);
+			const imagePath = `${userFilesPath}/${mystifiedName}/${f.title}`;
 			const image = dataUriToBlob(d);
-			imageFolder?.file(f.title, image);
-		});
+			console.debug(`Adding attachment ${f.title} to zip`);
+			await writer.add(imagePath, new BlobReader(image));
+			console.debug(`Added attachment ${f.title} to zip`);
+		}
 
-		// Zip them up
-		const content = await zip.generateAsync({ type: "base64" });
-		downloadFileAtUrl(
-			`data:application/zip;base64,${encodeURIComponent(content)}`,
-			"accountable.zip"
-		);
+		// ** Zip them up
+		console.debug("Grabbing zip blob");
+		const dataUri = (await writer.close()) as string;
+		console.debug(`Got ${dataUri.length}-byte zip blob`);
+
+		// ** Get it
+		downloadFileAtUrl(dataUri, "accountable.zip");
 	} catch (error: unknown) {
 		ui.handleError(error);
+		await writer.close();
 	}
 	isLoading.value = false;
 }
