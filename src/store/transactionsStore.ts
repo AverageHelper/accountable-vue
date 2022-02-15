@@ -289,11 +289,12 @@ export const useTransactionsStore = defineStore("transactions", {
 			} else {
 				// If new, create a new transaction
 				const params: TransactionRecordParams = {
-					locationId: null,
-					isReconciled: false,
-					tagIds: [],
-					attachmentIds: [],
-					...transactionToImport,
+					createdAt: transactionToImport.createdAt,
+					amount: transactionToImport.amount,
+					locationId: transactionToImport.locationId ?? null,
+					isReconciled: transactionToImport.isReconciled ?? false,
+					attachmentIds: transactionToImport.attachmentIds ?? [],
+					tagIds: transactionToImport.tagIds ?? [],
 					accountId: account.id,
 					title: transactionToImport.title?.trim() ?? null,
 					notes: transactionToImport.notes?.trim() ?? null,

@@ -187,7 +187,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 				attachmentToImport.title
 			}`;
 			const fileRef = zip?.find(f => f.filename === path) ?? null;
-			if (!fileRef?.getData) return; // no blob? leave the reference broken.
+			if (!fileRef?.getData) {
+				console.warn(`No file found in zip with path ${path}`);
+				return; // no blob? leave the reference broken.
+			}
 
 			const blobToImport = (await fileRef?.getData(new BlobWriter())) as Blob;
 			const fileToImport = new File([blobToImport], attachmentToImport.title.trim(), {

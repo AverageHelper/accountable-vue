@@ -178,14 +178,19 @@ export const useLocationsStore = defineStore("locations", {
 					subtitle: locationToImport.subtitle?.trim() ?? null,
 				};
 				const newLocation = await this.createLocation(params, batch);
-				for (const transaction of transactions.allTransactions) {
-					if (transaction.locationId !== locationToImport.id) continue;
 
-					// Update the transaction with new location ID
-					await transactions.updateTransaction(
-						transaction.updatedWith({ locationId: newLocation.id }),
-						batch
+				// Update transactions with new location ID
+				const matchingTransactions = transactions.allTransactions.filter(
+					t => t.locationId === locationToImport.id
+				);
+				for (const txns of chunk(matchingTransactions, 500)) {
+					const uBatch = writeBatch();
+					await Promise.all(
+						txns.map(t =>
+							transactions.updateTransaction(t.updatedWith({ locationId: newLocation.id }), uBatch)
+						)
 					);
+					await uBatch.commit();
 				}
 			}
 		},

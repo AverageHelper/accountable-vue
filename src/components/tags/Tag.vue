@@ -20,7 +20,7 @@ const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id
 </script>
 
 <template>
-	<div :class="`tag tag--${tag?.colorId ?? 'unknown'}`">
+	<div :class="`tag tag--${tag?.colorId ?? 'unknown'}`" :title="tagId">
 		<span class="title">{{ tag?.name ?? tagId }}</span>
 
 		<slot />
