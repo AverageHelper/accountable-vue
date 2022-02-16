@@ -5,10 +5,11 @@ import ActionButton from "../ActionButton.vue";
 import DownloadButton from "./DownloadButton.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import List from "../List.vue";
+import TransactionListItem from "../transactions/TransactionListItem.vue";
 import TrashIcon from "../../icons/Trash.vue";
 import { ref, computed, watch, toRefs } from "vue";
+import { toTimestamp } from "../../filters";
 import { useAttachmentsStore, useTransactionsStore } from "../../store";
-import TransactionListItem from "../transactions/TransactionListItem.vue";
 
 const props = defineProps({
 	file: { type: Object as PropType<Attachment | null>, default: null },
@@ -30,8 +31,7 @@ const linkedTransactions = computed(() =>
 const transactionCount = computed(() => linkedTransactions.value.length);
 const timestamp = computed(() => {
 	if (!file.value) return "now";
-	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-	return formatter.format(file.value.createdAt);
+	return toTimestamp(file.value.createdAt);
 });
 
 watch(

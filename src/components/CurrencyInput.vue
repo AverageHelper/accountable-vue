@@ -4,7 +4,7 @@ import type { Dinero } from "dinero.js";
 import ActionButton from "./ActionButton.vue";
 import TextField from "./TextField.vue";
 import { dinero } from "dinero.js";
-import { intlFormat } from "../filters/toCurrency";
+import { intlFormat } from "../filters";
 import { ref, computed, toRefs, watch } from "vue";
 import { USD } from "@dinero.js/currencies";
 

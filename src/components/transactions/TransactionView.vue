@@ -16,7 +16,7 @@ import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { ref, computed, toRefs } from "vue";
-import { intlFormat } from "../../filters/toCurrency";
+import { intlFormat, toTimestamp } from "../../filters";
 import { isNegative } from "dinero.js";
 import { useRouter } from "vue-router";
 import {
@@ -58,9 +58,7 @@ const location = computed<Location | null>(() =>
 
 const timestamp = computed(() => {
 	if (!transaction.value) return "";
-
-	const formatter = Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-	return formatter.format(transaction.value.createdAt);
+	return toTimestamp(transaction.value.createdAt);
 });
 
 function goBack() {

@@ -3,7 +3,7 @@ import Checkbox from "../Checkbox.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
-import { intlFormat } from "../../filters/toCurrency";
+import { intlFormat, toTimestamp } from "../../filters";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
@@ -22,10 +22,7 @@ const isNegative = computed(() => isDineroNegative(transaction.value.amount));
 const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
 const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
-const timestamp = computed(() => {
-	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-	return formatter.format(transaction.value.createdAt);
-});
+const timestamp = computed(() => toTimestamp(transaction.value.createdAt));
 
 const transactionRoute = computed(
 	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
