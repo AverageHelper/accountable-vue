@@ -301,7 +301,6 @@ export class WriteBatch {
 					break;
 			}
 		});
-		console.debug("Committing batch:", data);
 
 		await postTo(batch, data, jwt);
 	}
