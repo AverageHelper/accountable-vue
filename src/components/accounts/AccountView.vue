@@ -7,7 +7,7 @@ import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
 import List from "../List.vue";
 import Modal from "../Modal.vue";
-import TextField from "../TextField.vue";
+import SearchBar from "../SearchBar.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
@@ -15,7 +15,7 @@ import { intlFormat } from "../../filters/toCurrency";
 import { ref, computed, toRefs, watch } from "vue";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 function reverseChronologically(this: void, a: Transaction, b: Transaction): number {
 	return b.createdAt.getTime() - a.createdAt.getTime();
@@ -26,6 +26,7 @@ const props = defineProps({
 });
 const { accountId } = toRefs(props);
 
+const route = useRoute();
 const router = useRouter();
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
@@ -41,10 +42,10 @@ const theseTransactions = computed<Array<Transaction>>(() => {
 });
 const numberOfTransactions = computed(() => theseTransactions.value.length);
 
-const searchQuery = ref("");
 const searchClient = computed(
 	() => new Fuse(theseTransactions.value, { keys: ["title", "notes"] })
 );
+const searchQuery = computed(() => (route.query["q"] ?? "").toString());
 const filteredTransactions = computed<Array<Transaction>>(() =>
 	searchQuery.value !== ""
 		? searchClient.value.search(searchQuery.value).map(r => r.item)
@@ -103,12 +104,7 @@ function finishEditingAccount() {
 			}}</p>
 		</div>
 
-		<TextField
-			v-model="searchQuery"
-			type="search"
-			placeholder="Search transactions"
-			class="search"
-		/>
+		<SearchBar class="search" />
 
 		<List class="transactions-list">
 			<li v-if="searchQuery === ''">
