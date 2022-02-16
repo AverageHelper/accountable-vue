@@ -2,9 +2,11 @@
 import type { Attachment } from "../../model/Attachment";
 import type { Transaction } from "../../model/Transaction";
 import type { PropType } from "vue";
+import FileInput from "./FileInput.vue";
 import FileListItem from "./FileListItem.vue";
 import List from "../List.vue";
-import { useAttachmentsStore, useTransactionsStore } from "../../store";
+import ListItem from "../ListItem.vue";
+import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 import { computed, toRefs } from "vue";
 
 const emit = defineEmits(["close"]);
@@ -17,16 +19,28 @@ const { transaction, fileId } = toRefs(props);
 
 const attachments = useAttachmentsStore();
 const transactions = useTransactionsStore();
+const ui = useUiStore();
 
 const files = computed(() => attachments.allAttachments);
 const numberOfFiles = computed(() => files.value.length);
 
-async function selectNewFile(file: Attachment) {
+async function selectNewFile(attachment: Attachment) {
 	const newTransaction = transaction.value.copy();
-	newTransaction.addAttachmentId(file.id);
+	newTransaction.addAttachmentId(attachment.id);
 	newTransaction.removeAttachmentId(fileId.value);
 	await transactions.updateTransaction(newTransaction);
 	emit("close");
+}
+
+async function createNewFile(file: File | null): Promise<void> {
+	if (!file) return;
+
+	try {
+		const attachment = await attachments.createAttachmentFromFile(file);
+		await selectNewFile(attachment);
+	} catch (error: unknown) {
+		ui.handleError(error);
+	}
 }
 </script>
 
@@ -39,6 +53,13 @@ async function selectNewFile(file: Attachment) {
 		>
 
 		<List>
+			<li>
+				<FileInput @input="createNewFile">
+					<template #default="{ click }">
+						<ListItem title="Upload a file" to="" @click.prevent="click" />
+					</template>
+				</FileInput>
+			</li>
 			<li v-for="file in files" :key="file.id">
 				<FileListItem :file-id="file.id" @click.prevent="() => selectNewFile(file)" />
 			</li>

@@ -126,14 +126,7 @@ async function onFileReceived(file: File) {
 	if (!transaction.value) return;
 
 	try {
-		const metadata = {
-			type: file.type,
-			title: file.name,
-			notes: null,
-			createdAt: new Date(),
-		};
-		const attachment = await attachments.createAttachment(metadata, file);
-
+		const attachment = await attachments.createAttachmentFromFile(file);
 		transaction.value.addAttachmentId(attachment.id);
 		await transactions.updateTransaction(transaction.value);
 	} catch (error: unknown) {
