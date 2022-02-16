@@ -88,41 +88,48 @@ function finishEditingAccount() {
 </script>
 
 <template>
-	<div class="heading">
-		<div class="account-title">
-			<h1>{{ account?.title || "Account" }}</h1>
-			<ActionButton class="edit" @click="startEditingAccount">
-				<EditIcon />
-			</ActionButton>
+	<main class="content">
+		<div class="heading">
+			<div class="account-title">
+				<h1>{{ account?.title || "Account" }}</h1>
+				<ActionButton class="edit" @click="startEditingAccount">
+					<EditIcon />
+				</ActionButton>
+			</div>
+
+			<p v-if="remainingBalance === null" class="account-balance">--</p>
+			<p v-else class="account-balance" :class="{ negative: isNegative }">{{
+				intlFormat(remainingBalance)
+			}}</p>
 		</div>
 
-		<p v-if="remainingBalance === null" class="account-balance">--</p>
-		<p v-else class="account-balance" :class="{ negative: isNegative }">{{
-			intlFormat(remainingBalance)
-		}}</p>
-	</div>
+		<TextField
+			v-model="searchQuery"
+			type="search"
+			placeholder="Search transactions"
+			class="search"
+		/>
 
-	<TextField v-model="searchQuery" type="search" placeholder="Search transactions" class="search" />
-
-	<List class="transactions-list">
-		<li v-if="searchQuery === ''">
-			<AddTransactionListItem class="list-item header" @click="startCreatingTransaction" />
-		</li>
-		<li
-			v-for="transaction in filteredTransactions"
-			:key="transaction.id"
-			class="list-item transaction"
-		>
-			<TransactionListItem :transaction="transaction" />
-		</li>
-		<li>
-			<p class="footer">
-				<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
-					>s</span
-				>
-			</p>
-		</li>
-	</List>
+		<List class="transactions-list">
+			<li v-if="searchQuery === ''">
+				<AddTransactionListItem class="list-item header" @click="startCreatingTransaction" />
+			</li>
+			<li
+				v-for="transaction in filteredTransactions"
+				:key="transaction.id"
+				class="list-item transaction"
+			>
+				<TransactionListItem :transaction="transaction" />
+			</li>
+			<li>
+				<p class="footer">
+					<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
+						>s</span
+					>
+				</p>
+			</li>
+		</List>
+	</main>
 
 	<Modal v-if="account" :open="isEditingTransaction" :close-modal="finishCreatingTransaction">
 		<TransactionEdit :account="account" @finished="finishCreatingTransaction" />
