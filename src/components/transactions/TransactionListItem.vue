@@ -2,23 +2,25 @@
 import Checkbox from "../Checkbox.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
-import { computed, ref, toRefs } from "vue";
+import { computed, ref, toRefs, onMounted } from "vue";
+import { intlFormat } from "../../filters/toCurrency";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
-import { intlFormat } from "../../filters/toCurrency";
-import { useTransactionsStore, useUiStore } from "../../store";
+import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const props = defineProps({
 	transaction: { type: Transaction, required: true },
 });
 const { transaction } = toRefs(props);
 
+const attachments = useAttachmentsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
 
 const isChangingReconciled = ref(false);
 const isNegative = computed(() => isDineroNegative(transaction.value.amount));
 const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
+const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
 const timestamp = computed(() => {
 	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -28,6 +30,26 @@ const timestamp = computed(() => {
 const transactionRoute = computed(
 	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
 );
+
+function seeIfAnyAttachmentsAreBroken() {
+	if (isAttachmentBroken.value !== "unknown") return;
+	const attachmentIds = transaction.value.attachmentIds;
+
+	// Check if an attachment is broken
+	for (const id of attachmentIds) {
+		const file = attachments.items[id];
+		if (!file) {
+			isAttachmentBroken.value = true;
+			return;
+		}
+	}
+
+	isAttachmentBroken.value = false;
+}
+
+onMounted(() => {
+	seeIfAnyAttachmentsAreBroken();
+});
 
 async function markReconciled(isReconciled: boolean) {
 	isChangingReconciled.value = true;
@@ -68,6 +90,7 @@ async function markReconciled(isReconciled: boolean) {
 					}`"
 				>
 					<PaperclipIcon />
+					<strong v-if="isAttachmentBroken">?</strong>
 				</div>
 				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
 					<LocationIcon />

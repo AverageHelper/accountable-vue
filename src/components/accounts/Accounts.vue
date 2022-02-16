@@ -25,15 +25,17 @@ const allAccounts = computed(() => accounts.allAccounts);
 const numberOfAccounts = computed(() => accounts.numberOfAccounts);
 const loadError = computed<Error | null>(() => accounts.loadError);
 
-function load() {
-	accounts.watchAccounts();
-	attachments.watchAttachments();
-	locations.watchLocations();
-	tags.watchTags();
+async function load() {
+	await Promise.all([
+		accounts.watchAccounts(),
+		attachments.watchAttachments(),
+		locations.watchLocations(),
+		tags.watchTags(),
+	]);
 }
 
-onMounted(() => {
-	load();
+onMounted(async () => {
+	await load();
 });
 </script>
 

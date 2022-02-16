@@ -3,19 +3,23 @@ import type { CollectionReference, DocumentReference } from "./references.js";
 import { fileURLToPath } from "url";
 import { Low, JSONFile } from "lowdb";
 import { mkdir, rm, unlink } from "fs/promises";
+import { useJobQueue } from "@averagehelper/job-queue";
 import { v4 as uuid } from "uuid";
 import path from "path";
 
 export async function ensure(path: string): Promise<void> {
-	process.stdout.write(`Ensuring directory is available at ${path}...\n`);
+	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
 	await mkdir(path, { recursive: true });
 }
 
-// TODO: Allow specifying a custom db directory
+// TODO: Document specifying a custom db directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// TODO: Move storage stuffs in here too
-export const DB_DIR = path.resolve(__dirname, "../../db");
+export const DB_DIR =
+	process.env["DB"] !== undefined
+		? path.resolve(process.env["DB"])
+		: path.resolve(__dirname, "../../db");
+process.stdout.write(`Database and storage directory: ${DB_DIR}\n`);
 
 /**
  * Returns a fresh document ID that is virtually guaranteed
@@ -28,18 +32,33 @@ export function newDocumentId(this: void): string {
 type UserIndexDb = Record<string, User>;
 type UserDb = Record<string, Record<string, AnyDataItem>>;
 
-async function userIndexDb(): Promise<Low<UserIndexDb>> {
+async function userIndexDb<T>(
+	cb: (db: UserIndexDb | null, write: (n: UserIndexDb | null) => void) => T
+): Promise<T> {
 	await ensure(DB_DIR);
 	const file = path.join(DB_DIR, "users.json");
 	const adapter = new JSONFile<UserIndexDb>(file);
 	const db = new Low(adapter);
-
 	await db.read();
 
-	return db;
+	const data = db.data ? { ...db.data } : null;
+	const writeQueue = useJobQueue<Low<UserIndexDb>>(file);
+	const result = cb(data, newData => {
+		writeQueue.process(db => db.write());
+		db.data = newData;
+		writeQueue.createJob(db);
+	});
+
+	if (writeQueue.length === 0) return result;
+	return new Promise(resolve => {
+		writeQueue.on("finish", () => resolve(result));
+	});
 }
 
-async function dbForUser(uid: string): Promise<Low<UserDb>> {
+async function dbForUser<T>(
+	uid: string,
+	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => T
+): Promise<T> {
 	if (!uid) throw new TypeError("uid should not be empty");
 
 	const folder = path.join(DB_DIR, "users", uid);
@@ -47,10 +66,20 @@ async function dbForUser(uid: string): Promise<Low<UserDb>> {
 	const file = path.join(folder, "db.json");
 	const adapter = new JSONFile<UserDb>(file);
 	const db = new Low(adapter);
-
 	await db.read();
 
-	return db;
+	const data = db.data ? { ...db.data } : null;
+	const writeQueue = useJobQueue<Low<UserDb>>(file);
+	const result = cb(data, newData => {
+		writeQueue.process(db => db.write());
+		db.data = newData;
+		writeQueue.createJob(db);
+	});
+
+	if (writeQueue.length === 0) return result;
+	return new Promise(resolve => {
+		writeQueue.on("finish", () => resolve(result));
+	});
 }
 
 async function destroyDbForUser(uid: string): Promise<void> {
@@ -67,13 +96,13 @@ export async function fetchDbCollection(
 
 	if (ref.id === "users") {
 		// Special handling, fetch all users
-		const db = await userIndexDb();
-		if (!db.data) return [];
-		collection = db.data;
+		const data = await userIndexDb(data => data);
+		if (!data) return [];
+		collection = data;
 	} else {
-		const db = await dbForUser(ref.uid);
-		if (!db.data) return [];
-		collection = db.data[ref.id] ?? {};
+		const data = await dbForUser(ref.uid, data => data);
+		if (!data) return [];
+		collection = data[ref.id] ?? {};
 	}
 
 	const entries = Object.entries(collection);
@@ -81,19 +110,19 @@ export async function fetchDbCollection(
 }
 
 export async function findUserWithProperties(query: Partial<User>): Promise<User | null> {
-	const db = await userIndexDb();
-	if (!db.data) return null;
+	return await userIndexDb(collection => {
+		if (!collection) return null;
 
-	const collection = db.data;
-	const result = Object.values(collection).find<User>((v: User): v is User => {
-		// where all properties of `query` match those of `v`
-		return Object.keys(query).every(key => {
-			return v[key as keyof User] === query[key as keyof User];
+		const result = Object.values(collection).find<User>((v: User): v is User => {
+			// where all properties of `query` match those of `v`
+			return Object.keys(query).every(key => {
+				return v[key as keyof User] === query[key as keyof User];
+			});
 		});
-	});
 
-	if (!result) return null;
-	return { ...result };
+		if (!result) return null;
+		return { ...result };
+	});
 }
 
 export async function fetchDbDocs<T extends AnyDataItem>(
@@ -104,22 +133,23 @@ export async function fetchDbDocs<T extends AnyDataItem>(
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	const db = await dbForUser(uid);
-	if (!db.data) return [];
+	return await dbForUser(uid, data => {
+		if (!data) return [];
 
-	const results: Array<[DocumentReference<T>, Identified<T> | null]> = [];
+		const results: Array<[DocumentReference<T>, Identified<T> | null]> = [];
 
-	for (const ref of refs) {
-		const collection = db.data[ref.parent.id] ?? {};
-		const data = collection[ref.id] as T | undefined;
-		if (!data) {
-			results.push([ref, null]);
-		} else {
-			results.push([ref, { ...data, _id: ref.id }]);
+		for (const ref of refs) {
+			const collection = data[ref.parent.id] ?? {};
+			const docs = collection[ref.id] as T | undefined;
+			if (!docs) {
+				results.push([ref, null]);
+			} else {
+				results.push([ref, { ...docs, _id: ref.id }]);
+			}
 		}
-	}
 
-	return results;
+		return results;
+	});
 }
 
 export async function fetchDbDoc<T extends AnyDataItem>(
@@ -135,32 +165,30 @@ export async function upsertUser(user: User): Promise<void> {
 	if (!uid) throw new TypeError("uid property was empty");
 
 	// Upsert to index
-	const userIndex = await userIndexDb();
-	userIndex.data ??= {};
-	userIndex.data[uid] = { ...user };
+	await userIndexDb((data, write) => {
+		const userIndex = data ?? {};
+		userIndex[uid] = { ...user };
+		write(userIndex);
+	});
 
 	// Prep database
-	const db = await dbForUser(uid);
-	if (!db.data) db.data = {};
-
-	// Commit the databases
-	await userIndex.write();
-	await db.write();
+	await dbForUser(uid, (data, write) => {
+		if (!data) write({});
+	});
 }
 
 export async function destroyUser(uid: string): Promise<void> {
 	if (!uid) throw new TypeError("uid was empty");
 
 	// Delete index
-	const userIndex = await userIndexDb();
-	userIndex.data ??= {};
-	delete userIndex.data[uid];
+	await userIndexDb((data, write) => {
+		const userIndex = data ?? {};
+		delete userIndex[uid];
+		write(userIndex);
+	});
 
 	// Erase user data folder
 	await destroyDbForUser(uid);
-
-	// Commit the database
-	await userIndex.write();
 }
 
 export interface DocUpdate<T extends AnyDataItem> {
@@ -176,16 +204,17 @@ export async function upsertDbDocs<T extends AnyDataItem>(
 	if (!updates.every(u => u.ref.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	const db = await dbForUser(uid);
-	if (!db.data) db.data = {};
+	await dbForUser(uid, (storedData, write) => {
+		const db = storedData ?? {};
 
-	for (const { ref, data } of updates) {
-		db.data[ref.parent.id] ??= {}; // upsert an empty object
-		const collection = db.data[ref.parent.id] ?? {};
-		collection[ref.id] = { ...data };
-	}
+		for (const { ref, data } of updates) {
+			db[ref.parent.id] ??= {}; // upsert an empty object
+			const collection = db[ref.parent.id] ?? {};
+			collection[ref.id] = { ...data };
+		}
 
-	await db.write(); // commit the database
+		write(db); // commit the database
+	});
 }
 
 export async function deleteDbDocs<T extends AnyDataItem>(
@@ -196,15 +225,16 @@ export async function deleteDbDocs<T extends AnyDataItem>(
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	const db = await dbForUser(uid);
-	if (!db.data) return;
+	await dbForUser(uid, (data, write) => {
+		if (!data) return;
 
-	for (const ref of refs) {
-		const collection = db.data[ref.parent.id] ?? {};
-		delete collection[ref.id]; // eat the document
-	}
+		for (const ref of refs) {
+			const collection = data[ref.parent.id] ?? {};
+			delete collection[ref.id]; // eat the document
+		}
 
-	await db.write(); // commit the database
+		write(data); // commit the database
+	});
 }
 
 export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<T>): Promise<void> {
@@ -220,17 +250,16 @@ export async function deleteDbCollection<T extends AnyDataItem>(
 		await unlink(usersDir);
 
 		// Clear the user index
-		const db = await dbForUser(ref.uid);
-		if (!db.data) return;
-		db.data = {};
-		await db.write();
+		await dbForUser(ref.uid, (data, write) => {
+			if (!data) return;
+			write({});
+		});
 		return;
 	}
 
-	const db = await dbForUser(ref.uid);
-	if (!db.data) return;
-
-	delete db.data[ref.id]; // eat the collection
-
-	await db.write(); // commit the database
+	await dbForUser(ref.uid, (data, write) => {
+		if (!data) return;
+		delete data[ref.id]; // eat the collection
+		write(data); // commit the database
+	});
 }

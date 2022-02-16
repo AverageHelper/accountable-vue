@@ -38,7 +38,7 @@ export const useLocationsStore = defineStore("locations", {
 			this.loadError = null;
 			console.debug("locationsStore: cache cleared");
 		},
-		watchLocations(force: boolean = false) {
+		async watchLocations(force: boolean = false) {
 			if (this.locationsWatcher && !force) return;
 
 			if (this.locationsWatcher) {
@@ -49,15 +49,14 @@ export const useLocationsStore = defineStore("locations", {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = locationsCollection();
 			this.locationsWatcher = watchAllRecords(
 				collection,
-				async snap => {
+				snap => {
 					this.loadError = null;
-					const authStore = useAuthStore();
-					const { dekMaterial } = await authStore.getDekMaterial();
-					const dek = deriveDEK(pKey, dekMaterial);
 
 					snap.docChanges().forEach(change => {
 						switch (change.type) {
@@ -172,20 +171,25 @@ export const useLocationsStore = defineStore("locations", {
 			} else {
 				// If new, create a new location
 				const params: LocationRecordParams = {
-					coordinate: null,
-					...locationToImport,
+					lastUsed: locationToImport.lastUsed,
+					coordinate: locationToImport.coordinate ?? null,
 					title: locationToImport.title.trim(),
 					subtitle: locationToImport.subtitle?.trim() ?? null,
 				};
 				const newLocation = await this.createLocation(params, batch);
-				for (const transaction of transactions.allTransactions) {
-					if (transaction.locationId !== locationToImport.id) continue;
 
-					// Update the transaction with new location ID
-					await transactions.updateTransaction(
-						transaction.updatedWith({ locationId: newLocation.id }),
-						batch
+				// Update transactions with new location ID
+				const matchingTransactions = transactions.allTransactions.filter(
+					t => t.locationId === locationToImport.id
+				);
+				for (const txns of chunk(matchingTransactions, 500)) {
+					const uBatch = writeBatch();
+					await Promise.all(
+						txns.map(t =>
+							transactions.updateTransaction(t.updatedWith({ locationId: newLocation.id }), uBatch)
+						)
 					);
+					await uBatch.commit();
 				}
 			}
 		},

@@ -39,7 +39,7 @@ export const useTransactionsStore = defineStore("transactions", {
 				});
 			});
 
-			return [...result];
+			return Array.from(result.values());
 		},
 	},
 	actions: {
@@ -49,7 +49,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			this.transactionsForAccount = {};
 			console.debug("transactionsStore: cache cleared");
 		},
-		watchTransactions(account: Account, force: boolean = false) {
+		async watchTransactions(account: Account, force: boolean = false) {
 			if (this.transactionsWatchers[account.id] && !force) return;
 
 			const watcher = this.transactionsWatchers[account.id];
@@ -61,16 +61,14 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
+
+			const { useAccountsStore } = await import("./accountsStore");
+			const accounts = useAccountsStore();
 
 			const collection = transactionsCollection();
-
-			this.transactionsWatchers[account.id] = watchAllRecords(collection, async snap => {
-				const { useAccountsStore } = await import("./accountsStore");
-				const accounts = useAccountsStore();
-				const authStore = useAuthStore();
-				const { dekMaterial } = await authStore.getDekMaterial();
-				const dek = deriveDEK(pKey, dekMaterial);
-
+			this.transactionsWatchers[account.id] = watchAllRecords(collection, snap => {
 				snap.docChanges().forEach(change => {
 					const accountTransactions = this.transactionsForAccount[account.id] ?? {};
 					let currentBalance =
@@ -289,11 +287,12 @@ export const useTransactionsStore = defineStore("transactions", {
 			} else {
 				// If new, create a new transaction
 				const params: TransactionRecordParams = {
-					locationId: null,
-					isReconciled: false,
-					tagIds: [],
-					attachmentIds: [],
-					...transactionToImport,
+					createdAt: transactionToImport.createdAt,
+					amount: transactionToImport.amount,
+					locationId: transactionToImport.locationId ?? null,
+					isReconciled: transactionToImport.isReconciled ?? false,
+					attachmentIds: transactionToImport.attachmentIds ?? [],
+					tagIds: transactionToImport.tagIds ?? [],
 					accountId: account.id,
 					title: transactionToImport.title?.trim() ?? null,
 					notes: transactionToImport.notes?.trim() ?? null,

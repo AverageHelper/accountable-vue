@@ -32,7 +32,7 @@ function attachmentRef(
 function attachmentStorageRef(storagePath: string): StorageReference {
 	// For some reason, String.prototype.match does not work for this
 	const parts =
-		[...storagePath.matchAll(/users\/([\w\d]+)\/attachments\/([\w\d]+)\.json/gu)][0] ?? [];
+		Array.from(storagePath.matchAll(/users\/([\w\d]+)\/attachments\/([\w\d]+)\.json/gu))[0] ?? [];
 	const errMsg = `Invalid storage ref: ${storagePath}`;
 
 	const uid = parts[1];
