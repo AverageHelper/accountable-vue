@@ -151,7 +151,8 @@ export const useTagsStore = defineStore("tags", {
 				for (const txns of chunk(matchingTransactions, 500)) {
 					const uBatch = writeBatch();
 					await Promise.all(
-						txns.map(t => {
+						txns.map(txn => {
+							const t = txn.copy();
 							t.removeTagId(tagToImport.id);
 							t.addTagId(newTag.id);
 							return transactions.updateTransaction(t, uBatch);

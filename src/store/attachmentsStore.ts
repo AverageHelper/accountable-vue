@@ -82,6 +82,15 @@ export const useAttachmentsStore = defineStore("attachments", {
 				}
 			);
 		},
+		async createAttachmentFromFile(file: File): Promise<Attachment> {
+			const metadata = {
+				type: file.type,
+				title: file.name,
+				notes: null,
+				createdAt: new Date(),
+			};
+			return await this.createAttachment(metadata, file);
+		},
 		async createAttachment(
 			record: Omit<AttachmentRecordParams, "storagePath">,
 			file: File

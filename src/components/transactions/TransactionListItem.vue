@@ -3,7 +3,7 @@ import Checkbox from "../Checkbox.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
-import { intlFormat } from "../../filters/toCurrency";
+import { intlFormat, toTimestamp } from "../../filters";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
@@ -22,10 +22,7 @@ const isNegative = computed(() => isDineroNegative(transaction.value.amount));
 const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0);
 const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
-const timestamp = computed(() => {
-	const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-	return formatter.format(transaction.value.createdAt);
-});
+const timestamp = computed(() => toTimestamp(transaction.value.createdAt));
 
 const transactionRoute = computed(
 	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
@@ -83,17 +80,17 @@ async function markReconciled(isReconciled: boolean) {
 
 		<div class="tail">
 			<div class="indicators">
+				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
+					<LocationIcon />
+				</div>
 				<div
 					v-if="hasAttachments"
 					:title="`${transaction.attachmentIds.length} attachment${
 						transaction.attachmentIds.length === 1 ? '' : 's'
 					}`"
 				>
-					<PaperclipIcon />
 					<strong v-if="isAttachmentBroken">?</strong>
-				</div>
-				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
-					<LocationIcon />
+					<PaperclipIcon />
 				</div>
 			</div>
 			<span class="amount" :class="{ negative: isNegative }">{{
@@ -145,7 +142,7 @@ async function markReconciled(isReconciled: boolean) {
 
 		> .indicators {
 			display: flex;
-			flex-flow: column nowrap;
+			flex-flow: row wrap;
 			color: color($secondary-label);
 			margin-left: auto;
 
