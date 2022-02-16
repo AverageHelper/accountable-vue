@@ -38,7 +38,7 @@ export const useTagsStore = defineStore("tags", {
 			this.loadError = null;
 			console.debug("tagsStore: cache cleared");
 		},
-		watchTags(force: boolean = false) {
+		async watchTags(force: boolean = false) {
 			if (this.tagsWatcher && !force) return;
 
 			if (this.tagsWatcher) {
@@ -49,15 +49,14 @@ export const useTagsStore = defineStore("tags", {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = tagsCollection();
 			this.tagsWatcher = watchAllRecords(
 				collection,
-				async snap => {
+				snap => {
 					this.loadError = null;
-					const authStore = useAuthStore();
-					const { dekMaterial } = await authStore.getDekMaterial();
-					const dek = deriveDEK(pKey, dekMaterial);
 
 					snap.docChanges().forEach(change => {
 						switch (change.type) {

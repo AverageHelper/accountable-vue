@@ -43,7 +43,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			this.loadError = null;
 			console.debug("attachmentsStore: cache cleared");
 		},
-		watchAttachments(force: boolean = false) {
+		async watchAttachments(force: boolean = false) {
 			if (this.attachmentsWatcher && !force) return;
 
 			if (this.attachmentsWatcher) {
@@ -54,15 +54,14 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
+			const { dekMaterial } = await authStore.getDekMaterial();
+			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = attachmentsCollection();
 			this.attachmentsWatcher = watchAllRecords(
 				collection,
-				async snap => {
+				snap => {
 					this.loadError = null;
-					const authStore = useAuthStore();
-					const { dekMaterial } = await authStore.getDekMaterial();
-					const dek = deriveDEK(pKey, dekMaterial);
 
 					snap.docChanges().forEach(change => {
 						switch (change.type) {

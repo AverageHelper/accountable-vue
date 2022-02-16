@@ -58,9 +58,9 @@ const isNegative = computed(() =>
 
 watch(
 	account,
-	account => {
+	async account => {
 		if (account) {
-			transactions.watchTransactions(account);
+			await transactions.watchTransactions(account);
 		}
 	},
 	{ immediate: true }

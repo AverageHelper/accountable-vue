@@ -100,14 +100,17 @@ async function informWatchersForDocument(
 	ref: DocumentReference<AnyDataItem>,
 	newItem: IdentifiedDataItem | null
 ): Promise<void> {
-	const docListeners = [...documentWatchers.values()].filter(
+	const docListeners = Array.from(documentWatchers.values()).filter(
 		w => w.id === ref.id && w.collectionId === ref.parent.id
 	);
-	const collectionListeners = [...collectionWatchers.values()].filter(w => w.id === ref.parent.id);
+	const collectionListeners = Array.from(collectionWatchers.values()) //
+		.filter(w => w.id === ref.parent.id);
+	if (docListeners.length + collectionListeners.length === 0) return;
+
 	console.debug(
 		`Informing ${
 			docListeners.length + collectionListeners.length
-		} listeners about changes to document ${ref.path}`
+		} listener(s) about changes to document ${ref.path}`
 	);
 	await Promise.all(docListeners.map(l => l.onChange(newItem)));
 	if (collectionListeners.length > 0) {
@@ -120,8 +123,13 @@ async function informWatchersForCollection(
 	ref: CollectionReference<AnyDataItem>,
 	newItems: Array<IdentifiedDataItem>
 ): Promise<void> {
-	const listeners = [...collectionWatchers.values()].filter(w => w.id === ref.id);
-	console.debug(`Informing ${listeners.length} listeners about changes to collection ${ref.path}`);
+	const listeners = Array.from(collectionWatchers.values()) //
+		.filter(w => w.id === ref.id);
+	if (listeners.length === 0) return;
+
+	console.debug(
+		`Informing ${listeners.length} listener(s) about changes to collection ${ref.path}`
+	);
 	await Promise.all(listeners.map(l => l.onChange(newItems)));
 }
 
