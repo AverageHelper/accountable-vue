@@ -17,10 +17,32 @@ const port = 40850;
 const app = express();
 expressWs(app); // Set up websocket support
 
+const allowedOrigins = new Set(["http://localhost:3000"]);
+const host = process.env["HOST"]; // TODO: Document this
+if (host) {
+	allowedOrigins.add(host);
+}
+
 app
 	.use(methodOverride())
 	.use(helmet())
-	.use(cors())
+	.use(
+		cors({
+			origin: (origin, callback) => {
+				// Allow requests with no origin
+				// (mobile apps, curl, etc.)
+				if (origin === undefined || !origin) return callback(null, true);
+
+				if (!allowedOrigins.has(origin)) {
+					const message =
+						"The CORS policy for this site does not allow access from the specified Origin.";
+					return callback(new Error(message), false);
+				}
+
+				return callback(null, true);
+			},
+		})
+	)
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
