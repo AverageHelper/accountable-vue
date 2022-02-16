@@ -19,7 +19,7 @@ expressWs(app); // Set up websocket support
 
 const allowedOrigins = new Set(["http://localhost:3000"]);
 const host = process.env["HOST"]; // TODO: Document this
-if (host) {
+if (host !== undefined) {
 	allowedOrigins.add(host);
 }
 
