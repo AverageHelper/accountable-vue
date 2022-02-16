@@ -80,17 +80,17 @@ async function markReconciled(isReconciled: boolean) {
 
 		<div class="tail">
 			<div class="indicators">
+				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
+					<LocationIcon />
+				</div>
 				<div
 					v-if="hasAttachments"
 					:title="`${transaction.attachmentIds.length} attachment${
 						transaction.attachmentIds.length === 1 ? '' : 's'
 					}`"
 				>
-					<PaperclipIcon />
 					<strong v-if="isAttachmentBroken">?</strong>
-				</div>
-				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
-					<LocationIcon />
+					<PaperclipIcon />
 				</div>
 			</div>
 			<span class="amount" :class="{ negative: isNegative }">{{
@@ -142,7 +142,7 @@ async function markReconciled(isReconciled: boolean) {
 
 		> .indicators {
 			display: flex;
-			flex-flow: column nowrap;
+			flex-flow: row wrap;
 			color: color($secondary-label);
 			margin-left: auto;
 

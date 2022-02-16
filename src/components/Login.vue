@@ -123,57 +123,59 @@ async function submit() {
 		<ErrorNotice :error="bootstrapError" />
 		<Footer />
 	</main>
-	<form v-else @submit.prevent="submit">
-		<TextField
-			ref="accountIdField"
-			v-model="accountId"
-			:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
-			label="account ID"
-			placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
-			autocomplete="username"
-			:shows-required="false"
-			required
-			@update:modelValue="onUpdateAccountId"
-		/>
-		<TextField
-			ref="passwordField"
-			v-model="password"
-			type="password"
-			label="password"
-			placeholder="********"
-			:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
-			:shows-required="false"
-			required
-		/>
-		<TextField
-			v-if="isSignupMode"
-			v-model="passwordRepeat"
-			type="password"
-			label="password again"
-			placeholder="********"
-			autocomplete="new-password"
-			:shows-required="false"
-			:required="isSignupMode"
-		/>
-		<ActionButton type="submit" kind="bordered" :disabled="isLoading">{{
-			isSignupMode ? "Create an account" : "Log in"
-		}}</ActionButton>
-		<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
-		<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
-		<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
-		<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from password...</span>
+	<main v-else class="content">
+		<form @submit.prevent="submit">
+			<TextField
+				ref="accountIdField"
+				v-model="accountId"
+				:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
+				label="account ID"
+				placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
+				autocomplete="username"
+				:shows-required="false"
+				required
+				@update:modelValue="onUpdateAccountId"
+			/>
+			<TextField
+				ref="passwordField"
+				v-model="password"
+				type="password"
+				label="password"
+				placeholder="********"
+				:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
+				:shows-required="false"
+				required
+			/>
+			<TextField
+				v-if="isSignupMode"
+				v-model="passwordRepeat"
+				type="password"
+				label="password again"
+				placeholder="********"
+				autocomplete="new-password"
+				:shows-required="false"
+				:required="isSignupMode"
+			/>
+			<ActionButton type="submit" kind="bordered" :disabled="isLoading">{{
+				isSignupMode ? "Create an account" : "Log in"
+			}}</ActionButton>
+			<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
+			<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
+			<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
+			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from password...</span>
 
-		<div v-if="!isLoading">
-			<p v-if="isLoginMode"
-				>Need to create an account?
-				<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
-			</p>
-			<p v-if="isSignupMode"
-				>Already have an account?
-				<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
-			</p>
-		</div>
+			<div v-if="!isLoading">
+				<p v-if="isLoginMode"
+					>Need to create an account?
+					<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
+				</p>
+				<p v-if="isSignupMode"
+					>Already have an account?
+					<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
+				</p>
+			</div>
 
-		<Footer />
-	</form>
+			<Footer />
+		</form>
+	</main>
 </template>
