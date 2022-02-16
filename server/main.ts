@@ -22,6 +22,7 @@ const host = process.env["HOST"]; // TODO: Document this
 if (host !== undefined) {
 	allowedOrigins.add(host);
 }
+console.log("allowedOrigins:", Array.from(allowedOrigins.values()));
 
 app
 	.use(methodOverride())
@@ -29,6 +30,8 @@ app
 	.use(
 		cors({
 			origin: (origin, callback) => {
+				console.log(`Handling request from origin: ${origin ?? "undefined"}`);
+
 				// Allow requests with no origin
 				// (mobile apps, curl, etc.)
 				if (origin === undefined || !origin) return callback(null, true);
@@ -52,6 +55,7 @@ app
 	.use(express.json({ limit: "5mb" }))
 	.use(express.urlencoded({ limit: "5mb", extended: true }))
 	.get("/", lol)
+	.options("/", lol)
 	.use(auth())
 	.use("/db", db())
 	.use(handleErrors);
