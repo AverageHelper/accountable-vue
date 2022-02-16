@@ -57,11 +57,13 @@ const hasChanges = computed(() => {
 			ogTransaction.value?.amount ?? dinero({ amount: 0, currency: USD })
 		).toJSON();
 		return (
+			createdAt.value !== (ogTransaction.value?.createdAt ?? new Date()) ||
 			title.value !== (ogTransaction.value?.title ?? "") ||
 			notes.value !== (ogTransaction.value?.notes ?? "") ||
 			amount.value.toJSON().amount !== oldAmount.amount ||
 			amount.value.toJSON().currency.code !== oldAmount.currency.code ||
 			isReconciled.value !== (ogTransaction.value?.isReconciled ?? false) ||
+			locationData.value?.title !== ogLocation.value?.title ||
 			locationData.value?.title !== ogLocation.value?.title ||
 			locationData.value?.subtitle !== ogLocation.value?.subtitle ||
 			locationData.value?.coordinate?.lat !== ogLocation.value?.coordinate?.lat ||
