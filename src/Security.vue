@@ -26,9 +26,9 @@ import OutLink from "./components/OutLink.vue";
 		<p
 			>When you create an account, Accountable generates a data-encryption key <em>(DEK)</em> to use
 			to encrypt and decrypt your data. Accountable generates a separate key-encryption key
-			<em>(KEK)</em> from your given password to use to encrypt your DEK. Accountable then encrypts
-			the DEK and sends it to our servers to store. This encrypted blob is useless without the KEK
-			to decrypt it, and your KEK is unknown without your password.</p
+			<em>(KEK)</em> from your given passphrase to use to encrypt your DEK. Accountable then
+			encrypts the DEK and sends it to our servers to store. This encrypted blob is useless without
+			the KEK to decrypt it, and your KEK is unknown without your passphrase.</p
 		>
 		<p
 			>We use <OutLink to="https://en.wikipedia.org/wiki/SHA-2">SHA-512</OutLink> and
@@ -41,22 +41,22 @@ import OutLink from "./components/OutLink.vue";
 		>
 
 		<!-- Auth: What about my password? -->
-		<h2>What does Accountable do with my password?</h2>
-		<p>Accountable never transmits your password anywhere, even over TLS.</p>
+		<h2>What does Accountable do with my passphrase?</h2>
+		<p>Accountable never transmits your passphrase anywhere, even over TLS.</p>
 		<p
-			>Accountable generates a one-way hash of your password, and sends that instead. The server
+			>Accountable generates a one-way hash of your passphrase, and sends that instead. The server
 			then <OutLink to="https://en.wikipedia.org/wiki/Salt_(cryptography)">salts</OutLink> and
 			<OutLink to="https://en.wikipedia.org/wiki/Cryptographic_hash_function">hashes</OutLink> that
 			hash, and stores the resulting mash. (That mash has nothing to do with how your data is
 			encrypted; see above.)</p
 		>
 		<p
-			>When you log in again, Accountable repeats the procedure on your hashed password, and checks
-			to see whether this new mash matches the stored mash.</p
+			>When you log in again, Accountable repeats the procedure on your hashed passphrase, and
+			checks to see whether this new mash matches the stored mash.</p
 		>
 		<p
 			>This mash is what Accountable's server uses to guard access to your encrypted database. If
-			someone can give the server a password hash that results in the correct mash, the server
+			someone can give the server a passphrase hash that results in the correct mash, the server
 			assumes that person is you, and happily sends over your encrypted data. No part of this
 			mash&mdash;the hash the server gets, the salt the server generates, or the final mash of the
 			two&mdash;can be used to decrypt your data. (Accountable uses your <em>DEK</em> for that; see
@@ -72,11 +72,11 @@ import OutLink from "./components/OutLink.vue";
 		>
 
 		<!-- Password change -->
-		<h2>What if I change my password?</h2>
+		<h2>What if I change my passphrase?</h2>
 		<p>We don't re-encrypt the entire database, if that's what you're thinking.</p>
 		<p
-			>Since your password is only used to generate a KEK, Accountable only re-encrypts the DEK
-			using the new KEK that your new password generates.</p
+			>Since your passphrase is only used to generate a KEK, Accountable only re-encrypts the DEK
+			using the new KEK that your new passphrase generates.</p
 		>
 		<p
 			>If you think your DEK may be compromised, I'm sorry. You may export your data, delete your
@@ -85,20 +85,20 @@ import OutLink from "./components/OutLink.vue";
 		>
 
 		<!-- Password loss -->
-		<h2>What happens if I lose my password?</h2>
+		<h2>What happens if I lose my passphrase?</h2>
 		<p
-			>You lose your data. There is nothing I or anyone can do (unless your password is
-			easily-cracked. Give it a go!) Without your password, nobody can generate the KEK that
-			encrypts the DEK that encrypts your data. Without that password, your data is lost.</p
+			>You lose your data. There is nothing I or anyone can do (unless your passphrase is
+			easily-cracked. Give it a go!) Without your passphrase, nobody can generate the KEK that
+			encrypts the DEK that encrypts your data. Without that passphrase, your data is lost.</p
 		>
-		<p><OutLink to="https://bitwarden.com">Don't lose your password.</OutLink></p>
+		<p><OutLink to="https://bitwarden.com">Don't lose your passphrase.</OutLink></p>
 
 		<!-- Database loss -->
 		<h2>What happens if someone steals the database?</h2>
 		<p
-			>If your password is good, there's nothing anyone but you can do with Accountable's database.
-			The server never sees your DEK, its corresponding KEK, or your password, and cannot put those
-			into the database.</p
+			>If your passphrase is good, there's nothing anyone but you can do with Accountable's
+			database. The server never sees your DEK, its corresponding KEK, or your passphrase, and
+			cannot put those into the database.</p
 		>
 
 		<Footer />

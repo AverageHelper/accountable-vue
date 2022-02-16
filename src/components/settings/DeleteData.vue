@@ -59,7 +59,7 @@ function cancelDeleteEverything() {
 		<TextField
 			v-model="password"
 			type="password"
-			label="current password"
+			label="current passphrase"
 			placeholder="********"
 			autocomplete="current-password"
 			:shows-required="false"
