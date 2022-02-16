@@ -20,7 +20,9 @@ const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
 const isLoading = ref(false);
-const mode = ref<"login" | "signup">("login");
+const mode = computed<"login" | "signup">(() =>
+	route.path.includes("signup") ? "signup" : "login"
+);
 const isSignupMode = computed(() => mode.value === "signup");
 const isLoginMode = computed(() => mode.value === "login");
 const loginProcessState = computed(() => auth.loginProcessState);
@@ -43,24 +45,36 @@ onMounted(() => {
 	}
 });
 
-watch(mode, mode => {
-	switch (mode) {
-		case "login":
-			accountIdField.value?.focus();
-			break;
-		case "signup":
-			passwordField.value?.focus();
-			break;
-	}
-});
+watch(
+	mode,
+	async mode => {
+		await nextTick();
+		switch (mode) {
+			case "login":
+				accountIdField.value?.focus();
+				break;
+			case "signup":
+				passwordField.value?.focus();
+				break;
+		}
+	},
+	{ immediate: true }
+);
 
 watch(
 	isLoggedIn,
 	async isLoggedIn => {
 		if (isLoggedIn) {
 			await router.push("/accounts");
-		} else if (route.path !== "/login") {
-			await router.push("/login");
+		} else if (route.path !== "/login" && route.path !== "/signup") {
+			switch (mode.value) {
+				case "login":
+					await router.push("/login");
+					break;
+				case "signup":
+					await router.push("/signup");
+					break;
+			}
 		}
 	},
 	{ immediate: true }
@@ -68,12 +82,12 @@ watch(
 
 function enterSignupMode() {
 	accountId.value = "";
-	mode.value = "signup";
+	void router.replace("/signup");
 }
 
 function enterLoginMode() {
 	accountId.value = "";
-	mode.value = "login";
+	void router.replace("/login");
 }
 
 function onUpdateAccountId(newId: string) {
@@ -126,9 +140,11 @@ async function submit() {
 	<main v-else class="content">
 		<form @submit.prevent="submit">
 			<TextField
+				v-show="!isSignupMode"
 				ref="accountIdField"
 				v-model="accountId"
 				:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
+				:disabled="isSignupMode && !isLoading"
 				label="account ID"
 				placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
 				autocomplete="username"
@@ -140,7 +156,7 @@ async function submit() {
 				ref="passwordField"
 				v-model="password"
 				type="password"
-				label="password"
+				:label="isSignupMode ? 'Create a strong passphrase' : 'passphrase'"
 				placeholder="********"
 				:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
 				:shows-required="false"
@@ -150,7 +166,7 @@ async function submit() {
 				v-if="isSignupMode"
 				v-model="passwordRepeat"
 				type="password"
-				label="password again"
+				label="passphrase again"
 				placeholder="********"
 				autocomplete="new-password"
 				:shows-required="false"
@@ -162,7 +178,7 @@ async function submit() {
 			<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
 			<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
 			<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
-			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from password...</span>
+			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from passphrase...</span>
 
 			<div v-if="!isLoading">
 				<p v-if="isLoginMode"

@@ -29,7 +29,7 @@ function cancelClearNewLoginStatus() {
 <template>
 	<Modal :open="isNewLogin">
 		<h1>Your New Account</h1>
-		<p>This is your new account ID. You will need it and your password to log in later.</p>
+		<p>This is your new account ID. You will need it and your passphrase to log in later.</p>
 		<p
 			>REMEMBER THIS: <code v-if="isNewLogin">{{ accountId }}</code></p
 		>

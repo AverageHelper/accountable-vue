@@ -100,14 +100,14 @@ export function auth(this: void): Router {
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
 					console.debug(`Found no user under account ${JSON.stringify(givenAccountId)}`);
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
 					console.debug(`The given password doesn't match what's stored`);
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Generate an auth token and send it along
@@ -155,7 +155,7 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Verify credentials
@@ -195,13 +195,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Store new credentials
@@ -242,13 +242,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
 
 				// ** Store new credentials

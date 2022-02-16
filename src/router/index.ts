@@ -29,7 +29,7 @@ import { useAuthStore } from "../store/authStore";
 
 export const APP_ROOTS = appTabs //
 	.map(tab => `/${tab}`)
-	.concat(["/", "/about", "/security", "/install", "/login"]);
+	.concat(["/", "/about", "/security", "/install", "/login", "/signup"]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
@@ -122,6 +122,18 @@ export const router = createRouter({
 		},
 		{
 			path: "/login",
+			component: Login,
+			beforeEnter(from, to, next): void {
+				const auth = useAuthStore();
+				if (auth.uid !== null) {
+					next("/accounts");
+				} else {
+					next();
+				}
+			},
+		},
+		{
+			path: "/signup",
 			component: Login,
 			beforeEnter(from, to, next): void {
 				const auth = useAuthStore();

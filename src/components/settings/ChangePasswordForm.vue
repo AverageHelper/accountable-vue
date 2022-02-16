@@ -41,7 +41,7 @@ async function submitNewPassword() {
 		isLoading.value = true;
 
 		await auth.updatePassword(currentPassword.value, newPassword.value);
-		toast.success("Your password has been updated!");
+		toast.success("Your passphrase has been updated!");
 		reset();
 	} catch (error: unknown) {
 		ui.handleError(error);
@@ -52,11 +52,11 @@ async function submitNewPassword() {
 
 <template>
 	<form @submit.prevent="submitNewPassword">
-		<h3>Change Password</h3>
+		<h3>Change Passphrase</h3>
 		<TextField
 			v-model="currentPassword"
 			type="password"
-			label="current password"
+			label="current passphrase"
 			placeholder="********"
 			autocomplete="current-password"
 			:shows-required="false"
@@ -65,7 +65,7 @@ async function submitNewPassword() {
 		<TextField
 			v-model="newPassword"
 			type="password"
-			label="new password"
+			label="new passphrase"
 			placeholder="************"
 			autocomplete="new-password"
 			:shows-required="false"
@@ -74,7 +74,7 @@ async function submitNewPassword() {
 		<TextField
 			v-model="newPasswordRepeat"
 			type="password"
-			label="new password again"
+			label="new passphrase again"
 			placeholder="************"
 			autocomplete="new-password"
 			:shows-required="false"
@@ -82,7 +82,7 @@ async function submitNewPassword() {
 		/>
 		<div class="buttons">
 			<ActionButton type="submit" kind="bordered-primary" :disabled="!hasChanges || isLoading"
-				>Change password</ActionButton
+				>Change passphrase</ActionButton
 			>
 			<ActionButton v-show="hasChanges" kind="bordered" :disabled="isLoading" @click.prevent="reset"
 				>Reset</ActionButton

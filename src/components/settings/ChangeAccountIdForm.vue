@@ -52,7 +52,7 @@ async function regenerateAccountId() {
 		<TextField
 			v-model="currentPassword"
 			type="password"
-			label="current password"
+			label="current passphrase"
 			placeholder="********"
 			autocomplete="current-password"
 			:shows-required="false"
