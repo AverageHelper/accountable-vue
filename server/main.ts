@@ -6,7 +6,6 @@ import { auth } from "./auth/index.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
-import { OriginError } from "./responses.js";
 import { storage } from "./storage/index.js";
 import busboy from "connect-busboy";
 import cors from "cors";
@@ -28,11 +27,7 @@ const corsOptions: CorsOptions = {
 		// (mobile apps, curl, etc.)
 		if (origin === undefined || !origin) return callback(null, true);
 
-		if (!allowedOrigins.includes(origin)) {
-			return callback(new OriginError(), false);
-		}
-
-		return callback(null, true);
+		return callback(null, [...allowedOrigins]);
 	},
 };
 
