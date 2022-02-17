@@ -5,7 +5,7 @@ import { auth } from "./auth/index.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
-import { allowedOrigins, options } from "./options.js";
+import { /* allowedOrigins,*/ options } from "./options.js";
 import { storage } from "./storage/index.js";
 import busboy from "connect-busboy";
 import cors from "cors";
@@ -20,21 +20,22 @@ const app = express();
 expressWs(app); // Set up websocket support
 
 const corsOptions: CorsOptions = {
-	origin: (origin, callback) => {
-		console.log(`Handling request from origin: ${origin ?? "undefined"}`);
+	origin: true,
+	// origin: (origin, callback) => {
+	// 	console.log(`Handling request from origin: ${origin ?? "undefined"}`);
 
-		// Allow requests with no origin
-		// (mobile apps, curl, etc.)
-		if (origin === undefined || !origin) return callback(null, true);
+	// 	// Allow requests with no origin
+	// 	// (mobile apps, curl, etc.)
+	// 	if (origin === undefined || !origin) return callback(null, true);
 
-		if (!allowedOrigins.includes(origin)) {
-			const message =
-				"The CORS policy for this site does not allow access from the specified Origin.";
-			return callback(new Error(message), false);
-		}
+	// 	if (!allowedOrigins.includes(origin)) {
+	// 		const message =
+	// 			"The CORS policy for this site does not allow access from the specified Origin.";
+	// 		return callback(new Error(message), false);
+	// 	}
 
-		return callback(null, true);
-	},
+	// 	return callback(null, true);
+	// },
 };
 
 app
