@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { OriginError } from "./responses";
+import { OriginError } from "./responses.js";
 
 const _allowedOrigins: NonEmptyArray<string> = ["http://localhost:3000"];
 const host = process.env["HOST"]; // TODO: Document this
