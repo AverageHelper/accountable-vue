@@ -8,14 +8,16 @@ The machine that stores stuff.
 
 This server doesn't do much on its own once you're authenticated. You give it data, and you ask for that data back. If you want to encrypt that data, do that yourself before you send it.
 
+All requests are to be formatted in JSON. The server returns JSON as well.
+
 ### Test
 
 Request: `GET https://{HOST}/`
 
-```json
-{
-	"message": "lol"
-}
+Example response:
+
+```
+message: "lol"
 ```
 
 Use this to make sure the server is working.
@@ -26,22 +28,18 @@ Use this to make sure the server is working.
 
 Request: `POST https://{HOST}/join`
 
-Request body:
+Required request fields:
 
-```json
-{
-	"account": string,
-	"password": string
-}
+```
+account: string
+password: string
 ```
 
 Example response:
 
-```json
-{
-	"access_token": string,
-	"uid": string
-}
+```
+access_token: string
+uid: string
 ```
 
 #### Log In
@@ -50,20 +48,16 @@ Request: `POST https://{HOST}/login`
 
 Request body:
 
-```json
-{
-	"account": string,
-	"password": string
-}
+```
+account: string
+password: string
 ```
 
 Example response:
 
-```json
-{
-	"access_token": string,
-	"uid": string
-}
+```
+access_token: string
+uid: string
 ```
 
 #### Log Out
@@ -74,10 +68,8 @@ Required header: `Authentication: BEARER {YOUR_TOKEN}`
 
 Example response:
 
-```json
-{
-	"message": "Success!"
-}
+```
+message: "Success!"
 ```
 
 #### Delete Account and Associated Data
@@ -88,10 +80,8 @@ Required header: `Authentication: BEARER {YOUR_TOKEN}`
 
 Example response:
 
-```json
-{
-	"message": "Success!"
-}
+```
+message: "Success!"
 ```
 
 #### Update Password
@@ -100,20 +90,16 @@ Request: `POST https://{HOST}/updatepassword`
 
 Request body:
 
-```json
-{
-	"account": string,
-	"password": string,
-	"newpassword": string
-}
+```
+account: string
+password: string
+newpassword: string
 ```
 
 Example response:
 
-```json
-{
-	"message": "Success!"
-}
+```
+message: "Success!"
 ```
 
 #### Update Account ID
@@ -122,20 +108,16 @@ Request: `POST https://{HOST}/updateaccountid`
 
 Request body:
 
-```json
-{
-	"account": string,
-	"newaccount": string,
-	"password": string
-}
+```
+account: string
+newaccount: string
+password: string
 ```
 
 Example response:
 
-```json
-{
-	"message": "Success!"
-}
+```
+message: "Success!"
 ```
 
 ### Database
