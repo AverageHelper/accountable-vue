@@ -1,11 +1,12 @@
 import type { CorsOptions } from "cors";
 import "source-map-support/register.js";
 import "./environment.js";
+import { allowedOrigins /*, options*/ } from "./options.js";
 import { auth } from "./auth/index.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
-import { allowedOrigins /*, options*/ } from "./options.js";
+import { OriginError } from "./responses.js";
 import { storage } from "./storage/index.js";
 import busboy from "connect-busboy";
 import cors from "cors";
@@ -28,9 +29,7 @@ const corsOptions: CorsOptions = {
 		if (origin === undefined || !origin) return callback(null, true);
 
 		if (!allowedOrigins.includes(origin)) {
-			const message =
-				"The CORS policy for this site does not allow access from the specified Origin.";
-			return callback(new Error(message), false);
+			return callback(new OriginError(), false);
 		}
 
 		return callback(null, true);

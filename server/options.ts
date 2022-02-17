@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { OriginError } from "./responses";
 
 const _allowedOrigins: NonEmptyArray<string> = ["http://localhost:3000"];
 const host = process.env["HOST"]; // TODO: Document this
@@ -16,9 +17,7 @@ export const options: RequestHandler = (req, res, next) => {
 
 		const origin = req.headers.origin ?? allowedOrigins[0];
 		if (!allowedOrigins.includes(origin)) {
-			const message =
-				"The CORS policy for this site does not allow access from the specified Origin.";
-			res.status(502).send(message).end();
+			throw new OriginError();
 		}
 
 		res.setHeader("Allow", "OPTIONS, GET, HEAD, POST, DELETE");
