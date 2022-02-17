@@ -39,10 +39,10 @@ const corsOptions: CorsOptions = {
 };
 
 app
-	.use(methodOverride())
-	.use(helmet())
 	.use(cors(corsOptions))
 	.options("*", options)
+	.use(methodOverride())
+	.use(helmet())
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
