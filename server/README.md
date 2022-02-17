@@ -13,7 +13,9 @@ This server doesn't do much on its own once you're authenticated. You give it da
 Request: `GET https://{HOST}/`
 
 ```json
-{ "message": "lol" }
+{
+	"message": "lol"
+}
 ```
 
 Use this to make sure the server is working.
@@ -29,7 +31,7 @@ Request body:
 ```json
 {
 	"account": string,
-  "password": string
+	"password": string
 }
 ```
 
@@ -37,8 +39,8 @@ Example response:
 
 ```json
 {
-  "access_token": string,
-  "uid": string
+	"access_token": string,
+	"uid": string
 }
 ```
 
@@ -51,7 +53,7 @@ Request body:
 ```json
 {
 	"account": string,
-  "password": string
+	"password": string
 }
 ```
 
@@ -59,8 +61,8 @@ Example response:
 
 ```json
 {
-  "access_token": string,
-  "uid": string
+	"access_token": string,
+	"uid": string
 }
 ```
 
@@ -101,8 +103,8 @@ Request body:
 ```json
 {
 	"account": string,
-  "password": string,
-  "newpassword": string
+	"password": string,
+	"newpassword": string
 }
 ```
 
@@ -123,8 +125,8 @@ Request body:
 ```json
 {
 	"account": string,
-  "newaccount": string,
-  "password": string
+	"newaccount": string,
+	"password": string
 }
 ```
 
