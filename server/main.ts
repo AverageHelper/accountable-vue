@@ -1,12 +1,12 @@
 import "source-map-support/register.js";
 import "./environment.js";
 import { auth } from "./auth/index.js";
+import { cors } from "./cors.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage/index.js";
 import busboy from "connect-busboy";
-import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";

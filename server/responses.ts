@@ -66,6 +66,17 @@ export function respondData<T extends { _id: string } | { uid: string }>(
 		.json({ message: "Success!", data });
 }
 
+export class OriginError extends InternalError {
+	constructor() {
+		super({
+			status: 502,
+			message: "The CORS policy for this site does not allow access from the specified Origin.",
+			harmless: true,
+		});
+		this.name = "OriginError";
+	}
+}
+
 export class BadRequestError extends InternalError {
 	constructor(message: string = "Invalid data") {
 		super({ status: 400, message, harmless: true });
