@@ -1,14 +1,12 @@
-import type { CorsOptions } from "cors";
 import "source-map-support/register.js";
 import "./environment.js";
-import { allowedOrigins /*, options*/ } from "./options.js";
 import { auth } from "./auth/index.js";
+import { cors } from "./cors.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { storage } from "./storage/index.js";
 import busboy from "connect-busboy";
-import cors from "cors";
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";
@@ -19,23 +17,10 @@ const port = 40850;
 const app = express();
 expressWs(app); // Set up websocket support
 
-const corsOptions: CorsOptions = {
-	origin: (origin, callback) => {
-		console.log(`Handling request from origin: ${origin ?? "undefined"}`);
-
-		// Allow requests with no origin
-		// (mobile apps, curl, etc.)
-		if (origin === undefined || !origin) return callback(null, true);
-
-		return callback(null, [...allowedOrigins]);
-	},
-};
-
 app
 	.use(methodOverride())
 	.use(helmet())
-	.use(cors(corsOptions))
-	// .options("*", options)
+	.use(cors())
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
