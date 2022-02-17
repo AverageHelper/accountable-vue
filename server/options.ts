@@ -10,8 +10,9 @@ export const allowedOrigins: Readonly<NonEmptyArray<string>> = _allowedOrigins;
 console.log("allowedOrigins:", Array.from(allowedOrigins.values()));
 
 export const options: RequestHandler = (req, res, next) => {
+	console.log("Got request", req);
 	if (req.method === "OPTIONS") {
-		console.log("Got OPTIONS check");
+		console.log("It's an OPTIONS check");
 
 		const origin = req.headers.origin ?? allowedOrigins[0];
 		if (!allowedOrigins.includes(origin)) {
