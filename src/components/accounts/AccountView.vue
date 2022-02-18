@@ -11,7 +11,7 @@ import SearchBar from "../SearchBar.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
-import { intlFormat } from "../../filters";
+import { intlFormat } from "../../transformers";
 import { ref, computed, toRefs, watch } from "vue";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";

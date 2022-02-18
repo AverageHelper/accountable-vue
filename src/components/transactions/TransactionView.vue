@@ -16,7 +16,7 @@ import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { ref, computed, toRefs } from "vue";
-import { intlFormat, toTimestamp } from "../../filters";
+import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative } from "dinero.js";
 import { useRouter } from "vue-router";
 import {

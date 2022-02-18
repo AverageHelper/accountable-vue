@@ -3,7 +3,7 @@ import Checkbox from "../Checkbox.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
-import { intlFormat, toTimestamp } from "../../filters";
+import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
