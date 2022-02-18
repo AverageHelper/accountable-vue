@@ -66,6 +66,7 @@ export function isDocumentData(tbd: unknown): tbd is DocumentData {
 
 const rawServerResponse = object({
 	message: optional(string()),
+	version: optional(string()),
 	access_token: optional(string()),
 	uid: optional(string()),
 	data: optional(nullable(union([documentData, array(documentData)]))),

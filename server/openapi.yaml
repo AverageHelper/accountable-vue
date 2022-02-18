@@ -69,8 +69,14 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: "0.3.0"
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "0.3.0"
+                  message:
+                    type: string
+                    example: "Accountable v0.3.0"
 
   "/join":
     post:

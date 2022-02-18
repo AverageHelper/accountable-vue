@@ -3,7 +3,6 @@ import ActionButton from "./ActionButton.vue";
 import ErrorNotice from "./ErrorNotice.vue";
 import Footer from "../Footer.vue";
 import TextField from "./TextField.vue";
-import { bootstrap, isWrapperInstantiated } from "../transport";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -15,7 +14,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isLoggedIn = computed(() => auth.uid !== null);
-const bootstrapError = ref<Error | null>(null);
+const bootstrapError = computed(() => ui.bootstrapError);
 const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
@@ -32,17 +31,7 @@ const passwordField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
 	accountIdField.value?.focus();
-
-	if (isWrapperInstantiated()) return;
-	try {
-		bootstrap();
-	} catch (error: unknown) {
-		if (error instanceof Error) {
-			bootstrapError.value = error;
-		} else {
-			bootstrapError.value = new Error(JSON.stringify(error));
-		}
-	}
+	ui.bootstrap();
 });
 
 watch(
@@ -192,8 +181,7 @@ async function submit() {
 					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
 				</p>
 			</div>
-
-			<Footer />
 		</form>
+		<Footer />
 	</main>
 </template>

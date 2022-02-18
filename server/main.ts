@@ -25,7 +25,7 @@ app
 	.use(cors())
 	.get("/", lol)
 	.get("/ping", ping)
-	.get("/version", (req, res) => res.json(version))
+	.get("/version", (req, res) => res.json({ message: `Accountable v${version}`, version }))
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer

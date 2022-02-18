@@ -8,7 +8,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 
 <template>
 	<main class="content">
-		<p class="tagline">Respectful digital financial records.</p>
+		<h1 class="tagline">Respectful digital financial records.</h1>
 
 		<!-- Get started now -->
 		<section id="get-started">
@@ -23,7 +23,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 		<!-- Your money, where it's been -->
 		<section id="ledger">
 			<LedgerIcon class="section-icon" />
-			<h1>Accountable To Yourself.</h1>
+			<h3>Accountable To Yourself.</h3>
 			<p
 				>Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess
 				about where your money is going,
@@ -34,7 +34,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 		<!-- E2E Encrypted -->
 		<section id="encrypted">
 			<EncryptionIcon class="section-icon" />
-			<h1>Your Ledger, Not Mine.</h1>
+			<h3>Your Ledger, Not Mine.</h3>
 			<p
 				>Accountable, by design, cannot see your data, even on our own servers. We don't need or
 				want to see what you do with your money. That's not my job.
@@ -45,7 +45,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 		<!-- Open-source and Free -->
 		<section id="open-source">
 			<OpenSourceIcon class="section-icon" />
-			<h1>Keep Me Accountable.</h1>
+			<h3>Keep Me Accountable.</h3>
 			<ul>
 				<li>All of Accountable's source code is open to read.</li>
 				<li>Let me know if anything needs fixed.</li>
