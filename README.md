@@ -81,10 +81,4 @@ I recommend using something like [PM2](https://pm2.keymetrics.io) to run the ser
 
 This project is entirely open source. Do with it what you will. If you're willing to help me improve this project, consider [filing an issue](https://github.com/AverageHelper/accountable-vue/issues/new/choose).
 
-🧐 If you're feeling especially fantastic you might consider contributing to the project directly:
-
-1. Fork this project.
-2. Make your changes. Recommended IDE Setup: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
-3. Submit a PR. (GitHub will notify, so no need to @ me)
-
-Since I don't have all the time in the world, PRs are especially appreciated.
+See [Contributing.md](/Contributing.md) for ways to contribute.
