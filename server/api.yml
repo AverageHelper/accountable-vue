@@ -1,0 +1,753 @@
+openapi: 3.0.1
+info:
+  title: Accountable
+  version: 0.2.2
+  description: This is the Accountable Server. It doesn't do much, because the Accountable client does most of the hard work. You can read the source code on [GitHub](https://github.com/AverageHelper/accountable-vue).
+  license:
+    name: GNU General Public License v3.0
+    url: https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE
+externalDocs:
+  description: Find out more about Accountable
+  url: https://accountable.average.name
+servers:
+  - url: https://api.accountable.average.name
+tags:
+  - name: misc
+    description: Make sure everything works
+  - name: auth
+    description: User authentication
+  - name: database
+    description: Document-based storage for small pieces of data
+  - name: storage
+    description: File-based storage for large blocks of data, such as images
+paths:
+  "/":
+    get:
+      tags:
+        - misc
+      summary: Get back a silly response
+      operationId: ping
+      responses:
+        200:
+          description: The server works
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "lol"
+  "/join":
+    post:
+      tags:
+        - auth
+      summary: Create a new account
+      operationId: create-account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - account
+                - password
+              type: object
+              properties:
+                account:
+                  type: string
+                  description: An identifier (or username) chosen for the user's account.
+                    The user may change this later.
+                password:
+                  type: string
+                  description: A passphrase to access the user's account. The user may change this later.
+      responses:
+        200:
+          description: Account has been added to the database with the given credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: Temporary bearer token used to authenticate future requests
+                  uid:
+                    type: string
+                    description: The user's persistent UID, different from the given account ID
+        400:
+          description: Missing one or more required parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Improper parameter types"
+        409:
+          description: An account with the given ID already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "An account with that ID already exists"
+  "/login":
+    post:
+      tags:
+        - auth
+      summary: Get an auth token for an existing account
+      operationId: login-account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - account
+                - password
+              type: object
+              properties:
+                account:
+                  type: string
+                  description: An identifier (or username) chosen for the user's account.
+                password:
+                  type: string
+                  description: A passphrase to access the user's account.
+      responses:
+        200:
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: Temporary bearer token used to authenticate future requests
+                  uid:
+                    type: string
+                    description: The user's persistent UID, different from the given account ID
+        400:
+          description: Missing one or more required parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Improper parameter types"
+        403:
+          description: The given passphrase does not match, or the given account does
+            not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Incorrect account ID or passphrase"
+  "/logout":
+    post:
+      tags:
+        - auth
+      summary: Invalidate the request's bearer token
+      operationId: log-out
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+  "/leave":
+    post:
+      tags:
+        - auth
+      summary: Destroy the user's data and account credentials
+      operationId: leave-forever
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - account
+                - password
+              type: object
+              properties:
+                account:
+                  type: string
+                  description: The identifier for the user's account.
+                password:
+                  type: string
+                  description: The passphrase to access the account.
+      responses:
+        200:
+          description: Operation succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Missing one or more required parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Improper parameter types"
+        403:
+          description: The given passphrase does not match, or the given account does
+            not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Incorrect account ID or passphrase"
+  "/updatepassword":
+    post:
+      tags:
+        - auth
+      summary: Change the user's password
+      operationId: change-password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - account
+                - password
+                - newpassword
+              type: object
+              properties:
+                account:
+                  type: string
+                  description: The identifier for the user's account.
+                password:
+                  type: string
+                  description: The current passphrase to access the account.
+                newpassword:
+                  type: string
+                  description: The new passphrase to access the account from now on.
+      responses:
+        200:
+          description: Operation succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Missing one or more required parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Improper parameter types"
+        403:
+          description: The given passphrase does not match, or the given account does
+            not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Incorrect account ID or passphrase"
+  "/updateaccountid":
+    post:
+      tags:
+        - auth
+      summary: Change the user's account ID
+      operationId: change-account-id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - account
+                - newaccount
+                - password
+              type: object
+              properties:
+                account:
+                  type: string
+                  description: The identifier for the user's account.
+                newaccount:
+                  type: string
+                  description: The new identifier to access the account from now on.
+                password:
+                  type: string
+                  description: The current passphrase to access the account.
+      responses:
+        200:
+          description: Operation succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Missing one or more required parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Improper parameter types"
+        403:
+          description: The given passphrase does not match, or the given account does
+            not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Incorrect account ID or passphrase"
+  "/db/users/{uid}":
+    post:
+      tags:
+        - database
+      summary: "Perform a batch of up to 500 document writes"
+      description: Does nothing when the batch is empty
+      operationId: batch-write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - type
+                  - ref
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - set
+                      - delete
+                  ref:
+                    type: object
+                    required:
+                      - collectionId
+                      - documentId
+                    properties:
+                      collectionId:
+                        $ref: "#/components/schemas/CollectionID"
+                      documentId:
+                        type: string
+                  data:
+                    type: object
+      responses:
+        200:
+          description: All operations successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Invalid parameters or data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Invalid data"
+        404:
+          description: The collection not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    parameters:
+      - name: uid
+        in: path
+        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        required: true
+        schema:
+          type: string
+  "/db/users/{uid}/{coll}":
+    get:
+      tags:
+        - database
+      summary: Get all documents in a collection
+      operationId: get-collection
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: The collection was found, but might be empty
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: The collection not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    delete:
+      tags:
+        - database
+      summary: Delete all documents in a collection
+      operationId: delete-collection
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: The operation was successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        404:
+          description: The collection was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    parameters:
+      - name: uid
+        in: path
+        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        required: true
+        schema:
+          type: string
+      - name: coll
+        in: path
+        description: The ID of the collection where data resides.
+        required: true
+        schema:
+          $ref: "#/components/schemas/CollectionID"
+  "/db/users/{uid}/{coll}/{doc}":
+    get:
+      tags:
+        - database
+      summary: Get a document
+      operationId: get-doc
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Fetch succeeded, but the document might not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                nullable: true
+        404:
+          description: The collection was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    post:
+      tags:
+        - database
+      summary: Add or update a document
+      operationId: set-doc
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Operation succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: The provided data does not have the required properties for a document in this collection.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Invalid data"
+        404:
+          description: The collection was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    delete:
+      tags:
+        - database
+      summary: Delete a document
+      operationId: delete-doc
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Operation succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        404:
+          description: The collection was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    parameters:
+      - name: uid
+        in: path
+        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        required: true
+        schema:
+          type: string
+      - name: coll
+        in: path
+        description: The ID of the collection where data resides.
+        required: true
+        schema:
+          $ref: "#/components/schemas/CollectionID"
+      - name: doc
+        in: path
+        description: The ID of the document where data resides.
+        required: true
+        schema:
+          type: string
+  "/files/users/{uid}/attachments/{fileName}":
+    get:
+      tags:
+        - storage
+      summary: Get a file
+      operationId: get-file
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: The file was found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contents:
+                    type: string
+                  _id:
+                    type: string
+        400:
+          description: Bad ID or file name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Your UID or that file name don't add up to a valid path"
+        404:
+          description: The file data was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
+    post:
+      tags:
+        - storage
+      summary: Write a file
+      operationId: set-file
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Bad ID or file name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Your UID or that file name don't add up to a valid path"
+    delete:
+      tags:
+        - storage
+      summary: Delete a file
+      operationId: delete-file
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+        400:
+          description: Bad ID or file name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Your UID or that file name don't add up to a valid path"
+    parameters:
+      - name: uid
+        in: path
+        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: path
+        description: The name of a file.
+        required: true
+        schema:
+          type: string
+components:
+  schemas:
+    CollectionID:
+      type: string
+      enum:
+        - accounts
+        - attachments
+        - keys
+        - locations
+        - tags
+        - transactions
+        - users
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
