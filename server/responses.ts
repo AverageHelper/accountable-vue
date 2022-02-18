@@ -133,6 +133,16 @@ export class ThrottledError extends InternalError {
 	}
 }
 
+export class NotEnoughRoomError extends InternalError {
+	constructor() {
+		super({
+			status: 507,
+			message: "There is not enough room to write your data. Delete some stuff first",
+		});
+		this.name = "NotEnoughRoomError";
+	}
+}
+
 export function respondInternalError(this: void, res: Response): void {
 	respondError(res, new InternalError());
 }

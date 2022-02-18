@@ -1,26 +1,19 @@
-import { check } from "diskusage";
-import { platform } from "os";
+import { promisify } from "util";
 import { simplifiedByteCount } from "../transformers/index.js";
-
-const rootPath = platform() === "win32" ? "c:" : "/";
-
-async function availableSpace(): Promise<number> {
-	const { available } = await check(rootPath);
-	return available;
-}
+import fastFolderSize from "fast-folder-size";
 
 const defaultMaxUsers = 5;
 export const MAX_USERS = Number.parseInt(process.env["MAX_USERS"] ?? `${defaultMaxUsers}`, 10);
 
 // Check disk capacity
-const totalSpace = await availableSpace();
-export const spacePerUser = totalSpace / MAX_USERS;
+const defaultMaxSpace = 20000000000;
+const totalSpace = Number.parseInt(process.env["MAX_BYTES"] ?? `${defaultMaxSpace}`, 10);
+export const maxSpacePerUser = totalSpace / MAX_USERS;
 
 console.log(
-	`System has ${simplifiedByteCount(totalSpace)} available. That's ${simplifiedByteCount(
-		spacePerUser
+	`We have ${simplifiedByteCount(totalSpace)} available. That's ${simplifiedByteCount(
+		maxSpacePerUser
 	)} for each of our ${MAX_USERS} max users.`
 );
 
-// TODO: Divide the disk space among a theoretical capacity of users
-// No one user may occupy more space than that max
+export const folderSize: (path: string) => Promise<number | undefined> = promisify(fastFolderSize);

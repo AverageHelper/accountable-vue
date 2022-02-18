@@ -39,6 +39,9 @@ HOST={your frontend hostname, with protocol}
 
 MAX_USERS={the limit to the number of users allowed to register new accounts}
 # defaults to 5
+
+MAX_BYTES={the total amount of space that Accountable is permitted to occupy on the system}
+# defaults to 20000000000 (20 GB)
 ```
 
 #### Compile and Run the Server

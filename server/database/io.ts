@@ -1,8 +1,11 @@
 import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
 import { fileURLToPath } from "url";
+import { folderSize, maxSpacePerUser } from "../auth/limits.js";
 import { Low, JSONFile } from "lowdb";
 import { mkdir, rm, unlink } from "fs/promises";
+import { NotEnoughRoomError } from "../responses.js";
+import { simplifiedByteCount } from "../transformers/index.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import { v4 as uuid } from "uuid";
 import path from "path";
@@ -55,14 +58,26 @@ async function userIndexDb<T>(
 	});
 }
 
+function dbFolderForUser(uid: string): string {
+	return path.join(DB_DIR, "users", uid);
+}
+
 async function dbForUser<T>(
 	uid: string,
 	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => T
 ): Promise<T> {
 	if (!uid) throw new TypeError("uid should not be empty");
 
-	const folder = path.join(DB_DIR, "users", uid);
+	const folder = dbFolderForUser(uid);
 	await ensure(folder);
+
+	// Divide the disk space among a theoretical capacity of users
+	// TODO: Prevent new signups if we've used every slot
+	const maxSizeOfUserFolder = Math.ceil(maxSpacePerUser);
+	const sizeOfUserFolder = Math.ceil((await folderSize(folder)) ?? maxSizeOfUserFolder);
+	// TODO: Add an endpoint for users to read their storage size and limit
+	console.log(`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} so far`);
+
 	const file = path.join(folder, "db.json");
 	const adapter = new JSONFile<UserDb>(file);
 	const db = new Low(adapter);
@@ -71,6 +86,11 @@ async function dbForUser<T>(
 	const data = db.data ? { ...db.data } : null;
 	const writeQueue = useJobQueue<Low<UserDb>>(file);
 	const result = cb(data, newData => {
+		// No one user may occupy more space than the max
+		const isNewDataLarger = JSON.stringify(newData).length > JSON.stringify(data).length;
+		const isUserOutOfRoom = sizeOfUserFolder >= maxSizeOfUserFolder;
+		if (isNewDataLarger && isUserOutOfRoom) throw new NotEnoughRoomError();
+
 		writeQueue.process(db => db.write());
 		db.data = newData;
 		writeQueue.createJob(db);
