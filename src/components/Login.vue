@@ -140,7 +140,6 @@ async function submit() {
 	<main v-else class="content">
 		<form @submit.prevent="submit">
 			<TextField
-				v-show="!isSignupMode"
 				ref="accountIdField"
 				v-model="accountId"
 				:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
@@ -172,9 +171,12 @@ async function submit() {
 				:shows-required="false"
 				:required="isSignupMode"
 			/>
-			<ActionButton type="submit" kind="bordered" :disabled="isLoading">{{
-				isSignupMode ? "Create an account" : "Log in"
-			}}</ActionButton>
+			<ActionButton
+				type="submit"
+				:kind="isSignupMode ? 'bordered-primary-green' : 'bordered-primary'"
+				:disabled="isLoading"
+				>{{ isSignupMode ? "Create an account" : "Log in" }}</ActionButton
+			>
 			<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
 			<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
 			<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
@@ -183,11 +185,11 @@ async function submit() {
 			<div v-if="!isLoading">
 				<p v-if="isLoginMode"
 					>Need to create an account?
-					<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
+					<a href="#" @click.prevent="enterSignupMode">Create one!</a>
 				</p>
 				<p v-if="isSignupMode"
 					>Already have an account?
-					<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
+					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
 				</p>
 			</div>
 

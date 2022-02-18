@@ -1,9 +1,10 @@
 import type { DataItem, Unsubscribe, UserKeys } from "./database/index.js";
 import type { DocUpdate } from "./database/io.js";
 import type { Request } from "express";
-import type { WebSocket } from "ws";
+import type { WebSocket } from "./database/websockets.js";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
+import { close, send, WebSocketCode } from "./database/websockets.js";
 import { handleErrors } from "./handleErrors.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
 import { Router } from "express";
@@ -53,10 +54,13 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 	const uid = (req.params.uid ?? "") || null;
 	const collectionId = (req.params.collectionId ?? "") || null;
 	const documentId = (req.params.documentId ?? "") || null;
-	if (uid === null || collectionId === null || !isCollectionId(collectionId)) {
-		ws.send(JSON.stringify({ message: "No data found" }));
-		return ws.close();
-	}
+
+	// Ensure valid input
+	if (uid === null) return close(ws, WebSocketCode.PROTOCOL_ERROR, "Missing user ID");
+	if (collectionId === null)
+		return close(ws, WebSocketCode.PROTOCOL_ERROR, "Missing collection ID");
+	if (!isCollectionId(collectionId))
+		return close(ws, WebSocketCode.PROTOCOL_ERROR, "Invalid collection ID");
 
 	// Send an occasional ping
 	// If the client doesn't respond a few times consecutively, assume they aren't coming back
@@ -64,11 +68,11 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 	const pingInterval = setInterval(() => {
 		if (timesNotThere > 5) {
 			process.stdout.write("Client didn't respond after 5 tries. Closing\n");
-			ws.close();
+			close(ws, WebSocketCode.WENT_AWAY, "Client did not respond to pings, probably dead");
 			clearInterval(pingInterval);
 			return;
 		}
-		ws.send(JSON.stringify("ARE_YOU_STILL_THERE"));
+		send(ws, "ARE_YOU_STILL_THERE");
 		timesNotThere += 1; // this goes away if the client responds
 	}, 10000); // 10 second interval
 
@@ -81,40 +85,42 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		const ref = new DocumentReference(collection, documentId);
 		unsubscribe = watchUpdatesToDocument(ref, data => {
 			console.debug(`Got update for document at ${ref.path}`);
-			ws.send(
-				JSON.stringify({
-					message: "Here's your data",
-					dataType: "single",
-					data,
-				})
-			);
+			send(ws, {
+				message: "Here's your data",
+				dataType: "single",
+				data,
+			});
 		});
 	} else {
 		unsubscribe = watchUpdatesToCollection(collection, data => {
 			console.debug(`Got update for collection at ${collection.path}`);
-			ws.send(
-				JSON.stringify({
-					message: "Here's your data",
-					dataType: "multiple",
-					data,
-				})
-			);
+			send(ws, {
+				message: "Here's your data",
+				dataType: "multiple",
+				data,
+			});
 		});
 	}
 
 	ws.on("message", msg => {
 		try {
 			const message = (msg as Buffer).toString();
+
+			// ** Stuff we expect to hear from the client:
 			switch (message) {
+				case "START": // nop
 				case "YES_IM_STILL_HERE":
 					timesNotThere = 0;
 					return;
 				case "STOP":
 					unsubscribe();
-					return ws.close();
+					return close(ws, WebSocketCode.NORMAL, "Received STOP message from client");
+				default:
+					return close(ws, WebSocketCode.PROTOCOL_ERROR, "Received unknown message from client");
 			}
 		} catch (error: unknown) {
 			console.error(error);
+			close(ws, WebSocketCode.PROTOCOL_ERROR, "Couldn't process that");
 		}
 	});
 }

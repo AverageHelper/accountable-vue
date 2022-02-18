@@ -72,11 +72,15 @@ async function dbForUser<T>(
 	await ensure(folder);
 
 	// Divide the disk space among a theoretical capacity of users
-	// TODO: Prevent new signups if we've used every slot
+	// TODO: Prevent new signups if we've used every slot, and take users with only key-data into account
 	const maxSizeOfUserFolder = Math.ceil(maxSpacePerUser);
 	const sizeOfUserFolder = Math.ceil((await folderSize(folder)) ?? maxSizeOfUserFolder);
 	// TODO: Add an endpoint for users to read their storage size and limit
-	console.log(`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} so far`);
+	console.log(
+		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
+			maxSpacePerUser
+		)}`
+	);
 
 	const file = path.join(folder, "db.json");
 	const adapter = new JSONFile<UserDb>(file);
