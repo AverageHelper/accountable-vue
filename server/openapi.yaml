@@ -26,7 +26,7 @@ paths:
       tags:
         - misc
       summary: Get back a silly response
-      operationId: ping
+      operationId: silly
       responses:
         200:
           description: The server works
@@ -39,6 +39,39 @@ paths:
                     type: string
                     enum:
                       - "lol"
+  "/ping":
+    get:
+      tags:
+        - misc
+      summary: Make sure the server is working
+      operationId: ping
+      responses:
+        200:
+          description: The server works
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Pong!"
+  "/version":
+    get:
+      tags:
+        - misc
+      summary: Get the server's version string
+      operationId: version
+      responses:
+        200:
+          description: Gets the server's current version.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "0.3.0"
+
   "/join":
     post:
       tags:
