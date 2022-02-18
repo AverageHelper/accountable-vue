@@ -5,7 +5,7 @@ import _cors from "cors";
 const allowedOrigins = new Set(["http://localhost:3000"]);
 
 // Add configured host to list of allowed origins
-const host = process.env["HOST"]; // TODO: Document this
+const host = process.env["HOST"];
 if (host !== undefined) allowedOrigins.add(host);
 process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins.values()))}\n`);
 

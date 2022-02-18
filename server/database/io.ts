@@ -12,13 +12,13 @@ export async function ensure(path: string): Promise<void> {
 	await mkdir(path, { recursive: true });
 }
 
-// TODO: Document specifying a custom db directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-export const DB_DIR =
-	process.env["DB"] !== undefined
-		? path.resolve(process.env["DB"])
-		: path.resolve(__dirname, "../../db");
+const dbEnv = process.env["DB"] ?? "";
+
+export const DB_DIR = dbEnv //
+	? path.resolve(dbEnv)
+	: path.resolve(__dirname, "../../db");
 process.stdout.write(`Database and storage directory: ${DB_DIR}\n`);
 
 /**

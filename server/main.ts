@@ -26,12 +26,12 @@ app
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
 		})
 	)
-	.use("/files", storage())
+	.use("/files", storage()) // Storage endpoints (checks auth)
 	.use(express.json({ limit: "5mb" }))
 	.use(express.urlencoded({ limit: "5mb", extended: true }))
 	.get("/", lol)
-	.use(auth())
-	.use("/db", db())
+	.use(auth()) // Auth endpoints
+	.use("/db", db()) // Database endpoints (checks auth)
 	.use(handleErrors);
 
 process.stdout.write(`NODE_ENV: ${process.env.NODE_ENV}\n`);
