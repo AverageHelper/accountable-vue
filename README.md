@@ -39,9 +39,15 @@ VITE_ACCOUNTABLE_SERVER_URL={your Accountable backend URL here}:40850
 VITE_ENABLE_LOGIN=true
 ```
 
-> Note: If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
->
-> Using `localhost` for this will cause clients to try _themselves_ as the Accountable server, and that's usually not what you want.
+If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
+
+Using `localhost` for this will cause clients to try _themselves_ as the Accountable server, and that's usually not what you want.
+
+#### Compile and Run the Server
+
+See [the server's README](/server/README.md) for info on that.
+
+<!-- TODO: Add a note here about our own hosted solution -->
 
 #### Compile and Run the Client
 
@@ -58,20 +64,7 @@ The webserver will print a URL in your terminal to paste into your browser. It s
 
 I recommend you deploy the client (the contents of the `accountable-vue/dist` folder) on a webserver like [nginx](https://nginx.org/en/).
 
-> Note: DO NOT FORGET your Accountable ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
-
-#### Compile and Run the Server
-
-```sh
-$ cd server      # Be in the server's directory
-$ npm ci         # Install dependencies
-$ npm run build  # Compile the server
-$ npm start      # Start the server in development mode
-```
-
-If you've set `VITE_ACCOUNTABLE_SERVER_URL` to a URL that can reach this server, then you should be good to go.
-
-I recommend using something like [PM2](https://pm2.keymetrics.io) to run the server properly. (Instructions coming soon™)
+DO NOT FORGET your Accountable ACCOUNT ID or PASSWORD. If you do, your data is irretrievably lost. You have been warned. :)
 
 ## Acknowledgements
 
