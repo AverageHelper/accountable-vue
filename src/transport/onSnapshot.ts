@@ -354,6 +354,13 @@ export function onSnapshot<T>(
 				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
 			);
 		}
+
+		if (message === "ARE_YOU_STILL_THERE") {
+			// Respond to pings
+			ws.send("YES_IM_STILL_HERE");
+			return;
+		}
+
 		if (!isRawServerResponse(message))
 			throw new UnexpectedResponseError(
 				`Invalid server response: ${JSON.stringify(message, undefined, "  ")}`

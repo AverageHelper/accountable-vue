@@ -57,6 +57,21 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		ws.send(JSON.stringify({ message: "No data found" }));
 		return ws.close();
 	}
+
+	// Send an occasional ping
+	// If the client doesn't respond a few times consecutively, assume they aren't coming back
+	let timesNotThere = 0;
+	const pingInterval = setInterval(() => {
+		if (timesNotThere > 5) {
+			process.stdout.write("Client didn't respond after 5 tries. Closing\n");
+			ws.close();
+			clearInterval(pingInterval);
+			return;
+		}
+		ws.send(JSON.stringify("ARE_YOU_STILL_THERE"));
+		timesNotThere += 1; // this goes away if the client responds
+	}, 10000); // 10 second interval
+
 	const collection = new CollectionReference<UserKeys>(uid, collectionId);
 	let unsubscribe: Unsubscribe;
 
@@ -89,15 +104,15 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 
 	ws.on("message", msg => {
 		try {
-			const uid = (req.params.uid ?? "") || null;
-			if ((msg as Buffer).toString() === "STOP") {
-				process.stdout.write("Received STOP\n");
-				unsubscribe();
-				return ws.close();
+			const message = (msg as Buffer).toString();
+			switch (message) {
+				case "YES_IM_STILL_HERE":
+					timesNotThere = 0;
+					return;
+				case "STOP":
+					unsubscribe();
+					return ws.close();
 			}
-			process.stdout.write(
-				`User '${uid ?? "null"}' sent message: '${JSON.stringify(msg.valueOf())}'\n`
-			);
 		} catch (error: unknown) {
 			console.error(error);
 		}
