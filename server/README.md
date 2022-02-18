@@ -8,7 +8,7 @@ The machine that stores stuff.
 
 This server doesn't do much on its own once you're authenticated. You give it data, and you ask for that data back. If you want to encrypt that data, do that yourself before you send it.
 
-I'm working on setting up a frontend to document the API. The OpenAPI schema as it stands is found in [openapi.yaml](openapi.yaml).
+I'm working on setting up a frontend to document the API. The OpenAPI schema is found in [openapi.yaml](openapi.yaml).
 
 ## Setup
 
