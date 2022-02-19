@@ -7,7 +7,7 @@ import { stat as fsStat, unlink as fsUnlink, readFile, utimes } from "fs/promise
 import { handleErrors } from "../handleErrors.js";
 import { ownersOnly, requireAuth } from "../auth/index.js";
 import { Router } from "express";
-import { DB_DIR, ensure } from "../database/io.js";
+import { DB_DIR, ensure, statsForUser } from "../database/io.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import {
 	BadRequestError,
@@ -28,6 +28,7 @@ interface WriteAction {
 	path: string;
 	req: Request<Params>;
 	res: Response;
+	uid: string;
 }
 
 /**
@@ -127,7 +128,8 @@ async function handleWrite(job: WriteAction): Promise<void> {
 	}
 
 	// When done, get back to the caller
-	respondSuccess(job.res);
+	const { totalSpace, usedSpace } = await statsForUser(job.uid);
+	respondSuccess(job.res, { totalSpace, usedSpace });
 }
 
 /**
@@ -204,25 +206,31 @@ export function storage(this: void): Router {
 		.post<Params>(
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
 				const path = await filePath(req.params);
 				if (path === null)
 					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
 
 				const queue = useJobQueue<WriteAction>(path);
 				queue.process(handleWrite);
-				queue.createJob({ method: "post", path, req, res });
+				queue.createJob({ method: "post", path, req, res, uid });
 			})
 		)
 		.delete<Params>(
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
 				const path = await filePath(req.params);
 				if (path === null)
 					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
 
 				const queue = useJobQueue<WriteAction>(path);
 				queue.process(handleWrite);
-				queue.createJob({ method: "delete", path, req, res });
+				queue.createJob({ method: "delete", path, req, res, uid });
 			})
 		)
 		.use(handleErrors);

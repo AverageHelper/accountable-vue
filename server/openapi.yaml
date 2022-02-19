@@ -109,12 +109,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
                   access_token:
                     type: string
                     description: Temporary bearer token used to authenticate future requests
                   uid:
                     type: string
                     description: The user's persistent UID, different from the given account ID
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Missing one or more required parameters
           content:
@@ -167,12 +179,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
                   access_token:
                     type: string
                     description: Temporary bearer token used to authenticate future requests
                   uid:
                     type: string
                     description: The user's persistent UID, different from the given account ID
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Missing one or more required parameters
           content:
@@ -443,6 +467,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Invalid parameters or data
           content:
@@ -517,6 +549,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         404:
           description: The collection was not found
           content:
@@ -587,6 +627,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: The provided data does not have the required properties for a document in this collection.
           content:
@@ -628,6 +676,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         404:
           description: The collection was not found
           content:
@@ -719,6 +775,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Bad ID or file name
           content:
@@ -749,6 +813,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Bad ID or file name
           content:

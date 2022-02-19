@@ -11,6 +11,8 @@ export const useUiStore = defineStore("ui", {
 		preferredColorScheme: "light" as ColorScheme,
 		serverVersion: null as string | Error | null,
 		bootstrapError: null as Error | null,
+		totalSpace: null as number | null,
+		usedSpace: null as number | null,
 	}),
 	getters: {
 		serverLoadingError(): Error | null {
@@ -45,6 +47,14 @@ export const useUiStore = defineStore("ui", {
 		},
 		activateLightMode(): void {
 			this.preferredColorScheme = "light";
+		},
+		updateTotalSpace(totalSpace: number | undefined) {
+			// `null` == unknown value; if we get `undefined` here, use what we last knew.
+			this.totalSpace = totalSpace ?? this.totalSpace;
+		},
+		updateUsedSpace(usedSpace: number | undefined) {
+			// `null` == unknown value; if we get `undefined` here, use what we last knew.
+			this.usedSpace = usedSpace ?? this.usedSpace;
 		},
 		bootstrap() {
 			if (isWrapperInstantiated()) return;

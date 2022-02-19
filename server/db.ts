@@ -8,6 +8,7 @@ import { close, send, WebSocketCode } from "./database/websockets.js";
 import { handleErrors } from "./handleErrors.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
 import { Router } from "express";
+import { statsForUser } from "./database/io.js";
 import {
 	CollectionReference,
 	DocumentReference,
@@ -165,7 +166,10 @@ export function db(this: void): Router {
 				if (!isArrayOf(providedData, isDocumentWriteBatch)) throw new BadRequestError();
 
 				// Ignore an empty batch
-				if (!isNonEmptyArray(providedData)) return respondSuccess(res);
+				if (!isNonEmptyArray(providedData)) {
+					const { totalSpace, usedSpace } = await statsForUser(uid);
+					return respondSuccess(res, { totalSpace, usedSpace });
+				}
 
 				// Separate delete and set operations
 				const setOperations: Array<DocUpdate<DataItem>> = [];
@@ -194,7 +198,8 @@ export function db(this: void): Router {
 					await deleteDocuments(deleteOperations);
 				}
 
-				respondSuccess(res);
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)
 		.post<Params>(
@@ -211,27 +216,36 @@ export function db(this: void): Router {
 				if (!ref) throw new NotFoundError();
 
 				await setDocument(ref, providedData);
-				respondSuccess(res);
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)
 		.delete<Params>(
 			"/users/:uid/:collectionId",
 			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
 				const ref = collectionRef(req);
 				if (!ref) throw new NotFoundError();
 
 				await deleteCollection(ref);
-				respondSuccess(res);
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)
 		.delete<Params>(
 			"/users/:uid/:collectionId/:documentId",
 			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();
 
 				await deleteDocument(ref);
-				respondSuccess(res);
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)
 		.use(handleErrors);

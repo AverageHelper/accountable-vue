@@ -48,11 +48,15 @@ export class InternalError extends Error {
 // See https://stackoverflow.com/a/54337073 for why "Vary: *" is necessary for Safari
 const cacheControl = "no-store";
 
-export function respondSuccess(this: void, res: Response): void {
+export function respondSuccess(
+	this: void,
+	res: Response,
+	additionalValues?: Record<string, string | number>
+): void {
 	res
 		.setHeader("Cache-Control", cacheControl) //
 		.setHeader("Vary", "*")
-		.json({ message: "Success!" });
+		.json({ ...additionalValues, message: "Success!" });
 }
 
 export function respondData<T extends { _id: string } | { uid: string }>(

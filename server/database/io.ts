@@ -62,6 +62,19 @@ function dbFolderForUser(uid: string): string {
 	return path.join(DB_DIR, "users", uid);
 }
 
+interface UserStats {
+	totalSpace: number;
+	usedSpace: number;
+}
+
+export async function statsForUser(uid: string): Promise<UserStats> {
+	const folder = dbFolderForUser(uid);
+	const totalSpace = Math.ceil(maxSpacePerUser);
+	const usedSpace = Math.ceil((await folderSize(folder)) ?? totalSpace);
+
+	return { totalSpace, usedSpace };
+}
+
 async function dbForUser<T>(
 	uid: string,
 	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => T
@@ -73,9 +86,10 @@ async function dbForUser<T>(
 
 	// Divide the disk space among a theoretical capacity of users
 	// TODO: Prevent new signups if we've used every slot, and take users with only key-data into account
-	const maxSizeOfUserFolder = Math.ceil(maxSpacePerUser);
-	const sizeOfUserFolder = Math.ceil((await folderSize(folder)) ?? maxSizeOfUserFolder);
-	// TODO: Add an endpoint for users to read their storage size and limit
+	const {
+		totalSpace: maxSizeOfUserFolder, //
+		usedSpace: sizeOfUserFolder,
+	} = await statsForUser(uid);
 	console.log(
 		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
 			maxSpacePerUser

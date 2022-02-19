@@ -1,13 +1,18 @@
 import type { User } from "../database/schemas.js";
 import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
-import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../responses.js";
 import { Context } from "./Context.js";
-import { destroyUser, findUserWithProperties, upsertUser } from "../database/io.js";
+import { destroyUser, findUserWithProperties, statsForUser, upsertUser } from "../database/io.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
+import {
+	BadRequestError,
+	DuplicateAccountError,
+	respondSuccess,
+	UnauthorizedError,
+} from "../responses.js";
 
 interface ReqBody {
 	account?: unknown;
@@ -28,11 +33,6 @@ async function userWithAccountId(accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
 	return await findUserWithProperties({ currentAccountId: accountId });
 }
-
-/* Headers */
-
-// See https://stackoverflow.com/a/54337073 for why "Vary: *" is necessary for Safari
-const cacheControl = "no-store";
 
 /**
  * Routes and middleware for a basic authentication flow. Installs a
@@ -73,10 +73,8 @@ export function auth(this: void): Router {
 
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(user);
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ access_token, uid });
+				const { totalSpace, usedSpace } = await statsForUser(user.uid);
+				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -113,28 +111,19 @@ export function auth(this: void): Router {
 				// ** Generate an auth token and send it along
 				const access_token = await newAccessToken(storedUser);
 				const uid = storedUser.uid;
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ access_token, uid });
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
 			})
 		)
 		.post("/logout", throttle(), (req, res) => {
 			const token = jwtTokenFromRequest(req);
 			if (token === null) {
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ message: "Success!" });
-				return;
+				return respondSuccess(res);
 			}
 
 			// ** Blacklist the JWT
 			addJwtToBlacklist(token);
-			res
-				.setHeader("Cache-Control", cacheControl)
-				.setHeader("Vary", "*")
-				.json({ message: "Success!" });
+			respondSuccess(res);
 		})
 		.post<unknown, unknown, ReqBody>(
 			"/leave",
@@ -167,10 +156,7 @@ export function auth(this: void): Router {
 				// ** Delete the user
 				await destroyUser(storedUser.uid);
 
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ message: "Success!" });
+				respondSuccess(res);
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -214,10 +200,7 @@ export function auth(this: void): Router {
 				});
 
 				// TODO: Invalidate the old jwt, send a new one
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ message: "Success!" });
+				respondSuccess(res);
 			})
 		)
 		.post<unknown, unknown, ReqBody>(
@@ -258,10 +241,7 @@ export function auth(this: void): Router {
 				});
 
 				// TODO: Invalidate the old jwt, send a new one
-				res
-					.setHeader("Cache-Control", cacheControl)
-					.setHeader("Vary", "*")
-					.json({ message: "Success!" });
+				respondSuccess(res);
 			})
 		);
 }
