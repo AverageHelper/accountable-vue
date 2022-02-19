@@ -1,8 +1,14 @@
 import { defineStore } from "pinia";
-import { AccountableError, bootstrap, db, isWrapperInstantiated } from "../transport/db.js";
 import { getServerVersion } from "../transport/server.js";
 import { useToast } from "vue-toastification";
 import { StructError } from "superstruct";
+import {
+	AccountableError,
+	bootstrap,
+	db,
+	getUserStats,
+	isWrapperInstantiated,
+} from "../transport/db.js";
 
 type ColorScheme = "light" | "dark";
 
@@ -48,13 +54,10 @@ export const useUiStore = defineStore("ui", {
 		activateLightMode(): void {
 			this.preferredColorScheme = "light";
 		},
-		updateTotalSpace(totalSpace: number | undefined) {
-			// `null` == unknown value; if we get `undefined` here, use what we last knew.
-			this.totalSpace = totalSpace ?? this.totalSpace;
-		},
-		updateUsedSpace(usedSpace: number | undefined) {
-			// `null` == unknown value; if we get `undefined` here, use what we last knew.
-			this.usedSpace = usedSpace ?? this.usedSpace;
+		async updateUserStats() {
+			const { usedSpace, totalSpace } = await getUserStats();
+			this.usedSpace = usedSpace;
+			this.totalSpace = totalSpace;
 		},
 		bootstrap() {
 			if (isWrapperInstantiated()) return;

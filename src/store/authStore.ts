@@ -3,6 +3,7 @@ import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../tr
 import type { User } from "../transport/auth.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
+import { useUiStore } from "./uiStore";
 import { v4 as uuid } from "uuid";
 import {
 	defaultPrefs,
@@ -90,6 +91,7 @@ export const useAuthStore = defineStore("auth", {
 			transactions.clearCache();
 		},
 		async login(accountId: string, password: string) {
+			const uiStore = useUiStore();
 			try {
 				this.loginProcessState = "AUTHENTICATING";
 				// TODO: Also salt the password hash
@@ -99,6 +101,7 @@ export const useAuthStore = defineStore("auth", {
 					accountId,
 					await hashed(password)
 				);
+				await uiStore.updateUserStats();
 
 				// Get the salt and dek material from Firestore
 				this.loginProcessState = "FETCHING_KEYS";
@@ -125,6 +128,7 @@ export const useAuthStore = defineStore("auth", {
 			return uuid().replace(/\W+/gu, "");
 		},
 		async createVault(accountId: string, password: string) {
+			const uiStore = useUiStore();
 			try {
 				this.loginProcessState = "AUTHENTICATING";
 				const { user } = await createUserWithAccountIdAndPassword(
@@ -136,6 +140,7 @@ export const useAuthStore = defineStore("auth", {
 				this.loginProcessState = "GENERATING_KEYS";
 				const material = await newDataEncryptionKeyMaterial(password);
 				await setAuthMaterial(user.uid, material);
+				await uiStore.updateUserStats();
 
 				this.loginProcessState = "DERIVING_PKEY";
 				this.pKey = await derivePKey(password, material.passSalt);
@@ -165,6 +170,7 @@ export const useAuthStore = defineStore("auth", {
 			await this.onSignedOut();
 		},
 		async updateUserPreferences(prefs: Partial<UserPreferences>) {
+			const uiStore = useUiStore();
 			const uid = this.uid;
 			const pKey = this.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
@@ -173,6 +179,7 @@ export const useAuthStore = defineStore("auth", {
 			const { dekMaterial } = await this.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await setUserPreferences(uid, prefs, dek);
+			await uiStore.updateUserStats();
 		},
 		async regenerateAccountId(currentPassword: string) {
 			const user = auth.currentUser;
@@ -186,6 +193,7 @@ export const useAuthStore = defineStore("auth", {
 			this.isNewLogin = true;
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
+			const uiStore = useUiStore();
 			const user = auth.currentUser;
 			if (user === null) {
 				throw new Error("Not logged in");
@@ -218,6 +226,7 @@ export const useAuthStore = defineStore("auth", {
 
 			// Erase the old key
 			await setAuthMaterial(user.uid, newMaterial);
+			await uiStore.updateUserStats();
 		},
 		async logout() {
 			await signOut(auth);

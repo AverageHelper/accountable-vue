@@ -4,6 +4,7 @@ import type { TagSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	createTag,
@@ -78,6 +79,8 @@ export const useTagsStore = defineStore("tags", {
 			);
 		},
 		async createTag(record: TagRecordParams, batch?: WriteBatch): Promise<Tag> {
+			const uiStore = useUiStore();
+
 			// If a tag already exists with this name, return that one instead
 			const extantTag = this.allTags.find(tag => tag.name === record.name);
 			if (extantTag) return extantTag;
@@ -91,10 +94,12 @@ export const useTagsStore = defineStore("tags", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			const newTag = await createTag(record, dek, batch);
 			this.items[newTag.id] = newTag;
+			if (!batch) await uiStore.updateUserStats();
 			return newTag;
 		},
 		async updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
@@ -102,10 +107,13 @@ export const useTagsStore = defineStore("tags", {
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTag(tag, dek, batch);
 			this.items[tag.id] = tag;
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
+			const uiStore = useUiStore();
 			await deleteTag(tag, batch);
 			delete this.items[tag.id];
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteAllTags(): Promise<void> {
 			for (const tags of chunk(this.allTags, 500)) {
@@ -130,6 +138,7 @@ export const useTagsStore = defineStore("tags", {
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
+			const uiStore = useUiStore();
 
 			const storedTag = this.items[tagToImport.id] ?? null;
 			if (storedTag) {
@@ -161,6 +170,7 @@ export const useTagsStore = defineStore("tags", {
 					await uBatch.commit();
 				}
 			}
+			await uiStore.updateUserStats();
 		},
 		async importTags(data: Array<TagSchema>): Promise<void> {
 			for (const tags of chunk(data, 500)) {

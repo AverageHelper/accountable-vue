@@ -344,6 +344,29 @@ export function bootstrap(url?: string): AccountableDB {
 	return db;
 }
 
+interface UserStats {
+	totalSpace: number | null;
+	usedSpace: number | null;
+}
+
+/**
+ * A local cache of the user's storage stats.
+ *
+ * @deprecated The only files that should see or modify this are `db.ts`, `storage.ts`, and `auth.ts`.
+ */
+export const previousStats: UserStats = {
+	totalSpace: null,
+	usedSpace: null,
+};
+
+/**
+ * Gets statistics about the space the user's data occupies on the server.
+ */
+export async function getUserStats(): Promise<UserStats> {
+	// This might be on the server too, but since Accountable gets this back with every write, we keep a copy here and use an async function to retrieve it.
+	return Promise.resolve(previousStats);
+}
+
 /**
  * Reads the document referred to by this `DocumentReference`.
  *
@@ -393,7 +416,9 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
 	const doc = reference.id;
 	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
-	await postTo(docPath, data, jwt);
+	const { usedSpace, totalSpace } = await postTo(docPath, data, jwt);
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 }
 
 /**
@@ -413,7 +438,9 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
 	const doc = reference.id;
 	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
-	await deleteAt(docPath, jwt);
+	const { usedSpace, totalSpace } = await deleteAt(docPath, jwt);
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 }
 
 /**

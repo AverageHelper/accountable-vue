@@ -5,6 +5,7 @@ import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from ".
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	asyncMap,
@@ -86,24 +87,30 @@ export const useAccountsStore = defineStore("accounts", {
 		},
 		async createAccount(record: AccountRecordParams, batch?: WriteBatch): Promise<Account> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createAccount(record, dek, batch);
+			const account = await createAccount(record, dek, batch);
+			if (!batch) await uiStore.updateUserStats();
+			return account;
 		},
 		async updateAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAccount(account, dek, batch);
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			// Don't delete if we have transactions
+			const uiStore = useUiStore();
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
 			await transactions.getTransactionsForAccount(account);
@@ -115,6 +122,7 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(account, batch);
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteAllAccounts(): Promise<void> {
 			for (const accounts of chunk(this.allAccounts, 500)) {
@@ -142,6 +150,7 @@ export const useAccountsStore = defineStore("accounts", {
 			});
 		},
 		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {
+			const uiStore = useUiStore();
 			const accountId = accountToImport.id;
 			const storedAccount = this.items[accountId] ?? null;
 
@@ -159,6 +168,7 @@ export const useAccountsStore = defineStore("accounts", {
 				};
 				newAccount = await this.createAccount(params, batch);
 			}
+			if (!batch) await uiStore.updateUserStats();
 
 			const { transactions } = await stores();
 			await transactions.importTransactions(accountToImport.transactions ?? [], newAccount);
