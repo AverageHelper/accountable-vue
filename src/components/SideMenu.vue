@@ -6,9 +6,9 @@ import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
+import DiskUsage from "./user/DiskUsage.vue";
 import { ref, computed } from "vue";
-import { simplifiedByteCount } from "../transformers";
-import { useAuthStore, useUiStore } from "../store";
+import { useAuthStore } from "../store";
 
 export interface MenuItem {
 	id: string;
@@ -19,17 +19,10 @@ export interface MenuItem {
 }
 
 const auth = useAuthStore();
-const ui = useUiStore();
 
 const isMenuOpen = ref(false);
 const isLoggedIn = computed(() => auth.uid !== null);
 const hasItems = computed(() => isLoggedIn.value);
-const totalSpace = computed(() =>
-	ui.totalSpace !== null ? simplifiedByteCount(ui.totalSpace) : "--"
-);
-const usedSpace = computed(() =>
-	ui.usedSpace !== null ? simplifiedByteCount(ui.usedSpace) : "--"
-);
 
 const settingsItems = computed<Array<MenuItem>>(() => [
 	{ id: "settings", name: "Settings", path: "/settings", requiresLogin: true, icon: Gear },
@@ -58,10 +51,10 @@ function close() {
 				</li>
 			</template>
 			<li>
-				<p>{{ usedSpace }} of {{ totalSpace }}</p>
+				<AppVersion class="app-version" />
 			</li>
 			<li>
-				<AppVersion class="app-version" />
+				<DiskUsage />
 			</li>
 		</List>
 	</teleport>
