@@ -1,7 +1,7 @@
 import { AccountableError } from "./AccountableError";
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
-import { doc, db, getDoc, setDoc, deleteDoc } from "./db";
+import { doc, db, getDoc, previousStats, setDoc, deleteDoc } from "./db";
 import { postTo } from "./networking";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
@@ -62,9 +62,12 @@ export async function createUserWithAccountIdAndPassword(
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const join = new URL("join", db.url);
-	const { access_token, uid } = await postTo(join, { account, password });
+	const { access_token, uid, usedSpace, totalSpace } = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
+
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 
 	const user: User = { accountId: account, uid };
 	db.setJwt(access_token, user);
@@ -108,9 +111,12 @@ export async function signInWithAccountIdAndPassword(
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const login = new URL("login", db.url);
-	const { access_token, uid } = await postTo(login, { account, password });
+	const { access_token, uid, usedSpace, totalSpace } = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
+
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 
 	const user: User = { accountId: account, uid };
 	db.setJwt(access_token, user);

@@ -14,7 +14,7 @@ The API is documented using [OpenAPI](https://petstore.swagger.io/?url=https://r
 
 ### Prerequesites
 
-This project requires Node 14 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
+This project requires Node 16 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
 
 ```sh
 $ npm -v && node -v
@@ -31,8 +31,17 @@ v16.13.1
 # .env
 
 # Where your server lives
-DB={your database folder location here}  # defaults to ./database/db
-HOST={your frontend hostname, with protocol}  # ex: HOST=https://example.com
+DB={your database folder location here}
+# defaults to ./database/db
+
+HOST={your frontend hostname, with protocol}
+# ex: HOST=https://example.com
+
+MAX_USERS={the limit to the number of users allowed to register new accounts}
+# defaults to 5
+
+MAX_BYTES={the total amount of space that Accountable is permitted to occupy on the system}
+# defaults to 20000000000 (20 GB)
 ```
 
 #### Compile and Run the Server

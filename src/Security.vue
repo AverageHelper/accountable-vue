@@ -6,7 +6,7 @@ import OutLink from "./components/OutLink.vue";
 <template>
 	<main class="content">
 		<h1>Security FAQs</h1>
-		<!-- FIXME: This document is a draft. Please take everything here with a grain of *salt* ;) -->
+		<!-- FIXME: This document is a draft. I think it's pretty close to what we actually do, but I need to proofread it again. Please take everything here with a grain of *salt* ;) -->
 
 		<p><strong>TL;DR</strong> Your data is unreadable by anyone but you (as far as I know.)</p>
 

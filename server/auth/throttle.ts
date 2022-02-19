@@ -19,11 +19,6 @@ export function throttle<P = ParamsDictionary, ResBody = unknown, ReqBody = unkn
 	this: void
 ): RequestHandler<P, ResBody, ReqBody> {
 	return asyncWrapper(async (req, res, next) => {
-		if (process.env.NODE_ENV === "development") {
-			process.stdout.write("Ignoring throttle while in development mode\n");
-			next();
-			return;
-		}
 		const remoteIp = req.ip;
 		try {
 			await rateLimiter.consume(remoteIp);

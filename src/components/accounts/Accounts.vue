@@ -59,17 +59,19 @@ onMounted(async () => {
 		<p>To add an account, click the (+) button in the upper corner.</p>
 	</div>
 
-	<ErrorNotice :error="loadError" />
-	<List v-if="!loadError">
-		<li v-for="account in allAccounts" :key="account.id">
-			<AccountListItem :account="account" />
-		</li>
-		<li v-if="numberOfAccounts > 0">
-			<p class="footer"
-				>{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
-			</p>
-		</li>
-	</List>
+	<main class="content">
+		<ErrorNotice :error="loadError" />
+		<List v-if="!loadError">
+			<li v-for="account in allAccounts" :key="account.id">
+				<AccountListItem :account="account" />
+			</li>
+			<li v-if="numberOfAccounts > 0">
+				<p class="footer"
+					>{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
+				</p>
+			</li>
+		</List>
+	</main>
 
 	<NewLoginModal />
 </template>

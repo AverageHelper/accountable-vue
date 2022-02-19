@@ -8,7 +8,7 @@ import List from "../List.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import TrashIcon from "../../icons/Trash.vue";
 import { ref, computed, watch, toRefs } from "vue";
-import { toTimestamp } from "../../filters";
+import { toTimestamp } from "../../transformers";
 import { useAttachmentsStore, useTransactionsStore } from "../../store";
 
 const props = defineProps({

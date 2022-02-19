@@ -6,8 +6,9 @@ import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
+import DiskUsage from "./user/DiskUsage.vue";
 import { ref, computed } from "vue";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store";
 
 export interface MenuItem {
 	id: string;
@@ -51,6 +52,9 @@ function close() {
 			</template>
 			<li>
 				<AppVersion class="app-version" />
+			</li>
+			<li>
+				<DiskUsage />
 			</li>
 		</List>
 	</teleport>

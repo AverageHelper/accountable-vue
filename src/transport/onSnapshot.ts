@@ -354,6 +354,13 @@ export function onSnapshot<T>(
 				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
 			);
 		}
+
+		if (message === "ARE_YOU_STILL_THERE") {
+			// Respond to pings
+			ws.send("YES_IM_STILL_HERE");
+			return;
+		}
+
 		if (!isRawServerResponse(message))
 			throw new UnexpectedResponseError(
 				`Invalid server response: ${JSON.stringify(message, undefined, "  ")}`
@@ -391,8 +398,30 @@ export function onSnapshot<T>(
 		throw new UnreachableError(type);
 	});
 
-	ws.addEventListener("error", err => {
-		onErrorCallback(new Error(JSON.stringify(err))); // FIXME: Is this right?
+	ws.addEventListener("close", event => {
+		console.debug(`Websocket closed with code ${event.code}: ${event.reason || "No reason given"}`);
+
+		const WS_NORMAL = 1000;
+		const WS_GOING_AWAY = 1001;
+		const WS_UNKNOWN = 1006;
+
+		// Connection closed. Find out why
+		if (event.code !== WS_NORMAL) {
+			let message = `Webhook closed with code ${event.code}`;
+			// TODO: Abstract these cases into Error subclasses so we can internationalize
+			if (event.reason?.trim()) {
+				message += `: ${event.reason}`;
+			} else if (!navigator.onLine) {
+				// Offline status could cause a 1006, so we handle this case first
+				// TODO: Show some UI or smth to indicate online status, and add a way to manually reconnect
+				message += ": Internet connection lost";
+			} else if (event.code === WS_UNKNOWN) {
+				message += ": The server closed the connection without telling us why";
+			} else if (event.code === WS_GOING_AWAY) {
+				message += ": We're closing down for now";
+			}
+			onErrorCallback(new Error(message));
+		}
 	});
 
 	return (): void => {

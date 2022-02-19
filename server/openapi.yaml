@@ -26,7 +26,7 @@ paths:
       tags:
         - misc
       summary: Get back a silly response
-      operationId: ping
+      operationId: silly
       responses:
         200:
           description: The server works
@@ -39,6 +39,45 @@ paths:
                     type: string
                     enum:
                       - "lol"
+  "/ping":
+    get:
+      tags:
+        - misc
+      summary: Make sure the server is working
+      operationId: ping
+      responses:
+        200:
+          description: The server works
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Pong!"
+  "/version":
+    get:
+      tags:
+        - misc
+      summary: Get the server's version string
+      operationId: version
+      responses:
+        200:
+          description: Gets the server's current version.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "0.3.0"
+                  message:
+                    type: string
+                    example: "Accountable v0.3.0"
+
   "/join":
     post:
       tags:
@@ -70,12 +109,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
                   access_token:
                     type: string
                     description: Temporary bearer token used to authenticate future requests
                   uid:
                     type: string
                     description: The user's persistent UID, different from the given account ID
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Missing one or more required parameters
           content:
@@ -128,12 +179,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
                   access_token:
                     type: string
                     description: Temporary bearer token used to authenticate future requests
                   uid:
                     type: string
                     description: The user's persistent UID, different from the given account ID
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Missing one or more required parameters
           content:
@@ -404,6 +467,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Invalid parameters or data
           content:
@@ -478,6 +549,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         404:
           description: The collection was not found
           content:
@@ -548,6 +627,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: The provided data does not have the required properties for a document in this collection.
           content:
@@ -589,6 +676,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         404:
           description: The collection was not found
           content:
@@ -680,6 +775,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Bad ID or file name
           content:
@@ -710,6 +813,14 @@ paths:
                     type: string
                     enum:
                       - "Success!"
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
         400:
           description: Bad ID or file name
           content:

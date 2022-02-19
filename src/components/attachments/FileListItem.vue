@@ -4,7 +4,7 @@ import FileView from "./FileView.vue";
 import ListItem from "../ListItem.vue";
 import Modal from "../Modal.vue";
 import { ref, computed, toRefs } from "vue";
-import { toTimestamp } from "../../filters";
+import { toTimestamp } from "../../transformers";
 import { useAttachmentsStore } from "../../store";
 
 const props = defineProps({

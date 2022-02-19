@@ -6,6 +6,7 @@ import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	attachmentsCollection,
@@ -96,6 +97,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			file: File
 		): Promise<Attachment> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
@@ -104,11 +106,13 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			const newAttachment = await createAttachment(uid, file, record, dek);
+			await uiStore.updateUserStats();
 			this.items[newAttachment.id] = newAttachment;
 			return newAttachment;
 		},
 		async updateAttachment(attachment: Attachment, file?: File): Promise<void> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
@@ -117,10 +121,12 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAttachment(uid, file ?? null, attachment, dek);
+			await uiStore.updateUserStats();
 			this.items[attachment.id] = attachment;
 		},
 		async deleteAttachment(attachment: Attachment, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first");
 
@@ -141,6 +147,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			await deleteAttachment(uid, attachment, batch);
 			delete this.items[attachment.id];
+			await uiStore.updateUserStats();
 		},
 		async deleteAllAttachments(): Promise<void> {
 			for (const attachments of chunk(this.allAttachments, 500)) {

@@ -5,7 +5,9 @@ import { cors } from "./cors.js";
 import { db } from "./db.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
+import { ping } from "./ping.js";
 import { storage } from "./storage/index.js";
+import { version } from "./version.js";
 import busboy from "connect-busboy";
 import express from "express";
 import expressWs from "express-ws";
@@ -21,6 +23,9 @@ app
 	.use(methodOverride())
 	.use(helmet())
 	.use(cors())
+	.get("/", lol)
+	.get("/ping", ping)
+	.get("/version", (req, res) => res.json({ message: `Accountable v${version}`, version }))
 	.use(
 		busboy({
 			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
@@ -29,7 +34,6 @@ app
 	.use("/files", storage()) // Storage endpoints (checks auth)
 	.use(express.json({ limit: "5mb" }))
 	.use(express.urlencoded({ limit: "5mb", extended: true }))
-	.get("/", lol)
 	.use(auth()) // Auth endpoints
 	.use("/db", db()) // Database endpoints (checks auth)
 	.use(handleErrors);

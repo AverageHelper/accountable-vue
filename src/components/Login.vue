@@ -3,7 +3,6 @@ import ActionButton from "./ActionButton.vue";
 import ErrorNotice from "./ErrorNotice.vue";
 import Footer from "../Footer.vue";
 import TextField from "./TextField.vue";
-import { bootstrap, isWrapperInstantiated } from "../transport";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -15,7 +14,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isLoggedIn = computed(() => auth.uid !== null);
-const bootstrapError = ref<Error | null>(null);
+const bootstrapError = computed(() => ui.bootstrapError);
 const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
@@ -32,17 +31,7 @@ const passwordField = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
 	accountIdField.value?.focus();
-
-	if (isWrapperInstantiated()) return;
-	try {
-		bootstrap();
-	} catch (error: unknown) {
-		if (error instanceof Error) {
-			bootstrapError.value = error;
-		} else {
-			bootstrapError.value = new Error(JSON.stringify(error));
-		}
-	}
+	ui.bootstrap();
 });
 
 watch(
@@ -140,7 +129,6 @@ async function submit() {
 	<main v-else class="content">
 		<form @submit.prevent="submit">
 			<TextField
-				v-show="!isSignupMode"
 				ref="accountIdField"
 				v-model="accountId"
 				:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
@@ -172,9 +160,12 @@ async function submit() {
 				:shows-required="false"
 				:required="isSignupMode"
 			/>
-			<ActionButton type="submit" kind="bordered" :disabled="isLoading">{{
-				isSignupMode ? "Create an account" : "Log in"
-			}}</ActionButton>
+			<ActionButton
+				type="submit"
+				:kind="isSignupMode ? 'bordered-primary-green' : 'bordered-primary'"
+				:disabled="isLoading"
+				>{{ isSignupMode ? "Create an account" : "Log in" }}</ActionButton
+			>
 			<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
 			<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
 			<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
@@ -183,15 +174,14 @@ async function submit() {
 			<div v-if="!isLoading">
 				<p v-if="isLoginMode"
 					>Need to create an account?
-					<a href="#" @click.prevent="enterSignupMode">Create one here.</a>
+					<a href="#" @click.prevent="enterSignupMode">Create one!</a>
 				</p>
 				<p v-if="isSignupMode"
 					>Already have an account?
-					<a href="#" @click.prevent="enterLoginMode">Log in here.</a>
+					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
 				</p>
 			</div>
-
-			<Footer />
 		</form>
+		<Footer />
 	</main>
 </template>

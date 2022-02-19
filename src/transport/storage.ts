@@ -1,5 +1,5 @@
 import type { AccountableDB } from "./db";
-import { AccountableError } from "./db";
+import { AccountableError, previousStats } from "./db";
 import { deleteAt, downloadFrom, uploadTo } from "./networking";
 
 /**
@@ -88,7 +88,9 @@ export async function uploadString(ref: StorageReference, value: string): Promis
 
 	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
 	const url = new URL(itemPath, ref.db.url);
-	await uploadTo(url, value, jwt);
+	const { usedSpace, totalSpace } = await uploadTo(url, value, jwt);
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 }
 
 /**
@@ -105,5 +107,7 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
 
 	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
 	const url = new URL(itemPath, ref.db.url);
-	await deleteAt(url, jwt);
+	const { usedSpace, totalSpace } = await deleteAt(url, jwt);
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
 }

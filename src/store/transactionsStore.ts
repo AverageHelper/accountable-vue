@@ -191,24 +191,31 @@ export const useTransactionsStore = defineStore("transactions", {
 			batch?: WriteBatch
 		): Promise<Transaction> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			return await createTransaction(record, dek, batch);
+			const transaction = await createTransaction(record, dek, batch);
+			if (!batch) await uiStore.updateUserStats();
+			return transaction;
 		},
 		async updateTransaction(transaction: Transaction, batch?: WriteBatch) {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTransaction(transaction, dek, batch);
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteTransaction(transaction: Transaction, batch?: WriteBatch) {
+			const uiStore = useUiStore();
 			await deleteTransaction(transaction, batch);
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async deleteAllTransactions(): Promise<void> {
 			for (const transactions of chunk(this.allTransactions, 500)) {
@@ -301,11 +308,13 @@ export const useTransactionsStore = defineStore("transactions", {
 			}
 		},
 		async importTransactions(data: Array<TransactionSchema>, account: Account): Promise<void> {
+			const uiStore = useUiStore();
 			for (const transactions of chunk(data, 500)) {
 				const batch = writeBatch();
 				await Promise.all(transactions.map(t => this.importTransaction(t, account, batch)));
 				await batch.commit();
 			}
+			await uiStore.updateUserStats();
 		},
 	},
 });

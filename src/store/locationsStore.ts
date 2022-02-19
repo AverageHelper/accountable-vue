@@ -4,6 +4,7 @@ import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
+import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	createLocation,
@@ -79,6 +80,7 @@ export const useLocationsStore = defineStore("locations", {
 		},
 		async createLocation(record: LocationRecordParams, batch?: WriteBatch): Promise<Location> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
@@ -100,12 +102,14 @@ export const useLocationsStore = defineStore("locations", {
 				  this.allLocations.find(l => record.title === l.title && record.subtitle === l.subtitle);
 
 			const newLocation = extantLocation ?? (await createLocation(uid, record, dek, batch));
+			if (!batch) await uiStore.updateUserStats();
 
 			this.items[newLocation.id] = newLocation;
 			return newLocation;
 		},
 		async updateLocation(location: Location, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
+			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
@@ -114,6 +118,7 @@ export const useLocationsStore = defineStore("locations", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateLocation(location, dek, batch);
+			if (!batch) await uiStore.updateUserStats();
 			this.items[location.id] = location;
 		},
 		async deleteAllLocation(): Promise<void> {
@@ -127,8 +132,10 @@ export const useLocationsStore = defineStore("locations", {
 			// Transaction views should gracefully handle the
 			// case where their linked location does not exist
 
+			const uiStore = useUiStore();
 			await deleteLocation(location, batch);
 			delete this.items[location.id];
+			if (!batch) await uiStore.updateUserStats();
 		},
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
@@ -162,6 +169,7 @@ export const useLocationsStore = defineStore("locations", {
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
+			const uiStore = useUiStore();
 
 			const storedLocation = this.items[locationToImport.id] ?? null;
 			if (storedLocation) {
@@ -191,6 +199,8 @@ export const useLocationsStore = defineStore("locations", {
 					);
 					await uBatch.commit();
 				}
+
+				await uiStore.updateUserStats();
 			}
 		},
 		async importLocations(data: Array<LocationSchema>): Promise<void> {

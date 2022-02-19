@@ -1,6 +1,6 @@
 import type { TransactionRecordType } from "./Transaction";
 import { dinero, toSnapshot } from "dinero.js";
-import { intlFormat } from "../filters";
+import { intlFormat } from "../transformers";
 import { Transaction } from "./Transaction";
 import { USD } from "@dinero.js/currencies";
 
