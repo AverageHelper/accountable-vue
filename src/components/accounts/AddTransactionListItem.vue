@@ -26,7 +26,7 @@ function onClick() {
 }
 
 .icon {
-	margin-right: 11pt;
+	margin-right: 7pt;
 	margin-left: 4pt;
 	color: color($green);
 }

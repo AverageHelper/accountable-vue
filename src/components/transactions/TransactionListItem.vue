@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Checkbox from "../Checkbox.vue";
+import ListItem from "../ListItem.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
@@ -63,22 +64,27 @@ async function markReconciled(isReconciled: boolean) {
 </script>
 
 <template>
-	<router-link class="transaction-list-item" :to="transactionRoute">
-		<Checkbox
-			v-if="!isChangingReconciled"
-			class="checkbox"
-			:model-value="transaction.isReconciled"
-			@update:modelValue="markReconciled"
-			@click.stop.prevent
-		/>
-		<span v-else style="min-height: 33pt">...</span>
+	<ListItem
+		:to="transactionRoute"
+		:title="transaction.title ?? '--'"
+		:subtitle="timestamp"
+		:count="intlFormat(transaction.amount)"
+		:negative="isNegative"
+	>
+		<template #icon>
+			<div class="checkbox">
+				<Checkbox
+					:disabled="isChangingReconciled"
+					:class="{ isChanging: isChangingReconciled }"
+					:model-value="transaction.isReconciled"
+					@update:modelValue="markReconciled"
+					@click.stop.prevent
+				/>
+				<span v-if="isChangingReconciled" class="loading" style="min-height: 33pt">...</span>
+			</div>
+		</template>
 
-		<div class="labels">
-			<span class="title">{{ transaction.title }}</span>
-			<span class="timestamp">{{ timestamp }}</span>
-		</div>
-
-		<div class="tail">
+		<template #aside>
 			<div class="indicators">
 				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
 					<LocationIcon />
@@ -93,72 +99,35 @@ async function markReconciled(isReconciled: boolean) {
 					<PaperclipIcon />
 				</div>
 			</div>
-			<span class="amount" :class="{ negative: isNegative }">{{
-				intlFormat(transaction.amount)
-			}}</span>
-		</div>
-	</router-link>
+		</template>
+	</ListItem>
 </template>
 
 <style scoped lang="scss">
 @use "styles/colors" as *;
 
-.transaction-list-item {
+.checkbox {
 	position: relative;
+
+	.isChanging {
+		opacity: 0;
+	}
+
+	.loading {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-75%, -35%);
+	}
+}
+
+.indicators {
 	display: flex;
-	flex-flow: row nowrap;
-	align-items: center;
-	border-radius: 0;
-	padding: 0.75em;
-	text-decoration: none;
-	color: color($label);
-	background-color: color($secondary-fill);
+	flex-flow: row wrap;
+	color: color($secondary-label);
 
-	@media (hover: hover) {
-		&:hover {
-			background-color: color($gray4);
-		}
-	}
-
-	.labels {
-		display: flex;
-		flex-flow: column nowrap;
-		margin-left: 0.4em;
-
-		.title {
-			font-weight: bold;
-		}
-
-		.timestamp {
-			font-size: small;
-		}
-	}
-
-	.tail {
-		display: flex;
-		flex-flow: row nowrap;
-		align-items: center;
-		margin-left: auto;
-
-		> .indicators {
-			display: flex;
-			flex-flow: row wrap;
-			color: color($secondary-label);
-			margin-left: auto;
-
-			:not(:last-child) {
-				margin-bottom: 2pt;
-			}
-		}
-
-		.amount {
-			font-weight: bold;
-			margin-left: 8pt;
-
-			&.negative {
-				color: color($red);
-			}
-		}
+	:not(:last-child) {
+		margin-bottom: 2pt;
 	}
 }
 </style>
