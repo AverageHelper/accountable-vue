@@ -22,7 +22,7 @@ const { modelValue } = toRefs(props);
 const isIncome = ref(false);
 
 const presentableValue = computed(() => {
-	return intlFormat(modelValue.value, "accounting");
+	return intlFormat(modelValue.value, "standard");
 });
 
 function onInput(event: Event) {
