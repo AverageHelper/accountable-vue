@@ -34,19 +34,21 @@ function cancelDeleteFile() {
 </script>
 
 <template>
-	<div class="heading">
-		<h1>Files</h1>
-		<p>To add a file, attach it to a transaction.</p>
-	</div>
+	<main class="content">
+		<div class="heading">
+			<h1>Files</h1>
+			<p>To add a file, attach it to a transaction.</p>
+		</div>
 
-	<List>
-		<li v-for="file in files" :key="file.id">
-			<FileListItem :file-id="file.id" @delete="askToDeleteFile" />
-		</li>
-		<li v-if="numberOfFiles > 0">
-			<p class="footer">{{ numberOfFiles }} file<span v-if="numberOfFiles !== 1">s</span></p>
-		</li>
-	</List>
+		<List>
+			<li v-for="file in files" :key="file.id">
+				<FileListItem :file-id="file.id" @delete="askToDeleteFile" />
+			</li>
+			<li v-if="numberOfFiles > 0">
+				<p class="footer">{{ numberOfFiles }} file<span v-if="numberOfFiles !== 1">s</span></p>
+			</li>
+		</List>
+	</main>
 
 	<ConfirmDestroyFile
 		:file="fileToDelete"

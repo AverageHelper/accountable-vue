@@ -4,13 +4,17 @@ import PlusWithCircle from "../../icons/PlusWithCircle.vue";
 
 const emit = defineEmits(["click"]);
 
+defineProps({
+	noun: { type: String, default: "record" },
+});
+
 function onClick() {
 	emit("click");
 }
 </script>
 
 <template>
-	<ListItem class="add" title="Add a record" to="" @click.prevent="onClick">
+	<ListItem class="add" :title="`Add a new ${noun}`" to="" @click.prevent="onClick">
 		<template #icon>
 			<PlusWithCircle class="icon" />
 		</template>

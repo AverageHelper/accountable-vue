@@ -11,25 +11,27 @@ const numberOfTags = computed(() => allTags.value.length);
 </script>
 
 <template>
-	<div class="heading">
-		<h1>Tags</h1>
-		<p>To add a tag, go to one of your transactions.</p>
-	</div>
+	<main class="content">
+		<div class="heading">
+			<h1>Tags</h1>
+			<p>To add a tag, go to one of your transactions.</p>
+		</div>
 
-	<List>
-		<li v-for="tag in allTags" :key="tag.id">
-			<Tag :tag-id="tag.id" :shows-count="true" />
-			<!-- <ConfirmDestroyTag
+		<List>
+			<li v-for="tag in allTags" :key="tag.id">
+				<Tag :tag-id="tag.id" :shows-count="true" />
+				<!-- <ConfirmDestroyTag
 				:tag="tag"
 				:is-open="tagIdToDestroy === tag.id"
 				@yes="confirmDeleteTag"
 				@no="cancelDeleteTag"
 			/> -->
-		</li>
-		<li v-if="numberOfTags > 0">
-			<p class="footer">{{ numberOfTags }} tag<span v-if="numberOfTags !== 1">s</span></p>
-		</li>
-	</List>
+			</li>
+			<li v-if="numberOfTags > 0">
+				<p class="footer">{{ numberOfTags }} tag<span v-if="numberOfTags !== 1">s</span></p>
+			</li>
+		</List>
+	</main>
 </template>
 
 <style scoped lang="scss">

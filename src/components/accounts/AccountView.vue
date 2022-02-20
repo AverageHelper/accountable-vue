@@ -2,7 +2,7 @@
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
 import ActionButton from "../ActionButton.vue";
-import AddTransactionListItem from "./AddTransactionListItem.vue";
+import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
 import List from "../List.vue";
@@ -108,7 +108,7 @@ function finishEditingAccount() {
 
 		<List class="transactions-list">
 			<li v-if="searchQuery === ''">
-				<AddTransactionListItem @click="startCreatingTransaction" />
+				<AddRecordListItem @click="startCreatingTransaction" />
 			</li>
 			<li v-for="transaction in filteredTransactions" :key="transaction.id" class="transaction">
 				<TransactionListItem :transaction="transaction" />

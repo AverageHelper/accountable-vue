@@ -2,13 +2,13 @@
 import AccountEdit from "./AccountEdit.vue";
 import AccountListItem from "./AccountListItem.vue";
 import ActionButton from "../ActionButton.vue";
-import EditButton from "../EditButton.vue";
+import AddRecordListItem from "./AddRecordListItem.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import List from "../List.vue";
-import NavAction from "../NavAction.vue";
+import Modal from "../Modal.vue";
 import NewLoginModal from "../NewLoginModal.vue";
 import ReloadIcon from "../../icons/Reload.vue";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
 	useAccountsStore,
 	useAttachmentsStore,
@@ -24,6 +24,7 @@ const tags = useTagsStore();
 const allAccounts = computed(() => accounts.allAccounts);
 const numberOfAccounts = computed(() => accounts.numberOfAccounts);
 const loadError = computed<Error | null>(() => accounts.loadError);
+const isCreatingAccount = ref(false);
 
 async function load() {
 	console.log("Starting watchers...");
@@ -38,31 +39,31 @@ async function load() {
 onMounted(async () => {
 	await load();
 });
+
+function startCreatingAccount() {
+	isCreatingAccount.value = true;
+}
+
+function finishCreatingAccount() {
+	isCreatingAccount.value = false;
+}
 </script>
 
 <template>
-	<NavAction>
-		<ActionButton v-if="loadError" @click="load">
-			<ReloadIcon />
-		</ActionButton>
-		<EditButton v-else>
-			<template #icon>
-				<span>+</span>
-			</template>
-			<template #modal="{ onFinished }">
-				<AccountEdit @finished="onFinished" />
-			</template>
-		</EditButton>
-	</NavAction>
-
 	<main class="content">
 		<div class="heading">
 			<h1>Accounts</h1>
-			<p>To add an account, click the (+) button in the upper corner.</p>
 		</div>
 
 		<ErrorNotice :error="loadError" />
+		<ActionButton v-if="loadError" @click="load">
+			<ReloadIcon />
+		</ActionButton>
+
 		<List v-if="!loadError">
+			<li>
+				<AddRecordListItem noun="account" @click="startCreatingAccount" />
+			</li>
 			<li v-for="account in allAccounts" :key="account.id">
 				<AccountListItem :account="account" />
 			</li>
@@ -75,6 +76,10 @@ onMounted(async () => {
 	</main>
 
 	<NewLoginModal />
+
+	<Modal :open="isCreatingAccount" :close-modal="finishCreatingAccount">
+		<AccountEdit @finished="finishCreatingAccount" />
+	</Modal>
 </template>
 
 <style scoped lang="scss">

@@ -12,21 +12,23 @@ const numberOfLocations = computed(() => allLocations.value.length);
 </script>
 
 <template>
-	<div class="heading">
-		<h1>Locations</h1>
-		<p>To add a location, set a location on a transaction.</p>
-	</div>
+	<main class="content">
+		<div class="heading">
+			<h1>Locations</h1>
+			<p>To add a location, set a location on a transaction.</p>
+		</div>
 
-	<List>
-		<li v-for="location in allLocations" :key="location.id">
-			<LocationListItem :location="location" />
-		</li>
-		<li v-if="numberOfLocations > 0">
-			<p class="footer"
-				>{{ numberOfLocations }} file<span v-if="numberOfLocations !== 1">s</span>
-			</p>
-		</li>
-	</List>
+		<List>
+			<li v-for="location in allLocations" :key="location.id">
+				<LocationListItem :location="location" />
+			</li>
+			<li v-if="numberOfLocations > 0">
+				<p class="footer"
+					>{{ numberOfLocations }} file<span v-if="numberOfLocations !== 1">s</span>
+				</p>
+			</li>
+		</List>
+	</main>
 </template>
 
 <style scoped lang="scss">
