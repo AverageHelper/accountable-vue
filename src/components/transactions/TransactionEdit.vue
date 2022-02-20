@@ -240,9 +240,8 @@ form {
 		width: 80%;
 	}
 
-	&.expense,
 	&.expense h1,
-	&.expense .currency .text-input {
+	&.expense .currency {
 		color: color($red);
 	}
 
