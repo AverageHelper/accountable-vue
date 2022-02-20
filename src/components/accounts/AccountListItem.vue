@@ -4,31 +4,40 @@ import type { Transaction } from "../../model/Transaction";
 import ListItem from "../ListItem.vue";
 import { Account } from "../../model/Account";
 import { computed, toRefs, onMounted } from "vue";
-import { useTransactionsStore } from "../../store";
+import { intlFormat } from "../../transformers";
+import { isNegative as isDineroNegative } from "dinero.js";
+import { useAccountsStore, useTransactionsStore } from "../../store";
 
 const props = defineProps({
 	account: { type: Account, required: true },
 	link: { type: Boolean, default: true },
 	count: { type: Number as PropType<number | null>, default: null },
 });
-const { account, link, count } = toRefs(props);
+// TODO: Do we need `count`?
+const { account, link /*, count*/ } = toRefs(props);
 
+const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
+
 const accountRoute = computed(() => (link.value ? `/accounts/${account.value.id}` : "#"));
 const theseTransactions = computed(
 	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );
 
-const numberOfTransactions = computed<number | null>(() => {
-	if (theseTransactions.value === undefined) {
-		return count.value ?? null;
-	}
-	return count.value ?? Object.keys(theseTransactions.value).length;
-});
+const remainingBalance = computed(() => accounts.currentBalance[account.value.id] ?? null);
+const isBalanceNegative = computed(
+	() => remainingBalance.value !== null && isDineroNegative(remainingBalance.value)
+);
+// const numberOfTransactions = computed<number | null>(() => {
+// 	if (theseTransactions.value === undefined) {
+// 		return count.value ?? null;
+// 	}
+// 	return count.value ?? Object.keys(theseTransactions.value).length;
+// });
 
 onMounted(async () => {
 	if (theseTransactions.value === undefined) {
-		await transactions.getTransactionsForAccount(account.value);
+		await transactions.watchTransactions(account.value);
 	}
 });
 </script>
@@ -38,6 +47,7 @@ onMounted(async () => {
 		:to="accountRoute"
 		:title="account.title"
 		:subtitle="account.notes"
-		:count="numberOfTransactions"
+		:count="remainingBalance ? intlFormat(remainingBalance) : '--'"
+		:negative="isBalanceNegative"
 	/>
 </template>
