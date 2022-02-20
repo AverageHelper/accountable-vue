@@ -61,11 +61,10 @@ export const useAccountsStore = defineStore("accounts", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = accountsCollection();
+			this.loadError = null;
 			this.accountsWatcher = watchAllRecords(
 				collection,
 				snap => {
-					this.loadError = null;
-
 					snap.docChanges().forEach(change => {
 						switch (change.type) {
 							case "removed":

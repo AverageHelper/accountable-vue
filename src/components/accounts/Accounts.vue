@@ -26,6 +26,7 @@ const numberOfAccounts = computed(() => accounts.numberOfAccounts);
 const loadError = computed<Error | null>(() => accounts.loadError);
 
 async function load() {
+	console.log("Starting watchers...");
 	await Promise.all([
 		accounts.watchAccounts(),
 		attachments.watchAttachments(),
@@ -54,12 +55,12 @@ onMounted(async () => {
 		</EditButton>
 	</NavAction>
 
-	<div class="heading">
-		<h1>Accounts</h1>
-		<p>To add an account, click the (+) button in the upper corner.</p>
-	</div>
-
 	<main class="content">
+		<div class="heading">
+			<h1>Accounts</h1>
+			<p>To add an account, click the (+) button in the upper corner.</p>
+		</div>
+
 		<ErrorNotice :error="loadError" />
 		<List v-if="!loadError">
 			<li v-for="account in allAccounts" :key="account.id">

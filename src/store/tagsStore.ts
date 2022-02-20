@@ -54,11 +54,10 @@ export const useTagsStore = defineStore("tags", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = tagsCollection();
+			this.loadError = null;
 			this.tagsWatcher = watchAllRecords(
 				collection,
 				snap => {
-					this.loadError = null;
-
 					snap.docChanges().forEach(change => {
 						switch (change.type) {
 							case "removed":
