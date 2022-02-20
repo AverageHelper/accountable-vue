@@ -1,17 +1,21 @@
 <script setup lang="ts">
+import { toRefs } from "vue";
+
 const emit = defineEmits(["update:modelValue"]);
 
-defineProps({
+const props = defineProps({
 	modelValue: { type: Boolean, required: true },
 	disabled: { type: Boolean, default: false },
 	label: { type: String, default: "" },
 });
+const { disabled } = toRefs(props);
 
 function sendValue(value: boolean): void {
 	emit("update:modelValue", value);
 }
 
 function onChange(event: Event): void {
+	if (disabled.value) return;
 	const checkbox = event.target as HTMLInputElement | null;
 	sendValue(checkbox?.checked ?? false);
 }

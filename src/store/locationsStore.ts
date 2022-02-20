@@ -54,11 +54,10 @@ export const useLocationsStore = defineStore("locations", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = locationsCollection();
+			this.loadError = null;
 			this.locationsWatcher = watchAllRecords(
 				collection,
 				snap => {
-					this.loadError = null;
-
 					snap.docChanges().forEach(change => {
 						switch (change.type) {
 							case "removed":

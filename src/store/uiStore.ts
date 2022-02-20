@@ -52,7 +52,9 @@ export const useUiStore = defineStore("ui", {
 			this.preferredColorScheme = "dark";
 		},
 		activateLightMode(): void {
-			this.preferredColorScheme = "light";
+			// TODO: Reenable light mode
+			// this.preferredColorScheme = "light";
+			this.preferredColorScheme = "dark";
 		},
 		async updateUserStats() {
 			const { usedSpace, totalSpace } = await getUserStats();

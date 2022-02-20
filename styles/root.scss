@@ -100,72 +100,73 @@
 	--color-scheme: "default";
 	scrollbar-color: dark;
 
-	@media only screen and (prefers-color-scheme: dark) {
-		--color-scheme: "dark";
-		scrollbar-color: light;
+	// TODO: Reenable light mode
+	// @media only screen and (prefers-color-scheme: dark) {
+	--color-scheme: "dark";
+	scrollbar-color: light;
 
-		// ** Dark Colors **
+	// ** Dark Colors **
 
-		--background: #181818;
-		--secondary-background: #2b2b2c;
-		--secondary-overlay: rgba(33, 33, 34, 0.8);
-		--navbar-background: #212122;
-		--sidenav-background: #444444;
-		--unread-count: #fc3e3b;
-		--alert-success: rgba(10, 165, 103, 0.8);
-		--alert-warning: rgba(253, 158, 43, 0.8);
-		--alert-failure: rgba(252, 71, 65, 0.8);
-		--status-success: rgba(10, 165, 103, 0.2);
-		--status-warning: rgba(252, 71, 65, 0.2);
-		--new-item-background: rgba(254, 213, 51, 0.1);
+	--background: #181818;
+	--secondary-background: #2b2b2c;
+	--secondary-overlay: rgba(33, 33, 34, 0.8);
+	--navbar-background: #212122;
+	--sidenav-background: #444444;
+	--unread-count: #fc3e3b;
+	--alert-success: rgba(10, 165, 103, 0.8);
+	--alert-warning: rgba(253, 158, 43, 0.8);
+	--alert-failure: rgba(252, 71, 65, 0.8);
+	--status-success: rgba(10, 165, 103, 0.2);
+	--status-warning: rgba(252, 71, 65, 0.2);
+	--new-item-background: rgba(254, 213, 51, 0.1);
 
-		--button-background: rgba(58, 58, 60, 0.2);
-		--button-border: rgba(58, 58, 60, 0.4);
-		--send-button: rgba(45, 155, 210, 0.23);
+	--button-background: rgba(58, 58, 60, 0.2);
+	--button-border: rgba(58, 58, 60, 0.4);
+	--send-button: rgba(45, 155, 210, 0.23);
 
-		--label: #f8f8f8;
-		--label-code: #e0dfdf;
-		--secondary-label: #9999a0;
-		--control-label: #eee;
-		--text-field: #212122;
-		--input-background: rgba(0, 0, 0, 0.2);
-		--inverse-label: #333;
-		--search-field: #2b2b2c;
-		--link: #0aa567;
+	--label: #f8f8f8;
+	--label-code: #e0dfdf;
+	--secondary-label: #9999a0;
+	--control-label: #eee;
+	--text-field: #212122;
+	--input-background: rgba(0, 0, 0, 0.2);
+	--inverse-label: #333;
+	--search-field: #2b2b2c;
+	--link: #0aa567;
 
-		--separator: #3a3a3c;
-		--medium-separator: #3a3a3c;
-		--subtle-separator: #323233;
-		--fill: #3a3a3c;
-		--secondary-fill: #2b2b2c;
-		--sidenav-glow: #414141;
-		--heavy-shadow: rgba(0, 0, 0, 0.2);
-		--item-shadow: rgba(58, 58, 60, 0.3);
-		--new-item-border: #fed634;
-		--tab-item: #949494;
+	--separator: #3a3a3c;
+	--medium-separator: #3a3a3c;
+	--subtle-separator: #323233;
+	--fill: #3a3a3c;
+	--secondary-fill: #2b2b2c;
+	--sidenav-glow: #414141;
+	--heavy-shadow: rgba(0, 0, 0, 0.2);
+	--item-shadow: rgba(58, 58, 60, 0.3);
+	--new-item-border: #fed634;
+	--tab-item: #949494;
 
-		--white: #fff;
-		--cloud: #2b2b2c;
-		--gray6: #1c1c1e;
-		--gray5: #2c2c2e;
-		--gray4: #3a3a3c;
-		--gray3: #48484a;
-		--gray2: #636366;
-		--gray: #8e8e93;
-		--black: #000;
+	--white: #fff;
+	--cloud: #2b2b2c;
+	--gray6: #1c1c1e;
+	--gray5: #2c2c2e;
+	--gray4: #3a3a3c;
+	--gray3: #48484a;
+	--gray2: #636366;
+	--gray: #8e8e93;
+	--black: #000;
 
-		--blue: #2b95ca;
-		--green: #0aa567;
-		--orange: #fd9e2b;
-		--red: #fc4741;
-		--yellow: #fed634;
-		--purple: #be60ef;
-		--blue-highlight: #359fd4;
-		--green-highlight: #0bb772;
-		--red-highlight: #fc5f59;
-		--gray-highlight: #7d7d81;
+	--blue: #2b95ca;
+	--green: #0aa567;
+	--orange: #fd9e2b;
+	--red: #fc4741;
+	--yellow: #fed634;
+	--purple: #be60ef;
+	--blue-highlight: #359fd4;
+	--green-highlight: #0bb772;
+	--red-highlight: #fc5f59;
+	--gray-highlight: #7d7d81;
 
-		--clear: rgba(0, 0, 0, 0);
-		--transparent-gray: rgba(0, 0, 0, 0.38);
-	}
+	--clear: rgba(0, 0, 0, 0);
+	--transparent-gray: rgba(0, 0, 0, 0.38);
+	// }
 }

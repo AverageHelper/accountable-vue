@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
+import Chevron from "../icons/Chevron.vue";
 
 defineProps({
 	to: { type: String as PropType<string | null>, default: null },
 	title: { type: String, required: true },
 	subtitle: { type: String as PropType<string | null>, default: null },
-	count: { type: Number as PropType<number | null>, default: null },
+	count: { type: Number as PropType<number | string | null>, default: null },
+	negative: { type: Boolean, default: false },
 });
 </script>
 
@@ -18,7 +20,12 @@ defineProps({
 			<span v-if="subtitle" class="subtitle">{{ subtitle }}</span>
 		</div>
 
-		<span v-if="count !== null" class="count">{{ count }}</span>
+		<aside>
+			<slot name="aside" />
+			<span v-if="count !== null" class="count" :class="{ negative: negative }">{{ count }}</span>
+		</aside>
+
+		<Chevron class="chevron" />
 	</component>
 </template>
 
@@ -30,7 +37,7 @@ defineProps({
 	flex-flow: row nowrap;
 	align-items: center;
 	padding: 0.75em;
-	margin-bottom: 0.5em;
+	// margin-bottom: 0.5em;
 	text-decoration: none;
 	border-radius: 4pt;
 	color: color($label);
@@ -45,6 +52,7 @@ defineProps({
 	.content {
 		display: flex;
 		flex-direction: column;
+		margin-left: 4pt;
 
 		.title {
 			font-weight: bold;
@@ -56,15 +64,36 @@ defineProps({
 		}
 	}
 
-	.count {
-		font-weight: bold;
-		background-color: color($gray);
-		color: color($inverse-label);
-		border-radius: 1em;
-		padding: 0 0.5em;
+	aside {
+		display: flex;
+		flex-flow: row wrap;
 		margin-left: auto;
-		min-width: 1em;
-		text-align: center;
+
+		> span {
+			font-weight: bold;
+			min-width: 1em;
+			text-align: center;
+		}
+
+		> :not(:last-child) {
+			margin-right: 8pt;
+		}
+
+		> .count {
+			background-color: color($gray);
+			color: color($inverse-label);
+			border-radius: 1em;
+			padding: 0 0.5em;
+
+			&.negative {
+				background-color: color($red);
+			}
+		}
+	}
+
+	.chevron {
+		color: color($separator);
+		margin-left: 8pt;
 		user-select: none;
 	}
 }

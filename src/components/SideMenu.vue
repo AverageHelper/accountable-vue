@@ -7,7 +7,8 @@ import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
 import DiskUsage from "./user/DiskUsage.vue";
-import { ref, computed } from "vue";
+import { appTabs, iconForTab, labelForTab, routeForTab } from "../model/ui/tabs";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useAuthStore } from "../store";
 
 export interface MenuItem {
@@ -24,14 +25,46 @@ const isMenuOpen = ref(false);
 const isLoggedIn = computed(() => auth.uid !== null);
 const hasItems = computed(() => isLoggedIn.value);
 
-const settingsItems = computed<Array<MenuItem>>(() => [
-	{ id: "settings", name: "Settings", path: "/settings", requiresLogin: true, icon: Gear },
-	{ id: "log-out", name: "Log out", path: "/logout", requiresLogin: true, icon: LogOut },
-]);
+const windowWidth = ref(window.innerWidth);
+const isTabletWidth = computed(() => windowWidth.value < 768);
+
+const settingsItems = computed<Array<MenuItem>>(() => {
+	const items = [
+		{ id: "settings", name: "Settings", path: "/settings", requiresLogin: true, icon: Gear },
+		{ id: "log-out", name: "Log out", path: "/logout", requiresLogin: true, icon: LogOut },
+	];
+
+	if (isTabletWidth.value) {
+		items.unshift(
+			...appTabs.map(tab => ({
+				id: tab,
+				name: labelForTab(tab),
+				path: routeForTab(tab),
+				requiresLogin: true,
+				icon: iconForTab(tab),
+			}))
+		);
+	}
+
+	return items;
+});
 
 function close() {
 	isMenuOpen.value = false;
 }
+
+function onResize() {
+	windowWidth.value = window.innerWidth;
+}
+
+onMounted(async () => {
+	await nextTick();
+	window.addEventListener("resize", onResize);
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("resize", onResize);
+});
 </script>
 
 <template>
@@ -70,8 +103,11 @@ function close() {
 	background-color: color($secondary-fill);
 	width: 100vw;
 	max-width: 180pt;
+	// TODO: Take mobile "safe area" into account
+	max-height: calc(100vh - 4.5em - 16pt); // Screen minus offsets
 	text-align: right;
 	margin: 0.5em;
+	overflow-y: scroll;
 	pointer-events: auto; // assumes our teleport target has pointer-events: none;
 
 	&__backdrop {

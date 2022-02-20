@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Tab } from "../model/ui/tabs";
+import { labelForTab, routeForTab } from "../model/ui/tabs";
 import { computed, toRefs } from "vue";
 
 const props = defineProps({
@@ -9,35 +10,8 @@ const props = defineProps({
 });
 const { tab } = toRefs(props);
 
-const to = computed<string>(() => {
-	switch (tab.value) {
-		case "accounts":
-			return "/accounts";
-		case "attachments":
-			return "/attachments";
-		case "locations":
-			return "/locations";
-		case "tags":
-			return "/tags";
-		default:
-			return "#";
-	}
-});
-
-const label = computed<string>(() => {
-	switch (tab.value) {
-		case "accounts":
-			return "Accounts";
-		case "attachments":
-			return "Files";
-		case "locations":
-			return "Locations";
-		case "tags":
-			return "Tags";
-		default:
-			return "Page";
-	}
-});
+const to = computed<string>(() => routeForTab(tab.value));
+const label = computed<string>(() => labelForTab(tab.value));
 </script>
 
 <template>

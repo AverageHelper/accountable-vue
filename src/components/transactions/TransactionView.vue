@@ -134,6 +134,7 @@ async function onFileReceived(file: File) {
 </script>
 
 <template>
+	<!-- FIXME: Make this match the account view, with the button beside the title -->
 	<NavAction v-if="account && transaction">
 		<EditButton>
 			<template #modal="{ onFinished }">
@@ -147,7 +148,12 @@ async function onFileReceived(file: File) {
 		</EditButton>
 	</NavAction>
 
-	<div v-if="transaction" class="content">
+	<main v-if="transaction" class="content">
+		<div v-if="transaction.title || location" class="heading">
+			<h1>&quot;{{ transaction.title ?? location?.title }}&quot;</h1>
+			<!-- TODO: Default to the transaction ID -->
+		</div>
+
 		<p
 			>Account:
 			<router-link :to="`/accounts/${accountId}`">{{ account?.title ?? accountId }}</router-link>
@@ -172,11 +178,6 @@ async function onFileReceived(file: File) {
 		<div class="key-value-pair" aria-label="Transaction Timestamp">
 			<span class="key">Timestamp</span>
 			<span class="value">{{ timestamp }}</span>
-		</div>
-		<!-- Title -->
-		<div v-if="transaction.title" class="key-value-pair" aria-label="Transaction Title">
-			<span class="key">Title</span>
-			<span class="value">&quot;{{ transaction.title }}&quot;</span>
 		</div>
 		<!-- Notes -->
 		<div v-if="transaction.notes" class="key-value-pair" aria-label="Transaction Notes">
@@ -212,7 +213,7 @@ async function onFileReceived(file: File) {
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>
-	</div>
+	</main>
 
 	<Modal :open="brokenReferenceToFix !== null && !!transaction" :close-modal="closeReferenceFixer">
 		<FileReattach

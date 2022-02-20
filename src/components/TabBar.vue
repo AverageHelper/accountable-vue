@@ -2,7 +2,7 @@
 import type { Tab } from "../model/ui/tabs";
 import TabItem from "./TabItem.vue";
 import { isAppTab, appTabs } from "../model/ui/tabs";
-import { computed } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -17,10 +17,26 @@ const currentTab = computed<Tab | null>(() => {
 
 	return t;
 });
+
+const windowWidth = ref(window.innerWidth);
+const tooSmall = computed(() => windowWidth.value < 768);
+
+function onResize() {
+	windowWidth.value = window.innerWidth;
+}
+
+onMounted(async () => {
+	await nextTick();
+	window.addEventListener("resize", onResize);
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("resize", onResize);
+});
 </script>
 
 <template>
-	<nav>
+	<nav v-show="!tooSmall">
 		<TabItem
 			v-for="tab in tabs"
 			:key="tab"
@@ -32,7 +48,6 @@ const currentTab = computed<Tab | null>(() => {
 </template>
 
 <style scoped lang="scss">
-@use "styles/setup" as *;
 @use "styles/colors" as *;
 
 nav {
@@ -42,9 +57,5 @@ nav {
 	justify-content: center;
 	align-items: center;
 	overflow-y: scroll;
-
-	@include mq($until: mobile) {
-		width: 88pt;
-	}
 }
 </style>

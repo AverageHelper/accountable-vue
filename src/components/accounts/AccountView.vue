@@ -2,7 +2,7 @@
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
 import ActionButton from "../ActionButton.vue";
-import AddTransactionListItem from "./AddTransactionListItem.vue";
+import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
 import List from "../List.vue";
@@ -108,13 +108,9 @@ function finishEditingAccount() {
 
 		<List class="transactions-list">
 			<li v-if="searchQuery === ''">
-				<AddTransactionListItem class="list-item header" @click="startCreatingTransaction" />
+				<AddRecordListItem @click="startCreatingTransaction" />
 			</li>
-			<li
-				v-for="transaction in filteredTransactions"
-				:key="transaction.id"
-				class="list-item transaction"
-			>
+			<li v-for="transaction in filteredTransactions" :key="transaction.id" class="transaction">
 				<TransactionListItem :transaction="transaction" />
 			</li>
 			<li>
@@ -190,41 +186,6 @@ function finishEditingAccount() {
 }
 
 .transactions-list {
-	.header {
-		border-radius: 0;
-		margin-bottom: 0;
-	}
-
-	.list-item {
-		position: relative;
-		overflow: hidden;
-
-		&::after {
-			content: "";
-			display: block;
-			position: absolute;
-			bottom: 0;
-			right: 0;
-			width: 92%;
-			height: 1pt;
-			background-color: color($background);
-			user-select: none;
-		}
-
-		// Round the first and last bordered list items
-		&:first-child {
-			border-radius: 4pt 4pt 0 0;
-		}
-
-		&:nth-last-child(2) {
-			border-radius: 0 0 4pt 4pt;
-
-			&::after {
-				display: none;
-			}
-		}
-	}
-
 	.footer {
 		padding-top: 0.5em;
 		user-select: none;

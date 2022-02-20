@@ -59,11 +59,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const dek = deriveDEK(pKey, dekMaterial);
 
 			const collection = attachmentsCollection();
+			this.loadError = null;
 			this.attachmentsWatcher = watchAllRecords(
 				collection,
 				snap => {
-					this.loadError = null;
-
 					snap.docChanges().forEach(change => {
 						switch (change.type) {
 							case "removed":

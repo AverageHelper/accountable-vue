@@ -8,16 +8,18 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 </script>
 
 <template>
-	<div class="heading">
-		<h1>Settings</h1>
-	</div>
+	<main class="content">
+		<div class="heading">
+			<h1>Settings</h1>
+		</div>
 
-	<LocationPrefForm />
-	<ChangeAccountIdForm />
-	<ChangePasswordForm />
-	<Import />
-	<Exports />
-	<DeleteData />
+		<LocationPrefForm />
+		<ChangeAccountIdForm />
+		<ChangePasswordForm />
+		<Import />
+		<Exports />
+		<DeleteData />
+	</main>
 </template>
 
 <style scoped lang="scss">

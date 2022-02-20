@@ -77,6 +77,7 @@ function commitTag(params: TagRecordParams | null) {
 		list-style: none;
 		padding: 0;
 		max-width: 36em;
+		margin: 0;
 	}
 
 	a {
