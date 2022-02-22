@@ -78,6 +78,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 				},
 				error => {
 					this.loadError = error;
+					if (this.attachmentsWatcher) this.attachmentsWatcher();
+					this.attachmentsWatcher = null;
 					console.error(error);
 				}
 			);

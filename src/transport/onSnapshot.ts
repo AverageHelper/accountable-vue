@@ -418,7 +418,7 @@ export function onSnapshot<T>(
 			} else if (event.code === WS_UNKNOWN) {
 				message += ": The server closed the connection without telling us why";
 			} else if (event.code === WS_GOING_AWAY) {
-				message += ": We're closing down for now";
+				message += ": Endpoint(s) closing down for now";
 			}
 			onErrorCallback(new Error(message));
 		}

@@ -80,6 +80,8 @@ export const useAccountsStore = defineStore("accounts", {
 				},
 				error => {
 					this.loadError = error;
+					if (this.accountsWatcher) this.accountsWatcher();
+					this.accountsWatcher = null;
 					console.error(error);
 				}
 			);
