@@ -22,10 +22,10 @@ $ npm -v && node -v
 v16.13.1
 ```
 
-### Installation
+### Compile and Run the Server
 
 - Clone the repository
-- Create a .env file at the root of the project, like the one shown below:
+- Create a .env file at the root of the `server` folder, like the one shown below:
 
 ```sh
 # .env
@@ -44,10 +44,10 @@ MAX_BYTES={the total amount of space that Accountable is permitted to occupy on 
 # defaults to 20000000000 (20 GB)
 ```
 
-#### Compile and Run the Server
+Run these commands to compile and run
 
 ```sh
-$ cd accountable-vue/server  # Be in the server's directory
+$ cd accountable-vue/server  # Be in the server directory (if you aren't already)
 $ npm ci                     # Install dependencies
 $ npm run build              # Compile the server
 $ node .                     # Start the server in development mode
