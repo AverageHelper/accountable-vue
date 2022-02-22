@@ -13,8 +13,7 @@ const props = defineProps({
 	link: { type: Boolean, default: true },
 	count: { type: Number as PropType<number | null>, default: null },
 });
-// TODO: Do we need `count`?
-const { account, link /*, count*/ } = toRefs(props);
+const { account, link, count } = toRefs(props);
 
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
@@ -28,17 +27,24 @@ const remainingBalance = computed(() => accounts.currentBalance[account.value.id
 const isBalanceNegative = computed(
 	() => remainingBalance.value !== null && isDineroNegative(remainingBalance.value)
 );
-// const numberOfTransactions = computed<number | null>(() => {
-// 	if (theseTransactions.value === undefined) {
-// 		return count.value ?? null;
-// 	}
-// 	return count.value ?? Object.keys(theseTransactions.value).length;
-// });
+const numberOfTransactions = computed<number | null>(() => {
+	if (theseTransactions.value === undefined) {
+		return count.value ?? null;
+	}
+	return count.value ?? Object.keys(theseTransactions.value).length;
+});
+const subtitle = computed<string>(() => {
+	const notes = account.value.notes?.trim() ?? "";
+	const count = numberOfTransactions.value;
+	const countString = `${count ?? "?"} transaction${count === 1 ? "" : "s"}`;
+
+	if (!notes) return countString;
+	if (count === null) return notes;
+	return `${countString} - ${notes}`;
+});
 
 onMounted(async () => {
-	if (theseTransactions.value === undefined) {
-		await transactions.watchTransactions(account.value);
-	}
+	await transactions.getTransactionsForAccount(account.value);
 });
 </script>
 
@@ -46,7 +52,7 @@ onMounted(async () => {
 	<ListItem
 		:to="accountRoute"
 		:title="account.title"
-		:subtitle="account.notes"
+		:subtitle="subtitle"
 		:count="remainingBalance ? intlFormat(remainingBalance) : '--'"
 		:negative="isBalanceNegative"
 	/>
