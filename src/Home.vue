@@ -46,10 +46,11 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 		<section id="open-source">
 			<OpenSourceIcon class="section-icon" />
 			<h3>Keep Me Accountable.</h3>
-			<ul>
-				<li>All of Accountable's source code is open to read.</li>
-				<li>Let me know if anything needs fixed.</li>
-			</ul>
+			<p>
+				All of Accountable's source code is open to read.
+				<br />
+				Let me know if anything needs fixed.
+			</p>
 		</section>
 
 		<Footer />

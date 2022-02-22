@@ -24,7 +24,13 @@ $ npm -v && node -v
 v16.13.1
 ```
 
-### Installation
+### Compile and Run the Server
+
+See [the server's README](/server/README.md) for info on that.
+
+<!-- TODO: Add a note here about our own hosted solution -->
+
+### Compile and Run the Client
 
 - Clone the repository
 - Create a .env file at the root of the project, like the one shown below:
@@ -42,14 +48,6 @@ VITE_ENABLE_LOGIN=true
 If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
 
 Using `localhost` for this will cause clients to try _themselves_ as the Accountable server, and that's usually not what you want.
-
-#### Compile and Run the Server
-
-See [the server's README](/server/README.md) for info on that.
-
-<!-- TODO: Add a note here about our own hosted solution -->
-
-#### Compile and Run the Client
 
 ```sh
 $ cd accountable-vue          # Be in the root directory
