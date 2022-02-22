@@ -6,7 +6,7 @@ defineProps({
 	to: { type: String as PropType<string | null>, default: null },
 	title: { type: String, required: true },
 	subtitle: { type: String as PropType<string | null>, default: null },
-	count: { type: Number as PropType<number | string | null>, default: null },
+	count: { type: [Number, String] as PropType<number | string | null>, default: null },
 	negative: { type: Boolean, default: false },
 });
 </script>

@@ -1,4 +1,5 @@
 import type { Account } from "../model/Account";
+import type { Dinero } from "dinero.js";
 import type { HashStore, TransactionRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
@@ -9,6 +10,7 @@ import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
+import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
@@ -58,83 +60,103 @@ export const useTransactionsStore = defineStore("transactions", {
 				delete this.transactionsWatchers[account.id];
 			}
 
+			const accounts = useAccountsStore();
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
-			const { useAccountsStore } = await import("./accountsStore");
-			const accounts = useAccountsStore();
-
 			const collection = transactionsCollection();
-			this.transactionsWatchers[account.id] = watchAllRecords(collection, snap => {
-				snap.docChanges().forEach(change => {
-					const accountTransactions = this.transactionsForAccount[account.id] ?? {};
-					let currentBalance =
-						accounts.currentBalance[account.id] ?? dinero({ amount: 0, currency: USD });
+			this.transactionsWatchers[account.id] = watchAllRecords(
+				collection,
+				snap =>
+					snap.docChanges().forEach(change => {
+						const accountTransactions = this.transactionsForAccount[account.id] ?? {};
+						let currentBalance =
+							accounts.currentBalance[account.id] ?? dinero({ amount: 0, currency: USD });
 
-					try {
-						switch (change.type) {
-							case "removed":
-								// Update the account's balance total
-								currentBalance = subtract(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
-								);
-								// Forget this transaction
-								delete accountTransactions[change.doc.id];
-								break;
+						try {
+							switch (change.type) {
+								case "removed":
+									// Update the account's balance total
+									currentBalance = subtract(
+										currentBalance,
+										accountTransactions[change.doc.id]?.amount ??
+											dinero({ amount: 0, currency: USD })
+									);
+									// Forget this transaction
+									delete accountTransactions[change.doc.id];
+									break;
 
-							case "added": {
-								// Add this transaction
-								const transaction = transactionFromSnapshot(change.doc, dek);
-								if (transaction.accountId !== account.id) break;
-								accountTransactions[change.doc.id] = transaction;
-								// Update the account's balance total
-								currentBalance = add(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
-								);
-								break;
+								case "added": {
+									// Add this transaction
+									const transaction = transactionFromSnapshot(change.doc, dek);
+									if (transaction.accountId !== account.id) break;
+									accountTransactions[change.doc.id] = transaction;
+									// Update the account's balance total
+									currentBalance = add(
+										currentBalance,
+										accountTransactions[change.doc.id]?.amount ??
+											dinero({ amount: 0, currency: USD })
+									);
+									break;
+								}
+
+								case "modified": {
+									// Remove this account's balance total
+									currentBalance = subtract(
+										currentBalance,
+										accountTransactions[change.doc.id]?.amount ??
+											dinero({ amount: 0, currency: USD })
+									);
+									// Update this transaction
+									const transaction = transactionFromSnapshot(change.doc, dek);
+									if (transaction.accountId !== account.id) break;
+									accountTransactions[change.doc.id] = transaction;
+									// Update this account's balance total
+									currentBalance = add(
+										currentBalance,
+										accountTransactions[change.doc.id]?.amount ??
+											dinero({ amount: 0, currency: USD })
+									);
+									break;
+								}
 							}
 
-							case "modified": {
-								// Remove this account's balance total
-								currentBalance = subtract(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
-								);
-								// Update this transaction
-								const transaction = transactionFromSnapshot(change.doc, dek);
-								if (transaction.accountId !== account.id) break;
-								accountTransactions[change.doc.id] = transaction;
-								// Update this account's balance total
-								currentBalance = add(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? dinero({ amount: 0, currency: USD })
-								);
-								break;
-							}
+							accounts.currentBalance[account.id] = currentBalance;
+							this.transactionsForAccount[account.id] = accountTransactions;
+						} catch (error: unknown) {
+							const ui = useUiStore();
+							ui.handleError(error);
 						}
-
-						accounts.currentBalance[account.id] = currentBalance;
-						this.transactionsForAccount[account.id] = accountTransactions;
-					} catch (error: unknown) {
-						const ui = useUiStore();
-						ui.handleError(error);
-					}
-				});
-			});
+					}),
+				error => {
+					console.error(error);
+					const watcher = this.transactionsWatchers[account.id];
+					if (watcher) watcher();
+					delete this.transactionsWatchers[account.id];
+				}
+			);
 		},
 		async getTransactionsForAccount(account: Account) {
 			const authStore = useAuthStore();
+			const accounts = useAccountsStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
-			this.transactionsForAccount[account.id] = await getTransactionsForAccount(account, dek);
+			const transactions = await getTransactionsForAccount(account, dek);
+			const totalBalance: Dinero<number> = Object.values(transactions).reduce(
+				(balance, transaction) => {
+					return add(balance, transaction.amount);
+				},
+				dinero({ amount: 0, currency: USD })
+			);
+
+			this.transactionsForAccount[account.id] = transactions;
+			accounts.currentBalance[account.id] = totalBalance;
 		},
 		async getAllTransactions() {
 			const { accounts } = await stores();

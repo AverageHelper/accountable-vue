@@ -73,6 +73,8 @@ export const useTagsStore = defineStore("tags", {
 				},
 				error => {
 					this.loadError = error;
+					if (this.tagsWatcher) this.tagsWatcher();
+					this.tagsWatcher = null;
 					console.error(error);
 				}
 			);

@@ -73,6 +73,8 @@ export const useLocationsStore = defineStore("locations", {
 				},
 				error => {
 					this.loadError = error;
+					if (this.locationsWatcher) this.locationsWatcher();
+					this.locationsWatcher = null;
 					console.error(error);
 				}
 			);
