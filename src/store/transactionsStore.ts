@@ -60,13 +60,18 @@ export const useTransactionsStore = defineStore("transactions", {
 				delete this.transactionsWatchers[account.id];
 			}
 
+			// Clear the known balance, the watcher will set it right
 			const accounts = useAccountsStore();
+			delete accounts.currentBalance[account.id];
+
+			// Get decryption key ready
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key");
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
+			// Watch the collection
 			const collection = transactionsCollection();
 			this.transactionsWatchers[account.id] = watchAllRecords(
 				collection,
