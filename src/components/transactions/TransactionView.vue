@@ -154,11 +154,6 @@ async function onFileReceived(file: File) {
 			<!-- TODO: Default to the transaction ID -->
 		</div>
 
-		<p
-			>Account:
-			<router-link :to="`/accounts/${accountId}`">{{ account?.title ?? accountId }}</router-link>
-		</p>
-
 		<TagList
 			:tag-ids="transaction.tagIds ?? []"
 			@create-tag="createTag"
@@ -178,6 +173,13 @@ async function onFileReceived(file: File) {
 		<div class="key-value-pair" aria-label="Transaction Timestamp">
 			<span class="key">Timestamp</span>
 			<span class="value">{{ timestamp }}</span>
+		</div>
+		<!-- Account -->
+		<div class="key-value-pair" aria-label="Transaction Account">
+			<span class="key">Account</span>
+			<router-link :to="`/accounts/${accountId}`" class="value">{{
+				account?.title ?? accountId
+			}}</router-link>
 		</div>
 		<!-- Notes -->
 		<div v-if="transaction.notes" class="key-value-pair" aria-label="Transaction Notes">

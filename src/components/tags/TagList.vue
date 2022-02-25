@@ -4,19 +4,29 @@ import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import Modal from "../Modal.vue";
 import Tag from "./Tag.vue";
 import TagEdit from "./TagEdit.vue";
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, toRefs } from "vue";
+import { useTagsStore } from "../../store";
 
 const emit = defineEmits(["create-tag", "modify-tag", "remove-tag"]);
 
-defineProps({
+const props = defineProps({
 	tagIds: { type: Array as PropType<ReadonlyArray<string>>, required: true },
 });
+const { tagIds } = toRefs(props);
 
 const tagEdit = ref<{ focus: () => void } | null>(null);
 const isCreatingTag = ref(false);
 const tagToEdit = ref<TagObject | null>(null);
 const isEditingTag = computed(() => tagToEdit.value !== null);
 const isModalOpen = computed(() => isCreatingTag.value || isEditingTag.value);
+
+const tags = useTagsStore();
+
+const referencedTags = computed(() =>
+	tags.allTags
+		.filter(tag => tagIds.value.includes(tag.id))
+		.sort((a, b) => a.name.localeCompare(b.name))
+);
 
 async function addTag() {
 	isCreatingTag.value = true;
@@ -44,13 +54,18 @@ function commitTag(params: TagRecordParams | null) {
 	}
 	closeModal();
 }
+
+function useTag(tag: TagObject) {
+	emit("create-tag", tag); // The parent worries about preventing duplicates
+	closeModal();
+}
 </script>
 
 <template>
 	<div class="tag-list">
 		<ul class="tags">
-			<li v-for="tagId in tagIds" :key="tagId">
-				<Tag :tag-id="tagId" :on-remove="removeTag" />
+			<li v-for="tag in referencedTags" :key="tag.id">
+				<Tag :tag="tag" :on-remove="removeTag" />
 			</li>
 			<li>
 				<a href="#" @click.prevent="addTag">Add tag</a>
@@ -59,7 +74,7 @@ function commitTag(params: TagRecordParams | null) {
 	</div>
 
 	<Modal :open="isModalOpen" :close-modal="closeModal">
-		<TagEdit ref="tagEdit" @finished="commitTag" />
+		<TagEdit ref="tagEdit" @selected="useTag" @finished="commitTag" />
 	</Modal>
 </template>
 

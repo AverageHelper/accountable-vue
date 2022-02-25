@@ -19,7 +19,7 @@ const numberOfTags = computed(() => allTags.value.length);
 
 		<List>
 			<li v-for="tag in allTags" :key="tag.id">
-				<Tag :tag-id="tag.id" :shows-count="true" />
+				<Tag :tag="tag" :shows-count="true" />
 				<!-- <ConfirmDestroyTag
 				:tag="tag"
 				:is-open="tagIdToDestroy === tag.id"

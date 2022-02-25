@@ -3,30 +3,33 @@ import type { PropType } from "vue";
 import type { Tag } from "../../model/Tag";
 import TinyButton from "../TinyButton.vue";
 import { computed, toRefs } from "vue";
-import { useTagsStore, useTransactionsStore } from "../../store";
+import { useTransactionsStore } from "../../store";
 
 const props = defineProps({
-	tagId: { type: String, required: true },
+	tag: { type: Object as PropType<Tag>, required: true },
 	showsCount: { type: Boolean, default: false },
+	onSelect: { type: Function as unknown as PropType<((tag: Tag) => void) | null>, default: null },
 	onRemove: { type: Function as unknown as PropType<((tag: Tag) => void) | null>, default: null },
 });
-const { tagId } = toRefs(props);
+const { tag } = toRefs(props);
 
 const transactions = useTransactionsStore();
-const tags = useTagsStore();
 
-const tag = computed(() => tags.items[tagId.value] as Tag | undefined);
-const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id));
+const count = computed(() => transactions.numberOfReferencesForTag(tag.value.id));
 </script>
 
 <template>
-	<div :class="`tag tag--${tag?.colorId ?? 'unknown'}`" :title="tagId">
-		<span class="title">{{ tag?.name ?? tagId }}</span>
+	<div
+		:class="`tag tag--${tag.colorId} ${onSelect ? 'selectable' : ''}`"
+		:title="tag.id"
+		@click="onSelect && onSelect(tag)"
+	>
+		<span class="title">{{ tag.name }}</span>
 
 		<slot />
 
 		<p v-if="showsCount" class="count">{{ count }}</p>
-		<TinyButton v-if="onRemove" class="remove" @click="() => tag && onRemove && onRemove(tag)"
+		<TinyButton v-if="onRemove" class="remove" @click="() => onRemove && onRemove(tag)"
 			>&times;</TinyButton
 		>
 	</div>
@@ -49,6 +52,16 @@ const count = computed(() => transactions.numberOfReferencesForTag(tag.value?.id
 	text-align: left;
 	font-weight: bold;
 	cursor: default;
+
+	&.selectable {
+		cursor: pointer;
+
+		@media (hover: hover) {
+			&:hover .title {
+				text-decoration: underline;
+			}
+		}
+	}
 
 	&::before {
 		content: "#";

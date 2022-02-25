@@ -11,7 +11,7 @@ import TextField from "../TextField.vue";
 import { ref, computed, toRefs } from "vue";
 import { useTagsStore, useTransactionsStore } from "../../store";
 
-const emit = defineEmits(["finished"]);
+const emit = defineEmits(["selected", "finished"]);
 
 const props = defineProps({
 	params: { type: Object as PropType<TagRecordParams | null>, default: null },
@@ -28,7 +28,11 @@ const tagIdToDestroy = ref<string | null>(null);
 
 const isCreatingTag = computed(() => params.value === null);
 const canSave = computed(() => name.value !== "");
-const allTags = computed(() => tags.allTags);
+const allTags = computed(() =>
+	tags.allTags //
+		.slice()
+		.sort((a, b) => a.name.localeCompare(b.name))
+);
 
 function save() {
 	const newTagParams: TagRecordParams = {
@@ -36,6 +40,10 @@ function save() {
 		colorId: colorId.value,
 	};
 	emit("finished", newTagParams);
+}
+
+function useTag(tag: TagObject) {
+	emit("selected", tag);
 }
 
 function askDeleteTag(tag: TagObject) {
@@ -78,10 +86,9 @@ defineExpose({ focus });
 		</ActionButton>
 	</form>
 
-	<h2>Extant Tags</h2>
 	<List>
 		<li v-for="tag in allTags" :key="tag.id">
-			<Tag :tag-id="tag.id" :shows-count="true" :on-remove="askDeleteTag" />
+			<Tag :tag="tag" :shows-count="true" :on-select="useTag" :on-remove="askDeleteTag" />
 			<ConfirmDestroyTag
 				:tag="tag"
 				:is-open="tagIdToDestroy === tag.id"
