@@ -368,7 +368,7 @@ export function onSnapshot<T>(
 		const data = message.data;
 		if (data === undefined) throw new UnexpectedResponseError("Message data is undefined");
 
-		console.debug(`Got ${type} message from ${url}`);
+		// console.debug(`Got ${type} message from ${url}`);
 		if (type === "collection") {
 			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array");
 			const collectionRef = new CollectionReference(db, queryOrReference.id);

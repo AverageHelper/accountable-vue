@@ -90,6 +90,8 @@ async function handleWrite(job: WriteAction): Promise<void> {
 				}
 				await touch(job.path);
 
+				// TODO: Check that the user has room to do writes
+
 				// Do the write
 				await new Promise<void>(resolve => {
 					console.debug("Setting up file pipes...");
