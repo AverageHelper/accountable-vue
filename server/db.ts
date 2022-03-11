@@ -3,10 +3,11 @@ import type { DocUpdate } from "./database/io.js";
 import type { Request } from "express";
 import type { WebSocket } from "./database/websockets.js";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { BadRequestError, NotFoundError, respondData, respondSuccess } from "./responses.js";
+import { BadRequestError, NotFoundError } from "./errors/index.js";
 import { close, send, WebSocketCode } from "./database/websockets.js";
 import { handleErrors } from "./handleErrors.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
+import { respondData, respondSuccess } from "./responses.js";
 import { Router } from "express";
 import { statsForUser } from "./database/io.js";
 import {

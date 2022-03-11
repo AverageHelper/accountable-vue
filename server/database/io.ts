@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
 import { Low, JSONFile } from "lowdb";
 import { mkdir, rm, unlink } from "fs/promises";
-import { NotEnoughRoomError } from "../responses.js";
+import { NotEnoughRoomError } from "../errors/index.js";
 import { simplifiedByteCount } from "../transformers/index.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import { v4 as uuid } from "uuid";

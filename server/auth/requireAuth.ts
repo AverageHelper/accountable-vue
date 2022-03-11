@@ -5,7 +5,7 @@ import { asyncWrapper } from "../asyncWrapper.js";
 import { blacklistHasJwt, jwtTokenFromRequest, verifyJwt } from "./jwt.js";
 import { Context } from "./Context.js";
 import { findUserWithProperties } from "../database/io.js";
-import { UnauthorizedError } from "../responses.js";
+import { UnauthorizedError } from "../errors/index.js";
 
 async function userWithUid(uid: string): Promise<User | null> {
 	// Find first user whose UID matches
