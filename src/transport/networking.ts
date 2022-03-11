@@ -1,37 +1,11 @@
 import type { DocumentData, DocumentWriteBatch, RawServerResponse } from "./schemas.js";
 import { describeCode, HttpStatusCode } from "../helpers/HttpStatusCode.js";
 import { isFileData, isRawServerResponse } from "./schemas.js";
+import { NetworkError, UnexpectedResponseError } from "./errors/index.js";
 
-interface ServerResponse extends RawServerResponse {
+export interface ServerResponse extends RawServerResponse {
 	status: HttpStatusCode;
 	message: string;
-}
-
-export class UnexpectedResponseError extends TypeError {
-	constructor(message: string) {
-		super(`Server response was unexpected: ${message}`);
-		this.name = "UnexpectedResponseError";
-	}
-}
-
-export class NetworkError extends Error {
-	readonly code: number;
-
-	constructor(response: ServerResponse) {
-		super(response.message);
-		this.name = "NetworkError";
-		this.code = response.status;
-	}
-}
-
-export class NotImplementedError extends NetworkError {
-	constructor() {
-		super({
-			status: HttpStatusCode.NOT_IMPLEMENTED,
-			message: describeCode(HttpStatusCode.NOT_IMPLEMENTED),
-		});
-		this.name = "NotImplementedError";
-	}
 }
 
 const OK = HttpStatusCode.OK;
