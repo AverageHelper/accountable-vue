@@ -4,7 +4,7 @@ import type { Attachment } from "../../model/Attachment";
 import type { Location } from "../../model/Location";
 import type { Transaction } from "../../model/Transaction";
 import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.vue";
-import EditButton from "../EditButton.vue";
+import EditButton from "../buttons/EditButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import FileListItem from "../attachments/FileListItem.vue";
 import FileReattach from "../attachments/FileReattach.vue";

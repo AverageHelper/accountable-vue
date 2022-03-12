@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Dinero } from "dinero.js";
-import ActionButton from "./ActionButton.vue";
+import ActionButton from "./buttons/ActionButton.vue";
 import TextField from "./TextField.vue";
 import { dinero } from "dinero.js";
 import { intlFormat } from "../transformers";

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AccountEdit from "./AccountEdit.vue";
 import AccountListItem from "./AccountListItem.vue";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
 import ErrorNotice from "../ErrorNotice.vue";
 import List from "../List.vue";

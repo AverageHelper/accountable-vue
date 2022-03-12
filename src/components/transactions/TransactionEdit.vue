@@ -3,7 +3,7 @@ import type { Account } from "../../model/Account";
 import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
 import type { TransactionRecordParams } from "../../model/Transaction";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import Checkbox from "../Checkbox.vue";
 import CheckmarkIcon from "../../icons/Checkmark.vue";
 import ConfirmDestroyTransaction from "./ConfirmDestroyTransaction.vue";

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ActionButton from "./ActionButton.vue";
+import ActionButton from "./buttons/ActionButton.vue";
 import Confirm from "./Confirm.vue";
 import { computed } from "vue";
 import { useAuthStore } from "../store";

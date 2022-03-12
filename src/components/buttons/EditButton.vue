@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "./ActionButton.vue";
-import EditIcon from "../icons/Edit.vue";
-import Modal from "./Modal.vue";
+import EditIcon from "../../icons/Edit.vue";
+import Modal from "../Modal.vue";
 import { ref } from "vue";
 
 defineProps({

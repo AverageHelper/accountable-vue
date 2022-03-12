@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import ActionButton from "./ActionButton.vue";
-import ErrorNotice from "./ErrorNotice.vue";
+import ActionButton from "../components/buttons/ActionButton.vue";
+import ErrorNotice from "../components/ErrorNotice.vue";
 import Footer from "../Footer.vue";
-import TextField from "./TextField.vue";
+import TextField from "../components/TextField.vue";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";

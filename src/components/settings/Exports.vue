@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AttachmentSchema } from "../../model/DatabaseSchema";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import { Attachment } from "../../model/Attachment";
 import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";

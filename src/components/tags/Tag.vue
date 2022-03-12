@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Tag } from "../../model/Tag";
-import TinyButton from "../TinyButton.vue";
+import TinyButton from "../buttons/TinyButton.vue";
 import { computed, toRefs } from "vue";
 import { useTransactionsStore } from "../../store";
 

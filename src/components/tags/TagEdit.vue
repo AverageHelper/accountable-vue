@@ -2,7 +2,7 @@
 import type { PropType } from "vue";
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { ColorID } from "../../model/Color";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import ColorPicker from "../ColorPicker.vue";
 import ConfirmDestroyTag from "./ConfirmDestroyTag.vue";
 import List from "../List.vue";

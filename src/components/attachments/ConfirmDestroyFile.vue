@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Attachment } from "../../model/Attachment";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import Confirm from "../Confirm.vue";
 import { toRefs } from "vue";
 

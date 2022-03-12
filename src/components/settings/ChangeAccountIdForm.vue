@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import NewLoginModal from "../NewLoginModal.vue";
 import TextField from "../TextField.vue";
 import { ref, computed } from "vue";

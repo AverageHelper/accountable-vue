@@ -2,7 +2,7 @@
 import type { Coordinate, LocationRecordParams } from "../../model/Location";
 import type { IPLocateResult } from "../../transport";
 import type { PropType } from "vue";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import Fuse from "fuse.js";
 import List from "../List.vue";
 import LocationIcon from "../../icons/Location.vue";

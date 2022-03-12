@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { LocationPref } from "../../transport";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import Checkmark from "../../icons/Checkmark.vue";
 import OutLink from "../OutLink.vue";
 import { computed, ref, onMounted, watch } from "vue";

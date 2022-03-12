@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ActionButton from "./ActionButton.vue";
+import ActionButton from "./buttons/ActionButton.vue";
 import BootstrapMenu from "./BootstrapMenu.vue";
 import SideMenu from "./SideMenu.vue";
 import TabBar from "./TabBar.vue";

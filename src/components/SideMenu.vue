@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component } from "vue";
-import ActionButton from "./ActionButton.vue";
+import ActionButton from "./buttons/ActionButton.vue";
 import AppVersion from "./AppVersion.vue";
 import Gear from "../icons/Gear.vue";
 import List from "./List.vue";

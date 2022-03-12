@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";

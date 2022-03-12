@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "../buttons/ActionButton.vue";
 import TextAreaField from "../TextAreaField.vue";
 import TextField from "../TextField.vue";
 import { Account } from "../../model/Account";

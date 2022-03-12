@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ActionButton from "../ActionButton.vue";
+import ActionButton from "./ActionButton.vue";
 import DownloadIcon from "../../icons/Download.vue";
 import { Attachment } from "../../model/Attachment";
 import { computed, toRefs } from "vue";
