@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import type { Transaction } from "../../model/Transaction";
 import AccountEdit from "./AccountEdit.vue";
-import ActionButton from "../buttons/ActionButton.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
-import List from "../List.vue";
-import Modal from "../Modal.vue";
-import SearchBar from "../SearchBar.vue";
-import TransactionEdit from "../transactions/TransactionEdit.vue";
-import TransactionListItem from "../transactions/TransactionListItem.vue";
+import List from "../../components/List.vue";
+import Modal from "../../components/Modal.vue";
+import SearchBar from "../../components/SearchBar.vue";
+import TransactionEdit from "../../components/transactions/TransactionEdit.vue";
+import TransactionListItem from "../../components/transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
 import { ref, computed, toRefs, watch } from "vue";

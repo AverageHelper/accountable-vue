@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import AccountEdit from "./AccountEdit.vue";
 import AccountListItem from "./AccountListItem.vue";
-import ActionButton from "../buttons/ActionButton.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
-import ErrorNotice from "../ErrorNotice.vue";
-import List from "../List.vue";
-import Modal from "../Modal.vue";
-import NewLoginModal from "../NewLoginModal.vue";
+import ErrorNotice from "../../components/ErrorNotice.vue";
+import List from "../../components/List.vue";
+import Modal from "../../components/Modal.vue";
+import NewLoginModal from "../../components/NewLoginModal.vue";
 import ReloadIcon from "../../icons/Reload.vue";
 import { computed, onMounted, ref } from "vue";
 import {

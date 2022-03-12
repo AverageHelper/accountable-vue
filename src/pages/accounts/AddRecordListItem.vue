@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ListItem from "../ListItem.vue";
+import ListItem from "../../components/ListItem.vue";
 import PlusWithCircle from "../../icons/PlusWithCircle.vue";
 
 const emit = defineEmits(["click"]);

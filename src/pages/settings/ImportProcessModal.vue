@@ -3,7 +3,7 @@ import type { PropType } from "vue";
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type { Entry } from "@zip.js/zip.js";
 import ActionButton from "../../components/buttons/ActionButton.vue";
-import AccountListItem from "../../components/accounts/AccountListItem.vue";
+import AccountListItem from "../../pages/accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";

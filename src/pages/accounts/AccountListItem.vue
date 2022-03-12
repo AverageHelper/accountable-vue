@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Transaction } from "../../model/Transaction";
-import ListItem from "../ListItem.vue";
+import ListItem from "../../components/ListItem.vue";
 import { Account } from "../../model/Account";
 import { computed, toRefs, onMounted } from "vue";
 import { intlFormat } from "../../transformers";

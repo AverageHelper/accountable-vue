@@ -1,7 +1,7 @@
 import type { NavigationGuard, RouteRecordRaw } from "vue-router";
 import About from "../About.vue";
-import Accounts from "../components/accounts/Accounts.vue";
-import AccountView from "../components/accounts/AccountView.vue";
+import Accounts from "../pages/accounts/Accounts.vue";
+import AccountView from "../pages/accounts/AccountView.vue";
 import Attachments from "../components/attachments/Attachments.vue";
 import EmptyRoute from "../pages/EmptyRoute.vue";
 import Home from "../Home.vue";
