@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Checkbox from "../Checkbox.vue";
+import Checkbox from "../inputs/Checkbox.vue";
 import ListItem from "../ListItem.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";

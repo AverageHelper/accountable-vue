@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ActionButton from "./buttons/ActionButton.vue";
 import SearchIcon from "../icons/Search.vue";
-import TextField from "./TextField.vue";
+import TextField from "./inputs/TextField.vue";
 
 const route = useRoute();
 const router = useRouter();

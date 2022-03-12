@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import ActionButton from "../buttons/ActionButton.vue";
-import TextAreaField from "../TextAreaField.vue";
-import TextField from "../TextField.vue";
+import TextAreaField from "../inputs/TextAreaField.vue";
+import TextField from "../inputs/TextField.vue";
 import { Account } from "../../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";

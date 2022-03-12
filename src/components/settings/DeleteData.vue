@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "../buttons/ActionButton.vue";
 import ConfirmDeleteEverything from "./ConfirmDeleteEverything.vue";
-import TextField from "../TextField.vue";
+import TextField from "../inputs/TextField.vue";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore, useUiStore } from "../../store";

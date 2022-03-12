@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ColorID } from "../model/Color";
+import type { ColorID } from "../../model/Color";
 import type { PropType } from "vue";
-import { allColors } from "../model/Color";
-import ColorDot from "./ColorDot.vue";
-import List from "./List.vue";
+import { allColors } from "../../model/Color";
+import ColorDot from "./../ColorDot.vue";
+import List from "./../List.vue";
 import { computed } from "vue";
 
 const emit = defineEmits(["update:modelValue"]);

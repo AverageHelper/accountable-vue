@@ -7,7 +7,7 @@ import Fuse from "fuse.js";
 import List from "../List.vue";
 import LocationIcon from "../../icons/Location.vue";
 import LocationListItem from "./LocationListItem.vue";
-import TextField from "../TextField.vue";
+import TextField from "../inputs/TextField.vue";
 import { computed, ref, toRefs, watch } from "vue";
 import { fetchLocationData } from "../../transport";
 import { Location } from "../../model/Location";

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "../buttons/ActionButton.vue";
 import NewLoginModal from "../NewLoginModal.vue";
-import TextField from "../TextField.vue";
+import TextField from "../inputs/TextField.vue";
 import { ref, computed } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";

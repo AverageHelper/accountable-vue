@@ -3,11 +3,11 @@ import type { PropType } from "vue";
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { ColorID } from "../../model/Color";
 import ActionButton from "../buttons/ActionButton.vue";
-import ColorPicker from "../ColorPicker.vue";
+import ColorPicker from "../inputs/ColorPicker.vue";
 import ConfirmDestroyTag from "./ConfirmDestroyTag.vue";
 import List from "../List.vue";
 import Tag from "./Tag.vue";
-import TextField from "../TextField.vue";
+import TextField from "../inputs/TextField.vue";
 import { ref, computed, toRefs } from "vue";
 import { useTagsStore, useTransactionsStore } from "../../store";
 
