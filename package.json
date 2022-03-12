@@ -1,13 +1,13 @@
 {
 	"name": "accountable-vue",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"license": "GPL-3.0",
 	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
 		"start": "./node_modules/.bin/concurrently -rkn SERVER,APP -s first \"npm run dev:server\" \"npm run dev:client\"",
 		"test": "jest",
 		"test:watch": "npm run test -- --watch",
-		"dev:client": "./node_modules/.bin/vite",
+		"dev:client": "./node_modules/.bin/vite --open",
 		"dev:server": "cd ./server && npm start",
 		"prod:server": "NODE_ENV=production node ./server",
 		"build": "npm run build:client && npm run build:server",
