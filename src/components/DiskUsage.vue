@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { simplifiedByteCount } from "../../transformers";
-import { useUiStore } from "../../store";
+import { simplifiedByteCount } from "../transformers";
+import { useUiStore } from "../store";
 
 const ui = useUiStore();
 
