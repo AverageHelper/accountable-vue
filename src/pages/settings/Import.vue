@@ -2,7 +2,7 @@
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type { Entry } from "@zip.js/zip.js";
 import ActionButton from "../../components/buttons/ActionButton.vue";
-import FileInput from "../../components/attachments/FileInput.vue";
+import FileInput from "../attachments/FileInput.vue";
 import ImportProcessModal from "./ImportProcessModal.vue";
 import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { create } from "superstruct";

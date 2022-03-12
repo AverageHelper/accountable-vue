@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Attachment } from "../../model/Attachment";
 import FileView from "./FileView.vue";
-import ListItem from "../ListItem.vue";
-import Modal from "../Modal.vue";
+import ListItem from "../../components/ListItem.vue";
+import Modal from "../../components/Modal.vue";
 import { ref, computed, toRefs } from "vue";
 import { toTimestamp } from "../../transformers";
 import { useAttachmentsStore } from "../../store";

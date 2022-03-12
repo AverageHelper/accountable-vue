@@ -4,8 +4,8 @@ import type { Transaction } from "../../model/Transaction";
 import type { PropType } from "vue";
 import FileInput from "./FileInput.vue";
 import FileListItem from "./FileListItem.vue";
-import List from "../List.vue";
-import ListItem from "../ListItem.vue";
+import List from "../../components/List.vue";
+import ListItem from "../../components/ListItem.vue";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 import { computed, toRefs } from "vue";
 

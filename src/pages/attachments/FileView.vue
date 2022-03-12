@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Attachment } from "../../model/Attachment";
 import type { PropType } from "vue";
-import ActionButton from "../buttons/ActionButton.vue";
-import DownloadButton from "../buttons/DownloadButton.vue";
-import ErrorNotice from "../ErrorNotice.vue";
-import List from "../List.vue";
-import TransactionListItem from "../transactions/TransactionListItem.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import DownloadButton from "../../components/buttons/DownloadButton.vue";
+import ErrorNotice from "../../components/ErrorNotice.vue";
+import List from "../../components/List.vue";
+import TransactionListItem from "../../components/transactions/TransactionListItem.vue";
 import TrashIcon from "../../icons/Trash.vue";
 import { ref, computed, watch, toRefs } from "vue";
 import { toTimestamp } from "../../transformers";
