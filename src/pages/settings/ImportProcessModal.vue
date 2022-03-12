@@ -2,11 +2,11 @@
 import type { PropType } from "vue";
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type { Entry } from "@zip.js/zip.js";
-import ActionButton from "../buttons/ActionButton.vue";
-import AccountListItem from "../accounts/AccountListItem.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import AccountListItem from "../../components/accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
-import List from "../List.vue";
-import Modal from "../Modal.vue";
+import List from "../../components/List.vue";
+import Modal from "../../components/Modal.vue";
 import { computed, ref, reactive, toRefs, watch, nextTick } from "vue";
 import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";

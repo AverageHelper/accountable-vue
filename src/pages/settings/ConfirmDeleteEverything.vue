@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ActionButton from "../buttons/ActionButton.vue";
-import Confirm from "../Confirm.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import Confirm from "../../components/Confirm.vue";
 
 const emit = defineEmits(["yes", "no"]);
 

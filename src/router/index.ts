@@ -9,7 +9,7 @@ import Install from "../Install.vue";
 import Locations from "../components/locations/Locations.vue";
 import Login from "../pages/Login.vue";
 import Security from "../Security.vue";
-import Settings from "../components/settings/Settings.vue";
+import Settings from "../pages/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
 import TransactionView from "../components/transactions/TransactionView.vue";
 import { appTabs } from "../model/ui/tabs";
