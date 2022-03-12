@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { Context } from "./Context.js";
-import { UnauthorizedError } from "../responses.js";
+import { UnauthorizedError } from "../errors/index.js";
 import safeCompare from "tsscmp";
 
 interface Params {

@@ -1,18 +1,14 @@
 import type { User } from "../database/schemas.js";
 import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
+import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../errors/index.js";
 import { Context } from "./Context.js";
 import { destroyUser, findUserWithProperties, statsForUser, upsertUser } from "../database/io.js";
+import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
-import {
-	BadRequestError,
-	DuplicateAccountError,
-	respondSuccess,
-	UnauthorizedError,
-} from "../responses.js";
 
 interface ReqBody {
 	account?: unknown;

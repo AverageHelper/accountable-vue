@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { Component } from "vue";
-import ActionButton from "./ActionButton.vue";
+import ActionButton from "./buttons/ActionButton.vue";
 import AppVersion from "./AppVersion.vue";
 import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
-import DiskUsage from "./user/DiskUsage.vue";
+import DiskUsage from "./DiskUsage.vue";
 import { appTabs, iconForTab, labelForTab, routeForTab } from "../model/ui/tabs";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useAuthStore } from "../store";

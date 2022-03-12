@@ -1,5 +1,6 @@
 import type { AccountableDB } from "./db";
-import { getFrom, UnexpectedResponseError } from "./networking";
+import { getFrom } from "./networking.js";
+import { UnexpectedResponseError } from "./errors/index.js";
 
 /**
  * Asks the database server what its current version is.

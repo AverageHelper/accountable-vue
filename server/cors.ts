@@ -1,5 +1,5 @@
 import type { CorsOptions } from "cors";
-import { OriginError } from "./responses.js";
+import { OriginError } from "./errors/index.js";
 import _cors from "cors";
 
 const allowedOrigins = new Set(["http://localhost:3000"]);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ActionButton from "./components/ActionButton.vue";
+import ActionButton from "./components/buttons/ActionButton.vue";
 import Footer from "./Footer.vue";
 import EncryptionIcon from "./icons/Lock.vue";
 import LedgerIcon from "./icons/MoneyTower.vue";

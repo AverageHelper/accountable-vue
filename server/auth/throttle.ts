@@ -2,7 +2,7 @@ import type { RateLimiterRes } from "rate-limiter-flexible";
 import type { RequestHandler } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { RateLimiterMemory } from "rate-limiter-flexible";
-import { ThrottledError } from "../responses.js";
+import { ThrottledError } from "../errors/index.js";
 
 const points = 10; // 10 tries
 const duration = 10 * 60; // per 10 minutes
