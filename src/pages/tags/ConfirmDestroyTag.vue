@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Tag } from "../../model/Tag";
-import ActionButton from "../buttons/ActionButton.vue";
-import Confirm from "../Confirm.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import Confirm from "../../components/Confirm.vue";
 import { computed, toRefs } from "vue";
 import { useTransactionsStore } from "../../store";
 

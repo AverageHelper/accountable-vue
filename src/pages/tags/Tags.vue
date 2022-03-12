@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import List from "../List.vue";
+import List from "../../components/List.vue";
 import Tag from "./Tag.vue";
 import { computed } from "vue";
 import { useTagsStore } from "../../store";

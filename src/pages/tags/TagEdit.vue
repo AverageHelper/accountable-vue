@@ -2,12 +2,12 @@
 import type { PropType } from "vue";
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { ColorID } from "../../model/Color";
-import ActionButton from "../buttons/ActionButton.vue";
-import ColorPicker from "../inputs/ColorPicker.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import ColorPicker from "../../components/inputs/ColorPicker.vue";
 import ConfirmDestroyTag from "./ConfirmDestroyTag.vue";
-import List from "../List.vue";
+import List from "../../components/List.vue";
 import Tag from "./Tag.vue";
-import TextField from "../inputs/TextField.vue";
+import TextField from "../../components/inputs/TextField.vue";
 import { ref, computed, toRefs } from "vue";
 import { useTagsStore, useTransactionsStore } from "../../store";
 

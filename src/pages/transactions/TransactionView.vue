@@ -13,7 +13,7 @@ import LocationIcon from "../../icons/Location.vue";
 import LocationView from "../locations/LocationView.vue";
 import Modal from "../../components/Modal.vue";
 import NavAction from "../../components/NavAction.vue";
-import TagList from "../../components/tags/TagList.vue";
+import TagList from "../../pages/tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { ref, computed, toRefs } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
