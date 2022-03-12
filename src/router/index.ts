@@ -6,7 +6,7 @@ import Attachments from "../pages/attachments/Attachments.vue";
 import EmptyRoute from "../pages/EmptyRoute.vue";
 import Home from "../Home.vue";
 import Install from "../Install.vue";
-import Locations from "../components/locations/Locations.vue";
+import Locations from "../pages/locations/Locations.vue";
 import Login from "../pages/Login.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";

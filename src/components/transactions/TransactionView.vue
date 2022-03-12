@@ -10,7 +10,7 @@ import FileListItem from "../../pages/attachments/FileListItem.vue";
 import FileReattach from "../../pages/attachments/FileReattach.vue";
 import List from "../List.vue";
 import LocationIcon from "../../icons/Location.vue";
-import LocationView from "../locations/LocationView.vue";
+import LocationView from "../../pages/locations/LocationView.vue";
 import Modal from "../Modal.vue";
 import NavAction from "../NavAction.vue";
 import TagList from "../tags/TagList.vue";

@@ -9,7 +9,7 @@ import CheckmarkIcon from "../../icons/Checkmark.vue";
 import ConfirmDestroyTransaction from "./ConfirmDestroyTransaction.vue";
 import CurrencyInput from "../inputs/CurrencyInput.vue";
 import DateTimeInput from "../inputs/DateTimeInput.vue";
-import LocationField from "../locations/LocationField.vue";
+import LocationField from "../../pages/locations/LocationField.vue";
 import TextAreaField from "../inputs/TextAreaField.vue";
 import TextField from "../inputs/TextField.vue";
 import TrashIcon from "../../icons/Trash.vue";

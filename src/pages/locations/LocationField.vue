@@ -2,12 +2,12 @@
 import type { Coordinate, LocationRecordParams } from "../../model/Location";
 import type { IPLocateResult } from "../../transport";
 import type { PropType } from "vue";
-import ActionButton from "../buttons/ActionButton.vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
 import Fuse from "fuse.js";
-import List from "../List.vue";
+import List from "../../components/List.vue";
 import LocationIcon from "../../icons/Location.vue";
 import LocationListItem from "./LocationListItem.vue";
-import TextField from "../inputs/TextField.vue";
+import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref, toRefs, watch } from "vue";
 import { fetchLocationData } from "../../transport";
 import { Location } from "../../model/Location";
