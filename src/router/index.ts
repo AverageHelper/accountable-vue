@@ -11,7 +11,7 @@ import Login from "../pages/Login.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";
 import Tags from "../components/tags/Tags.vue";
-import TransactionView from "../components/transactions/TransactionView.vue";
+import TransactionView from "../pages/transactions/TransactionView.vue";
 import { appTabs } from "../model/ui/tabs";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/authStore";
