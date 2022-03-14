@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ColorID } from "../../model/Color";
 import type { PropType } from "vue";
 import { ref, toRefs } from "vue";
 
@@ -42,6 +43,7 @@ const props = defineProps({
 	autocapitalize: { type: String, default: "none" },
 	required: { type: Boolean, default: false },
 	showsRequired: { type: Boolean, default: true },
+	accentColor: { type: String as PropType<ColorID | "">, default: "" },
 });
 const { modelValue } = toRefs(props);
 
@@ -102,6 +104,7 @@ defineExpose({ focus, contains });
 			v-if="disabled"
 			ref="input"
 			class="text-input text-input--has-value"
+			:class="accentColor ? `accent-color-${accentColor}` : ''"
 			:value="modelValue"
 			:placeholder="placeholder ?? undefined"
 			:type="type"
@@ -114,7 +117,11 @@ defineExpose({ focus, contains });
 		<input
 			v-else
 			ref="input"
-			:class="['text-input', { 'text-input--has-value': modelValue !== '' }]"
+			:class="[
+				'text-input',
+				accentColor ? `accent-color-${accentColor}` : '',
+				{ 'text-input--has-value': modelValue !== '' },
+			]"
 			:type="type"
 			:size="size"
 			:maxlength="maxlength"
@@ -189,6 +196,27 @@ defineExpose({ focus, contains });
 	&:focus,
 	&:focus-within {
 		border-bottom-color: color($blue);
+	}
+
+	&.accent-color {
+		&-red {
+			border-bottom-color: color($red);
+		}
+		&-orange {
+			border-bottom-color: color($orange);
+		}
+		&-yellow {
+			border-bottom-color: color($yellow);
+		}
+		&-green {
+			border-bottom-color: color($green);
+		}
+		&-blue {
+			border-bottom-color: color($blue);
+		}
+		&-purple {
+			border-bottom-color: color($purple);
+		}
 	}
 
 	&:disabled {
