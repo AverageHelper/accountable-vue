@@ -10,6 +10,7 @@ import "vue3-date-time-picker/dist/main.css";
 import ActionButton from "../buttons/ActionButton.vue";
 import DatePicker from "vue3-date-time-picker";
 import { computed, toRefs } from "vue";
+import { isLocale12Hr } from "../../transformers";
 import { useUiStore } from "../../store/uiStore";
 
 const emit = defineEmits(["update:modelValue"]);
@@ -26,6 +27,7 @@ const { modelValue, min, max } = toRefs(props);
 const ui = useUiStore();
 
 const darkMode = computed(() => ui.preferredColorScheme === "dark");
+const is24 = computed(() => !isLocale12Hr());
 
 function reset() {
 	const newDate = new Date();
@@ -43,7 +45,7 @@ function onDateUpdated(date: Date) {
 		<label class="text-input__container">
 			<div class="text-input__label">{{ label }}</div>
 			<DatePicker
-				:is24="false"
+				:is24="is24"
 				:auto-apply="true"
 				:close-on-auto-apply="false"
 				:max-date="max ?? undefined"
