@@ -1,13 +1,14 @@
+import { env } from "../environment.js";
 import { promisify } from "util";
 import { simplifiedByteCount } from "../transformers/index.js";
 import fastFolderSize from "fast-folder-size";
 
 const defaultMaxUsers = 5;
-export const MAX_USERS = Number.parseInt(process.env["MAX_USERS"] ?? `${defaultMaxUsers}`, 10);
+export const MAX_USERS = Number.parseInt(env("MAX_USERS") ?? `${defaultMaxUsers}`, 10);
 
 // Check disk capacity
 const defaultMaxSpace = 20000000000;
-const totalSpace = Number.parseInt(process.env["MAX_BYTES"] ?? `${defaultMaxSpace}`, 10);
+const totalSpace = Number.parseInt(env("MAX_BYTES") ?? `${defaultMaxSpace}`, 10);
 export const maxSpacePerUser = totalSpace / MAX_USERS;
 
 console.log(

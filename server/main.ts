@@ -1,8 +1,8 @@
 import "source-map-support/register.js";
-import "./environment.js";
 import { auth } from "./auth/index.js";
 import { cors } from "./cors.js";
 import { db } from "./db.js";
+import { env } from "./environment.js";
 import { handleErrors } from "./handleErrors.js";
 import { lol } from "./lol.js";
 import { ping } from "./ping.js";
@@ -38,7 +38,7 @@ app
 	.use("/db", db()) // Database endpoints (checks auth)
 	.use(handleErrors);
 
-process.stdout.write(`NODE_ENV: ${process.env.NODE_ENV}\n`);
+process.stdout.write(`NODE_ENV: ${env("NODE_ENV")}\n`);
 
 app.listen(port, () => {
 	process.stdout.write(`Accountable storage server listening on port ${port}\n`);

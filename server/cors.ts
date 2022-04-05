@@ -1,12 +1,16 @@
 import type { CorsOptions } from "cors";
 import { OriginError } from "./errors/index.js";
+import { requireEnv } from "./environment.js";
 import _cors from "cors";
 
 const allowedOrigins = new Set(["http://localhost:3000"]);
 
 // Add configured host to list of allowed origins
-const host = process.env["HOST"];
-if (host !== undefined) allowedOrigins.add(host);
+try {
+	const host = requireEnv("HOST");
+	allowedOrigins.add(host);
+} catch {} // nop
+
 process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins.values()))}\n`);
 
 const corsOptions: CorsOptions = {
