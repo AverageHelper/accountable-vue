@@ -38,7 +38,7 @@ app
 	.use("/db", db()) // Database endpoints (checks auth)
 	.use(handleErrors);
 
-process.stdout.write(`NODE_ENV: ${env("NODE_ENV")}\n`);
+process.stdout.write(`NODE_ENV: ${env("NODE_ENV") ?? "undefined"}\n`);
 
 app.listen(port, () => {
 	process.stdout.write(`Accountable storage server listening on port ${port}\n`);

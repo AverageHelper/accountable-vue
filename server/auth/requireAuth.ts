@@ -1,18 +1,24 @@
+import type { DataSource, User } from "../database/schemas.js";
 import type { JsonWebTokenError } from "jsonwebtoken";
 import type { Request, RequestHandler } from "express";
-import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { blacklistHasJwt, jwtTokenFromRequest, verifyJwt } from "./jwt.js";
 import { Context } from "./Context.js";
 import { findUserWithProperties } from "../database/io.js";
+import { isDataSourceId } from "../database/schemas.js";
 import { UnauthorizedError } from "../errors/index.js";
 
-async function userWithUid(uid: string): Promise<User | null> {
-	// Find first user whose UID matches
-	return await findUserWithProperties({ uid });
+interface Metadata {
+	user: User;
+	source: DataSource;
 }
 
-export async function userFromRequest(req: Request): Promise<User | null> {
+async function userWithUid(source: DataSource, uid: string): Promise<User | null> {
+	// Find first user whose UID matches
+	return await findUserWithProperties(source, { uid });
+}
+
+async function metadataFromRequest(req: Request): Promise<Metadata | null> {
 	const token = jwtTokenFromRequest(req);
 	if (token === null) {
 		console.debug("Request has no JWT");
@@ -29,19 +35,27 @@ export async function userFromRequest(req: Request): Promise<User | null> {
 	});
 
 	const uid = (payload["uid"] as string | undefined) ?? null;
-	if (uid === null || typeof uid !== "string")
+	const source = (payload["source"] as string | undefined) ?? null;
+	if (uid === null || typeof uid !== "string" || !isDataSourceId(source))
 		throw new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`);
 
-	return userWithUid(uid);
+	// NOTE: We need a full user-fetch here so we know we're working with a real user.
+	// You might be tempted to slim this down to just passing the UID through, but don't.
+	const user = await userWithUid(source, uid);
+	if (!user) return null;
+
+	return { user, source };
 }
 
 /** Returns a handler that makes sure the calling user is authorized here. */
 export function requireAuth(this: void): RequestHandler {
 	return asyncWrapper(async (req, res, next) => {
-		const user = await userFromRequest(req);
-		if (!user) throw new UnauthorizedError();
+		const metadata = await metadataFromRequest(req);
+		if (!metadata) throw new UnauthorizedError();
 
-		Context.bind(req, user.uid); // This reference drops when the request is done
+		const uid = metadata.user.uid;
+		const source = metadata.source;
+		Context.bind(req, { uid, source }); // This reference drops when the request is done
 		next();
 	});
 }

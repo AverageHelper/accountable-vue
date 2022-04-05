@@ -62,6 +62,7 @@ async function fsWrite(
 		// See https://medium.com/@vecera.petr/how-to-handle-large-file-upload-with-nodejs-express-server-7de9ab3f7af1
 		const req = job.req;
 
+		// TODO: Use `multer` instead maybe?
 		req.busboy.on("file", (fieldName, file, fileInfo) => {
 			console.debug(`Upload of '${fileInfo.filename}' started`);
 
@@ -194,6 +195,8 @@ interface FileData {
 	contents: string;
 	_id: string;
 }
+
+// TODO: Fold these into the normal database endpoints
 
 export function storage(this: void): Router {
 	return Router()

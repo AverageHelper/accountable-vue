@@ -20,9 +20,9 @@ export function defaultPrefs(this: void): UserPreferences {
 
 function isUserPreferences(tbd: unknown): tbd is UserPreferences {
 	return (
+		tbd !== undefined &&
 		typeof tbd === "object" &&
 		tbd !== null &&
-		tbd !== undefined &&
 		Boolean(tbd) &&
 		!Array.isArray(tbd) &&
 		"locationSensitivity" in tbd &&

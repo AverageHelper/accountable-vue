@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import type { AccountableDB } from "./db";
 import { AccountableError, previousStats } from "./db";
 import { deleteAt, downloadFrom, uploadTo } from "./networking";

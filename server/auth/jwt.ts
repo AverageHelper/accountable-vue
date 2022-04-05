@@ -1,5 +1,6 @@
+import type { DataSource, JwtPayload, User } from "../database/schemas.js";
 import type { Request } from "express";
-import type { User } from "../database/schemas.js";
+import { isJwtPayload } from "../database/schemas.js";
 import { generateSecureToken } from "n-digit-token";
 import { TemporarySet } from "./TemporarySet.js";
 import jwt from "jsonwebtoken";
@@ -29,12 +30,16 @@ export function addJwtToBlacklist(token: string): void {
 	}
 }
 
-export async function newAccessToken(user: User): Promise<string> {
+export async function newAccessToken(source: DataSource, user: User): Promise<string> {
 	const options: jwt.SignOptions = { expiresIn: "1h" };
-	const data = { uid: user.uid, hash: user.passwordHash };
+	const payload: JwtPayload = {
+		uid: user.uid,
+		hash: user.passwordHash,
+		source,
+	};
 
 	return new Promise<string>((resolve, reject) => {
-		jwt.sign(data, secret, options, (err, token) => {
+		jwt.sign(payload, secret, options, (err, token) => {
 			if (err) {
 				reject(err);
 				return;
@@ -65,18 +70,23 @@ function unverifiedJwt(token: string): string | jwt.JwtPayload | null {
 export async function verifyJwt(token: string): Promise<jwt.JwtPayload> {
 	return new Promise<jwt.JwtPayload>((resolve, reject) => {
 		jwt.verify(token, secret, (err, payload) => {
-			if (err) {
-				reject(err);
-				return;
-			}
+			// Fail if failed i guess
+			if (err) return reject(err);
+
+			// Check payload contents
 			if (payload !== undefined) {
-				resolve(payload);
-				return;
+				if (!isJwtPayload(payload))
+					return reject(new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`));
+
+				// Parameters are valid!
+				return resolve(payload);
 			}
+
+			// Sanity check. We should never get here.
 			const error = new TypeError(
 				"Failed to verify JWT: Both error and payload parameters were empty."
 			);
-			reject(error);
+			return reject(error);
 		});
 	});
 }

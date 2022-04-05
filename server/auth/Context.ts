@@ -1,17 +1,24 @@
+import type { DataSource } from "../database/schemas.js";
 import type { Request } from "express";
 
-/** @see https://boltsource.io/blog/Request-Context-with-TypeScript-and-express/ */
+/**
+ * A representation of the session context.
+ *
+ * @see https://boltsource.io/blog/Request-Context-with-TypeScript-and-express/
+ */
 export class Context {
 	private static readonly _bindings = new WeakMap<Request<unknown>, Context>();
 
 	public readonly uid: Readonly<string>;
+	public readonly source: DataSource;
 
-	constructor(uid: string) {
+	constructor(uid: string, source: DataSource) {
 		this.uid = uid;
+		this.source = source;
 	}
 
-	static bind(req: Request, uid: string): void {
-		const ctx = new Context(uid);
+	static bind(req: Request, params: { uid: string; source: DataSource }): void {
+		const ctx = new Context(params.uid, params.source);
 		Context._bindings.set(req, ctx);
 	}
 

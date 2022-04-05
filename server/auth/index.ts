@@ -1,9 +1,10 @@
-import type { User } from "../database/schemas.js";
+import type { DataSource, User } from "../database/schemas.js";
 import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../errors/index.js";
 import { Context } from "./Context.js";
 import { destroyUser, findUserWithProperties, statsForUser, upsertUser } from "../database/io.js";
+import { isDataSourceId } from "../database/schemas.js";
 import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
@@ -15,7 +16,10 @@ interface ReqBody {
 	newaccount?: unknown;
 	password?: unknown;
 	newpassword?: unknown;
+	source?: unknown;
 }
+
+const DEFAULT_SOURCE = "lowdb";
 
 async function generateSalt(): Promise<string> {
 	return await bcrypt.genSalt(15);
@@ -25,9 +29,9 @@ async function generateHash(input: string, salt: string): Promise<string> {
 	return await bcrypt.hash(input, salt);
 }
 
-async function userWithAccountId(accountId: string): Promise<User | null> {
+async function userWithAccountId(source: DataSource, accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
-	return await findUserWithProperties({ currentAccountId: accountId });
+	return await findUserWithProperties(source, { currentAccountId: accountId });
 }
 
 /**
@@ -45,12 +49,17 @@ export function auth(this: void): Router {
 			asyncWrapper(async (req, res) => {
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
-				if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
+				const source = req.body.source ?? DEFAULT_SOURCE;
+				if (
+					typeof givenAccountId !== "string" ||
+					typeof givenPassword !== "string" ||
+					!isDataSourceId(source)
+				) {
 					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Check credentials are unused
-				const storedUser = await userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(source, givenAccountId);
 				if (storedUser) {
 					throw new DuplicateAccountError();
 				}
@@ -65,10 +74,10 @@ export function auth(this: void): Router {
 					passwordHash,
 					passwordSalt,
 				};
-				await upsertUser(user);
+				await upsertUser(source, user);
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(user);
+				const access_token = await newAccessToken(source, user);
 				const { totalSpace, usedSpace } = await statsForUser(user.uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
 			})
@@ -81,17 +90,19 @@ export function auth(this: void): Router {
 
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
+				const source = req.body.source ?? DEFAULT_SOURCE;
 				if (
 					typeof givenAccountId !== "string" ||
 					typeof givenPassword !== "string" ||
 					givenAccountId === "" ||
-					givenPassword === ""
+					givenPassword === "" ||
+					!isDataSourceId(source)
 				) {
 					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Get credentials
-				const storedUser = await userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(source, givenAccountId);
 				if (!storedUser) {
 					console.debug(`Found no user under account ${JSON.stringify(givenAccountId)}`);
 					throw new UnauthorizedError("Incorrect account ID or passphrase");
@@ -105,7 +116,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(storedUser);
+				const access_token = await newAccessToken(source, storedUser);
 				const uid = storedUser.uid;
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
@@ -128,17 +139,19 @@ export function auth(this: void): Router {
 				// Ask for full credentials, so we aren't leaning on a repeatable token
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
+				const source = req.body.source ?? DEFAULT_SOURCE;
 				if (
 					typeof givenAccountId !== "string" ||
 					typeof givenPassword !== "string" ||
 					givenAccountId === "" ||
-					givenPassword === ""
+					givenPassword === "" ||
+					!isDataSourceId(source)
 				) {
 					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Get credentials
-				const storedUser = await userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(source, givenAccountId);
 				if (!storedUser) {
 					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
@@ -150,7 +163,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Delete the user
-				await destroyUser(storedUser.uid);
+				await destroyUser(source, storedUser.uid);
 
 				respondSuccess(res);
 			})
@@ -163,19 +176,21 @@ export function auth(this: void): Router {
 				const givenAccountId = req.body.account;
 				const givenPassword = req.body.password;
 				const newGivenPassword = req.body.newpassword;
+				const source = req.body.source ?? DEFAULT_SOURCE;
 				if (
 					typeof givenAccountId !== "string" ||
 					typeof givenPassword !== "string" ||
 					typeof newGivenPassword !== "string" ||
 					givenAccountId === "" ||
 					givenPassword === "" ||
-					newGivenPassword === ""
+					newGivenPassword === "" ||
+					!isDataSourceId(source)
 				) {
 					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Get credentials
-				const storedUser = await userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(source, givenAccountId);
 				if (!storedUser) {
 					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
@@ -189,7 +204,7 @@ export function auth(this: void): Router {
 				// ** Store new credentials
 				const passwordSalt = await generateSalt();
 				const passwordHash = await generateHash(newGivenPassword, passwordSalt);
-				await upsertUser({
+				await upsertUser(source, {
 					...storedUser,
 					passwordHash,
 					passwordSalt,
@@ -207,19 +222,21 @@ export function auth(this: void): Router {
 				const givenAccountId = req.body.account;
 				const newGivenAccountId = req.body.newaccount;
 				const givenPassword = req.body.password;
+				const source = req.body.source ?? DEFAULT_SOURCE;
 				if (
 					typeof givenAccountId !== "string" ||
 					typeof newGivenAccountId !== "string" ||
 					typeof givenPassword !== "string" ||
 					givenAccountId === "" ||
 					newGivenAccountId === "" ||
-					givenPassword === ""
+					givenPassword === "" ||
+					!isDataSourceId(source)
 				) {
 					throw new BadRequestError("Improper parameter types");
 				}
 
 				// ** Get credentials
-				const storedUser = await userWithAccountId(givenAccountId);
+				const storedUser = await userWithAccountId(source, givenAccountId);
 				if (!storedUser) {
 					throw new UnauthorizedError("Incorrect account ID or passphrase");
 				}
@@ -231,7 +248,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Store new credentials
-				await upsertUser({
+				await upsertUser(source, {
 					...storedUser,
 					currentAccountId: newGivenAccountId,
 				});

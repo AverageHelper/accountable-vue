@@ -101,6 +101,8 @@ paths:
                 password:
                   type: string
                   description: A passphrase to access the user's account. The user may change this later.
+                source:
+                  $ref: "#/components/schemas/DataSource"
       responses:
         200:
           description: Account has been added to the database with the given credentials
@@ -171,6 +173,8 @@ paths:
                 password:
                   type: string
                   description: A passphrase to access the user's account.
+                source:
+                  $ref: "#/components/schemas/DataSource"
       responses:
         200:
           description: Successfully logged in
@@ -262,6 +266,8 @@ paths:
                 password:
                   type: string
                   description: The passphrase to access the account.
+                source:
+                  $ref: "#/components/schemas/DataSource"
       responses:
         200:
           description: Operation succeeded
@@ -323,6 +329,8 @@ paths:
                 newpassword:
                   type: string
                   description: The new passphrase to access the account from now on.
+                source:
+                  $ref: "#/components/schemas/DataSource"
       responses:
         200:
           description: Operation succeeded
@@ -384,6 +392,8 @@ paths:
                 password:
                   type: string
                   description: The current passphrase to access the account.
+                source:
+                  $ref: "#/components/schemas/DataSource"
       responses:
         200:
           description: Operation succeeded
@@ -426,6 +436,8 @@ paths:
       summary: "Perform a batch of up to 500 document writes"
       description: Does nothing when the batch is empty
       operationId: batch-write
+      security:
+        - jwt: []
       requestBody:
         required: true
         content:
@@ -857,6 +869,13 @@ components:
         - tags
         - transactions
         - users
+    DataSource:
+      type: string
+      enum:
+        - lowdb
+        - mongodb
+      default: lowdb
+      description: Identifies the database to use.
   securitySchemes:
     jwt:
       type: http

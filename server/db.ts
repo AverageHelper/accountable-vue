@@ -5,6 +5,7 @@ import type { WebSocket } from "./database/websockets.js";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { BadRequestError, NotFoundError } from "./errors/index.js";
 import { close, send, WebSocketCode } from "./database/websockets.js";
+import { Context } from "./auth/Context.js";
 import { handleErrors } from "./handleErrors.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
 import { respondData, respondSuccess } from "./responses.js";
@@ -20,6 +21,7 @@ import {
 	getDocument,
 	isArrayOf,
 	isCollectionId,
+	isDataSourceId,
 	isDocumentWriteBatch,
 	isNonEmptyArray,
 	isPartialDataItem,
@@ -37,11 +39,13 @@ interface Params {
 }
 
 function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
+	const auth = Context.get(req);
 	const uid = (req.params.uid ?? "") || null;
 	const collectionId = req.params.collectionId ?? "";
-	if (uid === null || !isCollectionId(collectionId)) return null;
+	const source = auth?.source;
+	if (uid === null || !isCollectionId(collectionId) || !isDataSourceId(source)) return null;
 
-	return new CollectionReference(uid, collectionId);
+	return new CollectionReference(uid, collectionId, source);
 }
 
 function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
@@ -53,12 +57,15 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 }
 
 function webSocket(ws: WebSocket, req: Request<Params>): void {
+	const auth = Context.get(req);
 	const uid = (req.params.uid ?? "") || null;
 	const collectionId = (req.params.collectionId ?? "") || null;
 	const documentId = (req.params.documentId ?? "") || null;
+	const source = auth?.source;
 
 	// Ensure valid input
 	if (uid === null) return close(ws, WebSocketCode.PROTOCOL_ERROR, "Missing user ID");
+	if (!source) return close(ws, WebSocketCode.PROTOCOL_ERROR, "Missing data source ID");
 	if (collectionId === null)
 		return close(ws, WebSocketCode.PROTOCOL_ERROR, "Missing collection ID");
 	if (!isCollectionId(collectionId))
@@ -78,7 +85,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 		timesNotThere += 1; // this goes away if the client responds
 	}, 10000); // 10 second interval
 
-	const collection = new CollectionReference<UserKeys>(uid, collectionId);
+	const collection = new CollectionReference<UserKeys>(uid, collectionId, source);
 	let unsubscribe: Unsubscribe;
 
 	// TODO: Do a dance within the websocket to assert the caller's ID is uid
@@ -159,8 +166,10 @@ export function db(this: void): Router {
 		.post<Params>(
 			"/users/:uid",
 			asyncWrapper(async (req, res) => {
+				const auth = Context.get(req);
 				const uid = (req.params.uid ?? "") || null;
-				if (uid === null) throw new NotFoundError();
+				const source = auth?.source;
+				if (uid === null || !source) throw new NotFoundError();
 
 				// ** Batched writes
 				const providedData = req.body as unknown;
@@ -176,7 +185,7 @@ export function db(this: void): Router {
 				const setOperations: Array<DocUpdate<DataItem>> = [];
 				const deleteOperations: Array<DocumentReference<DataItem>> = [];
 				for (const write of providedData) {
-					const collection = new CollectionReference(uid, write.ref.collectionId);
+					const collection = new CollectionReference(uid, write.ref.collectionId, source);
 					const ref = new DocumentReference<DataItem>(collection, write.ref.documentId);
 
 					switch (write.type) {
