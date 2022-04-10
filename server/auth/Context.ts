@@ -1,4 +1,3 @@
-import type { DataSource } from "../database/schemas.js";
 import type { Request } from "express";
 
 /**
@@ -10,15 +9,13 @@ export class Context {
 	private static readonly _bindings = new WeakMap<Request<unknown>, Context>();
 
 	public readonly uid: Readonly<string>;
-	public readonly source: DataSource;
 
-	constructor(uid: string, source: DataSource) {
+	constructor(uid: string) {
 		this.uid = uid;
-		this.source = source;
 	}
 
-	static bind(req: Request, params: { uid: string; source: DataSource }): void {
-		const ctx = new Context(params.uid, params.source);
+	static bind(req: Request, params: { uid: string }): void {
+		const ctx = new Context(params.uid);
 		Context._bindings.set(req, ctx);
 	}
 

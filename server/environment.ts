@@ -3,8 +3,7 @@ dotenv.config(); // SIDE-EFFECT: populates `process.env`
 
 export type EnvKey =
 	| "DB"
-	| "ENCODED_MONGO_USERNAME"
-	| "ENCODED_MONGO_PASSWORD"
+	| "MONGO_CONNECTION_URL"
 	| "HOST"
 	| "MAX_BYTES"
 	| "MAX_USERS"

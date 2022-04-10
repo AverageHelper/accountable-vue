@@ -40,9 +40,6 @@ export interface UserCredential {
 	user: User;
 }
 
-// TODO: Add some UI so users can change this to either "lowdb" or "mongodb" at login time
-const source = "lowdb";
-
 /**
  * Creates a new user account associated with the specified account ID and password.
  *
@@ -71,7 +68,7 @@ export async function createUserWithAccountIdAndPassword(
 		uid,
 		usedSpace,
 		totalSpace,
-	} = await postTo(join, { account, password, source });
+	} = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
 
@@ -125,7 +122,7 @@ export async function signInWithAccountIdAndPassword(
 		uid,
 		usedSpace,
 		totalSpace,
-	} = await postTo(login, { account, password, source });
+	} = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
 
@@ -152,7 +149,6 @@ export async function deleteUser(db: AccountableDB, user: User, password: string
 	await postTo(leave, {
 		account: user.accountId,
 		password,
-		source,
 	});
 }
 
@@ -176,7 +172,6 @@ export async function updateAccountId(
 		account: user.accountId,
 		newaccount: newAccountId,
 		password,
-		source,
 	});
 }
 
@@ -202,6 +197,5 @@ export async function updatePassword(
 		account: user.accountId,
 		password: oldPassword,
 		newpassword: newPassword,
-		source,
 	});
 }

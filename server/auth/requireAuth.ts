@@ -1,21 +1,19 @@
-import type { DataSource, User } from "../database/schemas.js";
 import type { JsonWebTokenError } from "jsonwebtoken";
 import type { Request, RequestHandler } from "express";
+import type { User } from "../database/schemas.js";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { blacklistHasJwt, jwtTokenFromRequest, verifyJwt } from "./jwt.js";
 import { Context } from "./Context.js";
 import { findUserWithProperties } from "../database/io.js";
-import { isDataSourceId } from "../database/schemas.js";
 import { UnauthorizedError } from "../errors/index.js";
 
 interface Metadata {
 	user: User;
-	source: DataSource;
 }
 
-async function userWithUid(source: DataSource, uid: string): Promise<User | null> {
+async function userWithUid(uid: string): Promise<User | null> {
 	// Find first user whose UID matches
-	return await findUserWithProperties(source, { uid });
+	return await findUserWithProperties({ uid });
 }
 
 async function metadataFromRequest(req: Request): Promise<Metadata | null> {
@@ -35,16 +33,15 @@ async function metadataFromRequest(req: Request): Promise<Metadata | null> {
 	});
 
 	const uid = (payload["uid"] as string | undefined) ?? null;
-	const source = (payload["source"] as string | undefined) ?? null;
-	if (uid === null || typeof uid !== "string" || !isDataSourceId(source))
+	if (uid === null || typeof uid !== "string")
 		throw new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`);
 
 	// NOTE: We need a full user-fetch here so we know we're working with a real user.
 	// You might be tempted to slim this down to just passing the UID through, but don't.
-	const user = await userWithUid(source, uid);
+	const user = await userWithUid(uid);
 	if (!user) return null;
 
-	return { user, source };
+	return { user };
 }
 
 /** Returns a handler that makes sure the calling user is authorized here. */
@@ -54,8 +51,7 @@ export function requireAuth(this: void): RequestHandler {
 		if (!metadata) throw new UnauthorizedError();
 
 		const uid = metadata.user.uid;
-		const source = metadata.source;
-		Context.bind(req, { uid, source }); // This reference drops when the request is done
+		Context.bind(req, { uid }); // This reference drops when the request is done
 		next();
 	});
 }

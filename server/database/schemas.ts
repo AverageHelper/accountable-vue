@@ -19,21 +19,9 @@ function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
 	return !error;
 }
 
-// TODO: Firebase? 🥺 👉👈
-export const dataSources = ["lowdb", "mongodb"] as const;
-
-export type DataSource = typeof dataSources[number];
-
-export function isDataSourceId(tbd: unknown): tbd is DataSource {
-	return dataSources.includes(tbd as DataSource);
-}
-
 const jwtPayload = Joi.object({
 	uid: Joi.string().required(),
 	hash: Joi.string(),
-	source: Joi.string()
-		.valid(...dataSources)
-		.required(),
 });
 
 export type JwtPayload = Joi.extractType<typeof jwtPayload>;

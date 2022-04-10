@@ -1,5 +1,6 @@
 import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
+import { env, requireEnv } from "../environment.js";
 import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
 import { Low, JSONFile } from "lowdb";
@@ -8,7 +9,12 @@ import { NotEnoughRoomError } from "../errors/index.js";
 import { simplifiedByteCount } from "../transformers/index.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import { v4 as uuid } from "uuid";
+import mongoose from "mongoose";
 import path from "path";
+
+// Start connecting to the database
+const DB_URL = requireEnv("MONGO_CONNECTION_URL");
+await mongoose.connect(DB_URL);
 
 export async function ensure(path: string): Promise<void> {
 	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
@@ -17,7 +23,7 @@ export async function ensure(path: string): Promise<void> {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbEnv = process.env["DB"] ?? "";
+const dbEnv = env("DB") ?? "";
 
 export const DB_DIR = dbEnv //
 	? path.resolve(dbEnv)
@@ -90,10 +96,10 @@ async function dbForUser<T>(
 		totalSpace: maxSizeOfUserFolder, //
 		usedSpace: sizeOfUserFolder,
 	} = await statsForUser(uid);
-	console.log(
+	process.stdout.write(
 		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
 			maxSpacePerUser
-		)}`
+		)}\n`
 	);
 
 	const file = path.join(folder, "db.json");
@@ -122,7 +128,6 @@ async function dbForUser<T>(
 
 async function destroyDbForUser(uid: string): Promise<void> {
 	if (!uid) throw new TypeError("uid should not be empty");
-
 	const folder = path.join(DB_DIR, "users", uid);
 	await rm(folder, { recursive: true, force: true });
 }

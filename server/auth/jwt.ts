@@ -1,4 +1,4 @@
-import type { DataSource, JwtPayload, User } from "../database/schemas.js";
+import type { JwtPayload, User } from "../database/schemas.js";
 import type { Request } from "express";
 import { isJwtPayload } from "../database/schemas.js";
 import { generateSecureToken } from "n-digit-token";
@@ -30,12 +30,11 @@ export function addJwtToBlacklist(token: string): void {
 	}
 }
 
-export async function newAccessToken(source: DataSource, user: User): Promise<string> {
+export async function newAccessToken(user: User): Promise<string> {
 	const options: jwt.SignOptions = { expiresIn: "1h" };
 	const payload: JwtPayload = {
 		uid: user.uid,
 		hash: user.passwordHash,
-		source,
 	};
 
 	return new Promise<string>((resolve, reject) => {
