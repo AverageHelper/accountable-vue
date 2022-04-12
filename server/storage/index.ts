@@ -2,11 +2,13 @@ import type { DocumentData } from "../database/schemas.js";
 import type { Request, Response } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { createWriteStream } from "fs";
-import { DB_DIR, ensure, statsForUser } from "../database/io.js";
+import { dirname, resolve as resolvePath, sep as pathSeparator, join } from "path";
+import { ensure, statsForUser } from "../database/io.js";
+import { env } from "../environment.js";
+import { fileURLToPath } from "url";
 import { handleErrors } from "../handleErrors.js";
 import { maxSpacePerUser } from "../auth/limits.js";
 import { ownersOnly, requireAuth } from "../auth/index.js";
-import { resolve as resolvePath, sep as pathSeparator, join } from "path";
 import { respondData, respondError, respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { stat as fsStat, unlink as fsUnlink, readFile } from "fs/promises";
@@ -20,6 +22,9 @@ import {
 	NotEnoughRoomError,
 	NotFoundError,
 } from "../errors/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface Params {
 	uid?: string;
@@ -186,7 +191,8 @@ async function filePath(params: Params): Promise<string | null> {
 
 	// TODO: Make sure uid is a valid uid, so we don't let in stray path arguments there
 
-	const folder = resolvePath(DB_DIR, `./users/${uid}/attachments`);
+	const DB_ROOT = env("DB") ?? resolvePath(__dirname, "../db");
+	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments`);
 	await ensure(folder);
 	return join(folder, fileName);
 }
@@ -198,6 +204,7 @@ interface FileData {
 
 // TODO: Fold these into the normal database endpoints
 
+/** @deprecated */
 export function storage(this: void): Router {
 	return Router()
 		.use(requireAuth()) // require auth from here on in

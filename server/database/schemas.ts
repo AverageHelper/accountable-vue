@@ -1,6 +1,7 @@
 import type { ValueIteratorTypeGuard } from "lodash";
 import isArray from "lodash/isArray.js";
 import Joi from "joi";
+import mongoose from "mongoose";
 import "joi-extract-type";
 
 export function isArrayOf<T>(
@@ -47,18 +48,15 @@ export type DocumentData<T> = {
 	[K in keyof T]: Primitive;
 };
 
-const partialDataItem = {
+const dataItem = Joi.object({
 	ciphertext: Joi.string().required(),
 	objectType: Joi.string().required(),
-};
-type PartialDataItem = Joi.extractType<typeof partialDataItem>;
-
-export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
-	return isValidForSchema(tbd, Joi.object(partialDataItem));
-}
-
-const dataItem = Joi.object(partialDataItem);
+});
 export type DataItem = Joi.extractType<typeof dataItem>;
+
+export function isDataItem(tbd: unknown): tbd is DataItem {
+	return isValidForSchema(tbd, dataItem);
+}
 
 const userKeys = Joi.object({
 	dekMaterial: Joi.string().required(),
@@ -89,6 +87,35 @@ export type CollectionID = typeof allCollectionIds[number];
 export function isCollectionId(tbd: string): tbd is CollectionID {
 	return allCollectionIds.includes(tbd as CollectionID);
 }
+
+const dataItemSchema = new mongoose.Schema<DataItem & { uid: string }>({
+	uid: { type: String, required: true },
+	ciphertext: { type: String, required: true },
+	objectType: { type: String, required: true },
+});
+
+const keysSchema = new mongoose.Schema<UserKeys & { uid: string }>({
+	uid: { type: String, required: true },
+	dekMaterial: { type: String, required: true },
+	passSalt: { type: String, required: true },
+	oldDekMaterial: String,
+	oldPassSalt: String,
+});
+
+const userSchema = new mongoose.Schema<User>({
+	uid: { type: String, required: true },
+	currentAccountId: { type: String, required: true },
+	passwordHash: { type: String, required: true },
+	passwordSalt: { type: String, required: true },
+});
+
+export const AccountModel = mongoose.model("Account", dataItemSchema);
+export const AttachmentModel = mongoose.model("Attachment", dataItemSchema);
+export const KeysModel = mongoose.model("Keys", keysSchema);
+export const LocationModel = mongoose.model("Location", dataItemSchema);
+export const TagModel = mongoose.model("Tag", dataItemSchema);
+export const TransactionModel = mongoose.model("Transaction", dataItemSchema);
+export const UserModel = mongoose.model("User", userSchema);
 
 const documentRef = Joi.object({
 	collectionId: Joi.string()

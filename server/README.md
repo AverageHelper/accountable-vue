@@ -30,9 +30,13 @@ v16.13.1
 ```sh
 # .env
 
-# Where your server lives
-DB={your database folder location here}
-# defaults to ./database/db
+# Where your MongoDB instance can be accessed
+MONGO_CONNECTION_URL={your mongoose connection string}
+# ex: mongodb+srv://{USERNAME}:{PASSWORD}@cluster0.v7gpm.mongodb.net/{DATABASE}?retryWrites=true&w=majority
+
+# Where your attachment data lives
+DB={path to your storage directory}
+# defaults to "<project root>/server/db"
 
 HOST={your frontend hostname, with protocol}
 # ex: HOST=https://example.com
@@ -40,7 +44,7 @@ HOST={your frontend hostname, with protocol}
 MAX_USERS={the limit to the number of users allowed to register new accounts}
 # defaults to 5
 
-MAX_BYTES={the total amount of space that Accountable is permitted to occupy on the system}
+MAX_BYTES={the total number of bytes that Accountable attachments are permitted to occupy on the system}
 # defaults to 20000000000 (20 GB)
 ```
 

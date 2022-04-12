@@ -3,69 +3,40 @@ import type { CollectionReference, DocumentReference } from "./references.js";
 import { env, requireEnv } from "../environment.js";
 import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
-import { Low, JSONFile } from "lowdb";
-import { mkdir, rm, unlink } from "fs/promises";
-import { NotEnoughRoomError } from "../errors/index.js";
-import { simplifiedByteCount } from "../transformers/index.js";
-import { useJobQueue } from "@averagehelper/job-queue";
-import { v4 as uuid } from "uuid";
+import { mkdir } from "fs/promises";
+import { UnreachableCaseError } from "../errors/index.js";
 import mongoose from "mongoose";
 import path from "path";
+import {
+	AccountModel,
+	AttachmentModel,
+	KeysModel,
+	LocationModel,
+	TagModel,
+	TransactionModel,
+	UserModel,
+} from "./schemas.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Start connecting to the database
 const DB_URL = requireEnv("MONGO_CONNECTION_URL");
 await mongoose.connect(DB_URL);
+process.stdout.write("Connected to MongoDB\n");
 
+/** @deprecated `multer` does this automatically */
 export async function ensure(path: string): Promise<void> {
 	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
 	await mkdir(path, { recursive: true });
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dbEnv = env("DB") ?? "";
-
-export const DB_DIR = dbEnv //
-	? path.resolve(dbEnv)
-	: path.resolve(__dirname, "../../db");
-process.stdout.write(`Database and storage directory: ${DB_DIR}\n`);
-
-/**
- * Returns a fresh document ID that is virtually guaranteed
- * not to have been used before.
- */
-export function newDocumentId(this: void): string {
-	return uuid().replace(/-/gu, ""); // remove hyphens
-}
-
-type UserIndexDb = Record<string, User>;
-type UserDb = Record<string, Record<string, AnyDataItem>>;
-
-async function userIndexDb<T>(
-	cb: (db: UserIndexDb | null, write: (n: UserIndexDb | null) => void) => T
-): Promise<T> {
-	await ensure(DB_DIR);
-	const file = path.join(DB_DIR, "users.json");
-	const adapter = new JSONFile<UserIndexDb>(file);
-	const db = new Low(adapter);
-	await db.read();
-
-	const data = db.data ? { ...db.data } : null;
-	const writeQueue = useJobQueue<Low<UserIndexDb>>(file);
-	const result = cb(data, newData => {
-		writeQueue.process(db => db.write());
-		db.data = newData;
-		writeQueue.createJob(db);
-	});
-
-	if (writeQueue.length === 0) return result;
-	return new Promise(resolve => {
-		writeQueue.on("finish", () => resolve(result));
-	});
-}
-
+// The place where the user's encrypted attachments live
 function dbFolderForUser(uid: string): string {
-	return path.join(DB_DIR, "users", uid);
+	const DB_ROOT = env("DB") ?? path.resolve(__dirname, "../db");
+	const dir = path.join(DB_ROOT, "users", uid);
+	console.debug(`dbFolderForUser(uid: ${uid}) ${dir}`);
+	return dir;
 }
 
 interface UserStats {
@@ -81,91 +52,36 @@ export async function statsForUser(uid: string): Promise<UserStats> {
 	return { totalSpace, usedSpace };
 }
 
-async function dbForUser<T>(
-	uid: string,
-	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => T
-): Promise<T> {
-	if (!uid) throw new TypeError("uid should not be empty");
-
-	const folder = dbFolderForUser(uid);
-	await ensure(folder);
-
-	// Divide the disk space among a theoretical capacity of users
-	// TODO: Prevent new signups if we've used every slot, and take users with only key-data into account
-	const {
-		totalSpace: maxSizeOfUserFolder, //
-		usedSpace: sizeOfUserFolder,
-	} = await statsForUser(uid);
-	process.stdout.write(
-		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
-			maxSpacePerUser
-		)}\n`
-	);
-
-	const file = path.join(folder, "db.json");
-	const adapter = new JSONFile<UserDb>(file);
-	const db = new Low(adapter);
-	await db.read();
-
-	const data = db.data ? { ...db.data } : null;
-	const writeQueue = useJobQueue<Low<UserDb>>(file);
-	const result = cb(data, newData => {
-		// No one user may occupy more space than the max
-		const isNewDataLarger = JSON.stringify(newData).length > JSON.stringify(data).length;
-		const isUserOutOfRoom = sizeOfUserFolder >= maxSizeOfUserFolder;
-		if (isNewDataLarger && isUserOutOfRoom) throw new NotEnoughRoomError();
-
-		writeQueue.process(db => db.write());
-		db.data = newData;
-		writeQueue.createJob(db);
-	});
-
-	if (writeQueue.length === 0) return result;
-	return new Promise(resolve => {
-		writeQueue.on("finish", () => resolve(result));
-	});
-}
-
-async function destroyDbForUser(uid: string): Promise<void> {
-	if (!uid) throw new TypeError("uid should not be empty");
-	const folder = path.join(DB_DIR, "users", uid);
-	await rm(folder, { recursive: true, force: true });
-}
-
 export async function fetchDbCollection(
 	ref: CollectionReference<AnyDataItem>
 ): Promise<Array<IdentifiedDataItem>> {
-	let collection: Record<string, AnyDataItem>;
+	const uid = ref.uid;
 
-	if (ref.id === "users") {
-		// Special handling, fetch all users
-		const data = await userIndexDb(data => data);
-		if (!data) return [];
-		collection = data;
-	} else {
-		const data = await dbForUser(ref.uid, data => data);
-		if (!data) return [];
-		collection = data[ref.id] ?? {};
+	switch (ref.id) {
+		case "accounts":
+			return await AccountModel.find({ uid });
+		case "attachments":
+			return await AttachmentModel.find({ uid });
+		case "keys":
+			return await KeysModel.find({ uid });
+		case "locations":
+			return await LocationModel.find({ uid });
+		case "tags":
+			return await TagModel.find({ uid });
+		case "transactions":
+			return await TransactionModel.find({ uid });
+		case "users":
+			// Special handling: fetch all users
+			return await UserModel.find();
+		default:
+			throw new UnreachableCaseError(ref.id);
 	}
-
-	const entries = Object.entries(collection);
-	return entries.map(([key, value]) => ({ ...value, _id: key }));
 }
 
 export async function findUserWithProperties(query: Partial<User>): Promise<User | null> {
-	return await userIndexDb(collection => {
-		if (!collection) return null;
-
-		const result = Object.values(collection).find<User>((v: User): v is User => {
-			// where all properties of `query` match those of `v`
-			return Object.keys(query).every(key => {
-				return v[key as keyof User] === query[key as keyof User];
-			});
-		});
-
-		if (!result) return null;
-		return { ...result };
-	});
+	if (Object.keys(query).length === 0) return null; // Fail gracefully for an empty query
+	const results = await UserModel.find(query);
+	return results[0] ?? null; // first result or null
 }
 
 export async function fetchDbDocs<T extends AnyDataItem>(
@@ -176,23 +92,30 @@ export async function fetchDbDocs<T extends AnyDataItem>(
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	return await dbForUser(uid, data => {
-		if (!data) return [];
-
-		const results: Array<[DocumentReference<T>, Identified<T> | null]> = [];
-
-		for (const ref of refs) {
-			const collection = data[ref.parent.id] ?? {};
-			const docs = collection[ref.id] as T | undefined;
-			if (!docs) {
-				results.push([ref, null]);
-			} else {
-				results.push([ref, { ...docs, _id: ref.id }]);
+	return await Promise.all(
+		refs.map(async ref => {
+			const collectionId = ref.parent.id;
+			const _id = ref.id;
+			switch (collectionId) {
+				case "accounts":
+					return [ref, await AccountModel.findById(_id)];
+				case "attachments":
+					return [ref, await AttachmentModel.findById(_id)];
+				case "keys":
+					return [ref, await KeysModel.findById(_id)];
+				case "locations":
+					return [ref, await LocationModel.findById(_id)];
+				case "tags":
+					return [ref, await TagModel.findById(_id)];
+				case "transactions":
+					return [ref, await TransactionModel.findById(_id)];
+				case "users":
+					return [ref, await UserModel.findById(_id)];
+				default:
+					throw new UnreachableCaseError(collectionId);
 			}
-		}
-
-		return results;
-	});
+		})
+	);
 }
 
 export async function fetchDbDoc<T extends AnyDataItem>(
@@ -203,35 +126,23 @@ export async function fetchDbDoc<T extends AnyDataItem>(
 	return pair[1];
 }
 
-export async function upsertUser(user: User): Promise<void> {
-	const uid = user.uid;
+export async function upsertUser(properties: User): Promise<void> {
+	const uid = properties.uid;
 	if (!uid) throw new TypeError("uid property was empty");
 
-	// Upsert to index
-	await userIndexDb((data, write) => {
-		const userIndex = data ?? {};
-		userIndex[uid] = { ...user };
-		write(userIndex);
-	});
-
-	// Prep database
-	await dbForUser(uid, (data, write) => {
-		if (!data) write({});
-	});
+	await UserModel.findByIdAndUpdate(properties.uid, properties, { upsert: true });
 }
 
 export async function destroyUser(uid: string): Promise<void> {
 	if (!uid) throw new TypeError("uid was empty");
 
-	// Delete index
-	await userIndexDb((data, write) => {
-		const userIndex = data ?? {};
-		delete userIndex[uid];
-		write(userIndex);
-	});
-
-	// Erase user data folder
-	await destroyDbForUser(uid);
+	await AccountModel.deleteMany({ uid });
+	await AttachmentModel.deleteMany({ uid });
+	await KeysModel.deleteMany({ uid });
+	await LocationModel.deleteMany({ uid });
+	await TagModel.deleteMany({ uid });
+	await TransactionModel.deleteMany({ uid });
+	await UserModel.findByIdAndDelete(uid);
 }
 
 export interface DocUpdate<T extends AnyDataItem> {
@@ -247,17 +158,37 @@ export async function upsertDbDocs<T extends AnyDataItem>(
 	if (!updates.every(u => u.ref.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	await dbForUser(uid, (storedData, write) => {
-		const db = storedData ?? {};
-
-		for (const { ref, data } of updates) {
-			db[ref.parent.id] ??= {}; // upsert an empty object
-			const collection = db[ref.parent.id] ?? {};
-			collection[ref.id] = { ...data };
-		}
-
-		write(db); // commit the database
-	});
+	await Promise.all(
+		updates.map(async ({ data, ref }) => {
+			const collectionId = ref.parent.id;
+			const _id = ref.id;
+			switch (collectionId) {
+				case "accounts":
+					await AccountModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "attachments":
+					await AttachmentModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "keys":
+					await KeysModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "locations":
+					await LocationModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "tags":
+					await TagModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "transactions":
+					await TransactionModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				case "users":
+					await UserModel.findByIdAndUpdate(_id, data, { upsert: true });
+					return;
+				default:
+					throw new UnreachableCaseError(collectionId);
+			}
+		})
+	);
 }
 
 export async function deleteDbDocs<T extends AnyDataItem>(
@@ -268,16 +199,37 @@ export async function deleteDbDocs<T extends AnyDataItem>(
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	await dbForUser(uid, (data, write) => {
-		if (!data) return;
-
-		for (const ref of refs) {
-			const collection = data[ref.parent.id] ?? {};
-			delete collection[ref.id]; // eat the document
-		}
-
-		write(data); // commit the database
-	});
+	await Promise.all(
+		refs.map(async ref => {
+			const collectionId = ref.parent.id;
+			const _id = ref.id;
+			switch (collectionId) {
+				case "accounts":
+					await AccountModel.findByIdAndDelete(_id);
+					return;
+				case "attachments":
+					await AttachmentModel.findByIdAndDelete(_id);
+					return;
+				case "keys":
+					await KeysModel.findByIdAndDelete(_id);
+					return;
+				case "locations":
+					await LocationModel.findByIdAndDelete(_id);
+					return;
+				case "tags":
+					await TagModel.findByIdAndDelete(_id);
+					return;
+				case "transactions":
+					await TransactionModel.findByIdAndDelete(_id);
+					return;
+				case "users":
+					await UserModel.findByIdAndDelete(_id);
+					return;
+				default:
+					throw new UnreachableCaseError(collectionId);
+			}
+		})
+	);
 }
 
 export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<T>): Promise<void> {
@@ -287,22 +239,38 @@ export async function deleteDbDoc<T extends AnyDataItem>(ref: DocumentReference<
 export async function deleteDbCollection<T extends AnyDataItem>(
 	ref: CollectionReference<T>
 ): Promise<void> {
-	if (ref.id === "users") {
-		// Special handling, delete all users, burn everything
-		const usersDir = path.join(DB_DIR, "users");
-		await unlink(usersDir);
+	const uid = ref.uid;
 
-		// Clear the user index
-		await dbForUser(ref.uid, (data, write) => {
-			if (!data) return;
-			write({});
-		});
-		return;
+	switch (ref.id) {
+		case "accounts":
+			await AccountModel.deleteMany({ uid });
+			return;
+		case "attachments":
+			await AttachmentModel.deleteMany({ uid });
+			return;
+		case "keys":
+			await KeysModel.deleteMany({ uid });
+			return;
+		case "locations":
+			await LocationModel.deleteMany({ uid });
+			return;
+		case "tags":
+			await TagModel.deleteMany({ uid });
+			return;
+		case "transactions":
+			await TransactionModel.deleteMany({ uid });
+			return;
+		case "users":
+			// Special handling: delete all users, and burn everything
+			await AccountModel.deleteMany();
+			await AttachmentModel.deleteMany();
+			await KeysModel.deleteMany();
+			await LocationModel.deleteMany();
+			await TagModel.deleteMany();
+			await TransactionModel.deleteMany();
+			await UserModel.deleteMany();
+			return;
+		default:
+			throw new UnreachableCaseError(ref.id);
 	}
-
-	await dbForUser(ref.uid, (data, write) => {
-		if (!data) return;
-		delete data[ref.id]; // eat the collection
-		write(data); // commit the database
-	});
 }

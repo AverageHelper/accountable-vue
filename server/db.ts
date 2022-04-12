@@ -20,9 +20,9 @@ import {
 	getDocument,
 	isArrayOf,
 	isCollectionId,
+	isDataItem,
 	isDocumentWriteBatch,
 	isNonEmptyArray,
-	isPartialDataItem,
 	isUserKeys,
 	setDocument,
 	setDocuments,
@@ -210,8 +210,7 @@ export function db(this: void): Router {
 				if (uid === null) throw new NotFoundError();
 
 				const providedData = req.body as unknown;
-				if (!isPartialDataItem(providedData) && !isUserKeys(providedData))
-					throw new BadRequestError();
+				if (!isDataItem(providedData) && !isUserKeys(providedData)) throw new BadRequestError();
 
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();

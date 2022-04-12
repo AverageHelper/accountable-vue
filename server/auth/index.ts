@@ -32,6 +32,14 @@ async function userWithAccountId(accountId: string): Promise<User | null> {
 }
 
 /**
+ * Returns a fresh document ID that is virtually guaranteed
+ * not to have been used before.
+ */
+function newDocumentId(this: void): string {
+	return uuid().replace(/-/gu, ""); // remove hyphens
+}
+
+/**
  * Routes and middleware for a basic authentication flow. Installs a
  * `context` property on the request object that includes the caller's
  * authorized user ID.
@@ -59,7 +67,7 @@ export function auth(this: void): Router {
 				// ** Store credentials
 				const passwordSalt = await generateSalt();
 				const passwordHash = await generateHash(givenPassword, passwordSalt);
-				const uid = uuid().replace(/-/gu, ""); // remove hyphens
+				const uid = newDocumentId();
 				const user: User = {
 					uid,
 					currentAccountId: givenAccountId,

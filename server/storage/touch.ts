@@ -6,6 +6,8 @@ import { utimes } from "fs/promises";
  * @see https://remarkablemark.org/blog/2017/12/17/touch-file-nodejs/
  *
  * @param filename The path to the file to touch.
+ *
+ * @deprecated `multer` does this automatically
  */
 export async function touch(filename: string): Promise<void> {
 	try {
