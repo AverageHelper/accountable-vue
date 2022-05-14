@@ -1,33 +1,29 @@
 <script lang="ts">
 // Loads before `setup` runs
 const currentDate = new Date();
-currentDate.setSeconds(0, 0);
+currentDate.setSeconds(0, 0); // reset to top of current minute
 </script>
 
 <script setup lang="ts">
 import type { PropType } from "vue";
-import "vue3-date-time-picker/dist/main.css";
+import { toRefs } from "vue";
 import ActionButton from "../buttons/ActionButton.vue";
-import DatePicker from "vue3-date-time-picker";
-import { computed, toRefs } from "vue";
-import { isLocale12Hr } from "../../transformers";
-import { useUiStore } from "../../store/uiStore";
+import formatDate from "date-fns/format";
 
 const emit = defineEmits(["update:modelValue"]);
 
 const props = defineProps({
-	// Sometimes the date will get stringified on the way through. vue3-date-time-picker handles that
-	modelValue: { type: [Date, String], default: currentDate },
+	modelValue: { type: Date, default: currentDate },
 	label: { type: String, default: "" },
 	min: { type: Date as PropType<Date | null>, default: null },
 	max: { type: Date as PropType<Date | null>, default: null },
 });
 const { modelValue, min, max } = toRefs(props);
 
-const ui = useUiStore();
-
-const darkMode = computed(() => ui.preferredColorScheme === "dark");
-const is24 = computed(() => !isLocale12Hr());
+function stringFormattedDate(date: Date | null): string | undefined {
+	if (date === null) return undefined;
+	return formatDate(date, "yyyy-MM-dd'T'HH:mm");
+}
 
 function reset() {
 	const newDate = new Date();
@@ -35,7 +31,9 @@ function reset() {
 	emit("update:modelValue", newDate);
 }
 
-function onDateUpdated(date: Date) {
+function onDateUpdated(event: Event) {
+	const target = event.target as HTMLInputElement | null;
+	const date = !target ? null : new Date(target.value);
 	emit("update:modelValue", date);
 }
 </script>
@@ -44,15 +42,14 @@ function onDateUpdated(date: Date) {
 	<div class="date-input">
 		<label class="text-input__container">
 			<div class="text-input__label">{{ label }}</div>
-			<DatePicker
-				:is24="is24"
-				:auto-apply="true"
-				:close-on-auto-apply="false"
-				:max-date="max ?? undefined"
-				:min-date="min ?? undefined"
-				:dark="darkMode"
-				:model-value="modelValue"
-				@update:modelValue="onDateUpdated"
+			<input
+				class="text-input text-input--has-value"
+				type="datetime-local"
+				pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
+				:max="stringFormattedDate(max)"
+				:min="stringFormattedDate(min)"
+				:value="stringFormattedDate(modelValue)"
+				@input="onDateUpdated"
 			/>
 		</label>
 		<ActionButton kind="bordered" @click.prevent="reset">Now</ActionButton>
