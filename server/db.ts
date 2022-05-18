@@ -1,15 +1,23 @@
 import type { DataItem, Unsubscribe, UserKeys } from "./database/index.js";
+import type { AnyDataItem, DocumentData } from "./database/schemas.js";
 import type { DocUpdate } from "./database/io.js";
 import type { Request } from "express";
 import type { WebSocket } from "./database/websockets.js";
 import { asyncWrapper } from "./asyncWrapper.js";
-import { BadRequestError, NotFoundError } from "./errors/index.js";
 import { close, send, WebSocketCode } from "./database/websockets.js";
+import { deleteItem, ensure, getFileContents, moveFile } from "./database/filesystem.js";
+import { dirname, resolve as resolvePath, sep as pathSeparator, join } from "path";
+import { env } from "./environment.js";
+import { fileURLToPath } from "url";
 import { handleErrors } from "./handleErrors.js";
+import { maxSpacePerUser } from "./auth/limits.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
-import { respondData, respondSuccess } from "./responses.js";
+import { respondData, respondError, respondSuccess } from "./responses.js";
 import { Router } from "express";
+import { simplifiedByteCount } from "./transformers/simplifiedByteCount.js";
 import { statsForUser } from "./database/io.js";
+import { tmpdir } from "os";
+import multer, { diskStorage } from "multer";
 import {
 	CollectionReference,
 	DocumentReference,
@@ -29,11 +37,18 @@ import {
 	watchUpdatesToCollection,
 	watchUpdatesToDocument,
 } from "./database/index.js";
+import {
+	BadRequestError,
+	InternalError,
+	NotEnoughRoomError,
+	NotFoundError,
+} from "./errors/index.js";
 
 interface Params {
 	uid?: string;
 	collectionId?: string;
 	documentId?: string;
+	fileName?: string;
 }
 
 function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
@@ -51,6 +66,123 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 
 	return new DocumentReference(collection, documentId);
 }
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * Asserts that the given value is a valid file path segment.
+ *
+ * @param value The path segment
+ * @param name A string that identifies the value in error reports
+ *
+ * @throws a {@link BadRequestError} if `value` is not a valid file path segment.
+ * @returns the given `value`
+ */
+function assertPathSegment(value: string | undefined, name: string): string {
+	if (value === undefined || !value) throw new BadRequestError(`Missing ${name}`);
+
+	// Make sure value doesn't contain a path separator
+	if (value.includes(pathSeparator))
+		throw new BadRequestError(`${name} cannot contain a '${pathSeparator}' character`);
+
+	return value;
+}
+
+/**
+ * Ensures that the appropriate parameters are present and valid file path segments.
+ */
+function requireFilePathParameters(params: Params): Required<Omit<Params, "collectionId">> {
+	const { uid, documentId, fileName } = params;
+
+	return {
+		uid: assertPathSegment(uid, "uid"),
+		documentId: assertPathSegment(documentId, "documentId"),
+		fileName: assertPathSegment(fileName, "fileName"),
+	};
+}
+
+/**
+ * Returns the path to a temporary storage place for user's data.
+ * The parent folder of this file path is garanteed to exist.
+ *
+ * @throws a {@link BadRequestError} if the given params don't form a proper file path.
+ * @returns a filesystem path for the given file params.
+ */
+async function temporaryFilePath(params: Params): Promise<string> {
+	const { uid, documentId, fileName } = requireFilePathParameters(params);
+
+	const tmp = tmpdir();
+	const folder = resolvePath(
+		tmp,
+		`./accountable-attachment-temp/users/${uid}/attachments/${documentId}/blobs`
+	);
+	await ensure(folder);
+
+	return join(folder, fileName);
+}
+
+function permanentAttachmentFolderForRef<T extends AnyDataItem>(
+	uid: string,
+	ref: DocumentReference<T>
+): string {
+	assertPathSegment(uid, "uid");
+	assertPathSegment(ref.parent.id, "collectionId");
+	assertPathSegment(ref.id, "documentId");
+
+	const DB_ROOT = env("DB") ?? resolvePath(__dirname, "./db");
+	return resolvePath(DB_ROOT, `./users/${uid}/attachments/${ref.id}/blobs`);
+}
+
+/**
+ * Returns the path to the user's data. The parent folder of this file path
+ * is garanteed to exist.
+ *
+ * @throws a {@link BadRequestError} if the given params don't form a proper file path.
+ * @returns a filesystem path for the given file params.
+ */
+async function permanentFilePath(params: Params): Promise<string> {
+	const { uid, documentId, fileName } = requireFilePathParameters(params);
+
+	const DB_ROOT = env("DB") ?? resolvePath(__dirname, "./db");
+	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments/${documentId}/blobs`);
+	await ensure(folder);
+
+	return join(folder, fileName);
+}
+
+const upload = multer({
+	limits: {
+		fileSize: 50000000, // 50 MB
+		files: 1,
+	},
+	storage: diskStorage({
+		async destination(req, _, cb) {
+			const path = dirname(await temporaryFilePath(req.params));
+			console.debug(`Writing uploaded file to '${path}'...`);
+			if (path === null || !path) {
+				cb(new BadRequestError("Your UID or that file name don't add up to a valid path"), "");
+			} else {
+				cb(null, path);
+			}
+		},
+		filename(req, _, cb) {
+			// Use the given file name
+			try {
+				const { fileName } = requireFilePathParameters(req.params);
+				cb(null, fileName);
+			} catch (error) {
+				if (error instanceof Error) {
+					cb(error, "");
+				} else if (typeof error === "string") {
+					cb(new Error(error), "");
+				} else {
+					cb(new Error(JSON.stringify(error)), "");
+				}
+			}
+		},
+	}),
+});
 
 function webSocket(ws: WebSocket, req: Request<Params>): void {
 	const uid = (req.params.uid ?? "") || null;
@@ -120,11 +252,16 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 				default:
 					return close(ws, WebSocketCode.PROTOCOL_ERROR, "Received unknown message from client");
 			}
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error(error);
 			close(ws, WebSocketCode.PROTOCOL_ERROR, "Couldn't process that");
 		}
 	});
+}
+
+interface FileData {
+	contents: string;
+	_id: string;
 }
 
 // Function so we defer creation of the router until after we've set up websocket support
@@ -132,8 +269,79 @@ export function db(this: void): Router {
 	return Router()
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
-		.use(requireAuth()) // require auth from here on in
-		.use("/users/:uid", ownersOnly())
+		.use(requireAuth) // require auth from here on in
+		.use("/users/:uid", ownersOnly)
+		.get<Params>(
+			"/users/:uid/attachments/:documentId/blob/:fileName",
+			asyncWrapper(async (req, res) => {
+				const path = await permanentFilePath(req.params);
+				if (path === null)
+					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
+
+				const contents = await getFileContents(path);
+				const fileData: DocumentData<FileData> = {
+					contents,
+					_id: req.params.fileName ?? "unknown",
+				};
+				respondData(res, fileData);
+			})
+		)
+		.post(
+			"/users/:uid/attachments/:documentId/blob/:fileName",
+			upload.single("file"),
+			asyncWrapper<Params>(async (req, res) => {
+				const uid: string | null = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				const userSizeDesc = simplifiedByteCount(usedSpace);
+				const maxSpacDesc = simplifiedByteCount(maxSpacePerUser);
+				console.debug(`User ${uid} has used ${userSizeDesc} of ${maxSpacDesc}`);
+
+				const remainingSpace = totalSpace - usedSpace;
+				if (remainingSpace <= 0) throw new NotEnoughRoomError();
+
+				// Move the file from the staging area into permanet storage
+				const tempPath = await temporaryFilePath(req.params);
+				const permPath = await permanentFilePath(req.params);
+				await moveFile(tempPath, permPath);
+
+				{
+					const { totalSpace, usedSpace } = await statsForUser(uid);
+					respondSuccess(res, { totalSpace, usedSpace });
+				}
+			})
+		)
+		.delete<Params>(
+			"/users/:uid/attachments/:documentId/blob/:fileName",
+			asyncWrapper(async (req, res) => {
+				const uid = (req.params.uid ?? "") || null;
+				if (uid === null) throw new NotFoundError();
+
+				const path = await permanentFilePath(req.params);
+				if (path === null)
+					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
+
+				try {
+					await deleteItem(path);
+				} catch (error) {
+					if (error instanceof InternalError) {
+						return respondError(res, error);
+					}
+					console.error(`Unknown error`, error);
+					return respondError(res, new InternalError());
+				}
+
+				// Report the user's new usage
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				const userSizeDesc = simplifiedByteCount(usedSpace);
+				const maxSpacDesc = simplifiedByteCount(maxSpacePerUser);
+				console.debug(`User ${uid} has used ${userSizeDesc} of ${maxSpacDesc}`);
+
+				// When done, get back to the caller with new stats
+				respondSuccess(res, { totalSpace, usedSpace });
+			})
+		)
 		.get<Params>(
 			"/users/:uid/:collectionId",
 			asyncWrapper(async (req, res) => {
@@ -151,9 +359,9 @@ export function db(this: void): Router {
 				// console.debug(`Handling GET for document at ${ref?.path ?? "null"}`);
 				if (!ref) throw new NotFoundError();
 
-				const item = await getDocument(ref);
-				// console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
-				respondData(res, item);
+				const { data } = await getDocument(ref);
+				// console.debug(`Found item: ${JSON.stringify(data, undefined, "  ")}`);
+				respondData(res, data);
 			})
 		)
 		.post<Params>(
@@ -229,7 +437,11 @@ export function db(this: void): Router {
 				const ref = collectionRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entries
 				await deleteCollection(ref);
+
+				// TODO: Also delete associated files
+
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
 			})
@@ -243,7 +455,20 @@ export function db(this: void): Router {
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entry
 				await deleteDocument(ref);
+
+				// Delete any associated files
+				try {
+					const blobsFolder = permanentAttachmentFolderForRef(uid, ref);
+					await deleteItem(blobsFolder);
+				} catch (error) {
+					console.error(
+						`Failed to delete a file associated with the document 'users/${uid}/${ref.parent.id}/${ref.id}'`,
+						error
+					);
+				}
+
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
 			})

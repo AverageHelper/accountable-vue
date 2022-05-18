@@ -17,11 +17,9 @@ tags:
   - name: auth
     description: User authentication
   - name: database
-    description: Document-based storage for small pieces of data
-  - name: storage
-    description: File-based storage for large blocks of data, such as images
+    description: Arbitrary persistent data storage
 paths:
-  "/":
+  "/v0/":
     get:
       tags:
         - misc
@@ -39,7 +37,7 @@ paths:
                     type: string
                     enum:
                       - "lol"
-  "/ping":
+  "/v0/ping":
     get:
       tags:
         - misc
@@ -57,11 +55,11 @@ paths:
                     type: string
                     enum:
                       - "Pong!"
-  "/version":
+  "/v0/version":
     get:
       tags:
         - misc
-      summary: Get the server's version string
+      summary: Get the server's version information
       operationId: version
       responses:
         200:
@@ -78,7 +76,7 @@ paths:
                     type: string
                     example: "Accountable v0.3.0"
 
-  "/join":
+  "/v0/join":
     post:
       tags:
         - auth
@@ -149,7 +147,7 @@ paths:
                     type: string
                     enum:
                       - "An account with that ID already exists"
-  "/login":
+  "/v0/login":
     post:
       tags:
         - auth
@@ -220,7 +218,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/logout":
+  "/v0/logout":
     post:
       tags:
         - auth
@@ -240,7 +238,7 @@ paths:
                     type: string
                     enum:
                       - "Success!"
-  "/leave":
+  "/v0/leave":
     post:
       tags:
         - auth
@@ -297,7 +295,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/updatepassword":
+  "/v0/updatepassword":
     post:
       tags:
         - auth
@@ -358,7 +356,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/updateaccountid":
+  "/v0/updateaccountid":
     post:
       tags:
         - auth
@@ -419,7 +417,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/db/users/{uid}":
+  "/v0/db/users/{uid}":
     post:
       tags:
         - database
@@ -502,11 +500,11 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
-  "/db/users/{uid}/{coll}":
+  "/v0/db/users/{uid}/{coll}":
     get:
       tags:
         - database
@@ -573,7 +571,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
@@ -583,7 +581,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/CollectionID"
-  "/db/users/{uid}/{coll}/{doc}":
+  "/v0/db/users/{uid}/{coll}/{doc}":
     get:
       tags:
         - database
@@ -662,7 +660,7 @@ paths:
     delete:
       tags:
         - database
-      summary: Delete a document
+      summary: Delete a document and any associated binary data blobs
       operationId: delete-doc
       security:
         - jwt: []
@@ -700,7 +698,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
@@ -716,11 +714,11 @@ paths:
         required: true
         schema:
           type: string
-  "/files/users/{uid}/attachments/{fileName}":
+  "/v0/db/users/{uid}/attachments/{doc}/blob/{key}":
     get:
       tags:
-        - storage
-      summary: Get a file
+        - database
+      summary: Retrieve binary data previously attached to a document
       operationId: get-file
       security:
         - jwt: []
@@ -760,8 +758,8 @@ paths:
                       - "No data found"
     post:
       tags:
-        - storage
-      summary: Write a file
+        - database
+      summary: Attach at most 50 MB of binary data to a document
       operationId: set-file
       security:
         - jwt: []
@@ -798,8 +796,8 @@ paths:
                       - "Your UID or that file name don't add up to a valid path"
     delete:
       tags:
-        - storage
-      summary: Delete a file
+        - database
+      summary: Remove binary data from a document
       operationId: delete-file
       security:
         - jwt: []
@@ -837,13 +835,19 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
-      - name: fileName
+      - name: doc
         in: path
-        description: The name of a file.
+        description: The ID of the document.
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        description: A string that refers to the binary data. For example, a file name.
         required: true
         schema:
           type: string

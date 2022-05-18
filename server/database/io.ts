@@ -3,7 +3,6 @@ import type { CollectionReference, DocumentReference } from "./references.js";
 import { env, requireEnv } from "../environment.js";
 import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
-import { mkdir } from "fs/promises";
 import { UnreachableCaseError } from "../errors/index.js";
 import mongoose from "mongoose";
 import path from "path";
@@ -24,12 +23,6 @@ const __dirname = path.dirname(__filename);
 const DB_URL = requireEnv("MONGO_CONNECTION_URL");
 await mongoose.connect(DB_URL);
 process.stdout.write("Connected to MongoDB\n");
-
-/** @deprecated `multer` does this automatically */
-export async function ensure(path: string): Promise<void> {
-	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
-	await mkdir(path, { recursive: true });
-}
 
 // The place where the user's encrypted attachments live
 function dbFolderForUser(uid: string): string {
@@ -84,46 +77,62 @@ export async function findUserWithProperties(query: Partial<User>): Promise<User
 	return results[0] ?? null; // first result or null
 }
 
+/** A view of database data. */
+interface Snapshot<T extends AnyDataItem> {
+	/** The database reference. */
+	ref: DocumentReference<T>;
+
+	/** The stored data for the reference. */
+	data: Identified<T> | null;
+}
+
+/**
+ * Fetches the referenced data item from the database.
+ *
+ * @param ref A document reference.
+ * @returns the data associated with the given reference, or `null` if no such data exists.
+ */
+export async function fetchDbDoc<T extends AnyDataItem>(
+	ref: DocumentReference<T>
+): Promise<Snapshot<T>> {
+	const collectionId = ref.parent.id;
+	const _id = ref.id;
+	switch (collectionId) {
+		case "accounts":
+			return { ref, data: await AccountModel.findById(_id) };
+		case "attachments":
+			return { ref, data: await AttachmentModel.findById(_id) };
+		case "keys":
+			return { ref, data: await KeysModel.findById(_id) };
+		case "locations":
+			return { ref, data: await LocationModel.findById(_id) };
+		case "tags":
+			return { ref, data: await TagModel.findById(_id) };
+		case "transactions":
+			return { ref, data: await TransactionModel.findById(_id) };
+		case "users":
+			return { ref, data: await UserModel.findById(_id) };
+		default:
+			throw new UnreachableCaseError(collectionId);
+	}
+}
+
+/**
+ * Fetches the referenced data items from the database.
+ *
+ * @param refs An array of document references.
+ * @returns an array containing the given references and their associated data.
+ */
 export async function fetchDbDocs<T extends AnyDataItem>(
 	refs: NonEmptyArray<DocumentReference<T>>
-): Promise<Array<[DocumentReference<T>, Identified<T> | null]>> {
+): Promise<NonEmptyArray<Snapshot<T>>> {
 	// Assert same UID on all refs
 	const uid = refs[0].uid;
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	return await Promise.all(
-		refs.map(async ref => {
-			const collectionId = ref.parent.id;
-			const _id = ref.id;
-			switch (collectionId) {
-				case "accounts":
-					return [ref, await AccountModel.findById(_id)];
-				case "attachments":
-					return [ref, await AttachmentModel.findById(_id)];
-				case "keys":
-					return [ref, await KeysModel.findById(_id)];
-				case "locations":
-					return [ref, await LocationModel.findById(_id)];
-				case "tags":
-					return [ref, await TagModel.findById(_id)];
-				case "transactions":
-					return [ref, await TransactionModel.findById(_id)];
-				case "users":
-					return [ref, await UserModel.findById(_id)];
-				default:
-					throw new UnreachableCaseError(collectionId);
-			}
-		})
-	);
-}
-
-export async function fetchDbDoc<T extends AnyDataItem>(
-	ref: DocumentReference<T>
-): Promise<Identified<T> | null> {
-	const [pair] = await fetchDbDocs([ref]);
-	if (!pair) return null;
-	return pair[1];
+	// fetch the data
+	return (await Promise.all(refs.map(fetchDbDoc))) as NonEmptyArray<Snapshot<T>>;
 }
 
 export async function upsertUser(properties: User): Promise<void> {
