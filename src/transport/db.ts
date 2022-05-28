@@ -283,7 +283,7 @@ export class WriteBatch {
 		if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
 
 		const uid = currentUser.uid;
-		const batch = new URL(`db/users/${uid}`, this.#db.url);
+		const batch = new URL(`v0/db/users/${uid}`, this.#db.url);
 
 		const data: Array<DocumentWriteBatch> = [];
 
@@ -384,7 +384,7 @@ export async function getDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
+	const docPath = new URL(`v0/db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	const { data } = await getFrom(docPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");
@@ -414,7 +414,7 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
+	const docPath = new URL(`v0/db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	const { usedSpace, totalSpace } = await postTo(docPath, data, jwt);
 	previousStats.usedSpace = usedSpace ?? null;
@@ -436,7 +436,7 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
-	const docPath = new URL(`db/users/${uid}/${collection}/${doc}`, reference.db.url);
+	const docPath = new URL(`v0/db/users/${uid}/${collection}/${doc}`, reference.db.url);
 
 	const { usedSpace, totalSpace } = await deleteAt(docPath, jwt);
 	previousStats.usedSpace = usedSpace ?? null;
@@ -455,7 +455,7 @@ export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySn
 
 	const uid = currentUser.uid;
 	const collection = query.id;
-	const collPath = new URL(`db/users/${uid}/${collection}`, query.db.url);
+	const collPath = new URL(`v0/db/users/${uid}/${collection}`, query.db.url);
 
 	const { data } = await getFrom(collPath, jwt);
 	if (data === undefined) throw new TypeError("Expected data from server, but got none");

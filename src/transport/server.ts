@@ -8,7 +8,7 @@ import { UnexpectedResponseError } from "./errors/index.js";
  * @returns The server's reported version string.
  */
 export async function getServerVersion(db: AccountableDB): Promise<string> {
-	const version = new URL("version", db.url);
+	const version = new URL("v0/version", db.url);
 	const response = await getFrom(version);
 	if (response.version === undefined || !response.version)
 		throw new UnexpectedResponseError("No version string found");

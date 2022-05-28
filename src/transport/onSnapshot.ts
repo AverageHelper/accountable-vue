@@ -326,7 +326,7 @@ export function onSnapshot<T>(
 	if (!db.currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = db.currentUser.uid;
-	let url = `ws://${db.url.hostname}:${db.url.port}/db/users/${uid}`;
+	let url = `ws://${db.url.hostname}:${db.url.port}/v0/db/users/${uid}`;
 
 	switch (type) {
 		case "collection":
@@ -407,7 +407,7 @@ export function onSnapshot<T>(
 
 		// Connection closed. Find out why
 		if (event.code !== WS_NORMAL) {
-			let message = `Webhook closed with code ${event.code}`;
+			let message = `WebSocket closed with code ${event.code}`;
 			// TODO: Abstract these cases into Error subclasses so we can internationalize
 			if (event.reason?.trim()) {
 				message += `: ${event.reason}`;
