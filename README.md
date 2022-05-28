@@ -1,5 +1,7 @@
 # Accountable
 
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/AverageHelper/accountable-vue.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/AverageHelper/accountable-vue/context:javascript) [![Total alerts](https://img.shields.io/lgtm/alerts/g/AverageHelper/accountable-vue.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/AverageHelper/accountable-vue/alerts/)
+
 A Vue app for managing monetary assets. All data is encrypted client-side and stored on a server that you control.
 
 > This project is undergoing rapid development and should be considered experimental. Use it at your own risk. 🤙
