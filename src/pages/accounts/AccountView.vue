@@ -38,9 +38,19 @@ const theseTransactions = computed<Array<Transaction>>(() => {
 		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
-const transactionMonths = computed(
-	() => transactions.transactionsForAccountByMonth[accountId.value] ?? {}
-);
+const transactionMonths = computed(() => {
+	const months = transactions.months;
+	return Object.entries(transactions.transactionsForAccountByMonth[accountId.value] ?? {}).sort(
+		([a], [b]) => {
+			const now = new Date();
+			// Look up the month's cached start date
+			const aStart = months[a]?.start ?? now;
+			const bStart = months[b]?.start ?? now;
+			// Order reverse chronologically
+			return bStart.getTime() - aStart.getTime();
+		}
+	);
+});
 
 const searchClient = computed(
 	() => new Fuse(theseTransactions.value, { keys: ["title", "notes"] })
@@ -127,7 +137,7 @@ function finishEditingAccount() {
 			<li>
 				<AddRecordListItem @click="startCreatingTransaction" />
 			</li>
-			<li v-for="[month, monthTransactions] in Object.entries(transactionMonths)" :key="month">
+			<li v-for="[month, monthTransactions] in transactionMonths" :key="month">
 				<TransactionMonthListItem
 					:account-id="accountId"
 					:month-name="month"
