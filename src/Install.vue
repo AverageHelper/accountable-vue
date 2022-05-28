@@ -2,7 +2,7 @@
 import Footer from "./Footer.vue";
 import OutLink from "./components/OutLink.vue";
 import { computed } from "vue";
-import { loginPath } from "router";
+import { loginPath } from "./router";
 
 const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true");
 const loginRoute = computed(() => loginPath());

@@ -8,6 +8,7 @@ import Home from "../Home.vue";
 import Install from "../Install.vue";
 import Locations from "../pages/locations/Locations.vue";
 import Login from "../pages/Login.vue";
+import MonthView from "../pages/transactions/MonthView.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";
 import Tags from "../pages/tags/Tags.vue";
@@ -72,6 +73,11 @@ const accounts: RouteRecordRaw = {
 				{
 					path: "",
 					component: AccountView,
+					props: true,
+				},
+				{
+					path: "months/:rawMonth",
+					component: MonthView,
 					props: true,
 				},
 				{

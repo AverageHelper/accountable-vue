@@ -5,11 +5,10 @@ import ActionButton from "../../components/buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
-import groupBy from "lodash/groupBy";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";
 import SearchBar from "../../components/SearchBar.vue";
-import TransactionEdit from "../transactions/TransactionEdit.vue";
+import TransactionCreateModal from "../transactions/TransactionCreateModal.vue";
 import TransactionMonthListItem from "../transactions/TransactionMonthListItem.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
@@ -36,22 +35,15 @@ const transactions = useTransactionsStore();
 const isEditingAccount = ref(false);
 const isEditingTransaction = ref(false);
 
-const account = computed(() => accounts.items[accountId.value]);
+const account = computed(() => accounts.items[accountId.value] ?? null);
 const theseTransactions = computed<Array<Transaction>>(() => {
 	const allTransactions = (transactions.transactionsForAccount[accountId.value] ??
 		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
-const transactionMonths = computed(() => {
-	return groupBy(theseTransactions.value, transaction =>
-		transaction.createdAt.toLocaleDateString(undefined, {
-			month: "short",
-			year: "numeric",
-		})
-	);
-});
-const selectedMonth = ref<string | null>(null);
-const numberOfTransactions = computed(() => theseTransactions.value.length);
+const transactionMonths = computed(
+	() => transactions.transactionsForAccountByMonth[accountId.value] ?? {}
+);
 
 const searchClient = computed(
 	() => new Fuse(theseTransactions.value, { keys: ["title", "notes"] })
@@ -103,9 +95,8 @@ function finishEditingAccount() {
 	<main class="content">
 		<div class="heading">
 			<div class="account-title">
-				<h1 v-if="selectedMonth === null">{{ account?.title || "Account" }}</h1>
-				<h1 v-else>{{ selectedMonth }}</h1>
-				<ActionButton v-if="selectedMonth === null" class="edit" @click="startEditingAccount">
+				<h1>{{ account?.title || "Account" }}</h1>
+				<ActionButton class="edit" @click="startEditingAccount">
 					<EditIcon />
 				</ActionButton>
 			</div>
@@ -125,7 +116,9 @@ function finishEditingAccount() {
 			</li>
 			<li>
 				<p class="footer">
-					<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
+					<span>{{ filteredTransactions.length }}</span> of
+					<span>{{ theseTransactions.length }}</span> transaction<span
+						v-if="theseTransactions.length !== 1"
 						>s</span
 					>
 				</p>
@@ -133,48 +126,26 @@ function finishEditingAccount() {
 		</List>
 
 		<!-- Months (normal view) -->
-		<List v-else-if="selectedMonth === null" class="transaction-months-list">
+		<List v-else class="transaction-months-list">
 			<li>
 				<AddRecordListItem @click="startCreatingTransaction" />
 			</li>
 			<li v-for="[month, monthTransactions] in Object.entries(transactionMonths)" :key="month">
 				<TransactionMonthListItem
+					:account-id="accountId"
 					:month-name="month"
 					:count="monthTransactions.length"
-					@click="selectedMonth = month"
 				/>
-			</li>
-		</List>
-
-		<!-- Selected Month -->
-		<List v-else>
-			<li>
-				<a href="#" @click.prevent="selectedMonth = null">Back</a>
-			</li>
-			<li>
-				<AddRecordListItem @click="startCreatingTransaction" />
-			</li>
-			<li
-				v-for="transaction in transactionMonths[selectedMonth]"
-				:key="transaction.id"
-				class="transaction"
-			>
-				<TransactionListItem :transaction="transaction" />
-			</li>
-			<li>
-				<p class="footer">
-					<span>{{ transactionMonths[selectedMonth]?.length ?? 0 }}</span> transaction<span
-						v-if="transactionMonths[selectedMonth]?.length !== 1"
-						>s</span
-					>
-				</p>
 			</li>
 		</List>
 	</main>
 
-	<Modal v-if="account" :open="isEditingTransaction" :close-modal="finishCreatingTransaction">
-		<TransactionEdit :account="account" @finished="finishCreatingTransaction" />
-	</Modal>
+	<TransactionCreateModal
+		v-if="account"
+		:account="account"
+		:is-open="isEditingTransaction"
+		:close-modal="finishCreatingTransaction"
+	/>
 	<Modal v-if="account" :open="isEditingAccount" :close-modal="finishEditingAccount">
 		<AccountEdit :account="account" @deleted="goBack" @finished="finishEditingAccount" />
 	</Modal>

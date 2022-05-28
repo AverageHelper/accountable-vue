@@ -44,6 +44,13 @@ export function accountPath<ID extends string>(accountId: ID): `/accounts/${type
 	return `${accountsPath()}/${accountId}`;
 }
 
+export function transactionsByMonth<AID extends string, MID extends string>(
+	accountId: AID,
+	month: MID
+): `/accounts/${typeof accountId}/months/${typeof month}` {
+	return `/accounts/${accountId}/months/${month}`;
+}
+
 export function transactionPath<AID extends string, TID extends string>(
 	accountId: AID,
 	transactionId: TID
