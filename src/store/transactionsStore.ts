@@ -8,6 +8,7 @@ import type { Tag } from "../model/Tag";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
+import { reverseChronologically } from "../model/utility/sort";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore } from "./accountsStore";
@@ -144,7 +145,7 @@ export const useTransactionsStore = defineStore("transactions", {
 					});
 
 					// Derive cache
-					this.transactionsForAccountByMonth[account.id] = groupBy(
+					const groupedTransactions = groupBy(
 						this.transactionsForAccount[account.id] ?? {},
 						transaction =>
 							transaction.createdAt.toLocaleDateString(undefined, {
@@ -152,6 +153,11 @@ export const useTransactionsStore = defineStore("transactions", {
 								year: "numeric",
 							})
 					);
+					for (const month of Object.keys(groupedTransactions)) {
+						// Sort each transaction list
+						groupedTransactions[month]?.sort(reverseChronologically) ?? [];
+					}
+					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
 				},
 				error => {
 					console.error(error);

@@ -14,13 +14,10 @@ import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
 import { ref, computed, toRefs, watch } from "vue";
+import { reverseChronologically } from "../../model/utility/sort";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRoute, useRouter } from "vue-router";
-
-function reverseChronologically(this: void, a: Transaction, b: Transaction): number {
-	return b.createdAt.getTime() - a.createdAt.getTime();
-}
 
 const props = defineProps({
 	accountId: { type: String, required: true },
