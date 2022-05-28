@@ -5,10 +5,12 @@ import ActionButton from "../../components/buttons/ActionButton.vue";
 import AddRecordListItem from "./AddRecordListItem.vue";
 import EditIcon from "../../icons/Edit.vue";
 import Fuse from "fuse.js";
+import groupBy from "lodash/groupBy";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";
 import SearchBar from "../../components/SearchBar.vue";
 import TransactionEdit from "../transactions/TransactionEdit.vue";
+import TransactionMonthListItem from "../transactions/TransactionMonthListItem.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
@@ -40,6 +42,15 @@ const theseTransactions = computed<Array<Transaction>>(() => {
 		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
+const transactionMonths = computed(() => {
+	return groupBy(theseTransactions.value, transaction =>
+		transaction.createdAt.toLocaleDateString(undefined, {
+			month: "short",
+			year: "numeric",
+		})
+	);
+});
+const selectedMonth = ref<string | null>(null);
 const numberOfTransactions = computed(() => theseTransactions.value.length);
 
 const searchClient = computed(
@@ -92,8 +103,9 @@ function finishEditingAccount() {
 	<main class="content">
 		<div class="heading">
 			<div class="account-title">
-				<h1>{{ account?.title || "Account" }}</h1>
-				<ActionButton class="edit" @click="startEditingAccount">
+				<h1 v-if="selectedMonth === null">{{ account?.title || "Account" }}</h1>
+				<h1 v-else>{{ selectedMonth }}</h1>
+				<ActionButton v-if="selectedMonth === null" class="edit" @click="startEditingAccount">
 					<EditIcon />
 				</ActionButton>
 			</div>
@@ -106,16 +118,53 @@ function finishEditingAccount() {
 
 		<SearchBar class="search" />
 
-		<List class="transactions-list">
-			<li v-if="searchQuery === ''">
-				<AddRecordListItem @click="startCreatingTransaction" />
-			</li>
+		<!-- Search Results -->
+		<List v-if="searchQuery" class="transaction-months-list">
 			<li v-for="transaction in filteredTransactions" :key="transaction.id" class="transaction">
 				<TransactionListItem :transaction="transaction" />
 			</li>
 			<li>
 				<p class="footer">
 					<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
+						>s</span
+					>
+				</p>
+			</li>
+		</List>
+
+		<!-- Months (normal view) -->
+		<List v-else-if="selectedMonth === null" class="transaction-months-list">
+			<li>
+				<AddRecordListItem @click="startCreatingTransaction" />
+			</li>
+			<li v-for="[month, monthTransactions] in Object.entries(transactionMonths)" :key="month">
+				<TransactionMonthListItem
+					:month-name="month"
+					:count="monthTransactions.length"
+					@click="selectedMonth = month"
+				/>
+			</li>
+		</List>
+
+		<!-- Selected Month -->
+		<List v-else>
+			<li>
+				<a href="#" @click.prevent="selectedMonth = null">Back</a>
+			</li>
+			<li>
+				<AddRecordListItem @click="startCreatingTransaction" />
+			</li>
+			<li
+				v-for="transaction in transactionMonths[selectedMonth]"
+				:key="transaction.id"
+				class="transaction"
+			>
+				<TransactionListItem :transaction="transaction" />
+			</li>
+			<li>
+				<p class="footer">
+					<span>{{ transactionMonths[selectedMonth]?.length ?? 0 }}</span> transaction<span
+						v-if="transactionMonths[selectedMonth]?.length !== 1"
 						>s</span
 					>
 				</p>
@@ -185,7 +234,7 @@ function finishEditingAccount() {
 	margin: 1em auto;
 }
 
-.transactions-list {
+.transaction-months-list {
 	.footer {
 		padding-top: 0.5em;
 		user-select: none;
