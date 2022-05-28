@@ -76,7 +76,7 @@ async function submitNewLocationPref() {
 				<div v-if="option === selectedSensitivity" class="selected">
 					<Checkmark />
 				</div>
-				<div v-else class="not-selected" />
+				<div v-else class="not-selected"></div>
 
 				<div class="option-details">
 					<span v-if="option === 'none'">None</span>

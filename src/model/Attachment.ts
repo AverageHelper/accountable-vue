@@ -48,9 +48,9 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is AttachmentRecordParams {
 		return (
-			(typeof toBeDetermined === "object" &&
+			(toBeDetermined !== undefined &&
 				toBeDetermined !== null &&
-				toBeDetermined !== undefined &&
+				typeof toBeDetermined === "object" &&
 				Boolean(toBeDetermined) &&
 				!Array.isArray(toBeDetermined) &&
 				"createdAt" in toBeDetermined &&

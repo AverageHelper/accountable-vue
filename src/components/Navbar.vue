@@ -26,14 +26,14 @@ function goBack() {
 			<ActionButton v-show="!isRoute" @click="goBack">
 				<span>&lt;</span>
 			</ActionButton>
-			<div id="nav-actions-leading" class="actions-container" />
+			<div id="nav-actions-leading" class="actions-container"></div>
 		</aside>
 
 		<TabBar v-if="isLoggedIn" class="tab-bar" />
 		<BootstrapMenu v-else />
 
 		<aside v-if="isLoggedIn" class="trailing-actions actions-container">
-			<div id="nav-actions-trailing" class="actions-container" />
+			<div id="nav-actions-trailing" class="actions-container"></div>
 			<SideMenu />
 		</aside>
 	</nav>

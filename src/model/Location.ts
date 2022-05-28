@@ -41,9 +41,9 @@ export class Location implements Identifiable<string>, LocationRecordParams {
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is LocationRecordParams {
 		return (
-			typeof toBeDetermined === "object" &&
-			toBeDetermined !== null &&
 			toBeDetermined !== undefined &&
+			toBeDetermined !== null &&
+			typeof toBeDetermined === "object" &&
 			Boolean(toBeDetermined) &&
 			!Array.isArray(toBeDetermined) &&
 			"title" in toBeDetermined &&

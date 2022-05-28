@@ -8,6 +8,7 @@ import Home from "../Home.vue";
 import Install from "../Install.vue";
 import Locations from "../pages/locations/Locations.vue";
 import Login from "../pages/Login.vue";
+import MonthView from "../pages/transactions/MonthView.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";
 import Tags from "../pages/tags/Tags.vue";
@@ -15,6 +16,22 @@ import TransactionView from "../pages/transactions/TransactionView.vue";
 import { appTabs } from "../model/ui/tabs";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/authStore";
+import {
+	aboutPath,
+	accountsPath,
+	attachmentsPath,
+	homePath,
+	installPath,
+	locationsPath,
+	loginPath,
+	logoutPath,
+	securityPath,
+	settingsPath,
+	signupPath,
+	tagsPath,
+} from "./routes";
+
+export * from "./routes";
 
 // See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
 
@@ -27,21 +44,21 @@ import { useAuthStore } from "../store/authStore";
 // 	}
 // }
 
-export const APP_ROOTS = appTabs //
+export const APP_ROOTS = appTabs
 	.map(tab => `/${tab}`)
-	.concat(["/", "/about", "/security", "/install", "/login", "/signup"]);
+	.concat([homePath(), aboutPath(), securityPath(), installPath(), loginPath(), signupPath()]);
 
 const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
 	const auth = useAuthStore();
 	if (auth.uid !== null) {
 		next();
 	} else {
-		next("/login");
+		next(loginPath());
 	}
 };
 
 const accounts: RouteRecordRaw = {
-	path: "/accounts",
+	path: accountsPath(),
 	beforeEnter: onlyIfLoggedIn,
 	component: EmptyRoute,
 	children: [
@@ -59,6 +76,11 @@ const accounts: RouteRecordRaw = {
 					props: true,
 				},
 				{
+					path: "months/:rawMonth",
+					component: MonthView,
+					props: true,
+				},
+				{
 					path: "transactions/:transactionId",
 					component: TransactionView,
 					props: true,
@@ -69,25 +91,25 @@ const accounts: RouteRecordRaw = {
 };
 
 const attachments: RouteRecordRaw = {
-	path: "/attachments",
+	path: attachmentsPath(),
 	beforeEnter: onlyIfLoggedIn,
 	component: Attachments,
 };
 
 const locations: RouteRecordRaw = {
-	path: "/locations",
+	path: locationsPath(),
 	beforeEnter: onlyIfLoggedIn,
 	component: Locations,
 };
 
 const tags: RouteRecordRaw = {
-	path: "/tags",
+	path: tagsPath(),
 	beforeEnter: onlyIfLoggedIn,
 	component: Tags,
 };
 
 const settings: RouteRecordRaw = {
-	path: "/settings",
+	path: settingsPath(),
 	beforeEnter: onlyIfLoggedIn,
 	component: Settings,
 };
@@ -96,49 +118,49 @@ export const router = createRouter({
 	history: createWebHistory(),
 	routes: [
 		{
-			path: "/",
+			path: homePath(),
 			component: Home,
 		},
 		{
-			path: "/about",
+			path: aboutPath(),
 			component: About,
 		},
 		{
-			path: "/security",
+			path: securityPath(),
 			component: Security,
 		},
 		{
-			path: "/install",
+			path: installPath(),
 			component: Install,
 		},
 		{
-			path: "/logout",
+			path: logoutPath(),
 			component: EmptyRoute,
 			async beforeEnter(to, from, next): Promise<void> {
 				const auth = useAuthStore();
 				await auth.logout();
-				next("/login");
+				next(loginPath());
 			},
 		},
 		{
-			path: "/login",
+			path: loginPath(),
 			component: Login,
 			beforeEnter(from, to, next): void {
 				const auth = useAuthStore();
 				if (auth.uid !== null) {
-					next("/accounts");
+					next(accountsPath());
 				} else {
 					next();
 				}
 			},
 		},
 		{
-			path: "/signup",
+			path: signupPath(),
 			component: Login,
 			beforeEnter(from, to, next): void {
 				const auth = useAuthStore();
 				if (auth.uid !== null) {
-					next("/accounts");
+					next(accountsPath());
 				} else {
 					next();
 				}

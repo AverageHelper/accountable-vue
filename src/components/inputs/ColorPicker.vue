@@ -29,7 +29,7 @@ function select(colorId: ColorID) {
 				@keyup.space="select(colorId)"
 				@click="select(colorId)"
 			>
-				<div class="check" />
+				<div class="check"></div>
 			</ColorDot>
 		</li>
 	</List>

@@ -8,12 +8,14 @@ import type { Tag } from "../model/Tag";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
+import { reverseChronologically } from "../model/utility/sort";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
+import groupBy from "lodash/groupBy";
 import {
 	getTransactionsForAccount,
 	createTransaction,
@@ -29,6 +31,7 @@ import {
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
+		transactionsForAccountByMonth: {} as Dictionary<Dictionary<Array<Transaction>>>, // Account.id -> month -> Transaction[]
 		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
 	getters: {
@@ -75,7 +78,11 @@ export const useTransactionsStore = defineStore("transactions", {
 			const collection = transactionsCollection();
 			this.transactionsWatchers[account.id] = watchAllRecords(
 				collection,
-				snap =>
+				snap => {
+					// Clear derived cache
+					delete this.transactionsForAccountByMonth[account.id];
+
+					// Update cache
 					snap.docChanges().forEach(change => {
 						const accountTransactions = this.transactionsForAccount[account.id] ?? {};
 						let currentBalance =
@@ -135,7 +142,23 @@ export const useTransactionsStore = defineStore("transactions", {
 							const ui = useUiStore();
 							ui.handleError(error);
 						}
-					}),
+					});
+
+					// Derive cache
+					const groupedTransactions = groupBy(
+						this.transactionsForAccount[account.id] ?? {},
+						transaction =>
+							transaction.createdAt.toLocaleDateString(undefined, {
+								month: "short",
+								year: "numeric",
+							})
+					);
+					for (const month of Object.keys(groupedTransactions)) {
+						// Sort each transaction list
+						groupedTransactions[month]?.sort(reverseChronologically);
+					}
+					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
+				},
 				error => {
 					console.error(error);
 					const watcher = this.transactionsWatchers[account.id];

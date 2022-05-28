@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -11,16 +12,18 @@ const navButton = ref<HTMLButtonElement | null>(null);
 const isNavButtonOpen = ref(false); // This is exactly what Bootstrap does lol
 const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true");
 
+const homeRoute = computed(() => homePath());
+
 const pages = computed<Array<Page>>(() => {
-	const pages = [
-		{ path: "/", title: "Home" },
-		{ path: "/about", title: "About" },
-		{ path: "/security", title: "Security" },
-		{ path: "/install", title: "Install" },
+	const pages: Array<Page> = [
+		{ path: homePath(), title: "Home" },
+		{ path: aboutPath(), title: "About" },
+		{ path: securityPath(), title: "Security" },
+		{ path: installPath(), title: "Install" },
 	];
 
 	if (loginEnabled.value) {
-		pages.push({ path: "/login", title: "Login" });
+		pages.push({ path: loginPath(), title: "Login" });
 	}
 
 	return pages;
@@ -32,7 +35,7 @@ const currentPath = computed(() => route.path);
 
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
-		<router-link to="/" class="navbar-brand" role="text" aria-label="Accountable"
+		<router-link :to="homeRoute" class="navbar-brand" role="text" aria-label="Accountable"
 			>A&cent;countable</router-link
 		>
 		<button
