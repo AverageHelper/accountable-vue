@@ -3,7 +3,7 @@ import ActionButton from "../components/buttons/ActionButton.vue";
 import ErrorNotice from "../components/ErrorNotice.vue";
 import Footer from "../Footer.vue";
 import TextField from "../components/inputs/TextField.vue";
-import { accounts, login, signup } from "../router";
+import { accountsPath, loginPath, signupPath } from "../router";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -21,7 +21,7 @@ const password = ref("");
 const passwordRepeat = ref("");
 const isLoading = ref(false);
 const mode = computed<"login" | "signup">(() => {
-	return route.path === signup() ? "signup" : "login";
+	return route.path === signupPath() ? "signup" : "login";
 });
 const isSignupMode = computed(() => mode.value === "signup");
 const isLoginMode = computed(() => mode.value === "login");
@@ -55,14 +55,14 @@ watch(
 	isLoggedIn,
 	async isLoggedIn => {
 		if (isLoggedIn) {
-			await router.push(accounts());
-		} else if (route.path !== login() && route.path !== signup()) {
+			await router.push(accountsPath());
+		} else if (route.path !== loginPath() && route.path !== signupPath()) {
 			switch (mode.value) {
 				case "login":
-					await router.push(login());
+					await router.push(loginPath());
 					break;
 				case "signup":
-					await router.push(signup());
+					await router.push(signupPath());
 					break;
 			}
 		}
@@ -72,12 +72,12 @@ watch(
 
 function enterSignupMode() {
 	accountId.value = "";
-	void router.replace(signup());
+	void router.replace(signupPath());
 }
 
 function enterLoginMode() {
 	accountId.value = "";
-	void router.replace(login());
+	void router.replace(loginPath());
 }
 
 function onUpdateAccountId(newId: string) {
@@ -113,7 +113,7 @@ async function submit() {
 		}
 
 		await nextTick();
-		await router.replace(accounts());
+		await router.replace(accountsPath());
 	} catch (error: unknown) {
 		ui.handleError(error);
 	} finally {

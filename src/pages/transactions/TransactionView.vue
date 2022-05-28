@@ -15,7 +15,7 @@ import Modal from "../../components/Modal.vue";
 import NavAction from "../../components/NavAction.vue";
 import TagList from "../../pages/tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
-import { account as accountPath } from "../../router";
+import { accountPath } from "../../router";
 import { ref, computed, toRefs } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative } from "dinero.js";

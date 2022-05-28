@@ -1,13 +1,7 @@
 <script setup lang="ts">
+import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import {
-	about as aboutPath,
-	home as homePath,
-	install as installPath,
-	login as loginPath,
-	security as securityPath,
-} from "../router";
 
 interface Page {
 	path: string;

@@ -9,7 +9,7 @@ import MenuIcon from "../icons/Menu.vue";
 import DiskUsage from "./DiskUsage.vue";
 import { appTabs, iconForTab, labelForTab, routeForTab } from "../model/ui/tabs";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { logout as logoutPath, settings as settingsPath } from "../router";
+import { logoutPath, settingsPath } from "../router";
 import { useAuthStore } from "../store";
 
 interface MenuItem {

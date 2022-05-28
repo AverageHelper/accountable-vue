@@ -16,18 +16,18 @@ import { appTabs } from "../model/ui/tabs";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/authStore";
 import {
-	about as aboutPath,
-	accounts as accountsPath,
-	attachments as attachmentsPath,
-	home as homePath,
-	install as installPath,
-	locations as locationsPath,
-	login as loginPath,
-	logout as logoutPath,
-	security as securityPath,
-	settings as settingsPath,
-	signup as signupPath,
-	tags as tagsPath,
+	aboutPath,
+	accountsPath,
+	attachmentsPath,
+	homePath,
+	installPath,
+	locationsPath,
+	loginPath,
+	logoutPath,
+	securityPath,
+	settingsPath,
+	signupPath,
+	tagsPath,
 } from "./routes";
 
 export * from "./routes";

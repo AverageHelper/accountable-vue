@@ -7,7 +7,7 @@ import { computed, ref, toRefs, onMounted } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
-import { transaction as transactionPath } from "../../router";
+import { transactionPath } from "../../router";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const props = defineProps({

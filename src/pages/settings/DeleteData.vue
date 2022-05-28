@@ -3,7 +3,7 @@ import ActionButton from "../../components/buttons/ActionButton.vue";
 import ConfirmDeleteEverything from "./ConfirmDeleteEverything.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref } from "vue";
-import { logout as logoutPath } from "../../router";
+import { logoutPath } from "../../router";
 import { useRouter } from "vue-router";
 import { useAuthStore, useUiStore } from "../../store";
 

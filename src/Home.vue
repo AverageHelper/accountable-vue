@@ -4,7 +4,7 @@ import Footer from "./Footer.vue";
 import EncryptionIcon from "./icons/Lock.vue";
 import LedgerIcon from "./icons/MoneyTower.vue";
 import OpenSourceIcon from "./icons/IdeaBox.vue";
-import { about as aboutPath, signup as signupPath } from "./router";
+import { aboutPath, signupPath } from "./router";
 import { computed } from "vue";
 
 const aboutRoute = computed(() => aboutPath());

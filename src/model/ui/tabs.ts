@@ -3,7 +3,7 @@ import AccountIcon from "../../icons/IdCard.vue";
 import FileIcon from "../../icons/File.vue";
 import LocationIcon from "../../icons/Location.vue";
 import TagIcon from "../../icons/Tag.vue";
-import { accounts, attachments, locations, tags } from "router";
+import { accountsPath, attachmentsPath, locationsPath, tagsPath } from "router";
 
 export type Tab = "accounts" | "attachments" | "locations" | "tags";
 
@@ -31,13 +31,13 @@ export function labelForTab(tab: Tab): string {
 export function routeForTab(tab: Tab): string {
 	switch (tab) {
 		case "accounts":
-			return accounts();
+			return accountsPath();
 		case "attachments":
-			return attachments();
+			return attachmentsPath();
 		case "locations":
-			return locations();
+			return locationsPath();
 		case "tags":
-			return tags();
+			return tagsPath();
 		default:
 			return "#";
 	}

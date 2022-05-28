@@ -1,64 +1,64 @@
 /* Information Pages */
 
-export function home(): "/" {
+export function homePath(): "/" {
 	return "/";
 }
 
-export function about(): "/about" {
+export function aboutPath(): "/about" {
 	return "/about";
 }
 
-export function accounts(): "/accounts" {
+export function accountsPath(): "/accounts" {
 	return "/accounts";
 }
 
-export function security(): "/security" {
+export function securityPath(): "/security" {
 	return "/security";
 }
 
-export function install(): "/install" {
+export function installPath(): "/install" {
 	return "/install";
 }
 
 /* Auth Pages */
 
-export function signup(): "/signup" {
+export function signupPath(): "/signup" {
 	return "/signup";
 }
 
-export function login(): "/login" {
+export function loginPath(): "/login" {
 	return "/login";
 }
 
-export function logout(): "/logout" {
+export function logoutPath(): "/logout" {
 	return "/logout";
 }
 
-export function settings(): "/settings" {
+export function settingsPath(): "/settings" {
 	return "/settings";
 }
 
 /* Data Pages */
 
-export function account<ID extends string>(accountId: ID): `/accounts/${typeof accountId}` {
-	return `${accounts()}/${accountId}`;
+export function accountPath<ID extends string>(accountId: ID): `/accounts/${typeof accountId}` {
+	return `${accountsPath()}/${accountId}`;
 }
 
-export function transaction<AID extends string, TID extends string>(
+export function transactionPath<AID extends string, TID extends string>(
 	accountId: AID,
 	transactionId: TID
 ): `/accounts/${typeof accountId}/transactions/${typeof transactionId}` {
-	return `${accounts()}/${accountId}/transactions/${transactionId}`;
+	return `${accountsPath()}/${accountId}/transactions/${transactionId}`;
 }
 
-export function attachments(): "/attachments" {
+export function attachmentsPath(): "/attachments" {
 	return "/attachments";
 }
 
-export function locations(): "/locations" {
+export function locationsPath(): "/locations" {
 	return "/locations";
 }
 
-export function tags(): "/tags" {
+export function tagsPath(): "/tags" {
 	return "/tags";
 }
