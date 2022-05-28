@@ -155,7 +155,7 @@ export const useTransactionsStore = defineStore("transactions", {
 					);
 					for (const month of Object.keys(groupedTransactions)) {
 						// Sort each transaction list
-						groupedTransactions[month]?.sort(reverseChronologically) ?? [];
+						groupedTransactions[month]?.sort(reverseChronologically);
 					}
 					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
 				},
