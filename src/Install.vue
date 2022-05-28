@@ -2,8 +2,10 @@
 import Footer from "./Footer.vue";
 import OutLink from "./components/OutLink.vue";
 import { computed } from "vue";
+import { login as loginPath } from "router";
 
 const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true");
+const loginRoute = computed(() => loginPath());
 </script>
 
 <template>
@@ -12,7 +14,7 @@ const loginEnabled = computed(() => import.meta.env.VITE_ENABLE_LOGIN === "true"
 			<h1>Hosted Service</h1>
 			<p
 				>There's an Accountable client-server architecture right here! Click the
-				<router-link to="/login">Login</router-link> link above to create an account.</p
+				<router-link :to="loginRoute">Login</router-link> link above to create an account.</p
 			>
 		</template>
 

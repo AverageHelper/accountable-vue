@@ -3,6 +3,7 @@ import type { PropType } from "vue";
 import type { Transaction } from "../../model/Transaction";
 import ListItem from "../../components/ListItem.vue";
 import { Account } from "../../model/Account";
+import { account as accountPath } from "../../router";
 import { computed, toRefs, onMounted } from "vue";
 import { intlFormat } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
@@ -18,7 +19,7 @@ const { account, link, count } = toRefs(props);
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
-const accountRoute = computed(() => (link.value ? `/accounts/${account.value.id}` : "#"));
+const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#"));
 const theseTransactions = computed(
 	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );

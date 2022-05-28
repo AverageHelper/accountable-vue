@@ -4,6 +4,7 @@ import type { Entry } from "@zip.js/zip.js";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import FileInput from "../attachments/FileInput.vue";
 import ImportProcessModal from "./ImportProcessModal.vue";
+import { accounts } from "../../router";
 import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import { create } from "superstruct";
 import { ref } from "vue";
@@ -61,7 +62,7 @@ async function onFileReceived(file: File) {
 function forgetFile() {
 	db.value = null;
 	dbName.value = "";
-	void router.push("/accounts");
+	void router.push(accounts());
 }
 </script>
 

@@ -15,6 +15,7 @@ import Modal from "../../components/Modal.vue";
 import NavAction from "../../components/NavAction.vue";
 import TagList from "../../pages/tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
+import { account as accountPath } from "../../router";
 import { ref, computed, toRefs } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative } from "dinero.js";
@@ -60,6 +61,8 @@ const timestamp = computed(() => {
 	if (!transaction.value) return "";
 	return toTimestamp(transaction.value.createdAt);
 });
+
+const accountRoute = computed(() => accountPath(accountId.value));
 
 function goBack() {
 	router.back();
@@ -177,9 +180,7 @@ async function onFileReceived(file: File) {
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>
-			<router-link :to="`/accounts/${accountId}`" class="value">{{
-				account?.title ?? accountId
-			}}</router-link>
+			<router-link :to="accountRoute" class="value">{{ account?.title ?? accountId }}</router-link>
 		</div>
 		<!-- Notes -->
 		<div v-if="transaction.notes" class="key-value-pair" aria-label="Transaction Notes">

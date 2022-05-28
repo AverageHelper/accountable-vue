@@ -11,6 +11,7 @@ import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref, toRefs, watch } from "vue";
 import { fetchLocationData } from "../../transport";
 import { Location } from "../../model/Location";
+import { settings } from "../../router";
 import { useAuthStore, useLocationsStore, useUiStore } from "../../store";
 
 /**
@@ -83,6 +84,8 @@ const subtitle = computed(() => selectedLocation.value?.subtitle ?? newLocationS
 const coordinates = computed(
 	() => selectedLocation.value?.coordinate ?? newLocationCoordinates.value ?? null
 );
+
+const settingsRoute = computed(() => settings());
 
 async function updateFocusState() {
 	// Wait until new focus is resolved before we check again
@@ -226,7 +229,7 @@ function updateSubtitle(subtitle: string) {
 
 		<p v-if="!mayGetLocation" class="disclaimer" @click.stop.prevent
 			>To get your current location, you'll need to enable the location service in
-			<router-link to="/settings">Settings</router-link>.</p
+			<router-link :to="settingsRoute">Settings</router-link>.</p
 		>
 	</label>
 </template>

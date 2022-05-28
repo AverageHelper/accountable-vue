@@ -3,6 +3,7 @@ import ActionButton from "../../components/buttons/ActionButton.vue";
 import ConfirmDeleteEverything from "./ConfirmDeleteEverything.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref } from "vue";
+import { logout as logoutPath } from "../../router";
 import { useRouter } from "vue-router";
 import { useAuthStore, useUiStore } from "../../store";
 
@@ -33,7 +34,7 @@ async function confirmDeleteEverything() {
 		if (!password.value) throw new Error("Password is required.");
 		await auth.destroyVault(password.value);
 
-		await router.push("/logout");
+		await router.push(logoutPath());
 	} catch (error: unknown) {
 		ui.handleError(error);
 		isDeleting.value = false;
