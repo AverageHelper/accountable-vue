@@ -99,9 +99,9 @@ export class Transaction
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
 		return (
-			typeof toBeDetermined === "object" &&
-			toBeDetermined !== null &&
 			toBeDetermined !== undefined &&
+			toBeDetermined !== null &&
+			typeof toBeDetermined === "object" &&
 			Boolean(toBeDetermined) &&
 			!Array.isArray(toBeDetermined) &&
 			"amount" in toBeDetermined &&
