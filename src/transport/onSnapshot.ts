@@ -1,6 +1,7 @@
 import type { DocumentData } from "./schemas";
 import type { Query } from "./db";
 import { AccountableError, UnexpectedResponseError, UnreachableError } from "./errors/index.js";
+import { databaseCollection, databaseDocument } from "./api-types/index.js";
 import { DocumentReference, CollectionReference } from "./db.js";
 import { isRawServerResponse } from "./schemas";
 import isArray from "lodash/isArray";
@@ -324,17 +325,19 @@ export function onSnapshot<T>(
 	if (!db.currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = db.currentUser.uid;
-	let url = `ws://${db.url.hostname}:${db.url.port}/v0/db/users/${uid}`;
+	const baseUrl = new URL(`ws://${db.url.hostname}:${db.url.port}`);
+	let url: URL;
 
 	switch (type) {
 		case "collection":
-			url += `/${queryOrReference.id}`;
+			url = new URL(databaseCollection(uid, queryOrReference.id), baseUrl);
 			break;
 		case "document":
-			url += `/${queryOrReference.parent.id}/${queryOrReference.id}`;
+			url = new URL(
+				databaseDocument(uid, queryOrReference.parent.id, queryOrReference.id),
+				baseUrl
+			);
 			break;
-		default:
-			throw new UnreachableError(type);
 	}
 
 	const ws = new WebSocket(url);
