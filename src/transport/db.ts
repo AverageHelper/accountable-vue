@@ -3,7 +3,7 @@ import type { EPackage, HashStore } from "./cryption.js";
 import type { Unsubscribe } from "./onSnapshot.js";
 import type { User } from "./auth.js";
 import type { ValueIteratorTypeGuard } from "lodash";
-import { AccountableError } from "./AccountableError.js";
+import { AccountableError } from "./errors/index.js";
 import { decrypt } from "./cryption.js";
 import { deleteAt, getFrom, postTo } from "./networking.js";
 import { forgetJobQueue, useJobQueue } from "@averagehelper/job-queue";
@@ -520,4 +520,3 @@ export function recordFromSnapshot<G>(
 }
 
 export type { DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot, Unsubscribe };
-export * from "./AccountableError.js";

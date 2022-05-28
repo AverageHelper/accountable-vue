@@ -1,6 +1,6 @@
-import { AccountableError } from "./AccountableError";
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
+import { AccountableError } from "./errors/index.js";
 import { doc, db, getDoc, previousStats, setDoc, deleteDoc } from "./db";
 import { postTo } from "./networking";
 

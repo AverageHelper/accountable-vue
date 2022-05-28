@@ -1,4 +1,4 @@
-import { UnreachableError } from "./UnreachableError";
+import { UnreachableError } from "./UnreachableError.js";
 
 export type AccountableErrorCode =
 	| "auth/account-already-exists"

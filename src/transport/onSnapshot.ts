@@ -1,10 +1,8 @@
 import type { DocumentData } from "./schemas";
 import type { Query } from "./db";
-import { AccountableError } from "./AccountableError.js";
+import { AccountableError, UnexpectedResponseError, UnreachableError } from "./errors/index.js";
 import { DocumentReference, CollectionReference } from "./db.js";
 import { isRawServerResponse } from "./schemas";
-import { UnexpectedResponseError } from "./errors/index.js";
-import { UnreachableError } from "./UnreachableError.js";
 import isArray from "lodash/isArray";
 import isString from "lodash/isString";
 
