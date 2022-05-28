@@ -20,7 +20,7 @@ onMounted(() => {
 				<component :is="Component" />
 			</keep-alive>
 		</router-view> -->
-	<div id="modal" />
+	<div id="modal"></div>
 </template>
 
 <style lang="scss">

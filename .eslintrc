@@ -85,14 +85,7 @@
 						"shouldMatchCase": true
 					}
 				],
-				"vue/html-self-closing": [
-					"warn",
-					{
-						"html": {
-							"void": "always"
-						}
-					}
-				],
+				"vue/html-self-closing": "off",
 				"vue/max-attributes-per-line": "off",
 				"vue/html-closing-bracket-newline": "off",
 				"vue/multiline-html-element-content-newline": "off",

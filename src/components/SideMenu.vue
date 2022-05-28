@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
 	</ActionButton>
 
 	<teleport to="body">
-		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close" />
+		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close"></div>
 		<List v-show="isMenuOpen" class="side-menu">
 			<template v-for="item in settingsItems" :key="item.id">
 				<li v-if="!item.requiresLogin || isLoggedIn">
