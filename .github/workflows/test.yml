@@ -16,8 +16,6 @@ jobs:
             arch: ubuntu-latest
           - node-version: 16.x
             arch: macos-latest
-          - node-version: 16.x
-            arch: windows-latest
 
     runs-on: ${{ matrix.arch }}
 
