@@ -11,18 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get OpenAPI files
-        run: |
-          # Using github env (newline separated file list)
-          echo 'FILE_LIST<<EOF' >> $GITHUB_ENV
-          find lib -type f -iname "*openapi.yaml" >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-          # Using step output (space separated file list)
-          FILES="$(find lib -type f -iname "*openapi.yaml")"
-          echo "::set-output name=file_list::$FILES"
-
       - name: Validate OpenAPI Syntax
         uses: mbowman100/swagger-validator-action@2.0
         with:
-          files: ${{ env.FILE_LIST }}
+          files: |
+            server/openapi.yml
