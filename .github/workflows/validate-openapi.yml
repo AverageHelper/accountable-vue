@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Get OpenAPI files
-        id: getfiles
-        uses: actions/checkout@v3
         run: |
           # Using github env (newline separated file list)
           echo 'FILE_LIST<<EOF' >> $GITHUB_ENV

@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - node-version: [16.x] # See https://nodejs.org/en/about/releases/
+          - node-version: 16.x # See https://nodejs.org/en/about/releases/
             arch: ubuntu-latest
-          - node-version: [16.x]
+          - node-version: 16.x
             arch: macos-latest
-          - node-version: [16.x]
+          - node-version: 16.x
             arch: windows-latest
 
     runs-on: ${{ matrix.arch }}
