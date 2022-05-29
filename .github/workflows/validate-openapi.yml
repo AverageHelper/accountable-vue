@@ -15,4 +15,4 @@ jobs:
         uses: mbowman100/swagger-validator-action@2.0
         with:
           files: |
-            server/openapi.yml
+            server/openapi.yaml
