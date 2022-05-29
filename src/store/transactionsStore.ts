@@ -28,10 +28,19 @@ import {
 	writeBatch,
 } from "../transport";
 
+interface Month {
+	/** The date at which the month begins */
+	start: Date;
+
+	/** The month's short identifier */
+	id: string;
+}
+
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
 		transactionsForAccountByMonth: {} as Dictionary<Dictionary<Array<Transaction>>>, // Account.id -> month -> Transaction[]
+		months: {} as Dictionary<Month>,
 		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
 	getters: {
@@ -145,19 +154,30 @@ export const useTransactionsStore = defineStore("transactions", {
 					});
 
 					// Derive cache
+					const months: Dictionary<Month> = {};
 					const groupedTransactions = groupBy(
 						this.transactionsForAccount[account.id] ?? {},
-						transaction =>
-							transaction.createdAt.toLocaleDateString(undefined, {
-								month: "short",
-								year: "numeric",
-							})
+						transaction => {
+							const month: Month = {
+								start: new Date(
+									transaction.createdAt.getFullYear(),
+									transaction.createdAt.getMonth()
+								),
+								id: transaction.createdAt.toLocaleDateString(undefined, {
+									month: "short",
+									year: "numeric",
+								}),
+							};
+							months[month.id] = month; // cache the month short ID with its sortable date
+							return month.id;
+						}
 					);
 					for (const month of Object.keys(groupedTransactions)) {
 						// Sort each transaction list
 						groupedTransactions[month]?.sort(reverseChronologically);
 					}
 					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
+					this.months = months;
 				},
 				error => {
 					console.error(error);

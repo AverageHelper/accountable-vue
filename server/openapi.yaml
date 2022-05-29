@@ -21,7 +21,7 @@ tags:
   - name: storage
     description: File-based storage for large blocks of data, such as images
 paths:
-  "/":
+  "/v0/":
     get:
       tags:
         - misc
@@ -39,7 +39,7 @@ paths:
                     type: string
                     enum:
                       - "lol"
-  "/ping":
+  "/v0/ping":
     get:
       tags:
         - misc
@@ -57,7 +57,7 @@ paths:
                     type: string
                     enum:
                       - "Pong!"
-  "/version":
+  "/v0/version":
     get:
       tags:
         - misc
@@ -78,7 +78,7 @@ paths:
                     type: string
                     example: "Accountable v0.3.0"
 
-  "/join":
+  "/v0/join":
     post:
       tags:
         - auth
@@ -149,7 +149,7 @@ paths:
                     type: string
                     enum:
                       - "An account with that ID already exists"
-  "/login":
+  "/v0/login":
     post:
       tags:
         - auth
@@ -220,7 +220,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/logout":
+  "/v0/logout":
     post:
       tags:
         - auth
@@ -240,7 +240,7 @@ paths:
                     type: string
                     enum:
                       - "Success!"
-  "/leave":
+  "/v0/leave":
     post:
       tags:
         - auth
@@ -297,7 +297,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/updatepassword":
+  "/v0/updatepassword":
     post:
       tags:
         - auth
@@ -358,7 +358,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/updateaccountid":
+  "/v0/updateaccountid":
     post:
       tags:
         - auth
@@ -419,7 +419,7 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
-  "/db/users/{uid}":
+  "/v0/db/users/{uid}":
     post:
       tags:
         - database
@@ -504,7 +504,7 @@ paths:
         required: true
         schema:
           type: string
-  "/db/users/{uid}/{coll}":
+  "/v0/db/users/{uid}/{coll}":
     get:
       tags:
         - database
@@ -581,7 +581,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/CollectionID"
-  "/db/users/{uid}/{coll}/{doc}":
+  "/v0/db/users/{uid}/{coll}/{doc}":
     get:
       tags:
         - database
@@ -714,7 +714,7 @@ paths:
         required: true
         schema:
           type: string
-  "/files/users/{uid}/attachments/{fileName}":
+  "/v0/files/users/{uid}/attachments/{fileName}":
     get:
       tags:
         - storage
