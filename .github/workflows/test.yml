@@ -31,7 +31,11 @@ jobs:
           cache: "npm"
 
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm ci  # client dependencies
+          pushd server
+          npm ci  # server dependencies
+          popd
 
       - name: Server Lint and Build
         run: npm run build:server
