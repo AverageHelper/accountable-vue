@@ -59,4 +59,11 @@ describe("Unioned schemas", () => {
 });
 */
 
+// eslint-disable-next-line jest/no-export
 export {};
+
+describe("Yup", () => {
+	test("yup", () => {
+		expect(true).toBeTrue();
+	});
+});
