@@ -1,0 +1,28 @@
+name: Validate OpenAPI Syntax
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get OpenAPI files
+        id: getfiles
+        uses: actions/checkout@v3
+        run: |
+          # Using github env (newline separated file list)
+          echo 'FILE_LIST<<EOF' >> $GITHUB_ENV
+          find lib -type f -iname "*openapi.yaml" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+          # Using step output (space separated file list)
+          FILES="$(find lib -type f -iname "*openapi.yaml")"
+          echo "::set-output name=file_list::$FILES"
+
+      - name: Validate OpenAPI Syntax
+        uses: mbowman100/swagger-validator-action@2.0
+        with:
+          files: ${{ env.FILE_LIST }}
