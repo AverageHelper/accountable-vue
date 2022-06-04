@@ -1,14 +1,26 @@
 import type { User } from "../database/schemas.js";
 import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js";
 import { asyncWrapper } from "../asyncWrapper.js";
-import { BadRequestError, DuplicateAccountError, UnauthorizedError } from "../errors/index.js";
 import { Context } from "./Context.js";
-import { destroyUser, findUserWithProperties, statsForUser, upsertUser } from "../database/io.js";
+import { MAX_USERS } from "./limits.js";
 import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
+import {
+	BadRequestError,
+	DuplicateAccountError,
+	NotEnoughRoomError,
+	UnauthorizedError,
+} from "../errors/index.js";
+import {
+	destroyUser,
+	findUserWithProperties,
+	numberOfUsers,
+	statsForUser,
+	upsertUser,
+} from "../database/io.js";
 
 interface ReqBody {
 	account?: unknown;
@@ -48,6 +60,12 @@ export function auth(this: void): Router {
 				if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
 					throw new BadRequestError("Improper parameter types");
 				}
+
+				// ** Make sure we arent' full
+				const limit = MAX_USERS;
+				const current = await numberOfUsers();
+				if (current >= limit)
+					throw new NotEnoughRoomError("We're full at the moment. Try again later!");
 
 				// ** Check credentials are unused
 				const storedUser = await userWithAccountId(givenAccountId);

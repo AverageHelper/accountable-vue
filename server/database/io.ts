@@ -127,6 +127,12 @@ async function destroyDbForUser(uid: string): Promise<void> {
 	await rm(folder, { recursive: true, force: true });
 }
 
+export async function numberOfUsers(): Promise<number> {
+	const data = await userIndexDb(data => data);
+	if (!data) return 0;
+	return Object.keys(data).length;
+}
+
 export async function fetchDbCollection(
 	ref: CollectionReference<AnyDataItem>
 ): Promise<Array<IdentifiedDataItem>> {
