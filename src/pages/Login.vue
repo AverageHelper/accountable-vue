@@ -14,6 +14,8 @@ const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
 
+const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "true");
+
 const isLoggedIn = computed(() => auth.uid !== null);
 const bootstrapError = computed(() => ui.bootstrapError);
 const accountId = ref("");
@@ -21,6 +23,7 @@ const password = ref("");
 const passwordRepeat = ref("");
 const isLoading = ref(false);
 const mode = computed<"login" | "signup">(() => {
+	if (!isSignupEnabled.value) return "login"; // can't sign up? log in instead.
 	return route.path === signupPath() ? "signup" : "login";
 });
 const isSignupMode = computed(() => mode.value === "signup");
@@ -173,11 +176,14 @@ async function submit() {
 			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from passphrase...</span>
 
 			<div v-if="!isLoading">
-				<p v-if="isLoginMode"
+				<p v-if="!isSignupEnabled"
+					>Don't have an account? We'll be open for new accounts soon&trade;.</p
+				>
+				<p v-else-if="isLoginMode"
 					>Need to create an account?
 					<a href="#" @click.prevent="enterSignupMode">Create one!</a>
 				</p>
-				<p v-if="isSignupMode"
+				<p v-else-if="isSignupMode"
 					>Already have an account?
 					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
 				</p>

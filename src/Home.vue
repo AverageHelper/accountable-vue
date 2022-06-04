@@ -9,6 +9,8 @@ import { computed } from "vue";
 
 const aboutRoute = computed(() => aboutPath());
 const signupRoute = computed(() => signupPath());
+
+const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "true");
 </script>
 
 <template>
@@ -20,9 +22,12 @@ const signupRoute = computed(() => signupPath());
 			<router-link :to="aboutRoute">
 				<ActionButton kind="bordered-secondary">Learn More</ActionButton>
 			</router-link>
-			<router-link :to="signupRoute">
+			<router-link v-if="isSignupEnabled" :to="signupRoute">
 				<ActionButton kind="bordered-primary-green">Get Started</ActionButton>
 			</router-link>
+			<a v-else href="#" @click.prevent>
+				<ActionButton kind="bordered-primary-green">Coming Soon&trade;</ActionButton>
+			</a>
 		</section>
 
 		<!-- Your money, where it's been -->
