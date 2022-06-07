@@ -151,9 +151,9 @@ export function db(this: void): Router {
 				// console.debug(`Handling GET for document at ${ref?.path ?? "null"}`);
 				if (!ref) throw new NotFoundError();
 
-				const item = await getDocument(ref);
+				const { data } = await getDocument(ref);
 				// console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
-				respondData(res, item);
+				respondData(res, data);
 			})
 		)
 		.post<Params>(

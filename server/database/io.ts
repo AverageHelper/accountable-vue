@@ -170,49 +170,64 @@ export async function findUserWithProperties(query: Partial<User>): Promise<User
 	});
 }
 
+/** A view of database data. */
+interface Snapshot<T extends AnyDataItem> {
+	/** The database reference. */
+	ref: DocumentReference<T>;
+
+	/** The stored data for the reference. */
+	data: Identified<T> | null;
+}
+
+/**
+ * Fetches the referenced data item from the database.
+ *
+ * @param ref A document reference.
+ * @returns a view of database data.
+ */
+export async function fetchDbDoc<T extends AnyDataItem>(
+	ref: DocumentReference<T>
+): Promise<Snapshot<T>> {
+	const [snap] = await fetchDbDocs([ref]);
+	return snap;
+}
+
+/**
+ * Fetches the referenced data items from the database.
+ *
+ * @param refs An array of document references.
+ * @returns an array containing the given references and their associated data.
+ */
 export async function fetchDbDocs<T extends AnyDataItem>(
 	refs: NonEmptyArray<DocumentReference<T>>
-): Promise<Array<[DocumentReference<T>, Identified<T> | null]>> {
+): Promise<NonEmptyArray<Snapshot<T>>> {
 	// Assert same UID on all refs
 	const uid = refs[0].uid;
 	if (!refs.every(u => u.uid === uid))
 		throw new TypeError(`Not every UID matches the first: ${uid}`);
 
-	return await dbForUser(uid, data => {
-		if (!data) return [];
+	return (await dbForUser(uid, data => {
+		if (!data) return refs.map(ref => ({ ref, data: null }));
 
-		const results: Array<[DocumentReference<T>, Identified<T> | null]> = [];
-
-		for (const ref of refs) {
+		return refs.map<Snapshot<T>>(ref => {
 			const collection = data[ref.parent.id] ?? {};
 			const docs = collection[ref.id] as T | undefined;
 			if (!docs) {
-				results.push([ref, null]);
-			} else {
-				results.push([ref, { ...docs, _id: ref.id }]);
+				return { ref, data: null };
 			}
-		}
-
-		return results;
-	});
+			return { ref, data: { ...docs, _id: ref.id } };
+		});
+	})) as NonEmptyArray<Snapshot<T>>;
 }
 
-export async function fetchDbDoc<T extends AnyDataItem>(
-	ref: DocumentReference<T>
-): Promise<Identified<T> | null> {
-	const [pair] = await fetchDbDocs([ref]);
-	if (!pair) return null;
-	return pair[1];
-}
-
-export async function upsertUser(user: User): Promise<void> {
-	const uid = user.uid;
+export async function upsertUser(properties: User): Promise<void> {
+	const uid = properties.uid;
 	if (!uid) throw new TypeError("uid property was empty");
 
 	// Upsert to index
 	await userIndexDb((data, write) => {
 		const userIndex = data ?? {};
-		userIndex[uid] = { ...user };
+		userIndex[uid] = { ...properties };
 		write(userIndex);
 	});
 
