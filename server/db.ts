@@ -132,7 +132,7 @@ export function db(this: void): Router {
 	return Router()
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
-		.use(requireAuth()) // require auth from here on in
+		.use(requireAuth) // require auth from here on in
 		.use("/users/:uid", ownersOnly)
 		.get<Params>(
 			"/users/:uid/:collectionId",

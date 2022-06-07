@@ -197,7 +197,7 @@ interface FileData {
 
 export function storage(this: void): Router {
 	return Router()
-		.use(requireAuth()) // require auth from here on in
+		.use(requireAuth) // require auth from here on in
 		.use("/users/:uid", ownersOnly)
 		.get<Params>(
 			"/users/:uid/attachments/:fileName",
