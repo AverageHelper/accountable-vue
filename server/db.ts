@@ -152,7 +152,7 @@ export function db(this: void): Router {
 				if (!ref) throw new NotFoundError();
 
 				const { data } = await getDocument(ref);
-				// console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
+				// console.debug(`Found item: ${JSON.stringify(data, undefined, "  ")}`);
 				respondData(res, data);
 			})
 		)
@@ -229,6 +229,7 @@ export function db(this: void): Router {
 				const ref = collectionRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entries
 				await deleteCollection(ref);
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
@@ -243,7 +244,9 @@ export function db(this: void): Router {
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entry
 				await deleteDocument(ref);
+
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
 			})
