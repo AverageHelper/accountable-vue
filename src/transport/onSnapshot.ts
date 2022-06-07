@@ -350,7 +350,7 @@ export function onSnapshot<T>(
 		let message: unknown;
 		try {
 			message = JSON.parse((res.data as Buffer).toString()) as unknown;
-		} catch (error: unknown) {
+		} catch (error) {
 			throw new UnexpectedResponseError(
 				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
 			);

@@ -93,7 +93,7 @@ async function confirmDeleteFile(file: Attachment) {
 	if (!transaction.value) return;
 	try {
 		await attachments.deleteAttachment(file);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;
@@ -112,7 +112,7 @@ async function deleteFileReference(fileId: string) {
 	if (!transaction.value) return;
 	try {
 		await transactions.removeAttachmentFromTransaction(fileId, transaction.value);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;
@@ -130,7 +130,7 @@ async function onFileReceived(file: File) {
 		const attachment = await attachments.createAttachmentFromFile(file);
 		transaction.value.addAttachmentId(attachment.id);
 		await transactions.updateTransaction(transaction.value);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 }

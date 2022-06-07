@@ -120,7 +120,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 				default:
 					return close(ws, WebSocketCode.PROTOCOL_ERROR, "Received unknown message from client");
 			}
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error(error);
 			close(ws, WebSocketCode.PROTOCOL_ERROR, "Couldn't process that");
 		}

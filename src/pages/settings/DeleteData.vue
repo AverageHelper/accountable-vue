@@ -35,7 +35,7 @@ async function confirmDeleteEverything() {
 		await auth.destroyVault(password.value);
 
 		await router.push(logoutPath());
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 		isDeleting.value = false;
 	}

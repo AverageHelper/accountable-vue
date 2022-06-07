@@ -147,7 +147,7 @@ export const useTransactionsStore = defineStore("transactions", {
 
 							accounts.currentBalance[account.id] = currentBalance;
 							this.transactionsForAccount[account.id] = accountTransactions;
-						} catch (error: unknown) {
+						} catch (error) {
 							const ui = useUiStore();
 							ui.handleError(error);
 						}

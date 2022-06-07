@@ -43,7 +43,7 @@ async function submitNewPassword() {
 		await auth.updatePassword(currentPassword.value, newPassword.value);
 		toast.success("Your passphrase has been updated!");
 		reset();
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 	isLoading.value = false;

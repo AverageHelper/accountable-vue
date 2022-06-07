@@ -154,7 +154,7 @@ async function submit() {
 		}
 
 		emit("finished");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 
@@ -176,7 +176,7 @@ async function confirmDeleteTransaction() {
 		await transactions.deleteTransaction(ogTransaction.value);
 		emit("deleted");
 		emit("finished");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 

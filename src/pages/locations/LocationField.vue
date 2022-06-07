@@ -123,7 +123,7 @@ async function getLocation() {
 	let data: IPLocateResult;
 	try {
 		data = await fetchLocationData();
-	} catch (error: unknown) {
+	} catch (error) {
 		// CORS errors, and possibly others, throw an empty string. Not sure why.
 		ui.handleError(((error as null | undefined) ?? "") || "Something went wrong, not sure what.");
 		return;

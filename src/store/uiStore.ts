@@ -61,7 +61,7 @@ export const useUiStore = defineStore("ui", {
 
 			try {
 				bootstrap();
-			} catch (error: unknown) {
+			} catch (error) {
 				if (error instanceof Error) {
 					this.bootstrapError = error;
 				} else {
@@ -76,7 +76,7 @@ export const useUiStore = defineStore("ui", {
 			try {
 				this.serverVersion = "loading";
 				this.serverVersion = await getServerVersion(db);
-			} catch (error: unknown) {
+			} catch (error) {
 				console.error(error);
 				if (error instanceof Error) {
 					this.serverVersion = error;
