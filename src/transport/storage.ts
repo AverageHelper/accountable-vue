@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import type { AccountableDB } from "./db";
 import { AccountableError } from "./errors/index.js";
 import { previousStats } from "./db";

@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import type { DocumentData, DocumentWriteBatch, PrimitiveRecord } from "./schemas.js";
 import type { EPackage, HashStore } from "./cryption.js";
 import type { Unsubscribe } from "./onSnapshot.js";
