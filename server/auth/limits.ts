@@ -10,10 +10,10 @@ const defaultMaxSpace = 20000000000;
 const totalSpace = Number.parseInt(process.env["MAX_BYTES"] ?? `${defaultMaxSpace}`, 10);
 export const maxSpacePerUser = totalSpace / MAX_USERS;
 
-console.log(
+process.stdout.write(
 	`We have ${simplifiedByteCount(totalSpace)} available. That's ${simplifiedByteCount(
 		maxSpacePerUser
-	)} for each of our ${MAX_USERS} max users.`
+	)} for each of our ${MAX_USERS} max users.\n`
 );
 
 export const folderSize: (path: string) => Promise<number | undefined> = promisify(fastFolderSize);

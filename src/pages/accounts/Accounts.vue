@@ -27,7 +27,7 @@ const loadError = computed<Error | null>(() => accounts.loadError);
 const isCreatingAccount = ref(false);
 
 async function load() {
-	console.log("Starting watchers...");
+	// console.log("Starting watchers...");
 	await Promise.all([
 		accounts.watchAccounts(),
 		attachments.watchAttachments(),

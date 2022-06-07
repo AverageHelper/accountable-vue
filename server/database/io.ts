@@ -90,10 +90,10 @@ async function dbForUser<T>(
 		totalSpace: maxSizeOfUserFolder, //
 		usedSpace: sizeOfUserFolder,
 	} = await statsForUser(uid);
-	console.log(
+	process.stdout.write(
 		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
 			maxSpacePerUser
-		)}`
+		)}\n`
 	);
 
 	const file = path.join(folder, "db.json");
