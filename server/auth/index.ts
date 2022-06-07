@@ -39,6 +39,7 @@ async function generateHash(input: string, salt: string): Promise<string> {
 
 async function userWithAccountId(accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
+	// TODO: Rename `currentAccountId` to `accountId`
 	return await findUserWithProperties({ currentAccountId: accountId });
 }
 

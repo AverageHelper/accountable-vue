@@ -3,9 +3,9 @@ dotenv.config(); // SIDE-EFFECT: populates `process.env`
 
 export type EnvKey =
 	| "DB" //
+	| "HOST"
 	| "MAX_BYTES"
 	| "MAX_USERS"
-	| "HOST"
 	| "NODE_ENV";
 
 /**
