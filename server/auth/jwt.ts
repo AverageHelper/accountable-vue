@@ -1,7 +1,7 @@
 import type { JwtPayload, User } from "../database/schemas.js";
 import type { Request } from "express";
-import { isJwtPayload } from "../database/schemas.js";
 import { generateSecureToken } from "n-digit-token";
+import { isJwtPayload } from "../database/schemas.js";
 import { TemporarySet } from "./TemporarySet.js";
 import jwt from "jsonwebtoken";
 
@@ -75,7 +75,7 @@ export async function verifyJwt(token: string): Promise<jwt.JwtPayload> {
 			// Check payload contents
 			if (payload !== undefined) {
 				if (!isJwtPayload(payload))
-					return reject(new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`));
+					return reject(new TypeError(`Malformed JWT: ${JSON.stringify(payload)}`));
 
 				// Parameters are valid!
 				return resolve(payload);

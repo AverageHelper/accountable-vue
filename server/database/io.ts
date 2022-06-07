@@ -95,7 +95,7 @@ interface Snapshot<T extends AnyDataItem> {
  * Fetches the referenced data item from the database.
  *
  * @param ref A document reference.
- * @returns the data associated with the given reference, or `null` if no such data exists.
+ * @returns a view of database data.
  */
 export async function fetchDbDoc<T extends AnyDataItem>(
 	ref: DocumentReference<T>

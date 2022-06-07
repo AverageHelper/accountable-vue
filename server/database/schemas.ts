@@ -23,7 +23,7 @@ function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
 const jwtPayload = Joi.object({
 	uid: Joi.string().required(),
 	hash: Joi.string(),
-});
+}).unknown(true);
 
 export type JwtPayload = Joi.extractType<typeof jwtPayload>;
 

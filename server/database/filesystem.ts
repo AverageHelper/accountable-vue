@@ -1,5 +1,5 @@
 import { close, open } from "fs";
-import { NotFoundError } from "../errors";
+import { NotFoundError } from "../errors/index.js";
 import { mkdir, readFile, rename, stat, unlink, utimes } from "fs/promises";
 
 /** Removes the item at the given path from the filesystem. */
