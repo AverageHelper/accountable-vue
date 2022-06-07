@@ -130,7 +130,7 @@ async function handleWrite(job: WriteAction): Promise<void> {
 				break;
 			}
 		}
-	} catch (error: unknown) {
+	} catch (error) {
 		if (error instanceof InternalError) {
 			return respondError(job.res, error);
 		}
@@ -153,7 +153,7 @@ async function fileExists(path: string): Promise<boolean> {
 	try {
 		await fsStat(path);
 		return true;
-	} catch (error: unknown) {
+	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
 			return false;
 		}
@@ -164,7 +164,7 @@ async function fileExists(path: string): Promise<boolean> {
 async function getFileContents(path: string): Promise<string> {
 	try {
 		return await readFile(path, { encoding: "utf-8" });
-	} catch (error: unknown) {
+	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
 			throw new NotFoundError();
 		}
@@ -198,7 +198,7 @@ interface FileData {
 export function storage(this: void): Router {
 	return Router()
 		.use(requireAuth()) // require auth from here on in
-		.use("/users/:uid", ownersOnly())
+		.use("/users/:uid", ownersOnly)
 		.get<Params>(
 			"/users/:uid/attachments/:fileName",
 			asyncWrapper(async (req, res) => {

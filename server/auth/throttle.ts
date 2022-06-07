@@ -23,7 +23,7 @@ export function throttle<P = ParamsDictionary, ResBody = unknown, ReqBody = unkn
 		try {
 			await rateLimiter.consume(remoteIp);
 			next();
-		} catch (error: unknown) {
+		} catch (error) {
 			next(new ThrottledError(error as RateLimiterRes));
 		}
 	});

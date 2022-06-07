@@ -45,7 +45,7 @@ watch(
 		if (file) {
 			try {
 				imageUrl.value = await attachments.imageDataFromFile(file);
-			} catch (error: unknown) {
+			} catch (error) {
 				imageLoadError.value = error as Error;
 			}
 		}

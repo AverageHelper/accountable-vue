@@ -73,7 +73,7 @@ async function downloadStuff(shouldMinify: boolean) {
 
 		// ** Get it
 		downloadFileAtUrl(dataUri, "accountable.zip");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 		await writer.close();
 	}

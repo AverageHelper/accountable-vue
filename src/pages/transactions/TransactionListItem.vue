@@ -56,7 +56,7 @@ async function markReconciled(isReconciled: boolean) {
 	try {
 		const newTransaction = transaction.value.updatedWith({ isReconciled });
 		await transactions.updateTransaction(newTransaction);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 

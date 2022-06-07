@@ -1,6 +1,14 @@
 import type { Request } from "express";
 
-/** @see https://boltsource.io/blog/Request-Context-with-TypeScript-and-express/ */
+interface ContextParams {
+	readonly uid: string;
+}
+
+/**
+ * A representation of the session context.
+ *
+ * @see https://boltsource.io/blog/Request-Context-with-TypeScript-and-express/
+ */
 export class Context {
 	private static readonly _bindings = new WeakMap<Request<unknown>, Context>();
 
@@ -10,8 +18,8 @@ export class Context {
 		this.uid = uid;
 	}
 
-	static bind(req: Request, uid: string): void {
-		const ctx = new Context(uid);
+	static bind(req: Request, params: ContextParams): void {
+		const ctx = new Context(params.uid);
 		Context._bindings.set(req, ctx);
 	}
 

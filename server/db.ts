@@ -120,7 +120,7 @@ function webSocket(ws: WebSocket, req: Request<Params>): void {
 				default:
 					return close(ws, WebSocketCode.PROTOCOL_ERROR, "Received unknown message from client");
 			}
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error(error);
 			close(ws, WebSocketCode.PROTOCOL_ERROR, "Couldn't process that");
 		}
@@ -133,7 +133,7 @@ export function db(this: void): Router {
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
 		.use(requireAuth()) // require auth from here on in
-		.use("/users/:uid", ownersOnly())
+		.use("/users/:uid", ownersOnly)
 		.get<Params>(
 			"/users/:uid/:collectionId",
 			asyncWrapper(async (req, res) => {

@@ -38,7 +38,7 @@ async function createNewFile(file: File | null): Promise<void> {
 	try {
 		const attachment = await attachments.createAttachmentFromFile(file);
 		await selectNewFile(attachment);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 }

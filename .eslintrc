@@ -13,7 +13,7 @@
 		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		"plugin:prettier/recommended"
 	],
-	"plugins": ["prettier", "unicorn", "promise", "@typescript-eslint"],
+	"plugins": ["prettier", "unicorn", "promise", "deprecation", "@typescript-eslint"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"project": "./tsconfig.prod.json",
@@ -27,7 +27,6 @@
 		"consistent-return": "off", // TS handles this
 		"no-duplicate-imports": "off", // typescript-eslint handles this
 		"@typescript-eslint/no-duplicate-imports": "error",
-		"@typescript-eslint/no-implicit-any-catch": "error",
 		"@typescript-eslint/consistent-type-assertions": "off",
 		"@typescript-eslint/no-empty-interface": "off",
 		"@typescript-eslint/require-await": "warn",

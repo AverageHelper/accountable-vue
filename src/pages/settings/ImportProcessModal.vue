@@ -139,7 +139,7 @@ async function beginImport() {
 
 		toast.success("Imported all the things!");
 		emit("finished");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 

@@ -41,7 +41,8 @@ export function requireAuth(this: void): RequestHandler {
 		const user = await userFromRequest(req);
 		if (!user) throw new UnauthorizedError();
 
-		Context.bind(req, user.uid); // This reference drops when the request is done
+		const uid = user.uid;
+		Context.bind(req, { uid }); // This reference drops when the request is done
 		next();
 	});
 }

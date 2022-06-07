@@ -21,7 +21,7 @@ function askToDeleteFile(file: Attachment) {
 async function confirmDeleteFile(file: Attachment) {
 	try {
 		await attachments.deleteAttachment(file);
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	} finally {
 		fileToDelete.value = null;

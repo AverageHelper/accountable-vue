@@ -1,5 +1,6 @@
 import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
+import { env } from "../environment.js";
 import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
 import { Low, JSONFile } from "lowdb";
@@ -17,7 +18,7 @@ export async function ensure(path: string): Promise<void> {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbEnv = process.env["DB"] ?? "";
+const dbEnv = env("DB") ?? "";
 
 export const DB_DIR = dbEnv //
 	? path.resolve(dbEnv)
@@ -90,10 +91,10 @@ async function dbForUser<T>(
 		totalSpace: maxSizeOfUserFolder, //
 		usedSpace: sizeOfUserFolder,
 	} = await statsForUser(uid);
-	console.log(
+	process.stdout.write(
 		`User ${uid} has used ${simplifiedByteCount(sizeOfUserFolder)} of ${simplifiedByteCount(
 			maxSpacePerUser
-		)}`
+		)}\n`
 	);
 
 	const file = path.join(folder, "db.json");

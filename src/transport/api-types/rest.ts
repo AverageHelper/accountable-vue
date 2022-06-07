@@ -97,7 +97,7 @@ async function doRequest(
 			status: response.status,
 			...json,
 		};
-	} catch (error: unknown) {
+	} catch (error) {
 		// `fetch` only rejects on network failure.
 		// See https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 		console.error("Network Failure:", error);

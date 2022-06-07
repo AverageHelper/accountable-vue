@@ -50,7 +50,7 @@ async function submitNewLocationPref() {
 		});
 		toast.success("Your preferences have been updated!");
 		reset();
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 	isLoading.value = false;
