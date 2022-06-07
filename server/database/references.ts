@@ -1,4 +1,4 @@
-import type { AnyDataItem, CollectionID } from "./schemas";
+import type { AnyDataItem, CollectionID } from "./schemas.js";
 import { isCollectionId } from "./schemas.js";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
