@@ -20,9 +20,9 @@ import {
 	getDocument,
 	isArrayOf,
 	isCollectionId,
+	isDataItem,
 	isDocumentWriteBatch,
 	isNonEmptyArray,
-	isPartialDataItem,
 	isUserKeys,
 	setDocument,
 	setDocuments,
@@ -132,7 +132,7 @@ export function db(this: void): Router {
 	return Router()
 		.ws("/users/:uid/:collectionId", webSocket)
 		.ws("/users/:uid/:collectionId/:documentId", webSocket)
-		.use(requireAuth()) // require auth from here on in
+		.use(requireAuth) // require auth from here on in
 		.use("/users/:uid", ownersOnly)
 		.get<Params>(
 			"/users/:uid/:collectionId",
@@ -151,9 +151,9 @@ export function db(this: void): Router {
 				// console.debug(`Handling GET for document at ${ref?.path ?? "null"}`);
 				if (!ref) throw new NotFoundError();
 
-				const item = await getDocument(ref);
-				// console.debug(`Found item: ${JSON.stringify(item, undefined, "  ")}`);
-				respondData(res, item);
+				const { data } = await getDocument(ref);
+				// console.debug(`Found item: ${JSON.stringify(data, undefined, "  ")}`);
+				respondData(res, data);
 			})
 		)
 		.post<Params>(
@@ -210,8 +210,7 @@ export function db(this: void): Router {
 				if (uid === null) throw new NotFoundError();
 
 				const providedData = req.body as unknown;
-				if (!isPartialDataItem(providedData) && !isUserKeys(providedData))
-					throw new BadRequestError();
+				if (!isDataItem(providedData) && !isUserKeys(providedData)) throw new BadRequestError();
 
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();
@@ -230,6 +229,7 @@ export function db(this: void): Router {
 				const ref = collectionRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entries
 				await deleteCollection(ref);
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
@@ -244,7 +244,9 @@ export function db(this: void): Router {
 				const ref = documentRef(req);
 				if (!ref) throw new NotFoundError();
 
+				// Delete the referenced database entry
 				await deleteDocument(ref);
+
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { totalSpace, usedSpace });
 			})

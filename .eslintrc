@@ -20,6 +20,7 @@
 		"tsconfigRootDir": "."
 	},
 	"rules": {
+		"deprecation/deprecation": "warn",
 		"prettier/prettier": "warn",
 		"no-constant-condition": "warn",
 		"no-console": ["warn", { "allow": ["error", "warn", "debug"] }],

@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
 import { AccountableError } from "./errors/index.js";

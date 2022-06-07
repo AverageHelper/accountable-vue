@@ -56,7 +56,7 @@ export function watchUpdatesToDocument(
 	// Send all data at path
 	/* eslint-disable promise/prefer-await-to-then */
 	void fetchDbDoc(ref)
-		.then(async data => {
+		.then(async ({ ref, data }) => {
 			if (data) {
 				await informWatchersForDocument(ref, data);
 			}
@@ -141,10 +141,11 @@ export async function deleteDocuments(
 	// Fetch the data
 	const before = await fetchDbDocs(refs);
 
+	// Delete the stored data
 	await deleteDbDocs(refs);
 
 	// Tell listeners what happened
-	for (const [ref, data] of before) {
+	for (const { ref, data } of before) {
 		// Only call listeners about deletion if it wasn't gone in the first place
 		if (!data) continue;
 		await informWatchersForDocument(ref, null);
@@ -153,8 +154,9 @@ export async function deleteDocuments(
 
 export async function deleteDocument(ref: DocumentReference<AnyDataItem>): Promise<void> {
 	// Fetch the data
-	const oldData = await fetchDbDoc(ref);
+	const { data: oldData } = await fetchDbDoc(ref);
 
+	// Delete the stored data
 	await deleteDbDoc(ref);
 
 	// Tell listeners what happened
