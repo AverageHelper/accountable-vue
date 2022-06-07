@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Accountable
-  version: 0.2.2
+  version: 0.4.2
   description: This is the Accountable Server. It doesn't do much, because the Accountable client does most of the hard work. You can read the source code on [GitHub](https://github.com/AverageHelper/accountable-vue).
   license:
     name: GNU General Public License v3.0
