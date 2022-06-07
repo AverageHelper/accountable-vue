@@ -9,14 +9,15 @@ import MenuIcon from "../icons/Menu.vue";
 import DiskUsage from "./DiskUsage.vue";
 import { appTabs, iconForTab, labelForTab, routeForTab } from "../model/ui/tabs";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { logoutPath, settingsPath } from "../router";
 import { useAuthStore } from "../store";
 
-export interface MenuItem {
+interface MenuItem {
 	id: string;
 	name: string;
 	path: string;
 	requiresLogin?: boolean;
-	icon?: Component;
+	icon?: Component | null;
 }
 
 const auth = useAuthStore();
@@ -29,14 +30,14 @@ const windowWidth = ref(window.innerWidth);
 const isTabletWidth = computed(() => windowWidth.value < 768);
 
 const settingsItems = computed<Array<MenuItem>>(() => {
-	const items = [
-		{ id: "settings", name: "Settings", path: "/settings", requiresLogin: true, icon: Gear },
-		{ id: "log-out", name: "Log out", path: "/logout", requiresLogin: true, icon: LogOut },
+	const items: Array<MenuItem> = [
+		{ id: "settings", name: "Settings", path: settingsPath(), requiresLogin: true, icon: Gear },
+		{ id: "log-out", name: "Log out", path: logoutPath(), requiresLogin: true, icon: LogOut },
 	];
 
 	if (isTabletWidth.value) {
 		items.unshift(
-			...appTabs.map(tab => ({
+			...appTabs.map<MenuItem>(tab => ({
 				id: tab,
 				name: labelForTab(tab),
 				path: routeForTab(tab),
@@ -73,7 +74,7 @@ onBeforeUnmount(() => {
 	</ActionButton>
 
 	<teleport to="body">
-		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close" />
+		<div v-if="isMenuOpen" class="side-menu__backdrop" @click="close"></div>
 		<List v-show="isMenuOpen" class="side-menu">
 			<template v-for="item in settingsItems" :key="item.id">
 				<li v-if="!item.requiresLogin || isLoggedIn">

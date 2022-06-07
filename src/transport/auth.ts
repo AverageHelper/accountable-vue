@@ -1,9 +1,16 @@
-/* eslint-disable deprecation/deprecation */
-import { AccountableError } from "./AccountableError";
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
+import { AccountableError } from "./errors/index.js";
 import { doc, db, getDoc, previousStats, setDoc, deleteDoc } from "./db";
-import { postTo } from "./networking";
+import {
+	authJoin,
+	authLeave,
+	authLogIn,
+	authLogOut,
+	authUpdateAccountId,
+	authUpdatePassword,
+	postTo,
+} from "./api-types/index.js";
 
 function authRef(uid: string): DocumentReference<KeyMaterial> {
 	return doc<KeyMaterial>(db, "keys", uid);
@@ -62,13 +69,8 @@ export async function createUserWithAccountIdAndPassword(
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const join = new URL("join", db.url);
-	const {
-		access_token, //
-		uid,
-		usedSpace,
-		totalSpace,
-	} = await postTo(join, { account, password });
+	const join = new URL(authJoin(), db.url);
+	const { access_token, uid, usedSpace, totalSpace } = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
 
@@ -89,7 +91,7 @@ export async function signOut(db: AccountableDB): Promise<void> {
 	const jwt = db.jwt;
 	if (jwt === null) return;
 
-	const logout = new URL("logout", db.url);
+	const logout = new URL(authLogOut(), db.url);
 	await postTo(logout, {}, jwt);
 	db.clearJwt();
 }
@@ -116,13 +118,8 @@ export async function signInWithAccountIdAndPassword(
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const login = new URL("login", db.url);
-	const {
-		access_token, //
-		uid,
-		usedSpace,
-		totalSpace,
-	} = await postTo(login, { account, password });
+	const login = new URL(authLogIn(), db.url);
+	const { access_token, uid, usedSpace, totalSpace } = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
 		throw new TypeError("Expected access token from server, but got none");
 
@@ -145,7 +142,7 @@ export async function deleteUser(db: AccountableDB, user: User, password: string
 	if (db.jwt === null || !db.jwt) throw new AccountableError("auth/unauthenticated");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const leave = new URL("leave", db.url);
+	const leave = new URL(authLeave(), db.url);
 	await postTo(leave, {
 		account: user.accountId,
 		password,
@@ -167,7 +164,7 @@ export async function updateAccountId(
 	if (!newAccountId) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
-	const updateaccountid = new URL("updateaccountid", db.url);
+	const updateaccountid = new URL(authUpdateAccountId(), db.url);
 	await postTo(updateaccountid, {
 		account: user.accountId,
 		newaccount: newAccountId,
@@ -192,7 +189,7 @@ export async function updatePassword(
 	if (!oldPassword) throw new TypeError("old-password parameter cannot be empty");
 	if (!newPassword) throw new TypeError("new-password parameter cannot be empty");
 
-	const updatepassword = new URL("updatepassword", db.url);
+	const updatepassword = new URL(authUpdatePassword(), db.url);
 	await postTo(updatepassword, {
 		account: user.accountId,
 		password: oldPassword,

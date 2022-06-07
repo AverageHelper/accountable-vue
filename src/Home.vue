@@ -4,6 +4,13 @@ import Footer from "./Footer.vue";
 import EncryptionIcon from "./icons/Lock.vue";
 import LedgerIcon from "./icons/MoneyTower.vue";
 import OpenSourceIcon from "./icons/IdeaBox.vue";
+import { aboutPath, signupPath } from "./router";
+import { computed } from "vue";
+
+const aboutRoute = computed(() => aboutPath());
+const signupRoute = computed(() => signupPath());
+
+const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "true");
 </script>
 
 <template>
@@ -12,12 +19,15 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 
 		<!-- Get started now -->
 		<section id="get-started">
-			<router-link to="/about">
+			<router-link :to="aboutRoute">
 				<ActionButton kind="bordered-secondary">Learn More</ActionButton>
 			</router-link>
-			<router-link to="/signup">
+			<router-link v-if="isSignupEnabled" :to="signupRoute">
 				<ActionButton kind="bordered-primary-green">Get Started</ActionButton>
 			</router-link>
+			<a v-else href="#" @click.prevent>
+				<ActionButton kind="bordered-primary-green">Coming Soon&trade;</ActionButton>
+			</a>
 		</section>
 
 		<!-- Your money, where it's been -->
@@ -27,7 +37,7 @@ import OpenSourceIcon from "./icons/IdeaBox.vue";
 			<p
 				>Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess
 				about where your money is going,
-				<router-link to="/about">this might be the tool for you</router-link>.</p
+				<router-link :to="aboutRoute">this might be the tool for you</router-link>.</p
 			>
 		</section>
 

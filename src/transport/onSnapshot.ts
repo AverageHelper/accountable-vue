@@ -1,10 +1,9 @@
 import type { DocumentData } from "./schemas";
 import type { Query } from "./db";
-import { AccountableError } from "./AccountableError.js";
+import { AccountableError, UnexpectedResponseError, UnreachableError } from "./errors/index.js";
+import { databaseCollection, databaseDocument } from "./api-types/index.js";
 import { DocumentReference, CollectionReference } from "./db.js";
 import { isRawServerResponse } from "./schemas";
-import { UnexpectedResponseError } from "./errors/index.js";
-import { UnreachableError } from "./UnreachableError.js";
 import isArray from "lodash/isArray";
 import isString from "lodash/isString";
 
@@ -326,17 +325,19 @@ export function onSnapshot<T>(
 	if (!db.currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = db.currentUser.uid;
-	let url = `ws://${db.url.hostname}:${db.url.port}/db/users/${uid}`;
+	const baseUrl = new URL(`ws://${db.url.hostname}:${db.url.port}`);
+	let url: URL;
 
 	switch (type) {
 		case "collection":
-			url += `/${queryOrReference.id}`;
+			url = new URL(databaseCollection(uid, queryOrReference.id), baseUrl);
 			break;
 		case "document":
-			url += `/${queryOrReference.parent.id}/${queryOrReference.id}`;
+			url = new URL(
+				databaseDocument(uid, queryOrReference.parent.id, queryOrReference.id),
+				baseUrl
+			);
 			break;
-		default:
-			throw new UnreachableError(type);
 	}
 
 	const ws = new WebSocket(url);
@@ -407,7 +408,7 @@ export function onSnapshot<T>(
 
 		// Connection closed. Find out why
 		if (event.code !== WS_NORMAL) {
-			let message = `Webhook closed with code ${event.code}`;
+			let message = `WebSocket closed with code ${event.code}`;
 			// TODO: Abstract these cases into Error subclasses so we can internationalize
 			if (event.reason?.trim()) {
 				message += `: ${event.reason}`;

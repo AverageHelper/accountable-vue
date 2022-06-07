@@ -34,9 +34,9 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is AccountRecordParams {
 		return (
-			(typeof toBeDetermined === "object" &&
+			(toBeDetermined !== undefined &&
 				toBeDetermined !== null &&
-				toBeDetermined !== undefined &&
+				typeof toBeDetermined === "object" &&
 				Boolean(toBeDetermined) &&
 				!Array.isArray(toBeDetermined) &&
 				"createdAt" in toBeDetermined &&

@@ -1,7 +1,8 @@
 /* eslint-disable deprecation/deprecation */
 import type { AccountableDB } from "./db";
-import { AccountableError, previousStats } from "./db";
-import { deleteAt, downloadFrom, uploadTo } from "./networking";
+import { AccountableError } from "./errors/index.js";
+import { previousStats } from "./db";
+import { deleteAt, downloadFrom, storageFile, uploadTo } from "./api-types/index.js";
 
 /**
  * Represents a reference to an Accountable Storage object. Developers can
@@ -70,7 +71,7 @@ export async function downloadString(ref: StorageReference): Promise<string> {
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
+	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	return await downloadFrom(url, jwt);
 }
@@ -87,7 +88,7 @@ export async function uploadString(ref: StorageReference, value: string): Promis
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
+	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	const { usedSpace, totalSpace } = await uploadTo(url, value, jwt);
 	previousStats.usedSpace = usedSpace ?? null;
@@ -106,7 +107,7 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
 	if (jwt === null || uid === undefined || !uid)
 		throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = `files/users/${uid}/attachments/${ref.name}.json`;
+	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	const { usedSpace, totalSpace } = await deleteAt(url, jwt);
 	previousStats.usedSpace = usedSpace ?? null;

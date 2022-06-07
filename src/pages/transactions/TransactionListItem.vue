@@ -7,6 +7,7 @@ import { computed, ref, toRefs, onMounted } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
 import { Transaction } from "../../model/Transaction";
+import { transactionPath } from "../../router";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const props = defineProps({
@@ -25,8 +26,8 @@ const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
 const timestamp = computed(() => toTimestamp(transaction.value.createdAt));
 
-const transactionRoute = computed(
-	() => `/accounts/${transaction.value.accountId}/transactions/${transaction.value.id}`
+const transactionRoute = computed(() =>
+	transactionPath(transaction.value.accountId, transaction.value.id)
 );
 
 function seeIfAnyAttachmentsAreBroken() {

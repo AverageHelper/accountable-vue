@@ -8,18 +8,16 @@ import Fuse from "fuse.js";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";
 import SearchBar from "../../components/SearchBar.vue";
-import TransactionEdit from "../transactions/TransactionEdit.vue";
+import TransactionCreateModal from "../transactions/TransactionCreateModal.vue";
+import TransactionMonthListItem from "../transactions/TransactionMonthListItem.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
 import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
 import { ref, computed, toRefs, watch } from "vue";
+import { reverseChronologically } from "../../model/utility/sort";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRoute, useRouter } from "vue-router";
-
-function reverseChronologically(this: void, a: Transaction, b: Transaction): number {
-	return b.createdAt.getTime() - a.createdAt.getTime();
-}
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -34,13 +32,25 @@ const transactions = useTransactionsStore();
 const isEditingAccount = ref(false);
 const isEditingTransaction = ref(false);
 
-const account = computed(() => accounts.items[accountId.value]);
+const account = computed(() => accounts.items[accountId.value] ?? null);
 const theseTransactions = computed<Array<Transaction>>(() => {
 	const allTransactions = (transactions.transactionsForAccount[accountId.value] ??
 		{}) as Dictionary<Transaction>;
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
-const numberOfTransactions = computed(() => theseTransactions.value.length);
+const transactionMonths = computed(() => {
+	const months = transactions.months;
+	return Object.entries(transactions.transactionsForAccountByMonth[accountId.value] ?? {}).sort(
+		([a], [b]) => {
+			const now = new Date();
+			// Look up the month's cached start date
+			const aStart = months[a]?.start ?? now;
+			const bStart = months[b]?.start ?? now;
+			// Order reverse chronologically
+			return bStart.getTime() - aStart.getTime();
+		}
+	);
+});
 
 const searchClient = computed(
 	() => new Fuse(theseTransactions.value, { keys: ["title", "notes"] })
@@ -106,26 +116,43 @@ function finishEditingAccount() {
 
 		<SearchBar class="search" />
 
-		<List class="transactions-list">
-			<li v-if="searchQuery === ''">
-				<AddRecordListItem @click="startCreatingTransaction" />
-			</li>
+		<!-- Search Results -->
+		<List v-if="searchQuery" class="transaction-months-list">
 			<li v-for="transaction in filteredTransactions" :key="transaction.id" class="transaction">
 				<TransactionListItem :transaction="transaction" />
 			</li>
 			<li>
 				<p class="footer">
-					<span>{{ numberOfTransactions }}</span> transaction<span v-if="numberOfTransactions !== 1"
+					<span>{{ filteredTransactions.length }}</span> of
+					<span>{{ theseTransactions.length }}</span> transaction<span
+						v-if="theseTransactions.length !== 1"
 						>s</span
 					>
 				</p>
 			</li>
 		</List>
+
+		<!-- Months (normal view) -->
+		<List v-else class="transaction-months-list">
+			<li>
+				<AddRecordListItem @click="startCreatingTransaction" />
+			</li>
+			<li v-for="[month, monthTransactions] in transactionMonths" :key="month">
+				<TransactionMonthListItem
+					:account-id="accountId"
+					:month-name="month"
+					:count="monthTransactions.length"
+				/>
+			</li>
+		</List>
 	</main>
 
-	<Modal v-if="account" :open="isEditingTransaction" :close-modal="finishCreatingTransaction">
-		<TransactionEdit :account="account" @finished="finishCreatingTransaction" />
-	</Modal>
+	<TransactionCreateModal
+		v-if="account"
+		:account="account"
+		:is-open="isEditingTransaction"
+		:close-modal="finishCreatingTransaction"
+	/>
 	<Modal v-if="account" :open="isEditingAccount" :close-modal="finishEditingAccount">
 		<AccountEdit :account="account" @deleted="goBack" @finished="finishEditingAccount" />
 	</Modal>
@@ -185,7 +212,7 @@ function finishEditingAccount() {
 	margin: 1em auto;
 }
 
-.transactions-list {
+.transaction-months-list {
 	.footer {
 		padding-top: 0.5em;
 		user-select: none;

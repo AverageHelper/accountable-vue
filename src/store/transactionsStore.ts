@@ -8,12 +8,14 @@ import type { Tag } from "../model/Tag";
 import { dinero, add, subtract } from "dinero.js";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
+import { reverseChronologically } from "../model/utility/sort";
 import { stores } from "./stores";
 import { USD } from "@dinero.js/currencies";
 import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
+import groupBy from "lodash/groupBy";
 import {
 	getTransactionsForAccount,
 	createTransaction,
@@ -26,9 +28,19 @@ import {
 	writeBatch,
 } from "../transport";
 
+interface Month {
+	/** The date at which the month begins */
+	start: Date;
+
+	/** The month's short identifier */
+	id: string;
+}
+
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
+		transactionsForAccountByMonth: {} as Dictionary<Dictionary<Array<Transaction>>>, // Account.id -> month -> Transaction[]
+		months: {} as Dictionary<Month>,
 		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
 	getters: {
@@ -75,7 +87,11 @@ export const useTransactionsStore = defineStore("transactions", {
 			const collection = transactionsCollection();
 			this.transactionsWatchers[account.id] = watchAllRecords(
 				collection,
-				snap =>
+				snap => {
+					// Clear derived cache
+					delete this.transactionsForAccountByMonth[account.id];
+
+					// Update cache
 					snap.docChanges().forEach(change => {
 						const accountTransactions = this.transactionsForAccount[account.id] ?? {};
 						let currentBalance =
@@ -135,7 +151,34 @@ export const useTransactionsStore = defineStore("transactions", {
 							const ui = useUiStore();
 							ui.handleError(error);
 						}
-					}),
+					});
+
+					// Derive cache
+					const months: Dictionary<Month> = {};
+					const groupedTransactions = groupBy(
+						this.transactionsForAccount[account.id] ?? {},
+						transaction => {
+							const month: Month = {
+								start: new Date(
+									transaction.createdAt.getFullYear(),
+									transaction.createdAt.getMonth()
+								),
+								id: transaction.createdAt.toLocaleDateString(undefined, {
+									month: "short",
+									year: "numeric",
+								}),
+							};
+							months[month.id] = month; // cache the month short ID with its sortable date
+							return month.id;
+						}
+					);
+					for (const month of Object.keys(groupedTransactions)) {
+						// Sort each transaction list
+						groupedTransactions[month]?.sort(reverseChronologically);
+					}
+					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
+					this.months = months;
+				},
 				error => {
 					console.error(error);
 					const watcher = this.transactionsWatchers[account.id];

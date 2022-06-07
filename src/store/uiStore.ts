@@ -1,14 +1,9 @@
+import { AccountableError } from "../transport/errors/index.js";
+import { bootstrap, db, getUserStats, isWrapperInstantiated } from "../transport/db.js";
 import { defineStore } from "pinia";
 import { getServerVersion } from "../transport/server.js";
 import { useToast } from "vue-toastification";
 import { StructError } from "superstruct";
-import {
-	AccountableError,
-	bootstrap,
-	db,
-	getUserStats,
-	isWrapperInstantiated,
-} from "../transport/db.js";
 
 type ColorScheme = "light" | "dark";
 

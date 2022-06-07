@@ -45,6 +45,11 @@ export async function statsForUser(uid: string): Promise<UserStats> {
 	return { totalSpace, usedSpace };
 }
 
+export async function numberOfUsers(): Promise<number> {
+	const allUsers = await UserModel.find();
+	return allUsers.length;
+}
+
 export async function fetchDbCollection(
 	ref: CollectionReference<AnyDataItem>
 ): Promise<Array<IdentifiedDataItem>> {

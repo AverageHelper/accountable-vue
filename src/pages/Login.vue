@@ -3,6 +3,7 @@ import ActionButton from "../components/buttons/ActionButton.vue";
 import ErrorNotice from "../components/ErrorNotice.vue";
 import Footer from "../Footer.vue";
 import TextField from "../components/inputs/TextField.vue";
+import { accountsPath, loginPath, signupPath } from "../router";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
@@ -13,15 +14,18 @@ const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
 
+const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "true");
+
 const isLoggedIn = computed(() => auth.uid !== null);
 const bootstrapError = computed(() => ui.bootstrapError);
 const accountId = ref("");
 const password = ref("");
 const passwordRepeat = ref("");
 const isLoading = ref(false);
-const mode = computed<"login" | "signup">(() =>
-	route.path.includes("signup") ? "signup" : "login"
-);
+const mode = computed<"login" | "signup">(() => {
+	if (!isSignupEnabled.value) return "login"; // can't sign up? log in instead.
+	return route.path === signupPath() ? "signup" : "login";
+});
 const isSignupMode = computed(() => mode.value === "signup");
 const isLoginMode = computed(() => mode.value === "login");
 const loginProcessState = computed(() => auth.loginProcessState);
@@ -54,14 +58,14 @@ watch(
 	isLoggedIn,
 	async isLoggedIn => {
 		if (isLoggedIn) {
-			await router.push("/accounts");
-		} else if (route.path !== "/login" && route.path !== "/signup") {
+			await router.push(accountsPath());
+		} else if (route.path !== loginPath() && route.path !== signupPath()) {
 			switch (mode.value) {
 				case "login":
-					await router.push("/login");
+					await router.push(loginPath());
 					break;
 				case "signup":
-					await router.push("/signup");
+					await router.push(signupPath());
 					break;
 			}
 		}
@@ -71,12 +75,12 @@ watch(
 
 function enterSignupMode() {
 	accountId.value = "";
-	void router.replace("/signup");
+	void router.replace(signupPath());
 }
 
 function enterLoginMode() {
 	accountId.value = "";
-	void router.replace("/login");
+	void router.replace(loginPath());
 }
 
 function onUpdateAccountId(newId: string) {
@@ -112,7 +116,7 @@ async function submit() {
 		}
 
 		await nextTick();
-		await router.replace("/accounts");
+		await router.replace(accountsPath());
 	} catch (error: unknown) {
 		ui.handleError(error);
 	} finally {
@@ -172,11 +176,14 @@ async function submit() {
 			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from passphrase...</span>
 
 			<div v-if="!isLoading">
-				<p v-if="isLoginMode"
+				<p v-if="!isSignupEnabled"
+					>Don't have an account? We'll be open for new accounts soon&trade;.</p
+				>
+				<p v-else-if="isLoginMode"
 					>Need to create an account?
 					<a href="#" @click.prevent="enterSignupMode">Create one!</a>
 				</p>
-				<p v-if="isSignupMode"
+				<p v-else-if="isSignupMode"
 					>Already have an account?
 					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
 				</p>

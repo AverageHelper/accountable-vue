@@ -22,9 +22,9 @@ export class Tag implements Identifiable<string>, TagRecordParams {
 
 	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is TagRecordParams {
 		return (
-			typeof toBeDetermined === "object" &&
-			toBeDetermined !== null &&
 			toBeDetermined !== undefined &&
+			toBeDetermined !== null &&
+			typeof toBeDetermined === "object" &&
 			Boolean(toBeDetermined) &&
 			!Array.isArray(toBeDetermined) &&
 			"name" in toBeDetermined &&

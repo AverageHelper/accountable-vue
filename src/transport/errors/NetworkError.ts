@@ -1,4 +1,4 @@
-import type { ServerResponse } from "../networking.js";
+import type { ServerResponse } from "../api-types/index.js";
 
 export class NetworkError extends Error {
 	readonly code: number;
