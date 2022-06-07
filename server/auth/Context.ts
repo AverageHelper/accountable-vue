@@ -1,5 +1,9 @@
 import type { Request } from "express";
 
+interface ContextParams {
+	readonly uid: string;
+}
+
 /**
  * A representation of the session context.
  *
@@ -14,7 +18,7 @@ export class Context {
 		this.uid = uid;
 	}
 
-	static bind(req: Request, params: { uid: string }): void {
+	static bind(req: Request, params: ContextParams): void {
 		const ctx = new Context(params.uid);
 		Context._bindings.set(req, ctx);
 	}

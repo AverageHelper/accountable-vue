@@ -6,7 +6,6 @@ import { MAX_USERS } from "./limits.js";
 import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
-import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 import {
 	BadRequestError,
@@ -17,6 +16,7 @@ import {
 import {
 	destroyUser,
 	findUserWithProperties,
+	newDocumentId,
 	numberOfUsers,
 	statsForUser,
 	upsertUser,

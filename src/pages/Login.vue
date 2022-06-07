@@ -117,7 +117,7 @@ async function submit() {
 
 		await nextTick();
 		await router.replace(accountsPath());
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	} finally {
 		isLoading.value = false;

@@ -64,7 +64,7 @@ async function submit() {
 		}
 
 		emit("finished");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 
@@ -82,7 +82,7 @@ async function deleteAccount() {
 		await accounts.deleteAccount(ogAccount.value);
 		emit("deleted");
 		emit("finished");
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 

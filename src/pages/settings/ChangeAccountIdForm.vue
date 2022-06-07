@@ -32,7 +32,7 @@ async function regenerateAccountId() {
 		await auth.regenerateAccountId(currentPassword.value);
 		toast.success("Your account ID has been updated!");
 		reset();
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	}
 	isLoading.value = false;

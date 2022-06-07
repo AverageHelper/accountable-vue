@@ -217,7 +217,7 @@ export const useAuthStore = defineStore("auth", {
 			// Update auth password
 			try {
 				await updatePassword(auth, user, await hashed(oldPassword), await hashed(newPassword));
-			} catch (error: unknown) {
+			} catch (error) {
 				// Overwrite the new key with the old key, and have user try again
 				await setAuthMaterial(user.uid, oldMaterial);
 				this.pKey = await derivePKey(oldPassword, oldMaterial.passSalt);

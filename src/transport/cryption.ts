@@ -157,7 +157,7 @@ export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashSto
 
 	try {
 		return JSON.parse(plaintext) as unknown;
-	} catch (error: unknown) {
+	} catch (error) {
 		if (error instanceof Error) {
 			throw new DecryptionError(`JSON parse failed: ${error.message}: '${plaintext}'`);
 		} else {

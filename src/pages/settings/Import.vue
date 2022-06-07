@@ -49,7 +49,7 @@ async function onFileReceived(file: File) {
 		db.value = create(json, schema);
 		dbName.value = file.name;
 		archive.value = zipFile;
-	} catch (error: unknown) {
+	} catch (error) {
 		ui.handleError(error);
 	} finally {
 		toast.dismiss(progressMeter);
