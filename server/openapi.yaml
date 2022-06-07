@@ -61,7 +61,7 @@ paths:
     get:
       tags:
         - misc
-      summary: Get the server's version string
+      summary: Get the server's version information
       operationId: version
       responses:
         200:
@@ -500,7 +500,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
@@ -571,7 +571,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
@@ -698,7 +698,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
@@ -835,7 +835,7 @@ paths:
     parameters:
       - name: uid
         in: path
-        description: The ID of the user whose data to get. Should match the ID of the signed-in user.
+        description: The ID of the user who owns the data. Should match the ID of the signed-in user.
         required: true
         schema:
           type: string
