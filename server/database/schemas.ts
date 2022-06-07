@@ -19,6 +19,17 @@ function isValidForSchema(data: unknown, schema: Joi.AnySchema): boolean {
 	return !error;
 }
 
+const jwtPayload = Joi.object({
+	uid: Joi.string().required(),
+	hash: Joi.string(),
+});
+
+export type JwtPayload = Joi.extractType<typeof jwtPayload>;
+
+export function isJwtPayload(tbd: unknown): tbd is JwtPayload {
+	return isValidForSchema(tbd, jwtPayload);
+}
+
 const user = Joi.object({
 	uid: Joi.string().required(),
 	currentAccountId: Joi.string().required(),
@@ -36,18 +47,15 @@ export type DocumentData<T> = {
 	[K in keyof T]: Primitive;
 };
 
-const partialDataItem = {
+const dataItem = Joi.object({
 	ciphertext: Joi.string().required(),
 	objectType: Joi.string().required(),
-};
-type PartialDataItem = Joi.extractType<typeof partialDataItem>;
-
-export function isPartialDataItem(tbd: unknown): tbd is PartialDataItem {
-	return isValidForSchema(tbd, Joi.object(partialDataItem));
-}
-
-const dataItem = Joi.object(partialDataItem);
+});
 export type DataItem = Joi.extractType<typeof dataItem>;
+
+export function isDataItem(tbd: unknown): tbd is DataItem {
+	return isValidForSchema(tbd, dataItem);
+}
 
 const userKeys = Joi.object({
 	dekMaterial: Joi.string().required(),
