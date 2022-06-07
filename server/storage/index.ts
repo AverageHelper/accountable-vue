@@ -11,7 +11,7 @@ import { respondData, respondError, respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { stat as fsStat, unlink as fsUnlink, readFile } from "fs/promises";
 import { simplifiedByteCount } from "../transformers/simplifiedByteCount.js";
-import { touch } from "./touch.js";
+import { touch } from "../database/filesystem.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import meter from "stream-meter";
 import {
