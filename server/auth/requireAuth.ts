@@ -7,12 +7,16 @@ import { Context } from "./Context.js";
 import { findUserWithProperties } from "../database/io.js";
 import { UnauthorizedError } from "../errors/index.js";
 
+interface Metadata {
+	user: User;
+}
+
 async function userWithUid(uid: string): Promise<User | null> {
 	// Find first user whose UID matches
 	return await findUserWithProperties({ uid });
 }
 
-export async function userFromRequest(req: Request): Promise<User | null> {
+async function metadataFromRequest(req: Request): Promise<Metadata | null> {
 	const token = jwtTokenFromRequest(req);
 	if (token === null) {
 		console.debug("Request has no JWT");
@@ -32,16 +36,21 @@ export async function userFromRequest(req: Request): Promise<User | null> {
 	if (uid === null || typeof uid !== "string")
 		throw new TypeError(`Malformatted JWT: ${JSON.stringify(payload)}`);
 
-	return userWithUid(uid);
+	// NOTE: We need a full user-fetch here so we know we're working with a real user.
+	// You might be tempted to slim this down to just passing the UID through, but don't.
+	const user = await userWithUid(uid);
+	if (!user) return null;
+
+	return { user };
 }
 
 /** Returns a handler that makes sure the calling user is authorized here. */
 export function requireAuth(this: void): RequestHandler {
 	return asyncWrapper(async (req, res, next) => {
-		const user = await userFromRequest(req);
-		if (!user) throw new UnauthorizedError();
+		const metadata = await metadataFromRequest(req);
+		if (!metadata) throw new UnauthorizedError();
 
-		const uid = user.uid;
+		const uid = metadata.user.uid;
 		Context.bind(req, { uid }); // This reference drops when the request is done
 		next();
 	});
