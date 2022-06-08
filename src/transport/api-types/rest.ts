@@ -5,11 +5,8 @@ import { NetworkError, UnexpectedResponseError } from "../errors/index.js";
 
 export interface ServerResponse extends RawServerResponse {
 	status: HttpStatusCode;
-	message: string;
-}
 
-export interface ServerResponse extends RawServerResponse {
-	status: HttpStatusCode;
+	/** @deprecated */
 	message: string;
 }
 

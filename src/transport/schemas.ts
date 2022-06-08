@@ -66,6 +66,7 @@ export function isDocumentData(tbd: unknown): tbd is DocumentData {
 
 const rawServerResponse = object({
 	message: optional(string()),
+	code: optional(string()),
 	version: optional(string()),
 	totalSpace: optional(number()),
 	usedSpace: optional(number()),

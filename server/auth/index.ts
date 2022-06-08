@@ -113,14 +113,14 @@ export function auth(this: void): Router {
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
 					console.debug(`Found no user under account ${JSON.stringify(givenAccountId)}`);
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
 					console.debug(`The given password doesn't match what's stored`);
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Generate an auth token and send it along
@@ -159,13 +159,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Delete the user
@@ -196,13 +196,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Store new credentials
@@ -240,13 +240,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Store new credentials
