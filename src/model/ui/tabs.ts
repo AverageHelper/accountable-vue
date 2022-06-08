@@ -4,6 +4,7 @@ import FileIcon from "../../icons/File.vue";
 import LocationIcon from "../../icons/Location.vue";
 import TagIcon from "../../icons/Tag.vue";
 import { accountsPath, attachmentsPath, locationsPath, tagsPath } from "router";
+import { t } from "../../i18n";
 
 export type Tab = "accounts" | "attachments" | "locations" | "tags";
 
@@ -16,15 +17,15 @@ export function isAppTab(tbd: string): tbd is Tab {
 export function labelForTab(tab: Tab): string {
 	switch (tab) {
 		case "accounts":
-			return "Accounts";
+			return t("app.nav.accounts");
 		case "attachments":
-			return "Files";
+			return t("app.nav.files");
 		case "locations":
-			return "Locations";
+			return t("app.nav.locations");
 		case "tags":
-			return "Tags";
+			return t("app.nav.tags");
 		default:
-			return "Page";
+			return t("app.nav.generic-page");
 	}
 }
 

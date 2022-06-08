@@ -14,7 +14,6 @@ import { useAuthStore } from "../store";
 
 interface MenuItem {
 	id: string;
-	name: string;
 	path: string;
 	requiresLogin?: boolean;
 	icon?: Component | null;
@@ -31,15 +30,24 @@ const isTabletWidth = computed(() => windowWidth.value < 768);
 
 const settingsItems = computed<Array<MenuItem>>(() => {
 	const items: Array<MenuItem> = [
-		{ id: "settings", name: "Settings", path: settingsPath(), requiresLogin: true, icon: Gear },
-		{ id: "log-out", name: "Log out", path: logoutPath(), requiresLogin: true, icon: LogOut },
+		{
+			id: "app.nav.settings",
+			path: settingsPath(),
+			requiresLogin: true,
+			icon: Gear,
+		},
+		{
+			id: "app.nav.log-out",
+			path: logoutPath(),
+			requiresLogin: true,
+			icon: LogOut,
+		},
 	];
 
 	if (isTabletWidth.value) {
 		items.unshift(
 			...appTabs.map<MenuItem>(tab => ({
-				id: tab,
-				name: labelForTab(tab),
+				id: labelForTab(tab),
 				path: routeForTab(tab),
 				requiresLogin: true,
 				icon: iconForTab(tab),
@@ -80,7 +88,7 @@ onBeforeUnmount(() => {
 				<li v-if="!item.requiresLogin || isLoggedIn">
 					<router-link :to="item.path" @click="close">
 						<component :is="item.icon" v-if="item.icon" />
-						<span>{{ item.name }}</span>
+						<span>{{ $t(item.id) }}</span>
 					</router-link>
 				</li>
 			</template>

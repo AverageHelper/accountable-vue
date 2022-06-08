@@ -1,4 +1,5 @@
 import type { ServerResponse } from "../api-types/index.js";
+import { t } from "../../i18n";
 
 type ErrorCode =
 	| "account-conflict"
@@ -14,33 +15,8 @@ type ErrorCode =
 	| "unknown";
 
 function messageFromCode(code: string | undefined): string | null {
-	// TODO: I18N
-	switch (code as ErrorCode) {
-		case "account-conflict":
-			return "An account with that ID already exists";
-		case "bad-gateway":
-			return "The CORS policy for this site does not allow access from the specified Origin.";
-		case "bad-method":
-			return "That method is not allowed here. What are you trying to do?";
-		case "expired-token":
-			return "You must sign in again in order to proceed";
-		case "missing-token":
-			return "Unauthorized";
-		case "not-found":
-			return "No data found";
-		case "not-implemented":
-			return "That feature is not implemented yet";
-		case "not-owner":
-			return "Unauthorized";
-		case "too-many-requests":
-			return "You are being throttled";
-		case "wrong-credentials":
-			return "Incorrect account ID or passphrase";
-		case "unknown":
-			return "Not sure what went wrong. Try again maybe?";
-		default:
-			return null;
-	}
+	if (code === undefined) return null;
+	return t(`common.error.${code as ErrorCode}`);
 }
 
 export class NetworkError extends Error {

@@ -1,0 +1,95 @@
+{
+	"meta": {
+		"code": "en-US",
+		"language": "English (United States)",
+		"flag": "🇺🇸"
+	},
+	"common": {
+		"count": {
+			"account": "{n} accounts | {n} account | {n} accounts"
+		},
+		"error": {
+			"account-conflict": "An account with that ID already exists",
+			"bad-gateway": "The CORS policy for this site does not allow access from the specified Origin.",
+			"bad-method": "That method is not allowed here. What are you trying to do?",
+			"expired-token": "You must sign in again in order to proceed",
+			"missing-token": "Unauthorized",
+			"not-found": "No data found",
+			"not-implemented": "That feature is not implemented yet",
+			"not-owner": "Unauthorized",
+			"too-many-requests": "You are being throttled",
+			"wrong-credentials": "Incorrect account ID or passphrase",
+			"unknown": "Not sure what went wrong. Try again maybe?"
+		},
+		"accountable": "Accountable",
+		"client": "Client",
+		"learn-more": "Learn More",
+		"server": "Server"
+	},
+	"footer": {
+		"license": {
+			"preamble": "This project is licensed under the",
+			"name": "GNU General Public License v3.0",
+			"view-license": "View the full license"
+		},
+		"pr": {
+			"start": "Feel free to",
+			"open-issue": "open an issue",
+			"submit-pr": "or submit a pull request on this project's",
+			"github-page": "GitHub page"
+		},
+		"view-github": "Check out my GitHub",
+		"view-source": "View this project's source code"
+	},
+	"home": {
+		"sign-up-now": "Get Started",
+		"tagline": "Respectful digital financial records.",
+		"nav": {
+			"about": "About",
+			"home": "Home",
+			"install": "Install",
+			"log-in": "Login",
+			"security": "Security"
+		}
+	},
+	"login": {
+		"account-id": "account ID",
+		"current-passphrase": "passphrase",
+		"repeat-passphrase": "passphrase again",
+		"new-passphrase": "Create a strong passphrase",
+		"value-will-be-generated": "to be generated...",
+		"log-in": "Log in",
+		"create-account": "Create an account",
+		"process": {
+			"authenticating": "Authenticating...",
+			"generating-keys": "Generating keys...",
+			"fetching-keys": "Fetching keys...",
+			"deriving-pkey": "Deriving key from passphrase..."
+		},
+		"new-account-prompt": {
+			"open-soon": "Don't have an account? We'll be open for new accounts soon™",
+			"create": {
+				"question": "Need to create an account?",
+				"action": "Create one!"
+			},
+			"already-have": {
+				"question": "Already have an account?",
+				"action": "Log in!"
+			}
+		}
+	},
+	"app": {
+		"nav": {
+			"accounts": "Accounts",
+			"files": "Files",
+			"locations": "Locations",
+			"log-out": "Log out",
+			"generic-page": "Page",
+			"settings": "Settings",
+			"tags": "Tags"
+		}
+	},
+	"snark": {
+		"soon-tm": "Soon™"
+	}
+}

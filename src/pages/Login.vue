@@ -135,9 +135,9 @@ async function submit() {
 			<TextField
 				ref="accountIdField"
 				v-model="accountId"
-				:model-value="isSignupMode && !isLoading ? 'to be generated...' : accountId"
+				:model-value="isSignupMode && !isLoading ? $t('login.value-will-be-generated') : accountId"
 				:disabled="isSignupMode && !isLoading"
-				label="account ID"
+				:label="$t('login.account-id')"
 				placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
 				autocomplete="username"
 				:shows-required="false"
@@ -148,7 +148,7 @@ async function submit() {
 				ref="passwordField"
 				v-model="password"
 				type="password"
-				:label="isSignupMode ? 'Create a strong passphrase' : 'passphrase'"
+				:label="$t(isSignupMode ? 'login.new-passphrase' : 'login.current-passphrase')"
 				placeholder="********"
 				:autocomplete="isSignupMode ? 'new-password' : 'current-password'"
 				:shows-required="false"
@@ -158,7 +158,7 @@ async function submit() {
 				v-if="isSignupMode"
 				v-model="passwordRepeat"
 				type="password"
-				label="passphrase again"
+				:label="$t('login.repeat-passphrase')"
 				placeholder="********"
 				autocomplete="new-password"
 				:shows-required="false"
@@ -168,24 +168,34 @@ async function submit() {
 				type="submit"
 				:kind="isSignupMode ? 'bordered-primary-green' : 'bordered-primary'"
 				:disabled="isLoading"
-				>{{ isSignupMode ? "Create an account" : "Log in" }}</ActionButton
+				>{{ $t(isSignupMode ? "login.create-account" : "login.log-in") }}</ActionButton
 			>
-			<span v-if="loginProcessState === 'AUTHENTICATING'">Authenticating...</span>
-			<span v-if="loginProcessState === 'GENERATING_KEYS'">Generating keys...</span>
-			<span v-if="loginProcessState === 'FETCHING_KEYS'">Fetching keys...</span>
-			<span v-if="loginProcessState === 'DERIVING_PKEY'">Deriving key from passphrase...</span>
+			<span v-if="loginProcessState === 'AUTHENTICATING'">{{
+				$t("login.process.authenticating")
+			}}</span>
+			<span v-if="loginProcessState === 'GENERATING_KEYS'">{{
+				$t("login.process.generating-keys")
+			}}</span>
+			<span v-if="loginProcessState === 'FETCHING_KEYS'">{{
+				$t("login.process.fetching-keys")
+			}}</span>
+			<span v-if="loginProcessState === 'DERIVING_PKEY'">{{
+				$t("login.process.deriving-pkey")
+			}}</span>
 
 			<div v-if="!isLoading">
-				<p v-if="!isSignupEnabled"
-					>Don't have an account? We'll be open for new accounts soon&trade;.</p
-				>
+				<p v-if="!isSignupEnabled">{{ $t("login.new-account-prompt.open-soon") }}.</p>
 				<p v-else-if="isLoginMode"
-					>Need to create an account?
-					<a href="#" @click.prevent="enterSignupMode">Create one!</a>
+					>{{ $t("login.new-account-prompt.create.question") }}
+					<a href="#" @click.prevent="enterSignupMode">{{
+						$t("login.new-account-prompt.create.action")
+					}}</a>
 				</p>
 				<p v-else-if="isSignupMode"
-					>Already have an account?
-					<a href="#" @click.prevent="enterLoginMode">Log in!</a>
+					>{{ $t("login.new-account-prompt.already-have.question") }}
+					<a href="#" @click.prevent="enterLoginMode">{{
+						$t("login.new-account-prompt.already-have.action")
+					}}</a>
 				</p>
 			</div>
 		</form>

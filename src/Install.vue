@@ -24,8 +24,8 @@ const loginRoute = computed(() => loginPath());
 			<OutLink to="https://github.com/AverageHelper/accountable-vue/tree/main#setup"
 				>README</OutLink
 			>
-			for more on how to set Accountable up on your own computer.<span v-if="!loginEnabled">
-				We're planning a hosted solution right here soon.</span
+			for more on how to set Accountable up on your own computer.<template v-if="!loginEnabled">
+				We're planning a hosted solution right here soon.</template
 			>
 		</p>
 		<p

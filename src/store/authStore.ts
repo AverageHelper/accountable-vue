@@ -99,7 +99,7 @@ export const useAuthStore = defineStore("auth", {
 				const { user } = await signInWithAccountIdAndPassword(
 					auth,
 					accountId,
-					await hashed(password)
+					await hashed(password) // FIXME: Should use OPAQUE or SRP instead
 				);
 				await uiStore.updateUserStats();
 

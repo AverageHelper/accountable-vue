@@ -4,10 +4,14 @@ import autoprefixer from "autoprefixer";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
 import vue from "@vitejs/plugin-vue";
+// import vueI18n from "@intlify/vite-plugin-vue-i18n";
 
 export default defineConfig({
 	plugins: [
 		vue(),
+		// vueI18n({
+		// 	include: path.resolve(__dirname, "./src/i18n/lang"),
+		// }),
 		tsconfigPaths({ projects: ["./tsconfig.prod.json"] }),
 		analyze({
 			onAnalysis: () => {
@@ -28,6 +32,7 @@ export default defineConfig({
 	],
 	resolve: {
 		alias: {
+			// "vue-i18n": "vue-i18n/dist/vue-i18n.runtime.esm-bundler.js",
 			"@": path.resolve(__dirname, "/src"),
 			"~bootstrap": "bootstrap",
 		},

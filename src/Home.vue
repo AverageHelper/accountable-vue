@@ -15,18 +15,18 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 
 <template>
 	<main class="content">
-		<h1 class="tagline">Respectful digital financial records.</h1>
+		<h1 class="tagline">{{ $t("home.tagline") }}</h1>
 
 		<!-- Get started now -->
 		<section id="get-started">
 			<router-link :to="aboutRoute">
-				<ActionButton kind="bordered-secondary">Learn More</ActionButton>
+				<ActionButton kind="bordered-secondary">{{ $t("common.learn-more") }}</ActionButton>
 			</router-link>
 			<router-link v-if="isSignupEnabled" :to="signupRoute">
-				<ActionButton kind="bordered-primary-green">Get Started</ActionButton>
+				<ActionButton kind="bordered-primary-green">{{ $t("home.sign-up-now") }}</ActionButton>
 			</router-link>
 			<a v-else href="#" @click.prevent>
-				<ActionButton kind="bordered-primary-green">Coming Soon&trade;</ActionButton>
+				<ActionButton kind="bordered-primary-green">Coming {{ $t("snark.soon-tm") }}</ActionButton>
 			</a>
 		</section>
 

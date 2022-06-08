@@ -68,9 +68,9 @@ function finishCreatingAccount() {
 				<AccountListItem :account="account" />
 			</li>
 			<li v-if="numberOfAccounts > 0">
-				<p class="footer"
-					>{{ numberOfAccounts }} account<span v-if="numberOfAccounts !== 1">s</span>
-				</p>
+				<p class="footer">{{
+					$tc("common.count.account", numberOfAccounts, { n: numberOfAccounts })
+				}}</p>
 			</li>
 		</List>
 	</main>
