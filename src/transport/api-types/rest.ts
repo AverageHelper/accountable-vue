@@ -8,11 +8,6 @@ export interface ServerResponse extends RawServerResponse {
 	message: string;
 }
 
-export interface ServerResponse extends RawServerResponse {
-	status: HttpStatusCode;
-	message: string;
-}
-
 /** Performs a GET request at the provided URL, optionally using the given JWT. */
 export async function getFrom(url: URL, token?: string): Promise<ServerResponse> {
 	return await doRequest(url, { method: "GET" }, token);

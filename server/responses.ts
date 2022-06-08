@@ -34,7 +34,7 @@ export function respondError(this: void, res: Response, err: InternalError): voi
 	err.headers.forEach((value, name) => {
 		res.setHeader(name, value);
 	});
-	res.status(err.status).json({ message: err.message });
+	res.status(err.status).json({ message: err.message, code: err.code });
 }
 
 export function respondInternalError(this: void, res: Response): void {

@@ -86,7 +86,9 @@ export async function createUserWithAccountIdAndPassword(
 /**
  * Signs out the current user.
  *
- * @param auth - The {@link AccountableDB} instance.
+ * @param db - The {@link AccountableDB} instance.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function signOut(db: AccountableDB): Promise<void> {
 	const jwt = db.jwt;
@@ -110,6 +112,8 @@ export async function signOut(db: AccountableDB): Promise<void> {
  * @param db - The {@link AccountableDB} instance.
  * @param account - The user's account ID.
  * @param password - The user's password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function signInWithAccountIdAndPassword(
 	db: AccountableDB,
@@ -138,6 +142,8 @@ export async function signInWithAccountIdAndPassword(
  * @param db - The {@link AccountableDB} instance.
  * @param user - The user.
  * @param password - The user's chosen password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
 	if (db.jwt === null || !db.jwt) throw new AccountableError("auth/unauthenticated");
@@ -156,6 +162,8 @@ export async function deleteUser(db: AccountableDB, user: User, password: string
  * @param user - The user.
  * @param newAccountId - The new account ID.
  * @param password - The user's chosen password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function updateAccountId(
 	user: User,
@@ -180,6 +188,8 @@ export async function updateAccountId(
  * @param user - The user.
  * @param oldPassword - The old password.
  * @param newPassword - The new password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function updatePassword(
 	db: AccountableDB,

@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Accountable
-  version: 0.4.2
+  version: 0.4.3
   description: This is the Accountable Server. It doesn't do much, because the Accountable client does most of the hard work. You can read the source code on [GitHub](https://github.com/AverageHelper/accountable-vue).
   license:
     name: GNU General Public License v3.0
@@ -145,6 +145,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "account-conflict"
                   message:
                     type: string
                     enum:
@@ -216,6 +220,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "wrong-credentials"
                   message:
                     type: string
                     enum:
@@ -293,6 +301,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "wrong-credentials"
                   message:
                     type: string
                     enum:
@@ -354,6 +366,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "wrong-credentials"
                   message:
                     type: string
                     enum:
@@ -415,6 +431,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "wrong-credentials"
                   message:
                     type: string
                     enum:
@@ -423,7 +443,7 @@ paths:
     post:
       tags:
         - database
-      summary: "Perform a batch of up to 500 document writes"
+      summary: "Perform a batch of up to 500 document writes for a user"
       description: Does nothing when the batch is empty
       operationId: batch-write
       requestBody:
@@ -486,6 +506,19 @@ paths:
                     type: string
                     enum:
                       - "Invalid data"
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection not found
           content:
@@ -493,6 +526,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -519,6 +556,19 @@ paths:
             application/json:
               schema:
                 type: object
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection not found
           content:
@@ -526,6 +576,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -557,6 +611,19 @@ paths:
                     type: number
                     example: 85000
                     description: "The number of bytes the user has stored."
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection was not found
           content:
@@ -564,6 +631,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -597,6 +668,19 @@ paths:
               schema:
                 type: object
                 nullable: true
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection was not found
           content:
@@ -604,6 +688,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -646,6 +734,19 @@ paths:
                     type: string
                     enum:
                       - "Invalid data"
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection was not found
           content:
@@ -653,6 +754,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -684,6 +789,19 @@ paths:
                     type: number
                     example: 85000
                     description: "The number of bytes the user has stored."
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The collection was not found
           content:
@@ -691,6 +809,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -745,6 +867,19 @@ paths:
                     type: string
                     enum:
                       - "Your UID or that file name don't add up to a valid path"
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
         404:
           description: The file data was not found
           content:
@@ -752,6 +887,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -794,6 +933,34 @@ paths:
                     type: string
                     enum:
                       - "Your UID or that file name don't add up to a valid path"
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
+        404:
+          description: The file data was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
     delete:
       tags:
         - storage
@@ -832,6 +999,34 @@ paths:
                     type: string
                     enum:
                       - "Your UID or that file name don't add up to a valid path"
+        403:
+          description: The caller does not have permission to access the resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
+        404:
+          description: The file data was not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
+                  message:
+                    type: string
+                    enum:
+                      - "No data found"
     parameters:
       - name: uid
         in: path
