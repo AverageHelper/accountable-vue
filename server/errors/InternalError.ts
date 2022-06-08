@@ -1,6 +1,14 @@
 import type { UnauthorizedErrorCode } from "./UnauthorizedError";
 
-export type ErrorCode = UnauthorizedErrorCode | "unknown";
+export type ErrorCode =
+	| UnauthorizedErrorCode
+	| "account-conflict"
+	| "bad-gateway"
+	| "bad-method"
+	| "not-found"
+	| "not-implemented"
+	| "too-many-requests"
+	| "unknown";
 
 export class InternalError extends Error {
 	/** The HTTP status that should be reported to the caller. */

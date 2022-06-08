@@ -145,6 +145,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "account-conflict"
                   message:
                     type: string
                     enum:
@@ -522,6 +526,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -568,6 +576,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -619,6 +631,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -672,6 +688,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -734,6 +754,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -785,6 +809,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -859,6 +887,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -921,6 +953,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
@@ -983,6 +1019,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    enum:
+                      - "not-found"
                   message:
                     type: string
                     enum:
