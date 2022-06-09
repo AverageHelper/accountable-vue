@@ -7,25 +7,27 @@ import OutLink from "./components/OutLink.vue";
 <template>
 	<footer>
 		<p><AppVersion /></p>
-		<p
-			>{{ $t("footer.license.preamble") }}
-			<OutLink
-				to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
-				:title="$t('footer.license.view-license')"
-				>{{ $t("footer.license.name") }}</OutLink
-			>.</p
-		>
-		<p
-			>{{ $t("footer.pr.start") }}
-			<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose">{{
-				$t("footer.pr.open-issue")
-			}}</OutLink>
-			{{ $t("footer.pr.submit-pr") }}
-			<OutLink href="https://github.com/AverageHelper/accountable-vue">{{
-				$t("footer.pr.github-page")
-			}}</OutLink
-			>.</p
-		>
+		<i18n-t keypath="footer.license" tag="p">
+			<template #name>
+				<OutLink
+					to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
+					:title="$t('footer.view-license')"
+					>{{ $t("footer.license-name") }}</OutLink
+				>
+			</template>
+		</i18n-t>
+		<i18n-t keypath="footer.pr" tag="p">
+			<template #issue>
+				<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose">{{
+					$t("footer.issue")
+				}}</OutLink>
+			</template>
+			<template #github>
+				<OutLink href="https://github.com/AverageHelper/accountable-vue">{{
+					$t("footer.github")
+				}}</OutLink>
+			</template>
+		</i18n-t>
 		<p>
 			<OutLink
 				href="https://github.com/AverageHelper/accountable-vue"

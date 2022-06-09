@@ -27,17 +27,12 @@
 		"server": "Server"
 	},
 	"footer": {
-		"license": {
-			"preamble": "This project is licensed under the",
-			"name": "GNU General Public License v3.0",
-			"view-license": "View the full license"
-		},
-		"pr": {
-			"start": "Feel free to",
-			"open-issue": "open an issue",
-			"submit-pr": "or submit a pull request on this project's",
-			"github-page": "GitHub page"
-		},
+		"license": "This project is licensed under the {name}.",
+		"license-name": "GNU General Public License v3.0",
+		"view-license": "View the full license",
+		"pr": "Feel free to {issue} or submit a pull request on this project's {github}.",
+		"issue": "open an issue",
+		"github": "GitHub page",
 		"view-github": "Check out my GitHub",
 		"view-source": "View this project's source code"
 	},
@@ -76,6 +71,69 @@
 				"question": "Already have an account?",
 				"action": "Log in!"
 			}
+		}
+	},
+	"about": {
+		"goals": {
+			"heading": "Goals",
+			"p1": "The aim of Accountable is to be a cross-platform and portable spot to keep your transaction records and receipts. I plan to have proper mobile clients eventually. The {selfhost} option will always be available, and I intend for this project to always be {opensource}. You will always have access to the financial records that you give to Accountable, and Accountable cannot share those records with anyone else.",
+			"selfhost": "self-host",
+			"opensource": "open-source"
+		},
+		"alternatives": {
+			"heading": "Alternatives",
+			"p1": "There are a few {alts} out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of their owners:",
+			"alts": "open-source desktop balance keepers"
+		}
+	},
+	"security-faq": {
+		"heading": "Security FAQs",
+		"summary": "{tldr} Your data is unreadable by anyone but you (as far as I know.)",
+		"tldr": "TL;DR",
+		"encryption-kind": {
+			"question": "What sort of encryption does Accountable do?",
+			"answer": "We use only the best {mge} everyone else uses.",
+			"mge": "\"military-grade encryption\""
+		},
+		"where-keys": {
+			"question": "Who holds the encryption keys?",
+			"answer1": "You do.",
+			"answer2": "When you create an account, Accountable generates a data-encryption key {dek} to use to encrypt and decrypt your data. Accountable generates a separate key-encryption key {kek} from your given passphrase to use to encrypt your DEK. Accountable then encrypts the DEK and sends it to our servers to store. This encrypted blob is useless without the KEK to decrypt it, and your KEK is unknown without your passphrase.",
+			"dek": "(DEK)",
+			"kek": "(KEK)",
+			"answer3": "We use {sha512} and {pbkdf2} with 10,000 rounds to generate these keys. See {source}.",
+			"sha512": "SHA-512",
+			"pbkdf2": "PBKDF2",
+			"source": "the relevant source code"
+		},
+		"passphrase-handling": {
+			"question": "What does Accountable do with my passphrase?",
+			"answer1": "Accountable never transmits your passphrase anywhere, even over TLS.",
+			"answer2": "Accountable generates a one-way hash of your passphrase, and sends that instead. The server then {salts} and {hashes} that hash, and stores the resulting mash. (That mash has nothing to do with how your data is encrypted; see above.)",
+			"salts": "salts",
+			"hashes": "hashes",
+			"answer3": "When you log in again, Accountable repeats the procedure on your hashed passphrase, and checks to see whether this new mash matches the stored mash.",
+			"answer4": "This mash is what Accountable's server uses to guard access to your encrypted database. If someone can give the server a passphrase hash that results in the correct mash, the server assumes that person is you, and happily sends over your encrypted data. No part of this mash—the hash the server gets, the salt the server generates, or the final mash of the two—can be used to decrypt your data. (Accountable uses your {dek} for that; see above.)",
+			"dek": "DEK",
+			"answer5": "We use {sha512} and {bcrypt} with a cost factor of 15. See {source}.",
+			"sha512": "SHA-512",
+			"bcrypt": "bcrypt",
+			"source": "the relevant source code"
+		},
+		"change-passphrase": {
+			"question": "What if I change my passphrase?",
+			"answer1": "We don't re-encrypt the entire database, if that's what you're thinking.",
+			"answer2": "Since your passphrase is only used to generate a KEK, Accountable only re-encrypts the DEK using the new KEK that your new passphrase generates.",
+			"answer3": "If you think your DEK may be compromised, I'm sorry. You may export your data, delete your old account, create a new account, and import your data again. This will re-encrypt everything using a fresh DEK."
+		},
+		"lost-passphrase": {
+			"question": "What happens if I lose my passphrase?",
+			"answer1": "You lose your data. There is nothing I or anyone can do (unless your passphrase is easily-cracked. Give it a go!) Without your passphrase, nobody can generate the KEK that encrypts the DEK that encrypts your data. Without that passphrase, your data is lost.",
+			"answer2": "Don't lose your passphrase."
+		},
+		"database-breach": {
+			"question": "What happens if someone steals the database?",
+			"answer1": "If your passphrase is good, there's nothing anyone but you can do with Accountable's database. The server never sees your DEK, its corresponding KEK, or your passphrase, and cannot put those into the database."
 		}
 	},
 	"app": {

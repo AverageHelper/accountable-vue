@@ -5,27 +5,28 @@ import OutLink from "./components/OutLink.vue";
 
 <template>
 	<main class="content">
-		<h1 id="goals">Goals</h1>
-		<p
-			>The aim of Accountable is to be a cross-platform and portable spot to keep your transaction
-			records and receipts. I plan to have proper mobile clients eventually. The
-			<OutLink to="https://en.wikipedia.org/wiki/Self-hosting_(web_services)">self-host</OutLink>
-			option will always be available, and I intend for this project to always be
-			<OutLink to="https://en.wikipedia.org/wiki/Open-source_software">open-source</OutLink>. You
-			will always have access to the financial records that you give to Accountable, and Accountable
-			cannot share those records with anyone else.</p
-		>
+		<h1 id="goals">{{ $t("about.goals.heading") }}</h1>
+		<i18n-t keypath="about.goals.p1" tag="p">
+			<template #selfhost>
+				<OutLink to="https://en.wikipedia.org/wiki/Self-hosting_(web_services)">{{
+					$t("about.goals.selfhost")
+				}}</OutLink>
+			</template>
+			<template #opensource>
+				<OutLink to="https://en.wikipedia.org/wiki/Open-source_software">{{
+					$t("about.goals.opensource")
+				}}</OutLink>
+			</template>
+		</i18n-t>
 
-		<h1 id="alternatives">Alternatives</h1>
-		<p
-			>There are a few
-			<OutLink to="https://opensource.com/life/17/10/personal-finance-tools-linux"
-				>open-source desktop balance keepers</OutLink
-			>
-			out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use
-			them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of
-			their owners:</p
-		>
+		<h1 id="alternatives">{{ $t("about.alternatives.heading") }}</h1>
+		<i18n-t keypath="about.alternatives.p1" tag="p">
+			<template #alts>
+				<OutLink to="https://opensource.com/life/17/10/personal-finance-tools-linux">{{
+					$t("about.alternatives.alts")
+				}}</OutLink>
+			</template>
+		</i18n-t>
 		<ul>
 			<li>You may have heard of <OutLink to="https://www.youneedabudget.com">YNAB</OutLink>.</li>
 			<li>
@@ -59,7 +60,14 @@ import OutLink from "./components/OutLink.vue";
 			help with your budget, and want someone else to keep your pocketbook for you, then any of the
 			above may suit you just fine.</p
 		>
+		<!-- TODO: Reorganize. Mention https://www.budgetwithbuckets.com/ -->
 
 		<Footer />
 	</main>
 </template>
+
+<style scoped lang="scss">
+ul li {
+	margin-bottom: 16pt;
+}
+</style>
