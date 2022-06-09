@@ -83,7 +83,25 @@
 		"alternatives": {
 			"heading": "Alternatives",
 			"p1": "There are a few {alts} out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of their owners:",
-			"alts": "open-source desktop balance keepers"
+			"alts": "open-source desktop balance keepers",
+
+			"alt1": "You may have heard of {ynab}.",
+			"alt2": "{intuit} makes {mint}. These guys also make {turbotax} and other fintech products you might have heard about.",
+			"alt3": "{ramsey} makes {everydollar}. I subscribe to many of Ramsey's financial principles. Stay out of debt, folks.",
+			"alt4": "There are {others}, but I've only tried these. Check them out if you're curious! I'm sure they're great.",
+			"everydollar": "EveryDollar",
+			"intuit": "Intuit",
+			"mint": "Mint",
+			"ramsey": "Dave Ramsey",
+			"turbotax": "TurboTax",
+			"ynab": "YNAB",
+			"others": "lots of others",
+
+			"open-source": "I'm sure these are brilliant, but none of them are {opensource}. All of these keep your data for you, and hang onto the encryption keys to that data; they're not {e2ee}. I don't know what all they do with your data, and I don't trust them to tell you.",
+			"opensource": "open-source",
+			"e2ee": "end-to-end encrypted",
+
+			"summary": "Part of their business model is to be the gateway to your financial records. If you just want help with your budget, and want someone else to keep your pocketbook for you, then any of the above may suit you just fine."
 		}
 	},
 	"security-faq": {
