@@ -26,40 +26,44 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 				<ActionButton kind="bordered-primary-green">{{ $t("home.sign-up-now") }}</ActionButton>
 			</router-link>
 			<a v-else href="#" @click.prevent>
-				<ActionButton kind="bordered-primary-green">Coming {{ $t("snark.soon-tm") }}</ActionButton>
+				<ActionButton kind="bordered-primary-green">{{ $t("home.coming-soon") }}</ActionButton>
 			</a>
 		</section>
 
 		<!-- Your money, where it's been -->
 		<section id="ledger">
 			<LedgerIcon class="section-icon" />
-			<h3>Accountable To Yourself.</h3>
-			<p
-				>Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess
-				about where your money is going,
-				<router-link :to="aboutRoute">this might be the tool for you</router-link>.</p
-			>
+			<h3>{{ $t("home.accountability.heading") }}</h3>
+			<i18n-t keypath="home.accountability.p1" tag="p">
+				<template #tool>
+					<router-link :to="aboutRoute">{{ $t("home.accountability.tool") }}</router-link>
+				</template>
+			</i18n-t>
 		</section>
 
 		<!-- E2E Encrypted -->
 		<section id="encrypted">
 			<EncryptionIcon class="section-icon" />
-			<h3>Your Ledger, Not Mine.</h3>
-			<p
-				>Accountable, by design, cannot see your data, even on our own servers. We don't need or
-				want to see what you do with your money. That's not my job.
-				<small>(I'd rather you <em>not</em> do illegal stuff with this.)</small>
-			</p>
+			<h3>{{ $t("home.encrypted.heading") }}</h3>
+			<i18n-t keypath="home.encrypted.p1" tag="p">
+				<template #legal>
+					<i18n-t keypath="home.encrypted.legal" tag="small">
+						<template #not>
+							<em>{{ $t("home.encrypted.not") }}</em>
+						</template>
+					</i18n-t>
+				</template>
+			</i18n-t>
 		</section>
 
 		<!-- Open-source and Free -->
 		<section id="open-source">
 			<OpenSourceIcon class="section-icon" />
-			<h3>Keep Me Accountable.</h3>
+			<h3>{{ $t("home.open-source.heading") }}</h3>
 			<p>
-				All of Accountable's source code is open to read.
+				{{ $t("home.open-source.open") }}
 				<br />
-				Let me know if anything needs fixed.
+				{{ $t("home.open-source.let-me-know") }}
 			</p>
 		</section>
 

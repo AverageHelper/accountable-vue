@@ -26,6 +26,17 @@
 		"learn-more": "Learn More",
 		"server": "Server"
 	},
+	"app": {
+		"nav": {
+			"accounts": "Accounts",
+			"files": "Files",
+			"locations": "Locations",
+			"log-out": "Log out",
+			"generic-page": "Page",
+			"settings": "Settings",
+			"tags": "Tags"
+		}
+	},
 	"footer": {
 		"license": "This project is licensed under the {name}.",
 		"license-name": "GNU General Public License v3.0",
@@ -38,6 +49,7 @@
 	},
 	"home": {
 		"sign-up-now": "Get Started",
+		"coming-soon": "Coming Soon",
 		"tagline": "Respectful digital financial records.",
 		"nav": {
 			"about": "About",
@@ -45,6 +57,22 @@
 			"install": "Install",
 			"log-in": "Login",
 			"security": "Security"
+		},
+		"accountability": {
+			"heading": "Accountable To Yourself.",
+			"p1": "Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess about where your money is going, {tool}.",
+			"tool": "this might be the tool for you"
+		},
+		"encrypted": {
+			"heading": "Your Ledger, Not Mine.",
+			"p1": "Accountable, by design, cannot see your data, even on our own servers. We don't need or want to see what you do with your money. That's not my job. {legal}",
+			"legal": "(I'd rather you {not} do illegal stuff with this.)",
+			"not": "not"
+		},
+		"open-source": {
+			"heading": "Keep Me Accountable.",
+			"open": "All of Accountable's source code is open to read.",
+			"let-me-know": "Let me know if anything needs fixed."
 		}
 	},
 	"login": {
@@ -71,6 +99,19 @@
 				"question": "Already have an account?",
 				"action": "Log in!"
 			}
+		}
+	},
+	"install": {
+		"service": {
+			"heading": "Hosted Service",
+			"p1": "There's an Accountable client-server architecture right here! Click the {login} link above to create an account."
+		},
+		"self": {
+			"heading": "Self-host Server",
+			"p1": "Check out the {readme} for more on how to set Accountable up on your own computer.",
+			"planning": "We're planning a hosted solution right here soon.",
+			"p2": "I'm toying with the idea of (optionally) using Firebase as an Accountable server. This would be great for users who are okay with using a Google service and don't want to pay to host your own installation.",
+			"readme": "README"
 		}
 	},
 	"about": {
@@ -153,19 +194,5 @@
 			"question": "What happens if someone steals the database?",
 			"answer1": "If your passphrase is good, there's nothing anyone but you can do with Accountable's database. The server never sees your DEK, its corresponding KEK, or your passphrase, and cannot put those into the database."
 		}
-	},
-	"app": {
-		"nav": {
-			"accounts": "Accounts",
-			"files": "Files",
-			"locations": "Locations",
-			"log-out": "Log out",
-			"generic-page": "Page",
-			"settings": "Settings",
-			"tags": "Tags"
-		}
-	},
-	"snark": {
-		"soon-tm": "Soon™"
 	}
 }
