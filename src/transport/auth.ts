@@ -67,13 +67,14 @@ export async function createUserWithAccountIdAndPassword(
 	account: string,
 	password: string
 ): Promise<UserCredential> {
+	// TODO: I18N
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const join = new URL(authJoin(), db.url);
 	const { access_token, uid, usedSpace, totalSpace } = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
-		throw new TypeError("Expected access token from server, but got none");
+		throw new TypeError("Expected access token from server, but got none"); // TODO: I18N
 
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
@@ -120,13 +121,14 @@ export async function signInWithAccountIdAndPassword(
 	account: string,
 	password: string
 ): Promise<UserCredential> {
+	// TODO: I18N
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const login = new URL(authLogIn(), db.url);
 	const { access_token, uid, usedSpace, totalSpace } = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
-		throw new TypeError("Expected access token from server, but got none");
+		throw new TypeError("Expected access token from server, but got none"); // TODO: I18N
 
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
@@ -147,7 +149,7 @@ export async function signInWithAccountIdAndPassword(
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
 	if (db.jwt === null || !db.jwt) throw new AccountableError("auth/unauthenticated");
-	if (!password) throw new TypeError("password parameter cannot be empty");
+	if (!password) throw new TypeError("password parameter cannot be empty"); // TODO: I18N
 
 	const leave = new URL(authLeave(), db.url);
 	await postTo(leave, {
@@ -170,6 +172,7 @@ export async function updateAccountId(
 	newAccountId: string,
 	password: string
 ): Promise<void> {
+	// TODO: I18N
 	if (!newAccountId) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
@@ -197,6 +200,7 @@ export async function updatePassword(
 	oldPassword: string,
 	newPassword: string
 ): Promise<void> {
+	// TODO: I18N
 	if (!oldPassword) throw new TypeError("old-password parameter cannot be empty");
 	if (!newPassword) throw new TypeError("new-password parameter cannot be empty");
 

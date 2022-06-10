@@ -68,6 +68,7 @@ function useTag(tag: TagObject) {
 				<Tag :tag="tag" :on-remove="removeTag" />
 			</li>
 			<li>
+				<!-- TODO: I18N -->
 				<a href="#" @click.prevent="addTag">Add tag</a>
 			</li>
 		</ul>

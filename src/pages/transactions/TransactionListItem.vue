@@ -90,6 +90,7 @@ async function markReconciled(isReconciled: boolean) {
 				<div v-if="hasLocation" :title="transaction.locationId ?? ''">
 					<LocationIcon />
 				</div>
+				<!-- TODO: I18N -->
 				<div
 					v-if="hasAttachments"
 					:title="`${transaction.attachmentIds.length} attachment${

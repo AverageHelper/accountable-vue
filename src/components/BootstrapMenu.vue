@@ -36,6 +36,7 @@ const currentPath = computed(() => route.path);
 
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
+		<!-- TODO: I18N -->
 		<router-link :to="homeRoute" class="navbar-brand" role="text" aria-label="Accountable"
 			>A&cent;countable</router-link
 		>
@@ -72,6 +73,7 @@ const currentPath = computed(() => route.path);
 						:to="page.path"
 						@click="isNavButtonOpen = false"
 						>{{ $t(page.titleKey) }}
+						<!-- TODO: I18N -->
 						<span v-if="currentPath === page.path" class="visually-hidden">(current)</span>
 					</router-link>
 				</li>

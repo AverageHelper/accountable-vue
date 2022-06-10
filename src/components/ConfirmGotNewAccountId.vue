@@ -25,6 +25,7 @@ function yes() {
 
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
+		<!-- TODO: I18N -->
 		<template #message
 			>Do you have your account ID (<code>{{ accountId }}</code
 			>) written down somewhere safe?</template

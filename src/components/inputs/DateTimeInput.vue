@@ -52,6 +52,7 @@ function onDateUpdated(event: Event) {
 				@input="onDateUpdated"
 			/>
 		</label>
+		<!-- TODO: I18N -->
 		<ActionButton kind="bordered" @click.prevent="reset">Now</ActionButton>
 	</div>
 </template>

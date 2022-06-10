@@ -48,6 +48,7 @@ function cancelDeleteEverything() {
 
 <template>
 	<form @submit.prevent="askToDeleteEverything">
+		<!-- TODO: I18N -->
 		<h3>Delete Everything</h3>
 		<p>You have the option to delete all of your data on Accountable.</p>
 

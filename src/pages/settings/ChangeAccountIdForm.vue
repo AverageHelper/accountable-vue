@@ -24,13 +24,13 @@ function reset() {
 async function regenerateAccountId() {
 	try {
 		if (!currentPassword.value) {
-			throw new Error("Please fill out the required fields");
+			throw new Error("Please fill out the required fields"); // TODO: I18N
 		}
 
 		isLoading.value = true;
 
 		await auth.regenerateAccountId(currentPassword.value);
-		toast.success("Your account ID has been updated!");
+		toast.success("Your account ID has been updated!"); // TODO: I18N
 		reset();
 	} catch (error) {
 		ui.handleError(error);
@@ -41,6 +41,7 @@ async function regenerateAccountId() {
 
 <template>
 	<form @submit.prevent="regenerateAccountId">
+		<!-- TODO: I18N -->
 		<h3>Change Account ID</h3>
 		<p>Somebody bothering you with your account ID? You can change it with one click:</p>
 		<TextField

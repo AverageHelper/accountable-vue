@@ -19,7 +19,7 @@ const { account, link, count } = toRefs(props);
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
-const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#"));
+const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#")); // TODO: I18N
 const theseTransactions = computed(
 	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );
@@ -37,7 +37,7 @@ const numberOfTransactions = computed<number | null>(() => {
 const subtitle = computed<string>(() => {
 	const notes = account.value.notes?.trim() ?? "";
 	const count = numberOfTransactions.value;
-	const countString = `${count ?? "?"} transaction${count === 1 ? "" : "s"}`;
+	const countString = `${count ?? "?"} transaction${count === 1 ? "" : "s"}`; // TODO: I18N
 
 	if (!notes) return countString;
 	if (count === null) return notes;

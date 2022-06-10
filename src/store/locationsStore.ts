@@ -49,7 +49,7 @@ export const useLocationsStore = defineStore("locations", {
 
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
@@ -84,8 +84,8 @@ export const useLocationsStore = defineStore("locations", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -113,8 +113,8 @@ export const useLocationsStore = defineStore("locations", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -141,7 +141,7 @@ export const useLocationsStore = defineStore("locations", {
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -157,7 +157,7 @@ export const useLocationsStore = defineStore("locations", {
 		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);

@@ -44,7 +44,7 @@ async function submit() {
 
 	try {
 		if (!title.value) {
-			throw new Error("Title is required");
+			throw new Error("Title is required"); // TODO: I18N
 		}
 
 		if (ogAccount.value === null) {
@@ -76,7 +76,7 @@ async function deleteAccount() {
 
 	try {
 		if (ogAccount.value === null) {
-			throw new Error("No account to delete");
+			throw new Error("No account to delete"); // TODO: I18N
 		}
 
 		await accounts.deleteAccount(ogAccount.value);
@@ -92,6 +92,7 @@ async function deleteAccount() {
 
 <template>
 	<form @submit.prevent="submit">
+		<!-- TODO: I18N -->
 		<h1 v-if="isCreatingAccount">Create Account</h1>
 		<h1 v-else>Edit {{ ogAccount?.title ?? "Account" }}</h1>
 

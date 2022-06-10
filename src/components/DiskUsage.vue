@@ -14,6 +14,7 @@ const usedSpace = computed(() =>
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<p class="storage">Used {{ usedSpace }} of {{ totalSpace }}</p>
 </template>
 

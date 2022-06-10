@@ -28,6 +28,7 @@ function cancelClearNewLoginStatus() {
 
 <template>
 	<Modal :open="isNewLogin">
+		<!-- TODO: I18N -->
 		<h1>Your New Account</h1>
 		<p>This is your new account ID. You will need it and your passphrase to log in later.</p>
 		<p

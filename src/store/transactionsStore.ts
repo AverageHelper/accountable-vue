@@ -191,7 +191,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const accounts = useAccountsStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -263,7 +263,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -275,7 +275,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -338,7 +338,7 @@ export const useTransactionsStore = defineStore("transactions", {
 		async getAllTransactionsAsJson(account: Account): Promise<Array<TransactionSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);

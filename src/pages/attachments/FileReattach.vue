@@ -46,6 +46,7 @@ async function createNewFile(file: File | null): Promise<void> {
 
 <template>
 	<div>
+		<!-- TODO: I18N -->
 		<h3>Fix broken reference</h3>
 		<p
 			>This attachment somehow got lost in the mix, possibly due to an import bug. Select the

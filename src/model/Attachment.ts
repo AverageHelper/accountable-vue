@@ -40,7 +40,7 @@ export class Attachment implements Identifiable<string>, AttachmentRecordParams 
 	): Omit<AttachmentRecordParams, "storagePath"> {
 		return {
 			type: record?.type ?? "unknown",
-			title: record?.title ?? `Attachment ${Math.floor(Math.random() * 10) + 1}`,
+			title: record?.title ?? `Attachment ${Math.floor(Math.random() * 10) + 1}`, // TODO: I18N
 			notes: record?.notes ?? null,
 			createdAt: record?.createdAt ?? new Date(),
 		};

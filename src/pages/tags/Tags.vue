@@ -13,6 +13,7 @@ const numberOfTags = computed(() => allTags.value.length);
 <template>
 	<main class="content">
 		<div class="heading">
+			<!-- TODO: I18N -->
 			<h1>Tags</h1>
 			<p>To add a tag, go to one of your transactions.</p>
 		</div>

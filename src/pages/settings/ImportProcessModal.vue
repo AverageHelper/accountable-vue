@@ -87,7 +87,7 @@ const transactionCounts = computed<Dictionary<number>>(() => {
 
 watch(importedAccounts, importedAccounts => {
 	if (hasDb.value && importedAccounts.length === 0) {
-		toast.info(`${fileName.value || "That file"} contains no financial data.`);
+		toast.info(`${fileName.value || "That file"} contains no financial data.`); // TODO: I18N
 		forgetDb();
 	}
 });
@@ -137,7 +137,7 @@ async function beginImport() {
 		itemsImported.value += numberOfAttachmentsToImport.value;
 		await nextTick();
 
-		toast.success("Imported all the things!");
+		toast.success("Imported all the things!"); // TODO: I18N
 		emit("finished");
 	} catch (error) {
 		ui.handleError(error);
@@ -149,6 +149,7 @@ async function beginImport() {
 
 <template>
 	<Modal :open="hasDb" :close-modal="forgetDb">
+		<!-- TODO: I18N -->
 		<h1>Select Accounts from &quot;{{ fileName }}&quot;</h1>
 
 		<div v-if="newAccounts.length > 0">

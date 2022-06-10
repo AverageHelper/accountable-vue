@@ -13,7 +13,7 @@
  */
 export function simplifiedByteCount(num: number): string {
 	if (typeof num !== "number" || Number.isNaN(num)) {
-		throw new TypeError("Expected a number");
+		throw new TypeError("Expected a number"); // TODO: I18N
 	}
 
 	const neg = num < 0;

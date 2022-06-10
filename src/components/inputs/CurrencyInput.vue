@@ -53,6 +53,7 @@ defineExpose({ focus });
 
 <template>
 	<label class="currency-input__container">
+		<!-- TODO: I18N -->
 		<TextField
 			class="currency-input"
 			:label="label ?? undefined"

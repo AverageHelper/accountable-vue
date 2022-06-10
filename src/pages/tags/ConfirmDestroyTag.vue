@@ -29,6 +29,7 @@ function yes() {
 
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
+		<!-- TODO: I18N -->
 		<template #message
 			>Are you sure you want to delete the tag <strong class="tag-name">{{ tag.name }}</strong
 			>?<template v-if="count > 0">

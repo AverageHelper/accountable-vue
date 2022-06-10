@@ -95,6 +95,7 @@ defineExpose({ focus, contains });
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<label ref="root" class="text-input__container">
 		<div class="text-input__label" @click="focus">
 			{{ label }}

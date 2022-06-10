@@ -56,7 +56,7 @@ export const useAccountsStore = defineStore("accounts", {
 
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
@@ -90,7 +90,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -102,7 +102,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -119,7 +119,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
 			const transactionCount = Object.keys(accountTransactions).length;
 			if (transactionCount !== 0) {
-				throw new Error("Cannot delete an account that has transactions.");
+				throw new Error("Cannot delete an account that has transactions."); // TODO: I18N
 			}
 
 			await deleteAccount(account, batch);
@@ -135,7 +135,7 @@ export const useAccountsStore = defineStore("accounts", {
 		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { transactions: transactionsStore } = await stores();
 

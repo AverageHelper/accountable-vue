@@ -32,16 +32,16 @@ function reset() {
 async function submitNewPassword() {
 	try {
 		if (!currentPassword.value || !newPassword.value || !newPasswordRepeat.value) {
-			throw new Error("All fields are required");
+			throw new Error("All fields are required"); // TODO: I18N
 		}
 		if (newPassword.value !== newPasswordRepeat.value) {
-			throw new Error("Those passwords need to match");
+			throw new Error("Those passwords need to match"); // TODO: I18N
 		}
 
 		isLoading.value = true;
 
 		await auth.updatePassword(currentPassword.value, newPassword.value);
-		toast.success("Your passphrase has been updated!");
+		toast.success("Your passphrase has been updated!"); // TODO: I18N
 		reset();
 	} catch (error) {
 		ui.handleError(error);
@@ -52,6 +52,7 @@ async function submitNewPassword() {
 
 <template>
 	<form @submit.prevent="submitNewPassword">
+		<!-- TODO: I18N -->
 		<h3>Change Passphrase</h3>
 		<TextField
 			v-model="currentPassword"

@@ -170,7 +170,7 @@ async function confirmDeleteTransaction() {
 
 	try {
 		if (ogTransaction.value === null) {
-			throw new Error("No account to delete");
+			throw new Error("No account to delete"); // TODO: I18N
 		}
 
 		await transactions.deleteTransaction(ogTransaction.value);
@@ -190,6 +190,7 @@ function cancelDeleteTransaction() {
 
 <template>
 	<form :class="{ expense: isExpense }" @submit.prevent="submit">
+		<!-- TODO: I18N -->
 		<h1 v-if="isCreatingTransaction">Create {{ isExpense ? "Expense" : "Income" }}</h1>
 		<h1 v-else>Edit {{ isExpense ? "Expense" : "Income" }}</h1>
 

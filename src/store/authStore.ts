@@ -118,10 +118,10 @@ export const useAuthStore = defineStore("auth", {
 		},
 		async getDekMaterial(this: void): Promise<KeyMaterial> {
 			const user = auth.currentUser;
-			if (!user) throw new Error("You must sign in first");
+			if (!user) throw new Error("You must sign in first"); // TODO: I18N
 
 			const material = await getAuthMaterial(user.uid);
-			if (!material) throw new Error("You must create an accout first");
+			if (!material) throw new Error("You must create an accout first"); // TODO: I18N
 			return material;
 		},
 		createAccountId(this: void): string {
@@ -155,7 +155,7 @@ export const useAuthStore = defineStore("auth", {
 			this.isNewLogin = false;
 		},
 		async destroyVault(password: string) {
-			if (!auth.currentUser) throw new Error("Not signed in to any account.");
+			if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
 			const { accounts, attachments, locations, tags, transactions } = await stores();
 			await attachments.deleteAllAttachments();
@@ -173,8 +173,8 @@ export const useAuthStore = defineStore("auth", {
 			const uiStore = useUiStore();
 			const uid = this.uid;
 			const pKey = this.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await this.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -184,7 +184,7 @@ export const useAuthStore = defineStore("auth", {
 		async regenerateAccountId(currentPassword: string) {
 			const user = auth.currentUser;
 			if (user === null) {
-				throw new Error("Not logged in");
+				throw new Error("Not logged in"); // TODO: I18N
 			}
 
 			const newAccountId = this.createAccountId();
@@ -196,13 +196,13 @@ export const useAuthStore = defineStore("auth", {
 			const uiStore = useUiStore();
 			const user = auth.currentUser;
 			if (user === null) {
-				throw new Error("Not logged in");
+				throw new Error("Not logged in"); // TODO: I18N
 			}
 
 			// Get old DEK material
 			const oldMaterial = await getAuthMaterial(user.uid);
 			if (!oldMaterial) {
-				throw new Error("Create an account first");
+				throw new Error("Create an account first"); // TODO: I18N
 			}
 
 			// Generate new pKey
@@ -235,8 +235,8 @@ export const useAuthStore = defineStore("auth", {
 		async getAllUserDataAsJson(): Promise<DatabaseSchema> {
 			const uid = this.uid;
 			const pKey = this.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const {
 				accounts: accountsStore,

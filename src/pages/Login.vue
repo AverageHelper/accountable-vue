@@ -99,10 +99,10 @@ async function submit() {
 		}
 
 		if (!accountId.value || !password.value || (isSignupMode.value && !passwordRepeat.value)) {
-			throw new Error("Please fill out the required fields");
+			throw new Error("Please fill out the required fields"); // TODO: I18N
 		}
 		if (isSignupMode.value && password.value !== passwordRepeat.value) {
-			throw new Error("Those passwords need to match");
+			throw new Error("Those passwords need to match"); // TODO: I18N
 		}
 
 		switch (mode.value) {

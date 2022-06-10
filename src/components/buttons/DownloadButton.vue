@@ -24,6 +24,7 @@ function startDownload() {
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<ActionButton kind="bordered-primary" :disabled="imgUrl === null" @click.prevent="startDownload">
 		<DownloadIcon />
 		<span>Download</span>
