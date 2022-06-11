@@ -36,9 +36,17 @@ export function newDocumentId(this: void): string {
 type UserIndexDb = Record<string, User>;
 type UserDb = Record<string, Record<string, AnyDataItem>>;
 
+/** Returns the first argument */
+const identity = <T>(t: T): T => t;
+
+async function userIndexDb(): Promise<UserIndexDb | null>;
 async function userIndexDb<T>(
 	cb: (db: UserIndexDb | null, write: (n: UserIndexDb | null) => void) => T
-): Promise<T> {
+): Promise<T>;
+
+async function userIndexDb(
+	cb: (db: UserIndexDb | null, write: (n: UserIndexDb | null) => void) => unknown = identity
+): Promise<unknown> {
 	await ensure(DB_DIR);
 	const file = path.join(DB_DIR, "users.json");
 	const adapter = new JSONFile<UserIndexDb>(file);
@@ -76,10 +84,16 @@ export async function statsForUser(uid: string): Promise<UserStats> {
 	return { totalSpace, usedSpace };
 }
 
+async function dbForUser(uid: string): Promise<UserDb | null>;
 async function dbForUser<T>(
 	uid: string,
 	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => T
-): Promise<T> {
+): Promise<T>;
+
+async function dbForUser(
+	uid: string,
+	cb: (db: UserDb | null, write: (n: UserDb | null) => void) => unknown = identity
+): Promise<unknown> {
 	if (!uid) throw new TypeError("uid should not be empty");
 
 	const folder = dbFolderForUser(uid);
@@ -129,7 +143,7 @@ async function destroyDbForUser(uid: string): Promise<void> {
 }
 
 export async function numberOfUsers(): Promise<number> {
-	const data = await userIndexDb(data => data);
+	const data: UserIndexDb | null = await userIndexDb();
 	if (!data) return 0;
 	return Object.keys(data).length;
 }
@@ -141,11 +155,11 @@ export async function fetchDbCollection(
 
 	if (ref.id === "users") {
 		// Special handling, fetch all users
-		const data = await userIndexDb(data => data);
+		const data: UserIndexDb | null = await userIndexDb();
 		if (!data) return [];
 		collection = data;
 	} else {
-		const data = await dbForUser(ref.uid, data => data);
+		const data: UserDb | null = await dbForUser(ref.uid);
 		if (!data) return [];
 		collection = data[ref.id] ?? {};
 	}
@@ -155,7 +169,7 @@ export async function fetchDbCollection(
 }
 
 export async function findUserWithProperties(query: Partial<User>): Promise<User | null> {
-	return await userIndexDb(collection => {
+	return await userIndexDb<User | null>(collection => {
 		if (!collection) return null;
 
 		const result = Object.values(collection).find<User>((v: User): v is User => {
@@ -225,7 +239,7 @@ export async function upsertUser(properties: User): Promise<void> {
 	if (!uid) throw new TypeError("uid property was empty");
 
 	// Upsert to index
-	await userIndexDb((data, write) => {
+	await userIndexDb<void>((data, write) => {
 		const userIndex = data ?? {};
 		userIndex[uid] = { ...properties };
 		write(userIndex);
@@ -241,7 +255,7 @@ export async function destroyUser(uid: string): Promise<void> {
 	if (!uid) throw new TypeError("uid was empty");
 
 	// Delete index
-	await userIndexDb((data, write) => {
+	await userIndexDb<void>((data, write) => {
 		const userIndex = data ?? {};
 		delete userIndex[uid];
 		write(userIndex);
