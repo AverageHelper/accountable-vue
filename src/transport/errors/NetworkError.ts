@@ -17,7 +17,7 @@ type ErrorCode =
 function messageFromCode(code: string | undefined): string | null {
 	if (code === undefined) return null;
 	// TODO: Maybe move this call closer to the UI
-	return t(`common.error.${code as ErrorCode}`);
+	return t(`error.network.${code as ErrorCode}`);
 }
 
 export class NetworkError extends Error {

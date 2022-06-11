@@ -6,6 +6,7 @@ import TextField from "../../components/inputs/TextField.vue";
 import { Account } from "../../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";
+import { useI18n } from "vue-i18n";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -17,6 +18,7 @@ const { account: ogAccount } = toRefs(props);
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
+const i18n = useI18n();
 
 const isCreatingAccount = computed(() => ogAccount.value === null);
 const numberOfTransactions = computed<number>(() => {
@@ -44,7 +46,7 @@ async function submit() {
 
 	try {
 		if (!title.value) {
-			throw new Error("Title is required"); // TODO: I18N
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 
 		if (ogAccount.value === null) {

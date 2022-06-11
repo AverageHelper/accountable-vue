@@ -4,12 +4,14 @@ import NewLoginModal from "../../components/NewLoginModal.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import { ref, computed } from "vue";
 import { useAuthStore } from "../../store/authStore";
+import { useI18n } from "vue-i18n";
 import { useToast } from "vue-toastification";
 import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
 const ui = useUiStore();
 const toast = useToast();
+const i18n = useI18n();
 
 const isLoading = ref(false);
 const currentAccountId = computed(() => auth.accountId);
@@ -24,7 +26,7 @@ function reset() {
 async function regenerateAccountId() {
 	try {
 		if (!currentPassword.value) {
-			throw new Error("Please fill out the required fields"); // TODO: I18N
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 
 		isLoading.value = true;

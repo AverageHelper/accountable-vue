@@ -7,7 +7,7 @@ import List from "./List.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
 import DiskUsage from "./DiskUsage.vue";
-import { appTabs, iconForTab, labelForTab, routeForTab } from "../model/ui/tabs";
+import { appTabs, iconForTab, labelIdForTab, routeForTab } from "../model/ui/tabs";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { logoutPath, settingsPath } from "../router";
 import { useAuthStore } from "../store";
@@ -47,7 +47,7 @@ const settingsItems = computed<Array<MenuItem>>(() => {
 	if (isTabletWidth.value) {
 		items.unshift(
 			...appTabs.map<MenuItem>(tab => ({
-				id: labelForTab(tab),
+				id: labelIdForTab(tab),
 				path: routeForTab(tab),
 				requiresLogin: true,
 				icon: iconForTab(tab),

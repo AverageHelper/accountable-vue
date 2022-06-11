@@ -21,6 +21,9 @@ const { modelValue } = toRefs(props);
 
 const isIncome = ref(false);
 
+const zeroValue = computed<string>(() => {
+	return intlFormat(dinero({ amount: 0, currency: USD }), "standard");
+});
 const presentableValue = computed(() => {
 	return intlFormat(modelValue.value, "standard");
 });
@@ -53,16 +56,17 @@ defineExpose({ focus });
 
 <template>
 	<label class="currency-input__container">
-		<!-- TODO: I18N -->
 		<TextField
 			class="currency-input"
 			:label="label ?? undefined"
 			:model-value="presentableValue"
 			:maxlength="18"
-			placeholder="0.00"
+			:placeholder="zeroValue"
 			@input="onInput"
 		/>
-		<ActionButton class="negate" @click.prevent="isIncome = !isIncome">+/-</ActionButton>
+		<ActionButton class="negate" @click.prevent="isIncome = !isIncome">{{
+			$t("currency.positive-or-negative")
+		}}</ActionButton>
 	</label>
 </template>
 

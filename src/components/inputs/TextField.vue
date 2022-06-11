@@ -95,11 +95,12 @@ defineExpose({ focus, contains });
 </script>
 
 <template>
-	<!-- TODO: I18N -->
 	<label ref="root" class="text-input__container">
 		<div class="text-input__label" @click="focus">
 			{{ label }}
-			<span v-if="required && showsRequired" class="text-input__required">(required)</span>
+			<span v-if="required && showsRequired" class="text-input__required">{{
+				$t("text-input.required")
+			}}</span>
 		</div>
 		<input
 			v-if="disabled"

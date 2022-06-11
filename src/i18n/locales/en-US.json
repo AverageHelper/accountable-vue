@@ -8,7 +8,34 @@
 		"count": {
 			"account": "{n} accounts | {n} account | {n} accounts"
 		},
-		"error": {
+		"accountable": "Accountable",
+		"client": "Client",
+		"current-aside": "(current)",
+		"disk-usage": "Used {used} of {total}",
+		"download-action": "Download",
+		"learn-more": "Learn More",
+		"yes": "Yes",
+		"not-yet": "Not yet",
+		"server": "Server"
+	},
+	"currency": {
+		"positive-or-negative": "+/-"
+	},
+	"date-time": {
+		"now": "Now"
+	},
+	"text-input": {
+		"required": "(required)"
+	},
+	"error": {
+		"cryption": {
+			"missing-pek": "No decryption key"
+		},
+		"form": {
+			"missing-required-fields": "Please fill out the required fields",
+			"password-mismatch": "Those passwords need to match"
+		},
+		"network": {
 			"account-conflict": "An account with that ID already exists",
 			"bad-gateway": "The CORS policy for this site does not allow access from the specified Origin.",
 			"bad-method": "That method is not allowed here. What are you trying to do?",
@@ -20,16 +47,12 @@
 			"too-many-requests": "You are being throttled",
 			"wrong-credentials": "Incorrect account ID or passphrase",
 			"unknown": "Not sure what went wrong. Try again maybe?"
-		},
-		"accountable": "Accountable",
-		"client": "Client",
-		"learn-more": "Learn More",
-		"server": "Server"
+		}
 	},
 	"app": {
 		"nav": {
 			"accounts": "Accounts",
-			"files": "Files",
+			"attachments": "Files",
 			"locations": "Locations",
 			"log-out": "Log out",
 			"generic-page": "Page",
@@ -99,6 +122,16 @@
 				"question": "Already have an account?",
 				"action": "Log in!"
 			}
+		},
+		"new-account": {
+			"heading": "Your New Account",
+			"p1": "This is your new account ID. You will need it and your passphrase to log in later.",
+			"remember-this": "REMEMBER THIS: {accountId}",
+			"write-it-down": "Write it down. (Try a {manager}.)",
+			"manager": "password manager",
+			"no-recovery": "If you lose it, we won't be able to get it back for you.",
+			"is-account-id-safe": "Do you have your account ID ({accountId}) written down somewhere safe?",
+			"acknowledge": "Got it"
 		}
 	},
 	"install": {

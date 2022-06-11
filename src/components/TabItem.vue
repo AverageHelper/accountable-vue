@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { Tab } from "../model/ui/tabs";
-import { labelForTab, routeForTab } from "../model/ui/tabs";
+import { labelIdForTab, routeForTab } from "../model/ui/tabs";
 import { computed, toRefs } from "vue";
 
 const props = defineProps({
@@ -10,13 +10,13 @@ const props = defineProps({
 });
 const { tab } = toRefs(props);
 
-const to = computed<string>(() => routeForTab(tab.value));
-const label = computed<string>(() => labelForTab(tab.value));
+const to = computed(() => routeForTab(tab.value));
+const labelId = computed(() => labelIdForTab(tab.value));
 </script>
 
 <template>
 	<router-link class="item-container" :class="{ selected: isSelected }" :to="to">{{
-		label
+		$t(labelId)
 	}}</router-link>
 </template>
 

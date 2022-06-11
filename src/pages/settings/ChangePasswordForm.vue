@@ -4,11 +4,13 @@ import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useToast } from "vue-toastification";
+import { useI18n } from "vue-i18n";
 import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
 const ui = useUiStore();
 const toast = useToast();
+const i18n = useI18n();
 
 const isLoading = ref(false);
 const currentPassword = ref("");
@@ -32,10 +34,10 @@ function reset() {
 async function submitNewPassword() {
 	try {
 		if (!currentPassword.value || !newPassword.value || !newPasswordRepeat.value) {
-			throw new Error("All fields are required"); // TODO: I18N
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 		if (newPassword.value !== newPasswordRepeat.value) {
-			throw new Error("Those passwords need to match"); // TODO: I18N
+			throw new Error(i18n.t("error.form.password-mismatch"));
 		}
 
 		isLoading.value = true;

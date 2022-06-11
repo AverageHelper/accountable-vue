@@ -73,8 +73,9 @@ const currentPath = computed(() => route.path);
 						:to="page.path"
 						@click="isNavButtonOpen = false"
 						>{{ $t(page.titleKey) }}
-						<!-- TODO: I18N -->
-						<span v-if="currentPath === page.path" class="visually-hidden">(current)</span>
+						<span v-if="currentPath === page.path" class="visually-hidden">{{
+							$t("common.current-aside")
+						}}</span>
 					</router-link>
 				</li>
 			</ul>

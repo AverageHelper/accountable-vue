@@ -40,7 +40,10 @@ export const DEFAULT_LOCALE_CODE = "en-US";
 
 // Read ?lang query to get preferred locale
 const LOCALE_PARAM = "lang";
-const preferredLocale = new URLSearchParams(location.search).get(LOCALE_PARAM);
+const preferredLocale =
+	typeof location !== "undefined" // `location` is undefined in Jest
+		? new URLSearchParams(location.search).get(LOCALE_PARAM)
+		: DEFAULT_LOCALE_CODE;
 
 const locale = isSupportedLocaleCode(preferredLocale) ? preferredLocale : DEFAULT_LOCALE_CODE;
 
@@ -59,5 +62,6 @@ export function setLocale(code: LocaleCode): void {
 	console.debug(`Locale: ${locale} ${messages[locale].meta.flag}`);
 }
 
+/** The user's selected locale. */ // FIXME: Should this be in a Pinia store?
 export const currentLocale = computed(() => messages[i18n.global.locale as LocaleCode].meta);
 setLocale(locale); // log the current locale to console

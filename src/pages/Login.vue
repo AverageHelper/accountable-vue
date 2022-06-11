@@ -7,12 +7,14 @@ import { accountsPath, loginPath, signupPath } from "../router";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../store/authStore";
+import { useI18n } from "vue-i18n";
 import { useUiStore } from "../store";
 
 const auth = useAuthStore();
 const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
+const i18n = useI18n();
 
 const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "true");
 
@@ -98,12 +100,10 @@ async function submit() {
 			await nextTick();
 		}
 
-		if (!accountId.value || !password.value || (isSignupMode.value && !passwordRepeat.value)) {
-			throw new Error("Please fill out the required fields"); // TODO: I18N
-		}
-		if (isSignupMode.value && password.value !== passwordRepeat.value) {
-			throw new Error("Those passwords need to match"); // TODO: I18N
-		}
+		if (!accountId.value || !password.value || (isSignupMode.value && !passwordRepeat.value))
+			throw new Error(i18n.t("error.form.missing-required-fields"));
+		if (isSignupMode.value && password.value !== passwordRepeat.value)
+			throw new Error(i18n.t("error.form.password-mismatch"));
 
 		switch (mode.value) {
 			case "signup":

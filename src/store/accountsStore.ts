@@ -4,6 +4,7 @@ import type { Dinero } from "dinero.js";
 import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
+import { t } from "../i18n";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
@@ -56,7 +57,7 @@ export const useAccountsStore = defineStore("accounts", {
 
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
@@ -90,7 +91,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -102,7 +103,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -135,7 +136,7 @@ export const useAccountsStore = defineStore("accounts", {
 		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { transactions: transactionsStore } = await stores();
 

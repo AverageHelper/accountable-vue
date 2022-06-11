@@ -1,35 +1,54 @@
+import type { LocaleCode } from "../i18n";
+import { currentLocale } from "../i18n";
+
 /**
  * Creates a human-readable string from a given byte count.
  *
  * @example
  * ```ts
  * const bytes = 1000;
- * const str = simplifiedByteCount(count);
- * // str === "1 KB"
+ * const str = simplifiedByteCount(bytes);
+ * // str === "1 kB"
  * ```
  *
  * @param num The number of bytes to represent.
- * @returns A string representing the byte count.
+ * @param locale The locale for which to format the result.
+ *
+ * @returns A user-readable string representing the byte count.
  */
-export function simplifiedByteCount(num: number): string {
+export function simplifiedByteCount(num: number, locale?: LocaleCode): string {
 	if (typeof num !== "number" || Number.isNaN(num)) {
-		throw new TypeError("Expected a number"); // TODO: I18N
+		throw new TypeError("Expected a non-NaN number");
 	}
 
-	const neg = num < 0;
-	const units = ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+	// If negative, use the absolute value
+	const neg = num < 0 || Object.is(num, -0);
+	if (neg) num = -num;
 
-	if (neg) {
-		num = -num;
-	}
+	// NOTE: Intl.NumberFormat formats -0 with a negative symbol, so we check for -0 specifically, above, and treat it like other negative values.
 
-	if (num < 1) {
-		return `${neg ? "-" : ""}${num} B`;
-	}
+	/**
+	 * Byte units sanctioned for use in ECMAScript
+	 *
+	 * @see https://tc39.es/proposal-unified-intl-numberformat/section6/locales-currencies-tz_proposed_out.html#sec-issanctionedsimpleunitidentifier
+	 */
+	const units = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"] as const;
 
-	const exponent: number = Math.min(Math.floor(Math.log(num) / Math.log(1000)), units.length - 1);
-	const unit: string = units[exponent] ?? "";
-	const size: string = (num / 1000 ** exponent).toFixed(2);
+	// Get the nearest applicable unit
+	const exponent: number =
+		num > 0 ? Math.min(Math.floor(Math.log(num) / Math.log(1000)), units.length - 1) : 0;
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const unit = units[exponent] ?? units[units.length - 1]!;
+	// ASSUMPTION: The `units` array is never empty
 
-	return `${neg ? "-" : ""}${size} ${unit}`;
+	// Set up a unit formatter for the selected locale
+	const formatter = Intl.NumberFormat(locale ?? currentLocale.value.code, {
+		style: "unit",
+		unit,
+		maximumFractionDigits: 2,
+	});
+
+	// Format the value, prepending a "-" if the value was negative
+	const formatted = formatter.format(num / 1000 ** exponent);
+	return `${neg ? "-" : ""}${formatted}`;
 }

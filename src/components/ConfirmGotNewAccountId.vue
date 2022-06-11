@@ -25,17 +25,19 @@ function yes() {
 
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
-		<!-- TODO: I18N -->
-		<template #message
-			>Do you have your account ID (<code>{{ accountId }}</code
-			>) written down somewhere safe?</template
-		>
+		<template #message>
+			<i18n-t keypath="login.new-account.is-account-id-safe" tag="account">
+				<template #accountId>
+					<code>{{ accountId }}</code>
+				</template>
+			</i18n-t>
+		</template>
 
 		<template #primary-action>
-			<ActionButton kind="bordered-primary" @click="yes">Yes</ActionButton>
+			<ActionButton kind="bordered-primary" @click="yes">{{ $t("common.yes") }}</ActionButton>
 		</template>
 		<template #cancel-action>
-			<ActionButton kind="bordered-secondary" @click="no">Not yet</ActionButton>
+			<ActionButton kind="bordered-secondary" @click="no">{{ $t("common.not-yet") }}</ActionButton>
 		</template>
 	</Confirm>
 </template>
