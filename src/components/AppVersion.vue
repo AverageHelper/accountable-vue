@@ -26,9 +26,9 @@ const repositoryUrl = computed(
 	<OutLink :to="repositoryUrl"
 		>{{ $t("common.accountable") }} {{ $t("common.client") }} v{{ clientVersion }},
 		{{ $t("common.server") }}
-		<template v-if="isLoading" :title="loadingError ? loadingError.message : undefined"
-			>vX.X.X</template
-		>
+		<template v-if="isLoading">
+			<span :title="loadingError?.message">vX.X.X</span>
+		</template>
 		<template v-else>v{{ serverVersion }}</template>
 	</OutLink>
 </template>

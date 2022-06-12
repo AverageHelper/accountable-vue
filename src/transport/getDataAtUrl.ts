@@ -1,7 +1,7 @@
 import atob from "atob-lite";
 
 export async function getDataAtUrl(url: string, contentType?: string): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return await new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
 		xhr.responseType = "text";
 		xhr.addEventListener("load", () => {
@@ -50,7 +50,7 @@ export function dataUriToBlob(dataUri: string): Blob {
 }
 
 async function dataFromBlob(file: Blob, type: "dataUrl" | "text"): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return await new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
 			const result = reader.result;

@@ -62,7 +62,7 @@ async function userIndexDb(
 	});
 
 	if (writeQueue.length === 0) return result;
-	return new Promise(resolve => {
+	return await new Promise(resolve => {
 		writeQueue.on("finish", () => resolve(result));
 	});
 }
@@ -130,7 +130,7 @@ async function dbForUser(
 	});
 
 	if (writeQueue.length === 0) return result;
-	return new Promise(resolve => {
+	return await new Promise(resolve => {
 		writeQueue.on("finish", () => resolve(result));
 	});
 }

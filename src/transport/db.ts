@@ -372,7 +372,8 @@ export const previousStats: UserStats = {
  */
 export async function getUserStats(): Promise<UserStats> {
 	// This might be on the server too, but since Accountable gets this back with every write, we keep a copy here and use an async function to retrieve it.
-	return Promise.resolve(previousStats);
+	// TODO: Add an endpoint for this
+	return await Promise.resolve(previousStats);
 }
 
 /**
