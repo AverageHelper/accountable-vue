@@ -17,9 +17,11 @@
 		"build:client:quick": "rm -rf ./dist && npm run export-version && npm run vite:build",
 		"vue:tsc": "./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json",
 		"vite:build": "./node_modules/.bin/vite build",
-		"lint": "npm run export-version && ./node_modules/.bin/eslint . --ext .vue && ./node_modules/.bin/eslint . --ext .js,.ts",
-		"lint:fix": "npm run export-version && ./node_modules/.bin/eslint . --ext .vue --fix && ./node_modules/.bin/eslint . --ext .js,.ts --fix",
-		"export-version": "./node_modules/.bin/genversion ./src/version.ts -es"
+		"lint": "npm run export-version && npm run lintonly:vue && npm run lintonly:js",
+		"lint:fix": "npm run export-version && npm run lintonly:vue -- --fix && npm run lintonly:js -- --fix",
+		"lintonly:vue": "./node_modules/.bin/eslint . --ext .vue",
+		"lintonly:js": "./node_modules/.bin/eslint . --ext .js,.ts",
+		"export-version": "./node_modules/.bin/genversion ./src/version.ts -es && cd server && npm run export-version"
 	},
 	"type": "module",
 	"dependencies": {
