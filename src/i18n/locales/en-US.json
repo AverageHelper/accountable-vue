@@ -1,0 +1,231 @@
+{
+	"meta": {
+		"code": "en-US",
+		"language": "English (United States)",
+		"flag": "🇺🇸"
+	},
+	"common": {
+		"count": {
+			"account": "{n} accounts | {n} account | {n} accounts"
+		},
+		"accountable": "Accountable",
+		"client": "Client",
+		"current-aside": "(current)",
+		"disk-usage": "Used {used} of {total}",
+		"download-action": "Download",
+		"learn-more": "Learn More",
+		"yes": "Yes",
+		"not-yet": "Not yet",
+		"server": "Server"
+	},
+	"currency": {
+		"positive-or-negative": "+/-"
+	},
+	"date-time": {
+		"now": "Now"
+	},
+	"text-input": {
+		"required": "(required)"
+	},
+	"error": {
+		"cryption": {
+			"missing-pek": "No decryption key"
+		},
+		"form": {
+			"missing-required-fields": "Please fill out the required fields",
+			"password-mismatch": "Those passwords need to match"
+		},
+		"network": {
+			"account-conflict": "An account with that ID already exists",
+			"bad-gateway": "The CORS policy for this site does not allow access from the specified Origin.",
+			"bad-method": "That method is not allowed here. What are you trying to do?",
+			"expired-token": "You must sign in again in order to proceed",
+			"missing-token": "Unauthorized",
+			"not-found": "No data found",
+			"not-implemented": "That feature is not implemented yet",
+			"not-owner": "Unauthorized",
+			"too-many-requests": "You are being throttled",
+			"wrong-credentials": "Incorrect account ID or passphrase",
+			"unknown": "Not sure what went wrong. Try again maybe?"
+		}
+	},
+	"app": {
+		"nav": {
+			"accounts": "Accounts",
+			"attachments": "Files",
+			"locations": "Locations",
+			"log-out": "Log out",
+			"generic-page": "Page",
+			"settings": "Settings",
+			"tags": "Tags"
+		}
+	},
+	"footer": {
+		"license": "This project is licensed under the {name}.",
+		"license-name": "GNU General Public License v3.0",
+		"view-license": "View the full license",
+		"pr": "Feel free to {issue} or submit a pull request on this project's {github}.",
+		"issue": "open an issue",
+		"github": "GitHub page",
+		"view-github": "Check out my GitHub",
+		"view-source": "View this project's source code"
+	},
+	"home": {
+		"sign-up-now": "Get Started",
+		"coming-soon": "Coming Soon",
+		"tagline": "Respectful digital financial records.",
+		"nav": {
+			"about": "About",
+			"home": "Home",
+			"install": "Install",
+			"log-in": "Login",
+			"security": "Security"
+		},
+		"accountability": {
+			"heading": "Accountable To Yourself.",
+			"p1": "Keep a close eye on your spending. Never lose a dime again! If you're the sort to obsess about where your money is going, {tool}.",
+			"tool": "this might be the tool for you"
+		},
+		"encrypted": {
+			"heading": "Your Ledger, Not Mine.",
+			"p1": "Accountable, by design, cannot see your data, even on our own servers. We don't need or want to see what you do with your money. That's not my job. {legal}",
+			"legal": "(I'd rather you {not} do illegal stuff with this.)",
+			"not": "not"
+		},
+		"open-source": {
+			"heading": "Keep Me Accountable.",
+			"open": "All of Accountable's source code is open to read.",
+			"let-me-know": "Let me know if anything needs fixed."
+		}
+	},
+	"login": {
+		"account-id": "account ID",
+		"current-passphrase": "passphrase",
+		"repeat-passphrase": "passphrase again",
+		"new-passphrase": "Create a strong passphrase",
+		"value-will-be-generated": "to be generated...",
+		"log-in": "Log in",
+		"create-account": "Create an account",
+		"process": {
+			"authenticating": "Authenticating...",
+			"generating-keys": "Generating keys...",
+			"fetching-keys": "Fetching keys...",
+			"deriving-pkey": "Deriving key from passphrase..."
+		},
+		"new-account-prompt": {
+			"open-soon": "Don't have an account? We'll be open for new accounts soon™",
+			"create": {
+				"question": "Need to create an account?",
+				"action": "Create one!"
+			},
+			"already-have": {
+				"question": "Already have an account?",
+				"action": "Log in!"
+			}
+		},
+		"new-account": {
+			"heading": "Your New Account",
+			"p1": "This is your new account ID. You will need it and your passphrase to log in later.",
+			"remember-this": "REMEMBER THIS: {accountId}",
+			"write-it-down": "Write it down. (Try a {manager}.)",
+			"manager": "password manager",
+			"no-recovery": "If you lose it, we won't be able to get it back for you.",
+			"is-account-id-safe": "Do you have your account ID ({accountId}) written down somewhere safe?",
+			"acknowledge": "Got it"
+		}
+	},
+	"install": {
+		"service": {
+			"heading": "Hosted Service",
+			"p1": "There's an Accountable client-server architecture right here! Click the {login} link above to create an account."
+		},
+		"self": {
+			"heading": "Self-host Server",
+			"p1": "Check out the {readme} for more on how to set Accountable up on your own computer.",
+			"planning": "We're planning a hosted solution right here soon.",
+			"p2": "I'm toying with the idea of (optionally) using Firebase as an Accountable server. This would be great for users who are okay with using a Google service and don't want to pay to host your own installation.",
+			"readme": "README"
+		}
+	},
+	"about": {
+		"goals": {
+			"heading": "Goals",
+			"p1": "The aim of Accountable is to be a cross-platform and portable spot to keep your transaction records and receipts. I plan to have proper mobile clients eventually. The {selfhost} option will always be available, and I intend for this project to always be {opensource}. You will always have access to the financial records that you give to Accountable, and Accountable cannot share those records with anyone else.",
+			"selfhost": "self-host",
+			"opensource": "open-source"
+		},
+		"alternatives": {
+			"heading": "Alternatives",
+			"p1": "There are a few {alts} out there, but none I've found that I like. Lots of proprietary ones, too. Feel free to use them if you'd like, I'm not sponsored by any of them. Their respective names are trademarks of their owners:",
+			"alts": "open-source desktop balance keepers",
+
+			"alt1": "You may have heard of {ynab}.",
+			"alt2": "{intuit} makes {mint}. These guys also make {turbotax} and other fintech products you might have heard about.",
+			"alt3": "{ramsey} makes {everydollar}. I subscribe to many of Ramsey's financial principles. Stay out of debt, folks.",
+			"alt4": "There are {others}, but I've only tried these. Check them out if you're curious! I'm sure they're great.",
+			"everydollar": "EveryDollar",
+			"intuit": "Intuit",
+			"mint": "Mint",
+			"ramsey": "Dave Ramsey",
+			"turbotax": "TurboTax",
+			"ynab": "YNAB",
+			"others": "lots of others",
+
+			"open-source": "I'm sure these are brilliant, but none of them are {opensource}. All of these keep your data for you, and hang onto the encryption keys to that data; they're not {e2ee}. I don't know what all they do with your data, and I don't trust them to tell you.",
+			"opensource": "open-source",
+			"e2ee": "end-to-end encrypted",
+
+			"summary": "Part of their business model is to be the gateway to your financial records. If you just want help with your budget, and want someone else to keep your pocketbook for you, then any of the above may suit you just fine."
+		}
+	},
+	"security-faq": {
+		"heading": "Security FAQs",
+		"summary": "{tldr} Your data is unreadable by anyone but you (as far as I know.)",
+		"tldr": "TL;DR",
+		"encryption-kind": {
+			"question": "What sort of encryption does Accountable do?",
+			"answer": "We use only the best {mge} everyone else uses.",
+			"mge": "\"military-grade encryption\""
+		},
+		"where-keys": {
+			"question": "Who holds the encryption keys?",
+			"answer1": "You do.",
+			"answer2": "When you create an account, Accountable generates a data-encryption key {dek} to use to encrypt and decrypt your data. Accountable generates a separate key-encryption key {kek} from your given passphrase to use to encrypt your DEK. Accountable then encrypts the DEK and sends it to our servers to store. This encrypted blob is useless without the KEK to decrypt it, and your KEK is unknown without your passphrase.",
+			"dek": "(DEK)",
+			"kek": "(KEK)",
+			"answer3": "We use {sha512} and {pbkdf2} with 10,000 rounds to generate these keys. See {source}.",
+			"sha512": "SHA-512",
+			"pbkdf2": "PBKDF2",
+			"source": "the relevant source code"
+		},
+		"passphrase-handling": {
+			"question": "What does Accountable do with my passphrase?",
+			"answer1": "Accountable never transmits your passphrase anywhere, even over TLS.",
+			"answer2": "Accountable generates a one-way hash of your passphrase, and sends that instead. The server then {salts} and {hashes} that hash, and stores the resulting mash. (That mash has nothing to do with how your data is encrypted; see above.)",
+			"salts": "salts",
+			"hashes": "hashes",
+			"answer3": "When you log in again, Accountable repeats the procedure on your hashed passphrase, and checks to see whether this new mash matches the stored mash.",
+			"answer4": "This mash is what Accountable's server uses to guard access to your encrypted database. If someone can give the server a passphrase hash that results in the correct mash, the server assumes that person is you, and happily sends over your encrypted data. No part of this mash—the hash the server gets, the salt the server generates, or the final mash of the two—can be used to decrypt your data. (Accountable uses your {dek} for that; see above.)",
+			"dek": "DEK",
+			"answer5": "We use {sha512} and {bcrypt} with a cost factor of 15. See {source}.",
+			"sha512": "SHA-512",
+			"bcrypt": "bcrypt",
+			"source": "the relevant source code"
+		},
+		"change-passphrase": {
+			"question": "What if I change my passphrase?",
+			"answer1": "We don't re-encrypt the entire database, if that's what you're thinking.",
+			"answer2": "Since your passphrase is only used to generate a KEK, Accountable only re-encrypts the DEK using the new KEK that your new passphrase generates.",
+			"answer3": "If you think your DEK may be compromised, I'm sorry. You may export your data, delete your old account, create a new account, and import your data again. This will re-encrypt everything using a fresh DEK."
+		},
+		"lost-passphrase": {
+			"question": "What happens if I lose my passphrase?",
+			"answer1": "You lose your data. There is nothing I or anyone can do (unless your passphrase is easily-cracked. Give it a go!) Without your passphrase, nobody can generate the KEK that encrypts the DEK that encrypts your data. Without that passphrase, your data is lost.",
+			"answer2": "Don't lose your passphrase."
+		},
+		"database-breach": {
+			"question": "What happens if someone steals the database?",
+			"answer1": "If your passphrase is good, there's nothing anyone but you can do with Accountable's database. The server never sees your DEK, its corresponding KEK, or your passphrase, and cannot put those into the database."
+		}
+	}
+}

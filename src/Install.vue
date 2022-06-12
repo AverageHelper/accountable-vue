@@ -11,27 +11,26 @@ const loginRoute = computed(() => loginPath());
 <template>
 	<main class="content">
 		<template v-if="loginEnabled">
-			<h1>Hosted Service</h1>
-			<p
-				>There's an Accountable client-server architecture right here! Click the
-				<router-link :to="loginRoute">Login</router-link> link above to create an account.</p
-			>
+			<h1>{{ $t("install.service.heading") }}</h1>
+			<i18n-t keypath="install.service.p1" tag="p">
+				<template #login>
+					<router-link :to="loginRoute">{{ $t("home.nav.log-in") }}</router-link>
+				</template>
+			</i18n-t>
 		</template>
 
-		<h1>Self-host Server</h1>
-		<p
-			>Check out the
-			<OutLink to="https://github.com/AverageHelper/accountable-vue/tree/main#setup"
-				>README</OutLink
-			>
-			for more on how to set Accountable up on your own computer.<span v-if="!loginEnabled">
-				We're planning a hosted solution right here soon.</span
-			>
+		<h1>{{ $t("install.self.heading") }}</h1>
+		<p>
+			<i18n-t keypath="install.self.p1">
+				<template #readme>
+					<OutLink to="https://github.com/AverageHelper/accountable-vue/tree/main#setup">{{
+						$t("install.self.readme")
+					}}</OutLink>
+				</template>
+			</i18n-t>
+			<template v-if="!loginEnabled">&nbsp;{{ $t("install.self.planning") }}</template>
 		</p>
-		<p
-			>Coming soon: Use Firebase as an Accountable server! Great if you're okay with using a Google
-			service and don't want to pay to host your own installation.</p
-		>
+		<i18n-t keypath="install.self.p2" tag="p" />
 
 		<Footer />
 	</main>

@@ -67,6 +67,7 @@ const newLocationCoordinates = ref<Coordinate | null>(null);
 
 const textLocationPreview = computed(
 	() =>
+		// TODO: I18N (quotes)
 		new Location("sample", `"${newLocationTitle.value}"`, {
 			subtitle: null,
 			coordinate: null,
@@ -170,6 +171,7 @@ function updateSubtitle(subtitle: string) {
 	<label ref="root" @focusin="updateFocusState" @focusout="updateFocusState">
 		<div class="container">
 			<div class="fields">
+				<!-- TODO: I18N -->
 				<TextField
 					ref="titleField"
 					:model-value="title"

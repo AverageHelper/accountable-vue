@@ -26,7 +26,7 @@ function startDownload() {
 <template>
 	<ActionButton kind="bordered-primary" :disabled="imgUrl === null" @click.prevent="startDownload">
 		<DownloadIcon />
-		<span>Download</span>
+		<span>{{ $t("common.download-action") }}</span>
 	</ActionButton>
 </template>
 

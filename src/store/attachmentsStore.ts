@@ -54,7 +54,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
@@ -101,8 +101,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -116,8 +116,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -129,7 +129,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first");
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
@@ -165,8 +165,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const authStore = useAuthStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -182,7 +182,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 		async getAllAttachmentsAsJson(): Promise<Array<AttachmentSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);

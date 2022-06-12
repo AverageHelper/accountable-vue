@@ -45,15 +45,15 @@ function attachmentStorageRef(storagePath: string): StorageReference {
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
 	const storageRef = attachmentStorageRef(file.storagePath);
 	const encryptedData = await downloadString(storageRef);
-	if (encryptedData === null) throw new EvalError("No data found at the ref");
+	if (encryptedData === null) throw new EvalError("No data found at the ref"); // TODO: I18N
 	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
 	if (!("ciphertext" in pkg)) {
-		throw new TypeError("Improperly formatted payload.");
+		throw new TypeError("Improperly formatted payload."); // TODO: I18N
 	}
 
 	const imageData = decrypt(pkg, dek);
 	if (typeof imageData !== "string") {
-		throw new TypeError(`Expected string output. Got ${typeof imageData}`);
+		throw new TypeError(`Expected string output. Got ${typeof imageData}`); // TODO: I18N
 	}
 	return imageData;
 }

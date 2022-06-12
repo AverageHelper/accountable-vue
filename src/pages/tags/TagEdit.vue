@@ -79,6 +79,7 @@ defineExpose({ focus });
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<h2>Choose a Tag</h2>
 	<form @submit.prevent="save">
 		<div class="name-input">

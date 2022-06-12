@@ -32,7 +32,7 @@
 		"@typescript-eslint/no-empty-interface": "off",
 		"@typescript-eslint/require-await": "warn",
 		"@typescript-eslint/no-inferrable-types": "off",
-		"@typescript-eslint/no-invalid-void-type": ["error", { "allowAsThisParameter": true }],
+		"@typescript-eslint/no-invalid-void-type": "off", // TODO: Should be "error", but some bugs exist
 		"@typescript-eslint/explicit-member-accessibility": [
 			"error",
 			{ "accessibility": "no-public", "overrides": { "properties": "off" } }
@@ -89,6 +89,8 @@
 				"vue/max-attributes-per-line": "off",
 				"vue/html-closing-bracket-newline": "off",
 				"vue/multiline-html-element-content-newline": "off",
+				"vue/multi-word-component-names": "off",
+				"vue/v-on-event-hyphenation": "off",
 				"vue/html-indent": "off",
 				"vue/singleline-html-element-content-newline": "off",
 				"@typescript-eslint/no-floating-promises": "warn",

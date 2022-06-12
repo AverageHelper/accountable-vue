@@ -46,7 +46,7 @@ export class AccountableDB {
 	}
 
 	setJwt(jwt: string, user: User): void {
-		if (!jwt) throw new TypeError("jwt cannot be empty");
+		if (!jwt) throw new TypeError("jwt cannot be empty"); // TODO: I18N?
 		this.#jwt = jwt;
 		this.#currentUser = user;
 	}
@@ -156,7 +156,7 @@ export class DocumentReference<T = DocumentData> {
 	public readonly id: string;
 
 	constructor(parent: CollectionReference<T>, id: string) {
-		if (!id) throw new TypeError("ID cannot be empty");
+		if (!id) throw new TypeError("ID cannot be empty"); // TODO: I18N?
 		this.parent = parent;
 		this.id = id;
 	}
@@ -220,7 +220,7 @@ export function doc<T = DocumentData>(
 ): DocumentReference<T> {
 	if ("url" in dbOrCollection) {
 		if (!collection || id === undefined) {
-			throw new TypeError(`Missing property in constructor`);
+			throw new TypeError(`Missing property in constructor`); // TODO: I18N?
 		}
 		const parent = new CollectionReference<T>(dbOrCollection, collection);
 		return new DocumentReference(parent, id);
@@ -255,14 +255,14 @@ export class WriteBatch {
 		// Ensure limit
 		const OP_LIMIT = 500;
 		if (this.#operations.length >= OP_LIMIT) {
-			throw new RangeError(`Cannot batch more than ${OP_LIMIT} write operations.`);
+			throw new RangeError(`Cannot batch more than ${OP_LIMIT} write operations.`); // TODO: I18N?
 		}
 
 		// Same db
 		if (!this.#db) {
 			this.#db = op.ref.db;
 		} else if (op.ref.db !== this.#db) {
-			throw new EvalError("Must use exactly one database in a write batch");
+			throw new EvalError("Must use exactly one database in a write batch"); // TODO: I18N?
 		}
 
 		// Push operation
@@ -345,7 +345,7 @@ export function bootstrap(url?: string): AccountableDB {
 	const serverUrl = url ?? import.meta.env.VITE_ACCOUNTABLE_SERVER_URL;
 
 	if (serverUrl === undefined || !serverUrl) {
-		throw new TypeError("No value found for environment variable VITE_ACCOUNTABLE_SERVER_URL");
+		throw new TypeError("No value found for environment variable VITE_ACCOUNTABLE_SERVER_URL"); // TODO: I18N?
 	}
 
 	db = new AccountableDB(serverUrl);
@@ -372,7 +372,8 @@ export const previousStats: UserStats = {
  */
 export async function getUserStats(): Promise<UserStats> {
 	// This might be on the server too, but since Accountable gets this back with every write, we keep a copy here and use an async function to retrieve it.
-	return Promise.resolve(previousStats);
+	// TODO: Add an endpoint for this
+	return await Promise.resolve(previousStats);
 }
 
 /**
@@ -396,9 +397,9 @@ export async function getDoc<D, T extends PrimitiveRecord<D>>(
 	const docPath = new URL(databaseDocument(uid, collection, doc), reference.db.url);
 	const { data } = await getFrom(docPath, jwt);
 
-	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	if (data === undefined) throw new TypeError("Expected data from server, but got none"); // TODO: I18N?
 	if (isArray(data))
-		throw new TypeError("Expected a single document from server, but got an array");
+		throw new TypeError("Expected a single document from server, but got an array"); // TODO: I18N?
 
 	return new DocumentSnapshot<T>(reference, data as T | null);
 }
@@ -467,16 +468,16 @@ export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySn
 	const collPath = new URL(databaseCollection(uid, collection), query.db.url);
 
 	const { data } = await getFrom(collPath, jwt);
-	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	if (data === undefined) throw new TypeError("Expected data from server, but got none"); // TODO: I18N?
 	if (data === null || !isArray(data))
-		throw new TypeError("Expected an array of documents from server, but got one document");
+		throw new TypeError("Expected an array of documents from server, but got one document"); // TODO: I18N?
 
 	return new QuerySnapshot(
 		query,
 		data.map(data => {
 			const id = data["_id"];
 			delete data["_id"];
-			if (!isString(id)) throw new TypeError("Expected ID to be string");
+			if (!isString(id)) throw new TypeError("Expected ID to be string"); // TODO: I18N?
 
 			return new QueryDocumentSnapshot(new DocumentReference(query, id), data as unknown as T);
 		})
@@ -523,7 +524,7 @@ export function recordFromSnapshot<G>(
 	const pkg = doc.data();
 	const record = decrypt(pkg, dek);
 	if (!typeGuard(record)) {
-		throw new TypeError(`Failed to parse record from Firestore document ${doc.id}`);
+		throw new TypeError(`Failed to parse record from Firestore document ${doc.id}`); // TODO: I18N?
 	}
 	return { id: doc.id, record };
 }

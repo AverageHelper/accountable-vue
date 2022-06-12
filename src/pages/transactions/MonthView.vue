@@ -59,6 +59,7 @@ function finishCreatingTransaction() {
 			</li>
 			<li>
 				<p class="footer">
+					<!-- TODO: I18N -->
 					<span>{{ monthTransactions?.length ?? 0 }}</span> transaction<span
 						v-if="monthTransactions?.length !== 1"
 						>s</span

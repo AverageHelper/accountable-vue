@@ -5,30 +5,20 @@ import LocationIcon from "../../icons/Location.vue";
 import TagIcon from "../../icons/Tag.vue";
 import { accountsPath, attachmentsPath, locationsPath, tagsPath } from "router";
 
-export type Tab = "accounts" | "attachments" | "locations" | "tags";
+export const appTabs = ["accounts", "attachments", "locations", "tags"] as const;
 
-export const appTabs: ReadonlyArray<Tab> = ["accounts", "attachments", "locations", "tags"];
+export type Tab = typeof appTabs[number];
 
 export function isAppTab(tbd: string): tbd is Tab {
-	return (appTabs as Array<string>).includes(tbd);
+	return appTabs.includes(tbd as Tab);
 }
 
-export function labelForTab(tab: Tab): string {
-	switch (tab) {
-		case "accounts":
-			return "Accounts";
-		case "attachments":
-			return "Files";
-		case "locations":
-			return "Locations";
-		case "tags":
-			return "Tags";
-		default:
-			return "Page";
-	}
+export function labelIdForTab(tab: Tab): `app.nav.${typeof tab}` | "app.nav.generic-page" {
+	if (isAppTab(tab)) return `app.nav.${tab}`;
+	return "app.nav.generic-page";
 }
 
-export function routeForTab(tab: Tab): string {
+export function routeForTab(tab: Tab): `/${typeof tab}` | "#" {
 	switch (tab) {
 		case "accounts":
 			return accountsPath();

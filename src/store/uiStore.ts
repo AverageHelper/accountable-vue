@@ -86,6 +86,7 @@ export const useUiStore = defineStore("ui", {
 			}
 		},
 		handleError(error: unknown) {
+			// TODO: I18N
 			const toast = useToast();
 
 			let message: string;

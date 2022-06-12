@@ -64,6 +64,7 @@ function askToDelete() {
 
 <template>
 	<div class="main">
+		<!-- TODO: I18N -->
 		<p v-if="!file">This file does not exist. Sorry.</p>
 		<ErrorNotice v-else-if="imageLoadError" :error="imageLoadError" />
 		<p v-else-if="!imageUrl">Loading...</p>

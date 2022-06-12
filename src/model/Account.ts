@@ -26,7 +26,7 @@ export class Account implements Identifiable<string>, AccountRecordParams {
 
 	static defaultRecord(this: void, record?: Partial<AccountRecordParams>): AccountRecordParams {
 		return {
-			title: record?.title ?? `Account ${Math.floor(Math.random() * 10) + 1}`,
+			title: record?.title ?? `Account ${Math.floor(Math.random() * 10) + 1}`, // TODO: I18N
 			notes: record?.notes ?? null,
 			createdAt: record?.createdAt ?? new Date(),
 		};

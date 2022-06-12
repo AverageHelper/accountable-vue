@@ -164,6 +164,7 @@ async function onFileReceived(file: File) {
 			@remove-tag="removeTag"
 		/>
 
+		<!-- TODO: I18N -->
 		<h3>Details</h3>
 		<!-- Amount -->
 		<div class="key-value-pair" aria-label="Transaction Amount">

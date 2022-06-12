@@ -40,6 +40,7 @@ watch(currentSensitivity, () => {
 async function submitNewLocationPref() {
 	try {
 		if (!locationPrefs.includes(selectedSensitivity.value)) {
+			// TODO: I18N
 			throw new Error(`${selectedSensitivity.value} is not a valid location preference.`);
 		}
 
@@ -48,7 +49,7 @@ async function submitNewLocationPref() {
 		await auth.updateUserPreferences({
 			locationSensitivity: selectedSensitivity.value,
 		});
-		toast.success("Your preferences have been updated!");
+		toast.success("Your preferences have been updated!"); // TODO: I18N
 		reset();
 	} catch (error) {
 		ui.handleError(error);
@@ -59,6 +60,7 @@ async function submitNewLocationPref() {
 
 <template>
 	<form @submit.prevent="submitNewLocationPref">
+		<!-- TODO: I18N -->
 		<h3>Location Service</h3>
 		<p
 			>By default, we don't talk to any external location APIs. However, if you want Accountable to

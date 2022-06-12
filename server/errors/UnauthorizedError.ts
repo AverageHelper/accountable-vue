@@ -7,7 +7,7 @@ export type UnauthorizedErrorCode =
 	| "wrong-credentials";
 // TODO: "expired-credentials"
 
-function messageFromCode(code: UnauthorizedErrorCode): string {
+function defaultMessageFromCode(code: UnauthorizedErrorCode): string {
 	// TODO: Copy this to clients for better I18N
 	switch (code) {
 		case "expired-token":
@@ -23,7 +23,8 @@ function messageFromCode(code: UnauthorizedErrorCode): string {
 
 export class UnauthorizedError extends InternalError {
 	constructor(code: UnauthorizedErrorCode) {
-		super({ status: 403, code, message: messageFromCode(code), harmless: true });
+		const message = defaultMessageFromCode(code);
+		super({ status: 403, code, message, harmless: true });
 		this.name = "UnauthorizedError";
 	}
 }

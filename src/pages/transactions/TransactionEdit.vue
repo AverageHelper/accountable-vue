@@ -17,6 +17,7 @@ import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { Transaction } from "../../model/Transaction";
 import { USD } from "@dinero.js/currencies";
+import { useI18n } from "vue-i18n";
 import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
@@ -30,6 +31,7 @@ const { account, transaction } = toRefs(props);
 const locations = useLocationsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
+const i18n = useI18n();
 
 const ogTransaction = computed(() => transaction.value);
 const ogLocation = computed(() =>
@@ -105,7 +107,7 @@ async function submit() {
 
 	try {
 		if (!title.value.trim()) {
-			throw new Error("Title is required");
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 
 		// Handle location change (to another or to none)
@@ -170,7 +172,7 @@ async function confirmDeleteTransaction() {
 
 	try {
 		if (ogTransaction.value === null) {
-			throw new Error("No account to delete");
+			throw new Error("No account to delete"); // TODO: I18N
 		}
 
 		await transactions.deleteTransaction(ogTransaction.value);
@@ -190,6 +192,7 @@ function cancelDeleteTransaction() {
 
 <template>
 	<form :class="{ expense: isExpense }" @submit.prevent="submit">
+		<!-- TODO: I18N -->
 		<h1 v-if="isCreatingTransaction">Create {{ isExpense ? "Expense" : "Income" }}</h1>
 		<h1 v-else>Edit {{ isExpense ? "Expense" : "Income" }}</h1>
 

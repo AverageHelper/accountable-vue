@@ -14,6 +14,7 @@ function onClick() {
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<ListItem class="add" :title="`Add a new ${noun}`" to="" @click.prevent="onClick">
 		<template #icon>
 			<PlusWithCircle class="icon" />

@@ -37,7 +37,7 @@ export async function newAccessToken(user: User): Promise<string> {
 		hash: user.passwordHash,
 	};
 
-	return new Promise<string>((resolve, reject) => {
+	return await new Promise<string>((resolve, reject) => {
 		jwt.sign(payload, secret, options, (err, token) => {
 			if (err) {
 				reject(err);
@@ -67,7 +67,7 @@ function unverifiedJwt(token: string): string | jwt.JwtPayload | null {
 }
 
 export async function verifyJwt(token: string): Promise<jwt.JwtPayload> {
-	return new Promise<jwt.JwtPayload>((resolve, reject) => {
+	return await new Promise<jwt.JwtPayload>((resolve, reject) => {
 		jwt.verify(token, secret, (err, payload) => {
 			// Fail if failed i guess
 			if (err) return reject(err);

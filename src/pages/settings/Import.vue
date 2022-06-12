@@ -28,21 +28,21 @@ async function onFileReceived(file: File) {
 	db.value = null;
 	isLoading.value = true;
 
-	let progressMessage = `Loading ${file.name}`;
+	let progressMessage = `Loading ${file.name}`; // TODO: I18N
 	const progressMeter = toast.info(progressMessage);
 
 	const reader = new ZipReader(new BlobReader(file));
 	try {
 		const zipFile = await reader.getEntries({
 			onprogress: progress => {
-				progressMessage = `Loading ${file.name}: ${progress}%`;
+				progressMessage = `Loading ${file.name}: ${progress}%`; // TODO: I18N
 				toast.update(progressMeter, { content: progressMessage });
 			},
 		});
 
 		const dbFile = zipFile.find(f => f.filename === "accountable/database.json");
 		if (!dbFile?.getData)
-			throw new TypeError("accountable/database.json not present at root of zip");
+			throw new TypeError("accountable/database.json not present at root of zip"); // TODO: I18N
 
 		const jsonString = (await dbFile.getData(new TextWriter())) as string;
 		const json = JSON.parse(jsonString) as unknown;
@@ -68,6 +68,7 @@ function forgetFile() {
 
 <template>
 	<form @submit.prevent>
+		<!-- TODO: I18N -->
 		<h3>Import</h3>
 		<p>Import a JSON file describing one or more accounts.</p>
 		<div class="buttons">

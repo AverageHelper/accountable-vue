@@ -83,6 +83,7 @@ async function downloadStuff(shouldMinify: boolean) {
 
 <template>
 	<form @submit.prevent>
+		<!-- TODO: I18N -->
 		<h3>Export</h3>
 		<p
 			>Exports an <strong>unencrypted</strong> copy of all your data in JSON format. (Except

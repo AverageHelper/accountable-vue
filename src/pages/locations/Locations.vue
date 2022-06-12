@@ -14,6 +14,7 @@ const numberOfLocations = computed(() => allLocations.value.length);
 <template>
 	<main class="content">
 		<div class="heading">
+			<!-- TODO: I18N -->
 			<h1>Locations</h1>
 			<p>To add a location, set a location on a transaction.</p>
 		</div>

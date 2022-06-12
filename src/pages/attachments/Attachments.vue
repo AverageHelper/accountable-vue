@@ -36,6 +36,7 @@ function cancelDeleteFile() {
 <template>
 	<main class="content">
 		<div class="heading">
+			<!-- TODO: I18N -->
 			<h1>Files</h1>
 			<p>To add a file, attach it to a transaction.</p>
 		</div>

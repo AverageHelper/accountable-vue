@@ -10,6 +10,7 @@ import LocationPrefForm from "./LocationPrefForm.vue";
 <template>
 	<main class="content">
 		<div class="heading">
+			<!-- TODO: I18N -->
 			<h1>Settings</h1>
 		</div>
 

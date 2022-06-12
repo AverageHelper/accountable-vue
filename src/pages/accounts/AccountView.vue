@@ -102,6 +102,7 @@ function finishEditingAccount() {
 	<main class="content">
 		<div class="heading">
 			<div class="account-title">
+				<!-- TODO: I18N -->
 				<h1>{{ account?.title || "Account" }}</h1>
 				<ActionButton class="edit" @click="startEditingAccount">
 					<EditIcon />
