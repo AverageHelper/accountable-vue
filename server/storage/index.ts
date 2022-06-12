@@ -2,11 +2,11 @@ import type { DocumentData } from "../database/schemas.js";
 import type { Request, Response } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { createWriteStream } from "fs";
-import { DB_DIR, ensure, statsForUser } from "../database/io.js";
+import { statsForUser } from "../database/io.js";
+import { filePath } from "./filePath.js";
 import { handleErrors } from "../handleErrors.js";
 import { maxSpacePerUser } from "../auth/limits.js";
 import { ownersOnly, requireAuth } from "../auth/index.js";
-import { resolve as resolvePath, sep as pathSeparator, join } from "path";
 import { respondData, respondError, respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { stat as fsStat, unlink as fsUnlink, readFile } from "fs/promises";
@@ -170,24 +170,6 @@ async function getFileContents(path: string): Promise<string> {
 		}
 		throw error;
 	}
-}
-
-/**
- * Returns a filesystem path for the given file params,
- * or `null` if unsufficient or invalid params were provided.
- */
-async function filePath(params: Params): Promise<string | null> {
-	const { uid, fileName } = params;
-	if (uid === undefined || fileName === undefined) return null;
-
-	// Make sure fileName doesn't contain a path separator
-	if (fileName.includes(pathSeparator)) return null;
-
-	// TODO: Make sure uid is a valid uid, so we don't let in stray path arguments there
-
-	const folder = resolvePath(DB_DIR, `./users/${uid}/attachments`);
-	await ensure(folder);
-	return join(folder, fileName);
 }
 
 interface FileData {

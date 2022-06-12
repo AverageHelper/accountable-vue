@@ -129,8 +129,8 @@
 			"plugins": ["prettier", "@typescript-eslint"],
 			"parser": "@typescript-eslint/parser",
 			"parserOptions": {
-				"project": "./tsconfig.json",
-				"tsconfigRootDir": "./server"
+				"project": "./tsconfig.test.json",
+				"tsconfigRootDir": "."
 			},
 			"env": {
 				"jest": true
