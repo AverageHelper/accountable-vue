@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ActionButton from "./buttons/ActionButton.vue";
 import SearchIcon from "../icons/Search.vue";
+import XIcon from "../icons/X.vue";
 import TextField from "./inputs/TextField.vue";
 
 const route = useRoute();
@@ -21,6 +22,11 @@ function commit() {
 
 	void router.replace({ path: route.path, query });
 }
+
+function clear() {
+	searchQuery.value = "";
+	void router.replace({ path: route.path, query: {} });
+}
 </script>
 
 <template>
@@ -34,6 +40,9 @@ function commit() {
 		/>
 		<ActionButton v-show="needsCommitSearch" kind="bordered-primary" @click.prevent="commit">
 			<SearchIcon />
+		</ActionButton>
+		<ActionButton v-show="initialSearchQuery" kind="bordered-destructive" @click.prevent="clear">
+			<XIcon />
 		</ActionButton>
 	</div>
 </template>
