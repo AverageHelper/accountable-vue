@@ -26,6 +26,7 @@ import {
 import {
 	createUserWithAccountIdAndPassword,
 	deleteUser,
+	refreshSession,
 	signInWithAccountIdAndPassword,
 	signOut,
 	updateAccountId,
@@ -90,6 +91,29 @@ export const useAuthStore = defineStore("auth", {
 			tags.clearCache();
 			transactions.clearCache();
 		},
+		async refreshLogin(password: string) {
+			// FIXME: Use this to get the prior accountId and user metadata. Still need the user's password, since we're not gonna transmit keys in the JWT lol
+
+			const uiStore = useUiStore();
+			try {
+				this.loginProcessState = "AUTHENTICATING";
+				// Salt using the user's account ID
+				const { user } = await refreshSession(auth);
+				await uiStore.updateUserStats();
+
+				// Get the salt and dek material from server
+				this.loginProcessState = "FETCHING_KEYS";
+				const material = await this.getDekMaterial();
+
+				// Derive a pKey from the password, and remember it
+				this.loginProcessState = "DERIVING_PKEY";
+				this.pKey = await derivePKey(password, material.passSalt);
+				this.onSignedIn(user);
+			} finally {
+				// In any event, error or not:
+				this.loginProcessState = null;
+			}
+		},
 		async login(accountId: string, password: string) {
 			const uiStore = useUiStore();
 			try {
@@ -103,7 +127,7 @@ export const useAuthStore = defineStore("auth", {
 				);
 				await uiStore.updateUserStats();
 
-				// Get the salt and dek material from Firestore
+				// Get the salt and dek material from server
 				this.loginProcessState = "FETCHING_KEYS";
 				const material = await this.getDekMaterial();
 

@@ -67,13 +67,11 @@ export function ref(db: AccountableDB, uid: string, name: string): StorageRefere
  */
 export async function downloadString(ref: StorageReference): Promise<string> {
 	const uid = ref.db.currentUser?.uid;
-	const jwt = ref.db.jwt;
-	if (jwt === null || uid === undefined || !uid)
-		throw new AccountableError("storage/unauthenticated");
+	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
 
 	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
-	return await downloadFrom(url, jwt);
+	return await downloadFrom(url);
 }
 
 /**
@@ -84,13 +82,11 @@ export async function downloadString(ref: StorageReference): Promise<string> {
  */
 export async function uploadString(ref: StorageReference, value: string): Promise<void> {
 	const uid = ref.db.currentUser?.uid;
-	const jwt = ref.db.jwt;
-	if (jwt === null || uid === undefined || !uid)
-		throw new AccountableError("storage/unauthenticated");
+	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
 
 	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
-	const { usedSpace, totalSpace } = await uploadTo(url, value, jwt);
+	const { usedSpace, totalSpace } = await uploadTo(url, value);
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 }
@@ -103,13 +99,11 @@ export async function uploadString(ref: StorageReference, value: string): Promis
  */
 export async function deleteObject(ref: StorageReference): Promise<void> {
 	const uid = ref.db.currentUser?.uid;
-	const jwt = ref.db.jwt;
-	if (jwt === null || uid === undefined || !uid)
-		throw new AccountableError("storage/unauthenticated");
+	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
 
 	const itemPath = storageFile(uid, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
-	const { usedSpace, totalSpace } = await deleteAt(url, jwt);
+	const { usedSpace, totalSpace } = await deleteAt(url);
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 }
