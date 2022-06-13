@@ -10,7 +10,7 @@ export interface ServerResponse extends RawServerResponse {
 
 /** Performs a GET request at the provided URL, optionally using the given JWT. */
 export async function getFrom(url: URL, token?: string): Promise<ServerResponse> {
-	return await doRequest(url, { method: "GET" }, token);
+	return await doRequest(url, { method: "GET" });
 }
 
 /** Performs a POST request at the provided URL using the given body and optional JWT. */
@@ -19,17 +19,17 @@ export async function postTo(
 	body: DocumentData | Array<DocumentWriteBatch>,
 	token?: string
 ): Promise<ServerResponse> {
-	return await doRequest(url, { method: "POST", body: JSON.stringify(body) }, token);
+	return await doRequest(url, { method: "POST", body: JSON.stringify(body) });
 }
 
 /** Performs a DELETE request at the provided URL using the given JWT. */
 export async function deleteAt(url: URL, token?: string): Promise<ServerResponse> {
-	return await doRequest(url, { method: "DELETE" }, token);
+	return await doRequest(url, { method: "DELETE" });
 }
 
 /** Performs a multipart GET request at the provided URL using the given JWT. */
 export async function downloadFrom(url: URL, token: string): Promise<string> {
-	const response = await getFrom(url, token);
+	const response = await getFrom(url);
 	const data = response.data as unknown;
 	if (!isFileData(data)) throw new UnexpectedResponseError("Invalid file data");
 	return data.contents;
@@ -53,7 +53,7 @@ export async function uploadTo(url: URL, fileBody: string, token: string): Promi
 	const headers: Record<string, string | null> = {
 		"Content-Type": null,
 	};
-	return await doRequest(url, { method: "POST", headers, body }, token);
+	return await doRequest(url, { method: "POST", headers, body });
 }
 
 const OK = HttpStatusCode.OK;
@@ -75,7 +75,7 @@ async function doRequest(
 	if (token !== undefined) {
 		headers["Authorization"] = `BEARER ${token}`;
 	}
-	const request: RequestInit = { ...req, headers };
+	const request: RequestInit = { ...req, headers, credentials: "include" };
 	let result: ServerResponse;
 	try {
 		const response = await fetch(url.href, request);

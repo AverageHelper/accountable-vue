@@ -37,6 +37,7 @@ export class AccountableDB {
 		this.url = new URL(url);
 	}
 
+	/** @deprecated Should not be used in a browser environment */
 	get jwt(): Readonly<string | null> {
 		return this.#jwt;
 	}

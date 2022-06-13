@@ -17,12 +17,11 @@ export const session = cookieSession({
 	name: "sessionToken",
 	// keys: ["...", "...."], // `secret` is used if not provided. Research these keys.
 	secret,
-	secure: true,
+	// secure: /* varies based on whether the request came from an HTTP or HTTPS source */,
 	httpOnly: true,
 	sameSite: "strict",
-	domain: "average.name",
+	path: "/v0",
 	maxAge: ONE_HOUR,
-	// expires: new Date(Date.now() + ONE_HOUR),
 });
 
 // const jwtWhitelist = new TemporarySet<string>();
@@ -71,7 +70,8 @@ export async function newAccessToken(req: Pick<Request, "session">, user: User):
 		});
 	});
 
-	if (req.session) req.session.token = token;
+	req.session ??= { token };
+	req.session.token = token;
 
 	return token;
 }
@@ -84,7 +84,7 @@ declare global {
 	}
 }
 
-export function jwtTokenFromRequest(req: Request): string | null {
+export function jwtTokenFromRequest(req: Pick<Request, "session" | "headers">): string | null {
 	// Get session token if it exists
 	if (req.session?.token !== undefined && req.session.token) {
 		return req.session.token;
