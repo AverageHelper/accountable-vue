@@ -16,7 +16,9 @@ async function userWithUid(uid: string): Promise<User | null> {
 	return await findUserWithProperties({ uid });
 }
 
-async function metadataFromRequest(req: Request): Promise<Metadata> {
+export async function metadataFromRequest(
+	req: Pick<Request, "session" | "headers">
+): Promise<Metadata> {
 	const token = jwtTokenFromRequest(req);
 	if (token === null) {
 		console.debug("Request has no JWT");

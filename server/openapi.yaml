@@ -228,6 +228,56 @@ paths:
                     type: string
                     enum:
                       - "Incorrect account ID or passphrase"
+  "/v0/session":
+    get:
+      tags:
+        - auth
+      summary: Get a new auth token for an existing session
+      operationId: renew-session
+      security:
+        - jwt: []
+      responses:
+        200:
+          description: Successfully renewed session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    enum:
+                      - "Success!"
+                  account:
+                    type: string
+                    description: The ID of the user's account.
+                  access_token:
+                    type: string
+                    description: Temporary bearer token used to authenticate future requests
+                  uid:
+                    type: string
+                    description: The user's persistent UID, different from the given account ID
+                  totalSpace:
+                    type: number
+                    example: 1000000
+                    description: "The number of total bytes the server has allocated for the user."
+                  usedSpace:
+                    type: number
+                    example: 85000
+                    description: "The number of bytes the user has stored."
+        403:
+          description: The caller did not send valid session cookies.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - "expired-token"
+                      - "missing-token"
+                      - "not-owner"
   "/v0/logout":
     post:
       tags:
