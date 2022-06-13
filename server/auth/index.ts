@@ -87,7 +87,7 @@ export function auth(this: void): Router {
 				await upsertUser(user);
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(user);
+				const access_token = await newAccessToken(req, user);
 				const { totalSpace, usedSpace } = await statsForUser(user.uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
 			})
@@ -124,7 +124,7 @@ export function auth(this: void): Router {
 				}
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(storedUser);
+				const access_token = await newAccessToken(req, storedUser);
 				const uid = storedUser.uid;
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
@@ -138,6 +138,8 @@ export function auth(this: void): Router {
 
 			// ** Blacklist the JWT
 			addJwtToBlacklist(token);
+
+			req.session = null;
 			respondSuccess(res);
 		})
 		.post<unknown, unknown, ReqBody>(
