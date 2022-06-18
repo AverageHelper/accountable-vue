@@ -7,7 +7,8 @@ import EmptyRoute from "../pages/EmptyRoute.vue";
 import Home from "../Home.vue";
 import Install from "../Install.vue";
 import Locations from "../pages/locations/Locations.vue";
-import Login from "../pages/Login.vue";
+import Locked from "../pages/auth/Locked.vue";
+import Login from "../pages/auth/Login.vue";
 import MonthView from "../pages/transactions/MonthView.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";
@@ -23,6 +24,7 @@ import {
 	homePath,
 	installPath,
 	locationsPath,
+	lockPath,
 	loginPath,
 	logoutPath,
 	securityPath,
@@ -46,13 +48,27 @@ export * from "./routes";
 
 export const APP_ROOTS = appTabs
 	.map(tab => `/${tab}`)
-	.concat([homePath(), aboutPath(), securityPath(), installPath(), loginPath(), signupPath()]);
+	.concat([
+		homePath(),
+		aboutPath(),
+		securityPath(),
+		installPath(),
+		loginPath(),
+		lockPath(),
+		signupPath(),
+	]);
 
-const onlyIfLoggedIn: NavigationGuard = (from, to, next) => {
+const onlyIfLoggedIn: NavigationGuard = async (from, to, next) => {
 	const auth = useAuthStore();
-	if (auth.uid !== null) {
+	if (auth.uid === null) await auth.fetchSession();
+	if (auth.pKey !== null) {
+		console.debug("[onlyIfLoggedIn] We have a pKey");
 		next();
+	} else if (auth.uid !== null) {
+		console.debug("[onlyIfLoggedIn] We have no pKey, but a uid");
+		next(lockPath());
 	} else {
+		console.debug("[onlyIfLoggedIn] We have no pKey or uid");
 		next(loginPath());
 	}
 };
@@ -138,6 +154,7 @@ export const router = createRouter({
 			component: EmptyRoute,
 			async beforeEnter(to, from, next): Promise<void> {
 				const auth = useAuthStore();
+				console.debug("Logging out...");
 				await auth.logout();
 				next(loginPath());
 			},
@@ -145,12 +162,37 @@ export const router = createRouter({
 		{
 			path: loginPath(),
 			component: Login,
-			beforeEnter(from, to, next): void {
+			async beforeEnter(from, to, next): Promise<void> {
 				const auth = useAuthStore();
-				if (auth.uid !== null) {
-					next(accountsPath());
+				if (auth.uid === null) await auth.fetchSession();
+				if (auth.pKey !== null) {
+					console.debug(`[${loginPath()}] We have a pKey`);
+					next(accountsPath()); // vault is unlocked; go home
+				} else if (auth.uid !== null) {
+					console.debug(`[${loginPath()}] We have no pKey, but a uid`);
+					next(lockPath()); // vault is locked
 				} else {
+					console.debug(`[${loginPath()}] We have no pKey or uid`);
+					next(); // go to login
+				}
+			},
+		},
+		{
+			path: lockPath(),
+			component: Locked,
+			async beforeEnter(from, to, next): Promise<void> {
+				const auth = useAuthStore();
+				if (auth.uid === null) await auth.fetchSession();
+				if (auth.pKey !== null) {
+					console.debug(`[${lockPath()}] We have a pKey`);
+					auth.lockVault(); // lock vault
 					next();
+				} else if (auth.uid === null) {
+					console.debug(`[${lockPath()}] We have no pKey or uid`);
+					next(loginPath()); // nothing to unlock
+				} else {
+					console.debug(`[${lockPath()}] We have no pKey, but a uid`);
+					next(); // already locked
 				}
 			},
 		},

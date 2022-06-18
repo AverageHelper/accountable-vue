@@ -96,6 +96,8 @@ export async function signOut(db: AccountableDB): Promise<void> {
 	const logout = new URL(authLogOut(), db.url);
 	await postTo(logout, {});
 	db.clearUser();
+	previousStats.usedSpace = null;
+	previousStats.totalSpace = null;
 }
 
 /**
