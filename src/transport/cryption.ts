@@ -60,6 +60,7 @@ export class HashStore {
 
 const ITERATIONS = 10000;
 
+/** Generates a cryptographically-secure random value. */
 function random(byteCount: number): string {
 	return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
 }
@@ -80,8 +81,8 @@ export async function derivePKey(password: string, salt: string): Promise<HashSt
 	);
 }
 
-export function deriveDEK(pKey: HashStore, dekMaterial: string): HashStore {
-	const dekObject = decrypt({ ciphertext: dekMaterial }, pKey);
+export function deriveDEK(pKey: HashStore, ciphertext: string): HashStore {
+	const dekObject = decrypt({ ciphertext }, pKey);
 	if (!isString(dekObject)) throw new TypeError("Decrypted key is malformatted"); // TODO: I18N?
 
 	return new HashStore(atob(dekObject));

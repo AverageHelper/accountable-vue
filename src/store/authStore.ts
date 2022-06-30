@@ -121,6 +121,8 @@ export const useAuthStore = defineStore("auth", {
 			if (uid === null || accountId === null) throw new UnauthorizedError("missing-token");
 
 			await this.login(accountId, password);
+
+			// TODO: Instead of re-authing, download the ledger and attempt a decrypt with the given password. If fail, throw. If succeed, continue.
 		},
 		async login(accountId: string, password: string) {
 			const uiStore = useUiStore();
