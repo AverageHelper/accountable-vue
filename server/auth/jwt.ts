@@ -46,6 +46,7 @@ export function addJwtToBlacklist(token: string): void {
 	}
 }
 
+// TODO: Be smarter about session storage. See https://gist.github.com/soulmachine/b368ce7292ddd7f91c15accccc02b8df
 export async function newAccessToken(req: Pick<Request, "session">, user: User): Promise<string> {
 	const options: jwt.SignOptions = { expiresIn: "1h" };
 	const payload: JwtPayload = {
