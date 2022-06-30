@@ -3,12 +3,28 @@ import type { Request } from "express";
 import { generateSecureToken } from "n-digit-token";
 import { isJwtPayload } from "../database/schemas.js";
 import { TemporarySet } from "./TemporarySet.js";
+import cookieSession from "cookie-session";
 import jwt from "jsonwebtoken";
 
 // Generate a new JWT secret for every run.
 // Restarting the server will log out all users.
 const secret = generateSecureToken(25) as string;
 
+const ONE_HOUR = 60 * 60 * 1000;
+
+// see https://expressjs.com/en/advanced/best-practice-security.html#use-cookies-securely
+export const session = cookieSession({
+	name: "sessionToken",
+	// keys: ["...", "...."], // `secret` is used if not provided. Research these keys.
+	secret,
+	// secure: /* varies based on whether the request came from an HTTP or HTTPS source */,
+	httpOnly: true,
+	sameSite: "strict",
+	path: "/v0",
+	maxAge: ONE_HOUR,
+});
+
+// const jwtWhitelist = new TemporarySet<string>();
 const jwtBlacklist = new TemporarySet<string>();
 
 export function blacklistHasJwt(token: string): boolean {
@@ -19,9 +35,9 @@ export function addJwtToBlacklist(token: string): void {
 	const jwt = unverifiedJwt(token);
 
 	// Only blacklist for the duration the token has remaining
-	let timeout = 3600000; // default to one hour
+	let timeout = ONE_HOUR; // default to one hour
 	if (jwt !== null && typeof jwt !== "string") {
-		const timeLeft = 3600000 - (Date.now() - (jwt.iat ?? timeout));
+		const timeLeft = ONE_HOUR - (Date.now() - (jwt.iat ?? timeout));
 		process.stdout.write(`JWT has ${-timeLeft}ms left\n`);
 		timeout = Math.min(timeout, timeLeft);
 	}
@@ -30,14 +46,15 @@ export function addJwtToBlacklist(token: string): void {
 	}
 }
 
-export async function newAccessToken(user: User): Promise<string> {
+// TODO: Be smarter about session storage. See https://gist.github.com/soulmachine/b368ce7292ddd7f91c15accccc02b8df
+export async function newAccessToken(req: Pick<Request, "session">, user: User): Promise<string> {
 	const options: jwt.SignOptions = { expiresIn: "1h" };
 	const payload: JwtPayload = {
 		uid: user.uid,
 		hash: user.passwordHash,
 	};
 
-	return await new Promise<string>((resolve, reject) => {
+	const token = await new Promise<string>((resolve, reject) => {
 		jwt.sign(payload, secret, options, (err, token) => {
 			if (err) {
 				reject(err);
@@ -53,9 +70,28 @@ export async function newAccessToken(user: User): Promise<string> {
 			reject(error);
 		});
 	});
+
+	req.session ??= { token };
+	req.session.token = token;
+
+	return token;
 }
 
-export function jwtTokenFromRequest(req: Request): string | null {
+declare global {
+	namespace CookieSessionInterfaces {
+		interface CookieSessionObject {
+			token?: string;
+		}
+	}
+}
+
+export function jwtTokenFromRequest(req: Pick<Request, "session" | "headers">): string | null {
+	// Get session token if it exists
+	if (req.session?.token !== undefined && req.session.token) {
+		return req.session.token;
+	}
+
+	// No session? Check auth header instead
 	const authHeader = req.headers.authorization ?? "";
 	if (!authHeader) return null;
 

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import ActionButton from "../components/buttons/ActionButton.vue";
-import ErrorNotice from "../components/ErrorNotice.vue";
-import Footer from "../Footer.vue";
-import TextField from "../components/inputs/TextField.vue";
-import { accountsPath, loginPath, signupPath } from "../router";
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+import ActionButton from "../../components/buttons/ActionButton.vue";
+import ErrorNotice from "../../components/ErrorNotice.vue";
+import Footer from "../../Footer.vue";
+import TextField from "../../components/inputs/TextField.vue";
+import { accountsPath, loginPath, signupPath } from "../../router";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../../store/authStore";
 import { useI18n } from "vue-i18n";
-import { useUiStore } from "../store";
+import { useUiStore } from "../../store";
 
 const auth = useAuthStore();
 const ui = useUiStore();
@@ -170,6 +170,8 @@ async function submit() {
 				:disabled="isLoading"
 				>{{ $t(isSignupMode ? "login.create-account" : "login.log-in") }}</ActionButton
 			>
+
+			<p v-if="!loginProcessState">{{ $t("login.cookie-disclaimer") }}</p>
 			<span v-if="loginProcessState === 'AUTHENTICATING'">{{
 				$t("login.process.authenticating")
 			}}</span>

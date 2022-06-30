@@ -10,7 +10,7 @@ interface Params {
  * Returns a filesystem path for the given file params,
  * or `null` if unsufficient or invalid params were provided.
  */
-export async function filePath(params: Params): Promise<string | null> {
+export async function sanitizedFilePath(params: Params): Promise<string | null> {
 	const { uid, fileName } = params;
 	if (uid === undefined || fileName === undefined || !uid.trim() || !fileName.trim()) return null;
 

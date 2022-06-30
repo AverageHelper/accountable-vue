@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ActionButton from "./buttons/ActionButton.vue";
 import BootstrapMenu from "./BootstrapMenu.vue";
+import Lock from "../icons/Lock.vue";
 import SideMenu from "./SideMenu.vue";
 import TabBar from "./TabBar.vue";
 import { APP_ROOTS } from "../router";
@@ -14,6 +15,7 @@ const router = useRouter();
 const route = useRoute();
 const isRoute = computed(() => APP_ROOTS.includes(route.path));
 const isLoggedIn = computed(() => auth.uid !== null);
+const isUnlocked = computed(() => auth.pKey !== null);
 
 function goBack() {
 	router.back();
@@ -29,8 +31,9 @@ function goBack() {
 			<div id="nav-actions-leading" class="actions-container"></div>
 		</aside>
 
-		<TabBar v-if="isLoggedIn" class="tab-bar" />
-		<BootstrapMenu v-else />
+		<TabBar v-if="isUnlocked" class="tab-bar" />
+		<BootstrapMenu v-else-if="!isLoggedIn" />
+		<Lock v-else />
 
 		<aside v-if="isLoggedIn" class="trailing-actions actions-container">
 			<div id="nav-actions-trailing" class="actions-container"></div>

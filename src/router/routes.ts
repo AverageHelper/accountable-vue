@@ -26,6 +26,10 @@ export function signupPath(): "/signup" {
 	return "/signup";
 }
 
+export function lockPath(): "/locked" {
+	return "/locked";
+}
+
 export function loginPath(): "/login" {
 	return "/login";
 }

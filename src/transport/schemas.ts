@@ -71,6 +71,7 @@ const rawServerResponse = object({
 	totalSpace: optional(number()),
 	usedSpace: optional(number()),
 	access_token: optional(string()),
+	account: optional(string()),
 	uid: optional(string()),
 	data: optional(nullable(union([documentData, array(documentData)]))),
 	dataType: optional(enums(["single", "multiple"] as const)),

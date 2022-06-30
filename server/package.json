@@ -1,6 +1,6 @@
 {
 	"name": "server",
-	"version": "0.4.3",
+	"version": "0.4.4",
 	"scripts": {
 		"export-version": "./node_modules/.bin/genversion ./version.ts -es",
 		"prebuild": "rm -rf ./dist && npm run export-version",
@@ -15,8 +15,8 @@
 		"bcrypt": "^5.0.1",
 		"btoa-lite": "^1.0.0",
 		"connect-busboy": "^1.0.0",
+		"cookie-session": "^2.0.0",
 		"cors": "^2.8.5",
-		"csurf": "^1.11.0",
 		"dotenv": "^10.0.0",
 		"express": "^4.17.1",
 		"express-ws": "^5.0.2",
@@ -44,6 +44,7 @@
 		"@types/bcrypt": "^5.0.0",
 		"@types/btoa-lite": "^1.0.0",
 		"@types/connect-busboy": "^1.0.0",
+		"@types/cookie-session": "^2.0.44",
 		"@types/cors": "^2.8.12",
 		"@types/csurf": "^1.11.2",
 		"@types/express": "^4.17.13",

@@ -1,6 +1,6 @@
 jest.mock("../database/io.js");
 
-import { filePath } from "./filePath.js";
+import { sanitizedFilePath } from "./sanitizedFilePath.js";
 import { ensure } from "../database/io.js";
 
 const mockEnsure = ensure as jest.Mock;
@@ -9,7 +9,7 @@ describe("File path constructor", () => {
 	test("Ensures the folder exists", async () => {
 		const uid = "real-user";
 		const fileName = "somefile.txt";
-		expect(await filePath({ fileName, uid })).toBeString();
+		expect(await sanitizedFilePath({ fileName, uid })).toBeString();
 		expect(mockEnsure).toHaveBeenCalledOnce();
 	});
 
@@ -25,7 +25,7 @@ describe("File path constructor", () => {
 	`(
 		"Returns a path (fileName: '$fileName', uid: '$uid'",
 		async ({ fileName, uid, result }: { fileName: string; uid: string; result: string }) => {
-			expect(await filePath({ fileName, uid })).toBe(result);
+			expect(await sanitizedFilePath({ fileName, uid })).toBe(result);
 		}
 	);
 
@@ -39,7 +39,7 @@ describe("File path constructor", () => {
 	`(
 		"Returns nothing if the path contains path arguments (fileName: '$fileName', uid: 'uid')",
 		async (params: { fileName: string; uid: string }) => {
-			expect(await filePath(params)).toBeNull();
+			expect(await sanitizedFilePath(params)).toBeNull();
 		}
 	);
 });

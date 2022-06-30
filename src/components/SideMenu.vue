@@ -4,12 +4,13 @@ import ActionButton from "./buttons/ActionButton.vue";
 import AppVersion from "./AppVersion.vue";
 import Gear from "../icons/Gear.vue";
 import List from "./List.vue";
+import Lock from "../icons/Lock.vue";
 import LogOut from "../icons/LogOut.vue";
 import MenuIcon from "../icons/Menu.vue";
 import DiskUsage from "./DiskUsage.vue";
 import { appTabs, iconForTab, labelIdForTab, routeForTab } from "../model/ui/tabs";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { logoutPath, settingsPath } from "../router";
+import { lockPath, logoutPath, settingsPath } from "../router";
 import { useAuthStore } from "../store";
 
 interface MenuItem {
@@ -23,26 +24,38 @@ const auth = useAuthStore();
 
 const isMenuOpen = ref(false);
 const isLoggedIn = computed(() => auth.uid !== null);
+const isUnlocked = computed(() => auth.pKey !== null);
 const hasItems = computed(() => isLoggedIn.value);
 
 const windowWidth = ref(window.innerWidth);
 const isTabletWidth = computed(() => windowWidth.value < 768);
 
 const settingsItems = computed<Array<MenuItem>>(() => {
-	const items: Array<MenuItem> = [
-		{
-			id: "app.nav.settings",
-			path: settingsPath(),
-			requiresLogin: true,
-			icon: Gear,
-		},
-		{
-			id: "app.nav.log-out",
-			path: logoutPath(),
-			requiresLogin: true,
-			icon: LogOut,
-		},
-	];
+	const items: Array<MenuItem> = [];
+
+	if (isUnlocked.value) {
+		items.push(
+			{
+				id: "app.nav.settings",
+				path: settingsPath(),
+				requiresLogin: true,
+				icon: Gear,
+			},
+			{
+				id: "app.nav.lock",
+				path: lockPath(),
+				requiresLogin: true,
+				icon: Lock,
+			}
+		);
+	}
+
+	items.push({
+		id: "app.nav.log-out",
+		path: logoutPath(),
+		requiresLogin: true,
+		icon: LogOut,
+	});
 
 	if (isTabletWidth.value) {
 		items.unshift(

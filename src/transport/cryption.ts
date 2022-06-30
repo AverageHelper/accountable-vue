@@ -12,7 +12,7 @@ class DecryptionError extends Error {
 }
 
 /**
- * Encryption materials that live on Firestore.
+ * Encryption materials that live on the server.
  * This data is useless without the user's password.
  */
 export interface KeyMaterial {
@@ -60,6 +60,7 @@ export class HashStore {
 
 const ITERATIONS = 10000;
 
+/** Generates a cryptographically-secure random value. */
 function random(byteCount: number): string {
 	return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
 }
@@ -80,8 +81,8 @@ export async function derivePKey(password: string, salt: string): Promise<HashSt
 	);
 }
 
-export function deriveDEK(pKey: HashStore, dekMaterial: string): HashStore {
-	const dekObject = decrypt({ ciphertext: dekMaterial }, pKey);
+export function deriveDEK(pKey: HashStore, ciphertext: string): HashStore {
+	const dekObject = decrypt({ ciphertext }, pKey);
 	if (!isString(dekObject)) throw new TypeError("Decrypted key is malformatted"); // TODO: I18N?
 
 	return new HashStore(atob(dekObject));
@@ -131,7 +132,7 @@ export async function newMaterialFromOldKey(
  * @param data The data to encrypt.
  * @param metadata Metadata to be stored in plaintext about the data.
  * @param dek The data en/decryption key.
- * @returns An object that can be stored in Firestore.
+ * @returns An object that can be stored in the server.
  */
 export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
 	const plaintext = JSON.stringify(data);
@@ -143,7 +144,7 @@ export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage
 /**
  * Deserializes encrypted data.
  *
- * @param pkg The object that was stored in Firestore.
+ * @param pkg The object that was stored in the server.
  * @param dek The data en/decryption key.
  * @returns The original data.
  */

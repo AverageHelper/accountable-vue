@@ -4,6 +4,7 @@ import type { User } from "../transport/auth.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { useUiStore } from "./uiStore";
+import { UnauthorizedError } from "../../server/errors";
 import { v4 as uuid } from "uuid";
 import {
 	defaultPrefs,
@@ -26,6 +27,7 @@ import {
 import {
 	createUserWithAccountIdAndPassword,
 	deleteUser,
+	refreshSession,
 	signInWithAccountIdAndPassword,
 	signOut,
 	updateAccountId,
@@ -56,6 +58,13 @@ export const useAuthStore = defineStore("auth", {
 			this.isNewLogin = false;
 			this.preferences = defaultPrefs();
 			console.debug("authStore: cache cleared");
+		},
+		lockVault() {
+			this.pKey?.destroy();
+			this.pKey = null;
+			this.isNewLogin = false;
+			this.loginProcessState = null;
+			console.debug("authStore: keys forgotten, vault locked");
 		},
 		onSignedIn(user: User) {
 			this.accountId = user.accountId;
@@ -90,6 +99,31 @@ export const useAuthStore = defineStore("auth", {
 			tags.clearCache();
 			transactions.clearCache();
 		},
+		async fetchSession() {
+			const uiStore = useUiStore();
+			uiStore.bootstrap();
+			try {
+				this.loginProcessState = "AUTHENTICATING";
+				// Salt using the user's account ID
+				const { user } = await refreshSession(auth);
+				await uiStore.updateUserStats();
+				this.onSignedIn(user);
+			} catch (error) {
+				console.error(error);
+			} finally {
+				// In any event, error or not:
+				this.loginProcessState = null;
+			}
+		},
+		async unlockVault(password: string) {
+			const uid = this.uid;
+			const accountId = this.accountId;
+			if (uid === null || accountId === null) throw new UnauthorizedError("missing-token");
+
+			await this.login(accountId, password);
+
+			// TODO: Instead of re-authing, download the ledger and attempt a decrypt with the given password. If fail, throw. If succeed, continue.
+		},
 		async login(accountId: string, password: string) {
 			const uiStore = useUiStore();
 			try {
@@ -103,7 +137,7 @@ export const useAuthStore = defineStore("auth", {
 				);
 				await uiStore.updateUserStats();
 
-				// Get the salt and dek material from Firestore
+				// Get the salt and dek material from server
 				this.loginProcessState = "FETCHING_KEYS";
 				const material = await this.getDekMaterial();
 

@@ -54,6 +54,7 @@
 			"accounts": "Accounts",
 			"attachments": "Files",
 			"locations": "Locations",
+			"lock": "Lock",
 			"log-out": "Log out",
 			"generic-page": "Page",
 			"settings": "Settings",
@@ -106,6 +107,7 @@
 		"value-will-be-generated": "to be generated...",
 		"log-in": "Log in",
 		"create-account": "Create an account",
+		"cookie-disclaimer": "Logging in will set one cookie, which contains your login token. This cookie lets your browser securely remember that you were logged in without Accountable needing to keep your login token someplace unsafe.",
 		"process": {
 			"authenticating": "Authenticating...",
 			"generating-keys": "Generating keys...",
@@ -133,6 +135,10 @@
 			"is-account-id-safe": "Do you have your account ID ({accountId}) written down somewhere safe?",
 			"acknowledge": "Got it"
 		}
+	},
+	"locked": {
+		"heading": "You're logged in, but your ledger is locked. Enter your passphrase to unlock the ledger.",
+		"unlock": "Unlock"
 	},
 	"install": {
 		"service": {
