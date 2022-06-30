@@ -107,6 +107,7 @@
 		"value-will-be-generated": "to be generated...",
 		"log-in": "Log in",
 		"create-account": "Create an account",
+		"cookie-disclaimer": "Logging in will set one cookie, which contains your login token. This cookie lets your browser securely remember that you were logged in without Accountable needing to keep your login token someplace unsafe.",
 		"process": {
 			"authenticating": "Authenticating...",
 			"generating-keys": "Generating keys...",

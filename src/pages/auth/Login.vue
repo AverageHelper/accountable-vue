@@ -170,6 +170,8 @@ async function submit() {
 				:disabled="isLoading"
 				>{{ $t(isSignupMode ? "login.create-account" : "login.log-in") }}</ActionButton
 			>
+
+			<p v-if="!loginProcessState">{{ $t("login.cookie-disclaimer") }}</p>
 			<span v-if="loginProcessState === 'AUTHENTICATING'">{{
 				$t("login.process.authenticating")
 			}}</span>
