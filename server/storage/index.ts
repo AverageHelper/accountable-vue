@@ -2,14 +2,14 @@ import type { DocumentData } from "../database/schemas.js";
 import type { Request, Response } from "express";
 import { asyncWrapper } from "../asyncWrapper.js";
 import { createWriteStream } from "fs";
-import { statsForUser } from "../database/io.js";
-import { sanitizedFilePath } from "./sanitizedFilePath.js";
 import { handleErrors } from "../handleErrors.js";
 import { maxSpacePerUser } from "../auth/limits.js";
 import { ownersOnly, requireAuth } from "../auth/index.js";
 import { respondData, respondError, respondSuccess } from "../responses.js";
 import { Router } from "express";
+import { sanitizedFilePath } from "./sanitizedFilePath.js";
 import { stat as fsStat, unlink as fsUnlink, readFile } from "fs/promises";
+import { statsForUser } from "../database/io.js";
 import { simplifiedByteCount } from "../transformers/simplifiedByteCount.js";
 import { touch } from "../database/filesystem.js";
 import { useJobQueue } from "@averagehelper/job-queue";
@@ -187,10 +187,6 @@ export function storage(this: void): Router {
 				const path = await sanitizedFilePath(req.params);
 				if (path === null)
 					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
-				if (path.includes("..")) {
-					console.error(`Someone might be trying a path traversal with '${path}'`);
-					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
-				}
 
 				const contents = await getFileContents(path);
 				const fileData: DocumentData<FileData> = {
