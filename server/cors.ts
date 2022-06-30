@@ -15,17 +15,20 @@ process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins
 
 const corsOptions: CorsOptions = {
 	origin: (origin, callback) => {
-		process.stdout.write(`Handling request from origin: ${origin ?? "undefined"}\n`);
-
 		// Allow requests with no origin (mobile apps, curl, etc.)
-		if (origin === undefined || !origin) return callback(null, true);
+		if (origin === undefined || !origin) {
+			process.stdout.write(`Handling request that has no origin\n`);
+			return callback(null, true);
+		}
 
 		// Guard Origin
 		if (!allowedOrigins.has(origin)) {
+			process.stdout.write(`Blocking request from origin: ${origin}\n`);
 			return callback(new OriginError(), false);
 		}
 
 		// Origin must be OK! Let 'em in
+		process.stdout.write(`Handling request from origin: ${origin}\n`);
 		return callback(null, true);
 	},
 };
