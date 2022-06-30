@@ -17,14 +17,12 @@ import busboy from "connect-busboy";
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";
-import methodOverride from "method-override";
 
 const API_VERSION = 0;
 const PORT = 40850;
 
 const app = express()
-	.use(methodOverride())
-	.use(helmet()) // helmet also disables 'x-powered-by' header
+	.use(helmet()) // also disables 'x-powered-by' header
 	.use(cors());
 
 expressWs(app); // Set up websocket support. This is the reason our endpoint declarations need to be functions and not `const` declarations
