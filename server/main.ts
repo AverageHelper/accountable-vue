@@ -11,6 +11,7 @@ import { respondError } from "./responses.js";
 import { serverVersion } from "./serverVersion.js";
 import { session } from "./auth/jwt.js";
 import { storage } from "./storage/index.js";
+import { version as appVersion } from "./version.js";
 import busboy from "connect-busboy";
 // import csurf from "csurf"; // TODO: Might be important later
 import express from "express";
@@ -53,5 +54,5 @@ app
 process.stdout.write(`NODE_ENV: ${env("NODE_ENV") ?? "undefined"}\n`);
 
 app.listen(PORT, () => {
-	process.stdout.write(`Accountable storage server listening on port ${PORT}\n`);
+	process.stdout.write(`Accountable storage server v${appVersion} listening on port ${PORT}\n`);
 });

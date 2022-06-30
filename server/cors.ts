@@ -14,6 +14,7 @@ try {
 process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins.values()))}\n`);
 
 const corsOptions: CorsOptions = {
+	credentials: true,
 	origin: (origin, callback) => {
 		// Allow requests with no origin (mobile apps, curl, etc.)
 		if (origin === undefined || !origin) {
