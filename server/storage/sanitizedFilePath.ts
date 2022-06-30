@@ -21,6 +21,13 @@ export async function sanitizedFilePath(params: Params): Promise<string | null> 
 	if (uid.includes("..") || uid.includes(pathSeparator)) return null;
 
 	const folder = resolvePath(DB_DIR, `./users/${uid.trim()}/attachments`);
-	await ensure(folder);
-	return join(folder, fileName.trim());
+
+	const path = join(folder, fileName.trim());
+	if (path.includes("..")) {
+		console.error(`Someone might be trying a path traversal with '${path}'`);
+		return null;
+	}
+
+	await ensure(folder); // make sure the folder exists
+	return path;
 }
