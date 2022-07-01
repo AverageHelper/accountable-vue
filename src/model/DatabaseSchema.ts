@@ -1,4 +1,6 @@
 import type { Infer } from "superstruct";
+import { allColors } from "./Color";
+import { locationPrefs } from "../transport";
 import {
 	array,
 	boolean,
@@ -32,7 +34,7 @@ export type AttachmentSchema = Infer<typeof attachmentSchema>;
 const tagSchema = object({
 	id: string(),
 	name: string(),
-	colorId: enums(["red", "orange", "yellow", "green", "blue", "purple"] as const),
+	colorId: enums(allColors),
 });
 
 export type TagSchema = Infer<typeof tagSchema>;
@@ -91,7 +93,7 @@ export type AccountSchema = Infer<typeof accountSchema>;
 
 export const schema = object({
 	uid: string(),
-	locationSensitivity: defaulted(optional(enums(["none", "vague", "specific"] as const)), "none"),
+	locationSensitivity: defaulted(optional(enums(locationPrefs)), "none"),
 	accounts: defaulted(optional(array(accountSchema)), []),
 	attachments: defaulted(optional(array(attachmentSchema)), []),
 	locations: defaulted(optional(array(locationSchema)), []),

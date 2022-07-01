@@ -3,6 +3,7 @@ import type { EPackage, HashStore } from "./cryption";
 import type { LocationPref } from "./locations";
 import { db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { encrypt } from "./cryption";
+import { locationPrefs } from "./locations";
 
 export interface UserPreferences {
 	locationSensitivity: LocationPref;
@@ -26,7 +27,7 @@ function isUserPreferences(tbd: unknown): tbd is UserPreferences {
 		Boolean(tbd) &&
 		!Array.isArray(tbd) &&
 		"locationSensitivity" in tbd &&
-		["none", "vague", "specific"].includes((tbd as UserPreferences).locationSensitivity)
+		locationPrefs.includes((tbd as UserPreferences).locationSensitivity)
 	);
 }
 

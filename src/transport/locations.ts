@@ -10,8 +10,9 @@ import type {
 	WriteBatch,
 } from "./db";
 
-export type LocationPref = "none" | "vague" | "specific";
-export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
+export const locationPrefs = ["none", "vague" /* , "specific"*/] as const;
+
+export type LocationPref = typeof locationPrefs[number];
 
 interface LocationRecordPackageMetadata {
 	objectType: "Location";

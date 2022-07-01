@@ -1,20 +1,13 @@
 import isString from "lodash/isString";
 
-export type ColorID = "red" | "orange" | "yellow" | "green" | "blue" | "purple";
+export const allColors = ["red", "orange", "yellow", "green", "blue", "purple"] as const;
 
-export const allColors: ReadonlyArray<ColorID> = [
-	"red",
-	"orange",
-	"yellow",
-	"green",
-	"blue",
-	"purple",
-];
+export type ColorID = typeof allColors[number];
 
 export function randomColor(): ColorID {
 	return allColors[Math.floor(Math.random() * allColors.length)] as ColorID;
 }
 
-export function isColorId(toBeDetermined: unknown): toBeDetermined is ColorID {
-	return isString(toBeDetermined) && allColors.includes(toBeDetermined as ColorID);
+export function isColorId(tbd: unknown): tbd is ColorID {
+	return isString(tbd) && allColors.includes(tbd as ColorID);
 }
