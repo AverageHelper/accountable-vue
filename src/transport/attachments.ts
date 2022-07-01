@@ -4,10 +4,10 @@ import type {
 	QueryDocumentSnapshot,
 	WriteBatch,
 } from "./db";
+import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { StorageReference } from "./storage.js";
-import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
-import { Attachment } from "../model/Attachment";
+import { attachment, isAttachmentRecord, recordFromAttachment } from "../model/Attachment";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { deleteObject, downloadString, ref, uploadString } from "./storage.js";
 import { encrypt, decrypt } from "./cryption";
@@ -62,9 +62,8 @@ export function attachmentFromSnapshot(
 	doc: QueryDocumentSnapshot<AttachmentRecordPackage>,
 	dek: HashStore
 ): Attachment {
-	const { id, record } = recordFromSnapshot(doc, dek, Attachment.isRecord);
-	const storagePath = record.storagePath;
-	return new Attachment(id, storagePath, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isAttachmentRecord);
+	return attachment({ id, ...record });
 }
 
 export async function createAttachment(
@@ -91,7 +90,7 @@ export async function createAttachment(
 	const pkg = encrypt(recordToSave, meta, dek);
 	await setDoc(ref, pkg); // Save the record
 
-	return new Attachment(ref.id, storagePath, recordToSave);
+	return attachment({ id: ref.id, storagePath, ...recordToSave });
 }
 
 export async function updateAttachment(
@@ -104,7 +103,7 @@ export async function updateAttachment(
 		objectType: "Attachment",
 	};
 
-	const record: AttachmentRecordParams = attachment.toRecord();
+	const record = recordFromAttachment(attachment);
 	const pkg = encrypt(record, meta, dek);
 	await setDoc(attachmentRef(uid, attachment), pkg);
 

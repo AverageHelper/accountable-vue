@@ -2,6 +2,7 @@ import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
 import type { AttachmentRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import type { Entry as ZipEntry } from "@zip.js/zip.js";
+import { attachment, recordFromAttachment } from "../model/Attachment";
 import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
@@ -191,7 +192,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const snap = await getDocs<AttachmentRecordPackage>(collection);
 			return snap.docs
 				.map(doc => attachmentFromSnapshot(doc, dek))
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromAttachment(t), id: t.id }));
 		},
 		async importAttachment(
 			attachmentToImport: AttachmentSchema,
@@ -215,7 +216,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			if (storedAttachment) {
 				// If duplicate, overwrite the one we have
-				const newAttachment = storedAttachment.updatedWith(attachmentToImport);
+				const newAttachment = attachment({ ...storedAttachment, ...attachmentToImport });
 				await this.updateAttachment(newAttachment, fileToImport);
 			} else {
 				// If new, create a new attachment
