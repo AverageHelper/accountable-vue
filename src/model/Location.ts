@@ -1,4 +1,4 @@
-import type { Identifiable } from "./utility/Identifiable";
+import type { Model } from "./utility/Model";
 import isString from "lodash/isString";
 
 export interface Coordinate {
@@ -6,66 +6,43 @@ export interface Coordinate {
 	lng: number;
 }
 
-export interface LocationRecordParams {
-	title: string;
-	subtitle: string | null;
-	coordinate: Coordinate | null;
-	lastUsed: Date;
+export interface Location extends Model<"Location"> {
+	readonly title: string;
+	readonly subtitle: string | null;
+	readonly coordinate: Coordinate | null;
+	readonly lastUsed: Date;
 }
 
-export class Location implements Identifiable<string>, LocationRecordParams {
-	public readonly objectType = "Location";
-	public readonly id: string;
-	public readonly title: string;
-	public readonly subtitle: string | null;
-	public readonly coordinate: Coordinate | null;
-	public readonly lastUsed: Date;
+export type LocationRecordParams = Pick<Location, "coordinate" | "lastUsed" | "subtitle" | "title">;
 
-	constructor(id: string, title: string, record: Omit<LocationRecordParams, "title">) {
-		this.id = id;
-		this.title = title.trim();
-		const defaultRecord = Location.defaultRecord(record);
-		this.subtitle = (record.subtitle?.trim() ?? "") || defaultRecord.subtitle;
-		this.coordinate = record.coordinate ?? defaultRecord.coordinate;
-		this.lastUsed = record.lastUsed ?? defaultRecord.lastUsed;
-	}
+export function location(params: Omit<Location, "objectType">): Location {
+	return {
+		coordinate: params.coordinate,
+		id: params.id,
+		lastUsed: params.lastUsed,
+		objectType: "Location",
+		subtitle: (params.subtitle?.trim() ?? "") || null,
+		title: params.title.trim() || "Untitled",
+	};
+}
 
-	static defaultRecord(this: void, record?: Partial<LocationRecordParams>): LocationRecordParams {
-		return {
-			title: record?.title ?? "",
-			subtitle: record?.subtitle ?? null,
-			coordinate: record?.coordinate ?? null,
-			lastUsed: record?.lastUsed ?? new Date(),
-		};
-	}
+export function isLocationRecord(tbd: unknown): tbd is LocationRecordParams {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"title" in tbd &&
+		isString((tbd as LocationRecordParams).title)
+	);
+}
 
-	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is LocationRecordParams {
-		return (
-			toBeDetermined !== undefined &&
-			toBeDetermined !== null &&
-			typeof toBeDetermined === "object" &&
-			Boolean(toBeDetermined) &&
-			!Array.isArray(toBeDetermined) &&
-			"title" in toBeDetermined &&
-			isString((toBeDetermined as LocationRecordParams).title)
-		);
-	}
-
-	toRecord(): LocationRecordParams {
-		return {
-			title: this.title,
-			subtitle: this.subtitle,
-			coordinate: this.coordinate,
-			lastUsed: this.lastUsed,
-		};
-	}
-
-	updatedWith(params: Partial<LocationRecordParams>): Location {
-		const thisRecord = this.toRecord();
-		return new Location(this.id, params.title ?? this.title, { ...thisRecord, ...params });
-	}
-
-	toString(): string {
-		return JSON.stringify(this.toRecord());
-	}
+export function recordFromLocation(location: Location): LocationRecordParams {
+	return {
+		coordinate: location.coordinate,
+		lastUsed: location.lastUsed,
+		subtitle: location.subtitle,
+		title: location.title,
+	};
 }

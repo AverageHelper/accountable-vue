@@ -2,6 +2,7 @@ import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { location, recordFromLocation } from "../model/Location";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
@@ -166,7 +167,7 @@ export const useLocationsStore = defineStore("locations", {
 			const snap = await getDocs<LocationRecordPackage>(collection);
 			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromLocation(t), id: t.id }));
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
@@ -175,7 +176,7 @@ export const useLocationsStore = defineStore("locations", {
 			const storedLocation = this.items[locationToImport.id] ?? null;
 			if (storedLocation) {
 				// If duplicate, overwrite the one we have
-				const newLocation = storedLocation.updatedWith(locationToImport);
+				const newLocation = location({ ...storedLocation, ...locationToImport });
 				await this.updateLocation(newLocation, batch);
 			} else {
 				// If new, create a new location

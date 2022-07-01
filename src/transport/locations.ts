@@ -1,8 +1,8 @@
 import type { EPackage, HashStore } from "./cryption";
-import type { LocationRecordParams } from "../model/Location";
+import type { Location, LocationRecordParams } from "../model/Location";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { encrypt } from "./cryption";
-import { Location } from "../model/Location";
+import { isLocationRecord, location, recordFromLocation } from "../model/Location";
 import type {
 	CollectionReference,
 	DocumentReference,
@@ -30,8 +30,8 @@ export function locationFromSnapshot(
 	doc: QueryDocumentSnapshot<LocationRecordPackage>,
 	dek: HashStore
 ): Location {
-	const { id, record } = recordFromSnapshot(doc, dek, Location.isRecord);
-	return new Location(id, record.title, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isLocationRecord);
+	return location({ id, ...record });
 }
 
 export async function createLocation(
@@ -50,7 +50,7 @@ export async function createLocation(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Location(ref.id, record.title, record);
+	return location({ id: ref.id, ...record });
 }
 
 export async function updateLocation(
@@ -61,7 +61,7 @@ export async function updateLocation(
 	const meta: LocationRecordPackageMetadata = {
 		objectType: "Location",
 	};
-	const record: LocationRecordParams = location.toRecord();
+	const record = recordFromLocation(location);
 	const pkg = encrypt(record, meta, dek);
 	const ref = locationRef(location);
 	if (batch) {

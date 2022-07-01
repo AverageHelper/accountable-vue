@@ -1,6 +1,6 @@
 import type { ColorID } from "./Color";
 import type { Model } from "./utility/Model";
-import { isColorId } from "./Color";
+import { randomColor, isColorId } from "./Color";
 import isString from "lodash/isString";
 
 export interface Tag extends Model<"Tag"> {
@@ -12,9 +12,9 @@ export type TagRecordParams = Pick<Tag, "colorId" | "name">;
 
 export function tag(params: Omit<Tag, "objectType">): Tag {
 	return {
-		colorId: params.colorId,
+		colorId: isColorId(params.colorId) ? params.colorId : randomColor(),
 		id: params.id,
-		name: params.name,
+		name: params.name.trim(),
 		objectType: "Tag",
 	};
 }

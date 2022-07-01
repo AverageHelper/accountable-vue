@@ -136,7 +136,7 @@ export const useTagsStore = defineStore("tags", {
 			const snap = await getDocs<TagRecordPackage>(collection);
 			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
-				.map(t => tag({ ...recordFromTag(t), id: t.id }));
+				.map(t => ({ ...recordFromTag(t), id: t.id }));
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
