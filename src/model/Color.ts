@@ -1,5 +1,3 @@
-import isString from "lodash/isString";
-
 export const allColors = ["red", "orange", "yellow", "green", "blue", "purple"] as const;
 
 export type ColorID = typeof allColors[number];
@@ -9,5 +7,5 @@ export function randomColor(): ColorID {
 }
 
 export function isColorId(tbd: unknown): tbd is ColorID {
-	return isString(tbd) && allColors.includes(tbd as ColorID);
+	return allColors.includes(tbd as ColorID);
 }

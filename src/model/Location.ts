@@ -1,9 +1,33 @@
 import type { Model } from "./utility/Model";
+import isDate from "lodash/isDate";
+import isNumber from "lodash/isNumber";
 import isString from "lodash/isString";
+
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
+}
 
 export interface Coordinate {
 	lat: number;
 	lng: number;
+}
+
+export function isCoordinate(tbd: unknown): tbd is Coordinate {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"lat" in tbd &&
+		"lng" in tbd &&
+		isNumber((tbd as Coordinate).lat) &&
+		isNumber((tbd as Coordinate).lng)
+	);
+}
+
+function isCoordinateOrNull(tbd: unknown): tbd is Coordinate | null {
+	return tbd === null || isCoordinate(tbd);
 }
 
 export interface Location extends Model<"Location"> {
@@ -34,7 +58,13 @@ export function isLocationRecord(tbd: unknown): tbd is LocationRecordParams {
 		Boolean(tbd) &&
 		!Array.isArray(tbd) &&
 		"title" in tbd &&
-		isString((tbd as LocationRecordParams).title)
+		"subtitle" in tbd &&
+		"coordinate" in tbd &&
+		"lastUsed" in tbd &&
+		isString((tbd as LocationRecordParams).title) &&
+		isStringOrNull((tbd as LocationRecordParams).subtitle) &&
+		isCoordinateOrNull((tbd as LocationRecordParams).coordinate) &&
+		isDate((tbd as LocationRecordParams).lastUsed)
 	);
 }
 

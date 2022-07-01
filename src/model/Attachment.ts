@@ -1,5 +1,10 @@
 import type { Model } from "./utility/Model";
+import isDate from "lodash/isDate";
 import isString from "lodash/isString";
+
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
+}
 
 export interface Attachment extends Model<"Attachment"> {
 	readonly title: string;
@@ -28,18 +33,21 @@ export function attachment(params: Omit<Attachment, "objectType">): Attachment {
 
 export function isAttachmentRecord(tbd: unknown): tbd is AttachmentRecordParams {
 	return (
-		(tbd !== undefined &&
-			tbd !== null &&
-			typeof tbd === "object" &&
-			Boolean(tbd) &&
-			!Array.isArray(tbd) &&
-			"createdAt" in tbd &&
-			"title" in tbd &&
-			"notes" in tbd &&
-			(tbd as AttachmentRecordParams).title === null) ||
-		(isString((tbd as AttachmentRecordParams).title) &&
-			(tbd as AttachmentRecordParams).notes === null) ||
-		isString((tbd as AttachmentRecordParams).notes)
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"createdAt" in tbd &&
+		"title" in tbd &&
+		"type" in tbd &&
+		"notes" in tbd &&
+		"storagePath" in tbd &&
+		isString((tbd as AttachmentRecordParams).title) &&
+		isString((tbd as AttachmentRecordParams).type) &&
+		isString((tbd as AttachmentRecordParams).storagePath) &&
+		isStringOrNull((tbd as AttachmentRecordParams).notes) &&
+		isDate((tbd as AttachmentRecordParams).createdAt)
 	);
 }
 

@@ -27,8 +27,8 @@ export function isTagRecord(tbd: unknown): tbd is TagRecordParams {
 		Boolean(tbd) &&
 		!Array.isArray(tbd) &&
 		"name" in tbd &&
-		isString((tbd as TagRecordParams).name) &&
 		"colorId" in tbd &&
+		isString((tbd as TagRecordParams).name) &&
 		isColorId((tbd as TagRecordParams).colorId)
 	);
 }
