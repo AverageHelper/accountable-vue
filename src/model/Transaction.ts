@@ -1,168 +1,186 @@
-import type { Dinero, DineroSnapshot } from "dinero.js";
-import type { Identifiable } from "./utility/Identifiable";
-import isString from "lodash/isString";
+import type { Attachment } from "./Attachment";
+import type { Currency, Dinero, DineroSnapshot } from "dinero.js";
+import type { Model } from "./utility/Model";
+import type { Tag } from "./Tag";
 import isBoolean from "lodash/isBoolean";
-import { dinero, toSnapshot, isPositive, isNegative, isZero } from "dinero.js";
+import isDate from "lodash/isDate";
+import isNumber from "lodash/isNumber";
+import isString from "lodash/isString";
+import { dinero, toSnapshot } from "dinero.js";
 import { USD } from "@dinero.js/currencies";
 
-export type TransactionRecordType = "expense" | "income" | "transaction";
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
+}
 
 // TODO: Add a date-last-modified field to this and every stored document (so database lurkers can't correlate data modifications to encrypted representations)
 
-export interface TransactionRecordParams {
-	amount: DineroSnapshot<number>;
+export interface Transaction extends Model<"Transaction"> {
+	amount: Dinero<number>;
 	createdAt: Date;
 	title: string | null;
 	notes: string | null;
 	locationId: string | null;
 	isReconciled: boolean;
 	accountId: string;
-	tagIds: ReadonlyArray<string>;
-	attachmentIds: ReadonlyArray<string>;
+	tagIds: Array<string>;
+	attachmentIds: Array<string>;
 }
 
-export class Transaction
-	implements Identifiable<string>, ReplaceWith<TransactionRecordParams, "amount", Dinero<number>>
-{
-	public readonly objectType = "Transaction";
-	public readonly id: string;
-	public readonly amount: Dinero<number>;
-	public readonly createdAt: Date;
-	public readonly title: string | null;
-	public readonly notes: string | null;
-	public readonly locationId: string | null;
-	public readonly isReconciled: boolean;
-	public readonly accountId: string;
-	private readonly _tagIds: Set<string>;
-	private readonly _attachmentIds: Set<string>;
+export type TransactionRecordParams = ReplaceWith<
+	Pick<
+		Transaction,
+		| "accountId"
+		| "amount"
+		| "attachmentIds"
+		| "createdAt"
+		| "isReconciled"
+		| "locationId"
+		| "notes"
+		| "tagIds"
+		| "title"
+	>,
+	"amount",
+	DineroSnapshot<number>
+>;
 
-	constructor(
-		id: string,
-		record: Partial<TransactionRecordParams> & Pick<TransactionRecordParams, "accountId">
-	) {
-		this.id = id;
-		this.accountId = record.accountId;
-		const defaultRecord = Transaction.defaultRecord(record);
-		this.amount =
-			typeof record?.amount === "number"
-				? dinero({ amount: record.amount * 100, currency: USD }) // for compatibility
-				: dinero(record?.amount ?? defaultRecord.amount);
-		this.createdAt =
-			// handle case where decryption doesn't return a Date object
-			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
-		this.title = (record?.title?.trim() ?? "") || defaultRecord.title;
-		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
-		this.locationId = (record?.locationId?.trim() ?? "") || defaultRecord.locationId;
-		this.isReconciled = record?.isReconciled ?? defaultRecord.isReconciled;
-		this._tagIds = new Set(record?.tagIds ?? defaultRecord.tagIds);
-		this._attachmentIds = new Set(record?.attachmentIds ?? defaultRecord.attachmentIds);
+export function transaction(
+	params: Transaction | (TransactionRecordParams & Pick<Transaction, "id">)
+): Transaction {
+	if ("objectType" in params) {
+		return newTransactionWithDelta(params, {});
 	}
+	return {
+		id: params.id,
+		objectType: "Transaction",
+		accountId: params.accountId,
+		amount:
+			typeof params.amount === "number"
+				? dinero({ amount: params.amount * 100, currency: USD }) // for compatibility. # TODO: Migrate ancient transactions
+				: dinero(params.amount),
+		createdAt: params.createdAt,
+		title: (params.title?.trim() ?? "") || null,
+		notes: (params.notes?.trim() ?? "") || null,
+		locationId: (params.locationId?.trim() ?? "") || null,
+		isReconciled: params.isReconciled,
+		tagIds: Array.from(new Set(params.tagIds)),
+		attachmentIds: Array.from(new Set(params.attachmentIds)),
+	};
+}
 
-	get type(): TransactionRecordType {
-		const TRANSACTION = "transaction";
-		const INCOME = "income";
-		const EXPENSE = "expense";
+function isCurrency(tbd: unknown): tbd is Currency<number> {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"code" in tbd &&
+		"base" in tbd &&
+		"exponent" in tbd &&
+		isString((tbd as Currency<number>).code) &&
+		isNumber((tbd as Currency<number>).base) &&
+		isNumber((tbd as Currency<number>).exponent)
+	);
+}
 
-		if (isZero(this.amount)) {
-			return TRANSACTION;
-		} else if (isPositive(this.amount)) {
-			return INCOME;
-		} else if (isNegative(this.amount)) {
-			return EXPENSE;
-		}
-		return TRANSACTION;
+function isAmountSnapshot(tbd: unknown): tbd is DineroSnapshot<number> {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"amount" in tbd &&
+		"currency" in tbd &&
+		"scale" in tbd &&
+		isNumber((tbd as DineroSnapshot<number>).amount) &&
+		isNumber((tbd as DineroSnapshot<number>).scale) &&
+		isCurrency((tbd as DineroSnapshot<number>).currency)
+	);
+}
+
+export function isTransactionRecord(tbd: unknown): tbd is TransactionRecordParams {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"amount" in tbd &&
+		"createdAt" in tbd &&
+		"isReconciled" in tbd &&
+		"title" in tbd &&
+		"notes" in tbd &&
+		"locationId" in tbd &&
+		isStringOrNull((tbd as TransactionRecordParams).title) &&
+		isStringOrNull((tbd as TransactionRecordParams).notes) &&
+		isStringOrNull((tbd as TransactionRecordParams).locationId) &&
+		isAmountSnapshot((tbd as TransactionRecordParams).amount) &&
+		isBoolean((tbd as TransactionRecordParams).isReconciled) &&
+		isDate((tbd as TransactionRecordParams).createdAt)
+	);
+}
+
+/**
+ * Creates a new {@link Transaction} by combining the properties of the given transaction with the given properties.
+ * @param ogTransaction The original transaction.
+ * @param delta The properties to apply to the new transaction. An empty value duplicates the transaction.
+ */
+export function newTransactionWithDelta(
+	ogTransaction: Transaction,
+	delta: Partial<TransactionRecordParams>
+): Transaction {
+	const thisRecord = recordFromTransaction(ogTransaction);
+	return transaction({
+		id: ogTransaction.id,
+		...thisRecord,
+		...delta,
+	});
+}
+
+export function recordFromTransaction(transaction: Transaction): TransactionRecordParams {
+	return {
+		amount: toSnapshot(transaction.amount),
+		createdAt: transaction.createdAt,
+		title: transaction.title,
+		notes: transaction.notes,
+		locationId: transaction.locationId,
+		isReconciled: transaction.isReconciled,
+		accountId: transaction.accountId,
+		tagIds: Array.from(new Set(transaction.tagIds)),
+		attachmentIds: Array.from(new Set(transaction.attachmentIds)),
+	};
+}
+
+export function addTagToTransaction(transaction: Transaction, tag: Tag): void {
+	const tagIdx = transaction.tagIds.indexOf(tag.id);
+	if (tagIdx === -1) {
+		// tag not found, so add it!
+		transaction.tagIds.push(tag.id);
 	}
+}
 
-	get tagIds(): ReadonlyArray<string> {
-		return new Array(...this._tagIds);
+export function removeTagFromTransaction(transaction: Transaction, tag: Tag): void {
+	const tagIdx = transaction.tagIds.indexOf(tag.id);
+	if (tagIdx !== -1) {
+		// tag found, so remove it!
+		transaction.tagIds.splice(tagIdx, 1);
 	}
+}
 
-	get attachmentIds(): ReadonlyArray<string> {
-		return new Array(...this._attachmentIds);
+export function addAttachmentToTransaction(transaction: Transaction, file: Attachment): void {
+	const fileIdx = transaction.attachmentIds.indexOf(file.id);
+	if (fileIdx === -1) {
+		// file not found, so add it!
+		transaction.attachmentIds.push(file.id);
 	}
+}
 
-	static defaultRecord(
-		this: void,
-		record?: Partial<TransactionRecordParams>
-	): Omit<TransactionRecordParams, "accountId"> {
-		return {
-			amount: record?.amount ?? toSnapshot(dinero({ amount: 0, currency: USD })),
-			createdAt: record?.createdAt ?? new Date(),
-			title: (record?.title ?? "") || null,
-			notes: (record?.notes ?? "") || null,
-			locationId: (record?.locationId ?? "") || null,
-			isReconciled: record?.isReconciled ?? false,
-			tagIds: [],
-			attachmentIds: [],
-		};
-	}
-
-	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is TransactionRecordParams {
-		return (
-			toBeDetermined !== undefined &&
-			toBeDetermined !== null &&
-			typeof toBeDetermined === "object" &&
-			Boolean(toBeDetermined) &&
-			!Array.isArray(toBeDetermined) &&
-			"amount" in toBeDetermined &&
-			"createdAt" in toBeDetermined &&
-			"title" in toBeDetermined &&
-			((toBeDetermined as TransactionRecordParams).title === null ||
-				isString((toBeDetermined as TransactionRecordParams).title)) &&
-			"notes" in toBeDetermined &&
-			((toBeDetermined as TransactionRecordParams).notes === null ||
-				isString((toBeDetermined as TransactionRecordParams).notes)) &&
-			"locationId" in toBeDetermined &&
-			((toBeDetermined as TransactionRecordParams).locationId === null ||
-				isString((toBeDetermined as TransactionRecordParams).locationId)) &&
-			"isReconciled" in toBeDetermined &&
-			isBoolean((toBeDetermined as TransactionRecordParams).isReconciled)
-		);
-	}
-
-	toRecord(): ReplaceWith<TransactionRecordParams, "attachmentIds" | "tagIds", Array<string>> {
-		return {
-			amount: toSnapshot(this.amount),
-			createdAt: this.createdAt,
-			title: this.title,
-			notes: this.notes,
-			locationId: this.locationId,
-			isReconciled: this.isReconciled,
-			accountId: this.accountId,
-			tagIds: this.tagIds as Array<string>,
-			attachmentIds: this.attachmentIds as Array<string>,
-		};
-	}
-
-	copy(): Transaction {
-		return this.updatedWith({});
-	}
-
-	updatedWith(params: Partial<TransactionRecordParams>): Transaction {
-		const thisRecord = this.toRecord();
-		return new Transaction(this.id, {
-			...thisRecord,
-			...params,
-		});
-	}
-
-	addTagId(id: string): void {
-		this._tagIds.add(id);
-	}
-
-	removeTagId(id: string): void {
-		this._tagIds.delete(id);
-	}
-
-	addAttachmentId(id: string): void {
-		this._attachmentIds.add(id);
-	}
-
-	removeAttachmentId(id: string): void {
-		this._attachmentIds.delete(id);
-	}
-
-	toString(): string {
-		return JSON.stringify(this.toRecord());
+export function removeAttachmentIdFromTransaction(transaction: Transaction, fileId: string): void {
+	const fileIdx = transaction.attachmentIds.indexOf(fileId);
+	if (fileIdx !== -1) {
+		// file found, so remove it!
+		transaction.attachmentIds.splice(fileIdx, 1);
 	}
 }

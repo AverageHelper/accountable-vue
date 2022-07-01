@@ -3,6 +3,7 @@ import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
 import { location, recordFromLocation } from "../model/Location";
+import { newTransactionWithDelta } from "../model/Transaction";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
@@ -196,7 +197,10 @@ export const useLocationsStore = defineStore("locations", {
 					const uBatch = writeBatch();
 					await Promise.all(
 						txns.map(t =>
-							transactions.updateTransaction(t.updatedWith({ locationId: newLocation.id }), uBatch)
+							transactions.updateTransaction(
+								newTransactionWithDelta(t, { locationId: newLocation.id }),
+								uBatch
+							)
 						)
 					);
 					await uBatch.commit();

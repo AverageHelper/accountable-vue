@@ -10,6 +10,10 @@ import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
+	addAttachmentToTransaction,
+	removeAttachmentIdFromTransaction,
+} from "../model/Transaction";
+import {
 	attachmentsCollection,
 	createAttachment,
 	deleteAttachment,
@@ -238,8 +242,8 @@ export const useAttachmentsStore = defineStore("attachments", {
 					if (!transaction.attachmentIds.includes(attachmentToImport.id)) continue;
 
 					// Update the transaction with new attachment ID
-					transaction.removeAttachmentId(attachmentToImport.id);
-					transaction.addAttachmentId(newAttachment.id);
+					removeAttachmentIdFromTransaction(transaction, attachmentToImport.id);
+					addAttachmentToTransaction(transaction, newAttachment);
 					await transactions.updateTransaction(transaction);
 				}
 			}

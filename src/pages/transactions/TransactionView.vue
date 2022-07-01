@@ -16,6 +16,7 @@ import NavAction from "../../components/NavAction.vue";
 import TagList from "../../pages/tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { accountPath } from "../../router";
+import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
 import { ref, computed, toRefs } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative } from "dinero.js";
@@ -71,7 +72,7 @@ function goBack() {
 async function createTag(params: TagRecordParams) {
 	if (!transaction.value) return;
 	const newTag = await tags.createTag(params);
-	transaction.value.addTagId(newTag.id);
+	addTagToTransaction(transaction.value, newTag);
 	await transactions.updateTransaction(transaction.value);
 }
 
@@ -128,7 +129,7 @@ async function onFileReceived(file: File) {
 
 	try {
 		const attachment = await attachments.createAttachmentFromFile(file);
-		transaction.value.addAttachmentId(attachment.id);
+		addAttachmentToTransaction(transaction.value, attachment);
 		await transactions.updateTransaction(transaction.value);
 	} catch (error) {
 		ui.handleError(error);

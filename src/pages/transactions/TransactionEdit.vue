@@ -2,11 +2,11 @@
 import type { Account } from "../../model/Account";
 import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
-import type { TransactionRecordParams } from "../../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../../model/Transaction";
 import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
 import { recordFromLocation } from "../../model/Location";
 import { ref, computed, toRefs, onMounted } from "vue";
-import { Transaction } from "../../model/Transaction";
+import { transaction as newTransaction } from "../../model/Transaction";
 import { USD } from "@dinero.js/currencies";
 import { useI18n } from "vue-i18n";
 import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
@@ -154,7 +154,9 @@ async function submit() {
 		if (ogTransaction.value === null) {
 			await transactions.createTransaction(params);
 		} else {
-			await transactions.updateTransaction(new Transaction(ogTransaction.value.id, params));
+			await transactions.updateTransaction(
+				newTransaction({ id: ogTransaction.value.id, ...params })
+			);
 		}
 
 		emit("finished");

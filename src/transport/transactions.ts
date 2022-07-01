@@ -1,6 +1,6 @@
 import type { Account } from "../model/Account";
 import type { EPackage, HashStore } from "./cryption";
-import type { TransactionRecordParams } from "../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type {
 	CollectionReference,
 	DocumentReference,
@@ -9,7 +9,7 @@ import type {
 } from "./db";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc, getDocs } from "./db";
 import { encrypt } from "./cryption";
-import { Transaction } from "../model/Transaction";
+import { isTransactionRecord, recordFromTransaction, transaction } from "../model/Transaction";
 
 interface TransactionRecordPackageMetadata {
 	objectType: "Transaction";
@@ -29,8 +29,8 @@ export function transactionFromSnapshot(
 	doc: QueryDocumentSnapshot<TransactionRecordPackage>,
 	dek: HashStore
 ): Transaction {
-	const { id, record } = recordFromSnapshot(doc, dek, Transaction.isRecord);
-	return new Transaction(id, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isTransactionRecord);
+	return transaction({ id, ...record });
 }
 
 export async function getTransactionsForAccount(
@@ -64,7 +64,7 @@ export async function createTransaction(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Transaction(ref.id, record);
+	return transaction({ id: ref.id, ...record });
 }
 
 export async function updateTransaction(
@@ -75,7 +75,7 @@ export async function updateTransaction(
 	const meta: TransactionRecordPackageMetadata = {
 		objectType: "Transaction",
 	};
-	const record: TransactionRecordParams = transaction.toRecord();
+	const record = recordFromTransaction(transaction);
 	const pkg = encrypt(record, meta, dek);
 	const ref = transactionRef(transaction);
 	if (batch) {

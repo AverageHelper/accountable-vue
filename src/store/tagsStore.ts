@@ -8,6 +8,11 @@ import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
+	addTagToTransaction,
+	transaction as copy,
+	removeTagFromTransaction,
+} from "../model/Transaction";
+import {
 	createTag,
 	deriveDEK,
 	updateTag,
@@ -163,9 +168,9 @@ export const useTagsStore = defineStore("tags", {
 					const uBatch = writeBatch();
 					await Promise.all(
 						txns.map(txn => {
-							const t = txn.copy();
-							t.removeTagId(tagToImport.id);
-							t.addTagId(newTag.id);
+							const t = copy(txn);
+							removeTagFromTransaction(t, tag(tagToImport));
+							addTagToTransaction(t, newTag);
 							return transactions.updateTransaction(t, uBatch);
 						})
 					);
