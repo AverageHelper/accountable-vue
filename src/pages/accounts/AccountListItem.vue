@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
 import type { Transaction } from "../../model/Transaction";
 import ListItem from "../../components/ListItem.vue";
-import { Account } from "../../model/Account";
 import { accountPath } from "../../router";
 import { computed, toRefs, onMounted } from "vue";
 import { intlFormat } from "../../transformers";
@@ -10,7 +10,7 @@ import { isNegative as isDineroNegative } from "dinero.js";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 
 const props = defineProps({
-	account: { type: Account, required: true },
+	account: { type: Object as PropType<Account>, required: true },
 	link: { type: Boolean, default: true },
 	count: { type: Number as PropType<number | null>, default: null },
 });

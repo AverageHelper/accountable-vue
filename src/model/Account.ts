@@ -1,68 +1,49 @@
-import type { Identifiable } from "./utility/Identifiable";
+import type { Model } from "./utility/Model";
+import isDate from "lodash/isDate";
 import isString from "lodash/isString";
 
-export interface AccountRecordParams {
-	title: string;
-	notes: string | null;
-	createdAt: Date;
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
 }
 
-export class Account implements Identifiable<string>, AccountRecordParams {
-	public readonly objectType = "Account";
-	public readonly id: string;
-	public readonly title: string;
-	public readonly notes: string | null;
-	public readonly createdAt: Date;
+export interface Account extends Model<"Account"> {
+	readonly title: string;
+	readonly notes: string | null;
+	readonly createdAt: Date;
+}
 
-	constructor(id: string, record?: Partial<AccountRecordParams>) {
-		this.id = id;
-		const defaultRecord = Account.defaultRecord(record);
-		this.title = (record?.title?.trim() ?? defaultRecord.title) || defaultRecord.title;
-		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
-		this.createdAt =
-			// handle case where decryption doesn't return a Date object
-			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
-	}
+export type AccountRecordParams = Pick<Account, "createdAt" | "notes" | "title">;
 
-	static defaultRecord(this: void, record?: Partial<AccountRecordParams>): AccountRecordParams {
-		return {
-			title: record?.title ?? `Account ${Math.floor(Math.random() * 10) + 1}`, // TODO: I18N
-			notes: record?.notes ?? null,
-			createdAt: record?.createdAt ?? new Date(),
-		};
-	}
+export function account(params: Omit<Account, "objectType">): Account {
+	return {
+		createdAt: params.createdAt,
+		id: params.id,
+		notes: (params.notes?.trim() ?? "") || null,
+		objectType: "Account",
+		title: params.title.trim() || `Account ${Math.floor(Math.random() * 10) + 1}`, // TODO: I18N
+	};
+}
 
-	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is AccountRecordParams {
-		return (
-			(toBeDetermined !== undefined &&
-				toBeDetermined !== null &&
-				typeof toBeDetermined === "object" &&
-				Boolean(toBeDetermined) &&
-				!Array.isArray(toBeDetermined) &&
-				"createdAt" in toBeDetermined &&
-				"title" in toBeDetermined &&
-				"notes" in toBeDetermined &&
-				(toBeDetermined as AccountRecordParams).title === null) ||
-			(isString((toBeDetermined as AccountRecordParams).title) &&
-				(toBeDetermined as AccountRecordParams).notes === null) ||
-			isString((toBeDetermined as AccountRecordParams).notes)
-		);
-	}
+export function isAccountRecord(tbd: unknown): tbd is AccountRecordParams {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"createdAt" in tbd &&
+		"title" in tbd &&
+		"notes" in tbd &&
+		isString((tbd as AccountRecordParams).title) &&
+		isStringOrNull((tbd as AccountRecordParams).notes) &&
+		isDate((tbd as AccountRecordParams).createdAt)
+	);
+}
 
-	toRecord(): AccountRecordParams {
-		return {
-			title: this.title,
-			notes: this.notes,
-			createdAt: this.createdAt,
-		};
-	}
-
-	updatedWith(params: Partial<AccountRecordParams>): Account {
-		const thisRecord = this.toRecord();
-		return new Account(this.id, { ...thisRecord, ...params });
-	}
-
-	toString(): string {
-		return JSON.stringify(this.toRecord());
-	}
+export function recordFromAccount(account: Account): AccountRecordParams {
+	return {
+		title: account.title,
+		notes: account.notes,
+		createdAt: account.createdAt,
+	};
 }
