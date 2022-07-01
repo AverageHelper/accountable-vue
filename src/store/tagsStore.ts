@@ -2,6 +2,7 @@ import type { Tag, TagRecordParams } from "../model/Tag";
 import type { HashStore, TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { recordFromTag, tag } from "../model/Tag";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
@@ -135,7 +136,7 @@ export const useTagsStore = defineStore("tags", {
 			const snap = await getDocs<TagRecordPackage>(collection);
 			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => tag({ ...recordFromTag(t), id: t.id }));
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
@@ -144,7 +145,7 @@ export const useTagsStore = defineStore("tags", {
 			const storedTag = this.items[tagToImport.id] ?? null;
 			if (storedTag) {
 				// If duplicate, overwrite the one we have
-				const newTag = storedTag.updatedWith(tagToImport);
+				const newTag = tag({ ...storedTag, ...tagToImport });
 				await this.updateTag(newTag, batch);
 			} else {
 				// If new, create a new tag

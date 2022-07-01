@@ -8,43 +8,22 @@ import { deleteAt, downloadFrom, storageFile, uploadTo } from "./api-types/index
  * Represents a reference to an Accountable Storage object. Developers can
  * upload, download, and delete objects, as well as get/set object metadata.
  */
-export class StorageReference {
+export interface StorageReference {
 	/**
 	 * The {@link AccountableDB} instance associated with this reference.
 	 */
-	public readonly db: AccountableDB;
+	readonly db: AccountableDB;
 
 	/**
 	 * The ID of the user which owns the storage object.
 	 */
-	public readonly uid: Readonly<string>;
+	readonly uid: Readonly<string>;
 
 	/**
 	 * The short name of this object, which is the last component of the full path.
 	 * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
 	 */
-	public readonly name: Readonly<string>;
-
-	constructor(db: AccountableDB, uid: string, name: string) {
-		this.db = db;
-		this.uid = uid;
-		this.name = name;
-	}
-
-	/**
-	 * The full path of this object.
-	 */
-	get fullPath(): string {
-		return `users/${this.uid}/attachments/${this.name}`;
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			uid: this.uid,
-			name: this.name,
-			fullPath: this.fullPath,
-		});
-	}
+	readonly name: Readonly<string>;
 }
 
 /**
@@ -54,7 +33,7 @@ export class StorageReference {
  * @param name - The file name.
  */
 export function ref(db: AccountableDB, uid: string, name: string): StorageReference {
-	return new StorageReference(db, uid, name);
+	return { db, uid, name };
 }
 
 /**
