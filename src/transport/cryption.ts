@@ -4,7 +4,7 @@ import CryptoJS from "crypto-js";
 import isString from "lodash/isString";
 
 /**
- * Encryption materials that live on the server.
+ * User-level encryption material that lives on the server.
  * This data is useless without the user's password.
  */
 export interface KeyMaterial {
@@ -14,7 +14,53 @@ export interface KeyMaterial {
 	oldPassSalt?: string;
 }
 
-export type EPackage<Metadata> = Metadata & { ciphertext: string };
+export interface EPackage<T extends string> {
+	/**
+	 * The encrypted payload. This data should be unreadable without the user's password.
+	 */
+	ciphertext: string;
+
+	/** A string identifying to the application the type of data encoded. */
+	objectType: T;
+
+	/**
+	 * A string identifying the en/decryption protocol to use.
+	 *
+	 * If this value is not set, `"v0"` is assumed.
+	 *
+	 * `"v0"` uses an AES cipher with a 256-word key (with 32-bit words), a 32-bit salt,
+	 * and 10000 iterations of PBKDF2. Keys are encoded in Base64. Hashes are generated
+	 * using SHA-512.
+	 */
+	cryption?: "v0";
+}
+
+const Protocols = {
+	v0: {
+		/**
+		 * crypto-js uses 32-bit words for PBKDF2
+		 *
+		 * See https://github.com/brix/crypto-js/blob/develop/docs/QuickStartGuide.wiki#sha-2
+		 * See also https://cryptojs.gitbook.io/docs/#pbkdf2
+		 */
+		wordSizeBits: 32,
+		keySizeBits: 8192, // my first aim was 256 bits, but that was actually WORDS, so this is the number of bits I was doing
+		saltSizeBytes: 32,
+		iterations: 10000,
+		keyEncoding: CryptoJS.enc.Base64,
+		dataEncoding: CryptoJS.enc.Utf8,
+		hasher: CryptoJS.algo.SHA512,
+		cipher: CryptoJS.AES,
+		derivation: CryptoJS.PBKDF2,
+
+		/** Generates a cryptographically-secure random value. */
+		randomValue(byteCount: number): string {
+			return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
+		},
+	},
+} as const;
+
+const Cryption = Protocols.v0;
 
 export type DEKMaterial = CryptoJS.lib.CipherParams;
 
@@ -47,33 +93,6 @@ export class HashStore {
 		});
 	}
 }
-
-const Protocols = {
-	v0: {
-		/**
-		 * crypto-js uses 32-bit words for PBKDF2
-		 *
-		 * See https://github.com/brix/crypto-js/blob/develop/docs/QuickStartGuide.wiki#sha-2
-		 * See also https://cryptojs.gitbook.io/docs/#pbkdf2
-		 */
-		wordSizeBits: 32,
-		keySizeBits: 8192,
-		saltSizeBytes: 32,
-		iterations: 10000,
-		keyEncoding: CryptoJS.enc.Base64,
-		dataEncoding: CryptoJS.enc.Utf8,
-		hasher: CryptoJS.algo.SHA512,
-		cipher: CryptoJS.AES,
-		derivation: CryptoJS.PBKDF2,
-
-		/** Generates a cryptographically-secure random value. */
-		randomValue(byteCount: number): string {
-			return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
-		},
-	},
-} as const;
-
-const Cryption = Protocols.v0;
 
 /** Makes special potatoes that are unique to the `input`. */
 export async function hashed(input: string): Promise<string> {
@@ -109,7 +128,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 	// To encrypt the dek
 	const pKey = await derivePKey(password, passSalt);
 	const dekObject = btoa(dek.value);
-	const dekMaterial = encrypt(dekObject, {}, pKey).ciphertext;
+	const dekMaterial = encrypt(dekObject, "KeyMaterial", pKey).ciphertext;
 
 	return { dekMaterial, passSalt };
 }
@@ -141,15 +160,19 @@ export async function newMaterialFromOldKey(
  * Serializes data to be stored in untrusted environments.
  *
  * @param data The data to encrypt.
- * @param metadata Metadata to be stored in plaintext about the data.
+ * @param objectType A string representing the type of object stored.
  * @param dek The data en/decryption key.
  * @returns An object that can be stored in the server.
  */
-export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
+export function encrypt<T extends string>(
+	data: unknown,
+	objectType: T,
+	dek: HashStore
+): EPackage<T> {
 	const plaintext = JSON.stringify(data);
 	const ciphertext = Cryption.cipher.encrypt(plaintext, dek.value).toString();
 
-	return { ciphertext, ...metadata };
+	return { ciphertext, objectType, cryption: "v0" };
 }
 
 // TODO: I18N?
@@ -182,7 +205,10 @@ class DecryptionError extends Error {
  * @param dek The data en/decryption key.
  * @returns The original data.
  */
-export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashStore): unknown {
+export function decrypt<T extends string>(
+	pkg: Pick<EPackage<T>, "ciphertext">,
+	dek: HashStore
+): unknown {
 	const { ciphertext } = pkg;
 	const plaintext = Cryption.cipher.decrypt(ciphertext, dek.value).toString(Cryption.dataEncoding);
 

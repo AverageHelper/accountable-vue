@@ -448,8 +448,8 @@ export function watchRecord<T = DocumentData>(
 	};
 }
 
-export function recordFromSnapshot<G>(
-	doc: QueryDocumentSnapshot<EPackage<unknown>>,
+export function recordFromSnapshot<G, T extends string>(
+	doc: QueryDocumentSnapshot<EPackage<T>>,
 	dek: HashStore,
 	typeGuard: ValueIteratorTypeGuard<unknown, G>
 ): { id: string; record: G } {

@@ -13,10 +13,7 @@ import { deleteObject, downloadString, ref, uploadString } from "./storage.js";
 import { encrypt, decrypt } from "./cryption";
 import { dataUrlFromFile } from "./getDataAtUrl";
 
-interface AttachmentRecordPackageMetadata {
-	objectType: "Attachment";
-}
-export type AttachmentRecordPackage = EPackage<AttachmentRecordPackageMetadata>;
+export type AttachmentRecordPackage = EPackage<"Attachment">;
 
 export function attachmentsCollection(): CollectionReference<AttachmentRecordPackage> {
 	return collection<AttachmentRecordPackage>(db, "attachments");
@@ -72,11 +69,8 @@ export async function createAttachment(
 	record: Omit<AttachmentRecordParams, "storagePath">,
 	dek: HashStore
 ): Promise<Attachment> {
-	const meta: AttachmentRecordPackageMetadata = {
-		objectType: "Attachment",
-	};
 	const imageData = await dataUrlFromFile(file);
-	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
+	const fileToUpload = JSON.stringify(encrypt(imageData, "ImageData", dek));
 
 	const ref = doc(attachmentsCollection()); // generates unique document ID
 	const storageName = doc(attachmentsCollection()); // generates unique file name
@@ -87,7 +81,7 @@ export async function createAttachment(
 
 	const recordToSave = record as typeof record & { storagePath?: string };
 	recordToSave.storagePath = storagePath;
-	const pkg = encrypt(recordToSave, meta, dek);
+	const pkg = encrypt(recordToSave, "Attachment", dek);
 	await setDoc(ref, pkg); // Save the record
 
 	return attachment({ id: ref.id, storagePath, ...recordToSave });
@@ -99,12 +93,8 @@ export async function updateAttachment(
 	attachment: Attachment,
 	dek: HashStore
 ): Promise<void> {
-	const meta: AttachmentRecordPackageMetadata = {
-		objectType: "Attachment",
-	};
-
 	const record = recordFromAttachment(attachment);
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Attachment", dek);
 	await setDoc(attachmentRef(uid, attachment), pkg);
 
 	if (file) {
@@ -114,7 +104,7 @@ export async function updateAttachment(
 
 		// store the new file
 		const imageData = await dataUrlFromFile(file);
-		const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
+		const fileToUpload = JSON.stringify(encrypt(imageData, "ImageData", dek));
 
 		await uploadString(storageRef, fileToUpload);
 	}

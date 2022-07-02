@@ -8,10 +8,8 @@ import { locationPrefs } from "./locations";
 export interface UserPreferences {
 	locationSensitivity: LocationPref;
 }
-interface UserPreferencesRecordPackageMetadata {
-	objectType: "UserPreferences";
-}
-export type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
+
+export type UserPreferencesRecordPackage = EPackage<"UserPreferences">;
 
 export function defaultPrefs(this: void): UserPreferences {
 	return {
@@ -40,13 +38,10 @@ export async function setUserPreferences(
 	prefs: Partial<UserPreferences>,
 	dek: HashStore
 ): Promise<void> {
-	const meta: UserPreferencesRecordPackageMetadata = {
-		objectType: "UserPreferences",
-	};
 	const record: UserPreferences = {
 		locationSensitivity: prefs.locationSensitivity ?? "none",
 	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "UserPreferences", dek);
 	await setDoc(userRef(uid), pkg);
 }
 

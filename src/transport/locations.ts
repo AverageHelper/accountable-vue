@@ -14,10 +14,7 @@ export const locationPrefs = ["none", "vague" /* , "specific"*/] as const;
 
 export type LocationPref = typeof locationPrefs[number];
 
-interface LocationRecordPackageMetadata {
-	objectType: "Location";
-}
-export type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
+export type LocationRecordPackage = EPackage<"Location">;
 
 function locationRef(location: Location): DocumentReference<LocationRecordPackage> {
 	return doc<LocationRecordPackage>(db, "locations", location.id);
@@ -41,10 +38,7 @@ export async function createLocation(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Location> {
-	const meta: LocationRecordPackageMetadata = {
-		objectType: "Location",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Location", dek);
 	const ref = doc(locationsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
@@ -59,11 +53,8 @@ export async function updateLocation(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<void> {
-	const meta: LocationRecordPackageMetadata = {
-		objectType: "Location",
-	};
 	const record = recordFromLocation(location);
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Location", dek);
 	const ref = locationRef(location);
 	if (batch) {
 		batch.set(ref, pkg);

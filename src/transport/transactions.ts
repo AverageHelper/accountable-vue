@@ -11,10 +11,7 @@ import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc, getDocs } f
 import { encrypt } from "./cryption";
 import { isTransactionRecord, recordFromTransaction, transaction } from "../model/Transaction";
 
-interface TransactionRecordPackageMetadata {
-	objectType: "Transaction";
-}
-export type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
+export type TransactionRecordPackage = EPackage<"Transaction">;
 
 function transactionRef(transaction: Transaction): DocumentReference<TransactionRecordPackage> {
 	const id = transaction.id;
@@ -54,10 +51,7 @@ export async function createTransaction(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Transaction> {
-	const meta: TransactionRecordPackageMetadata = {
-		objectType: "Transaction",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Transaction", dek);
 	const ref = doc(transactionsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
@@ -72,11 +66,8 @@ export async function updateTransaction(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<void> {
-	const meta: TransactionRecordPackageMetadata = {
-		objectType: "Transaction",
-	};
 	const record = recordFromTransaction(transaction);
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Transaction", dek);
 	const ref = transactionRef(transaction);
 	if (batch) {
 		batch.set(ref, pkg);

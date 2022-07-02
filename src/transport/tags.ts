@@ -10,10 +10,7 @@ import { encrypt } from "./cryption";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { isTagRecord, recordFromTag, tag } from "../model/Tag";
 
-interface TagRecordPackageMetadata {
-	objectType: "Tag";
-}
-export type TagRecordPackage = EPackage<TagRecordPackageMetadata>;
+export type TagRecordPackage = EPackage<"Tag">;
 
 export function tagsCollection(): CollectionReference<TagRecordPackage> {
 	return collection<TagRecordPackage>(db, "tags");
@@ -33,10 +30,7 @@ export async function createTag(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Tag> {
-	const meta: TagRecordPackageMetadata = {
-		objectType: "Tag",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Tag", dek);
 	const ref = doc(tagsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
@@ -47,11 +41,8 @@ export async function createTag(
 }
 
 export async function updateTag(tag: Tag, dek: HashStore, batch?: WriteBatch): Promise<void> {
-	const meta: TagRecordPackageMetadata = {
-		objectType: "Tag",
-	};
 	const record = recordFromTag(tag);
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Tag", dek);
 	const ref = tagRef(tag);
 	if (batch) {
 		batch.set(ref, pkg);
