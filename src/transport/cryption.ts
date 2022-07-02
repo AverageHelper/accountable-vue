@@ -1,8 +1,6 @@
 import atob from "atob-lite";
 import btoa from "btoa-lite";
 import CryptoJS from "crypto-js";
-import encodeBase64 from "crypto-js/enc-base64"; // TODO: Use CryptoJS.enc.Hex instead, it's nicer
-import encodeUTF8 from "crypto-js/enc-utf8";
 import isString from "lodash/isString";
 
 /**
@@ -62,12 +60,15 @@ const Protocols = {
 		keySizeBits: 8192,
 		saltSizeBytes: 32,
 		iterations: 10000,
-		aes: CryptoJS.AES,
-		pbkdf2: CryptoJS.PBKDF2,
+		keyEncoding: CryptoJS.enc.Base64,
+		dataEncoding: CryptoJS.enc.Utf8,
+		hasher: CryptoJS.algo.SHA512,
+		cipher: CryptoJS.AES,
+		derivation: CryptoJS.PBKDF2,
 
 		/** Generates a cryptographically-secure random value. */
 		randomValue(byteCount: number): string {
-			return CryptoJS.lib.WordArray.random(byteCount).toString(encodeBase64);
+			return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
 		},
 	},
 } as const;
@@ -83,11 +84,11 @@ export async function derivePKey(password: string, salt: string): Promise<HashSt
 	await new Promise(resolve => setTimeout(resolve, 10)); // wait 10 ms for UI
 
 	return new HashStore(
-		Cryption.pbkdf2(password, salt, {
+		Cryption.derivation(password, salt, {
 			iterations: Cryption.iterations,
-			hasher: CryptoJS.algo.SHA512,
+			hasher: Cryption.hasher,
 			keySize: Cryption.keySizeBits / Cryption.wordSizeBits,
-		}).toString(encodeBase64)
+		}).toString(Cryption.keyEncoding)
 	);
 }
 
@@ -146,7 +147,7 @@ export async function newMaterialFromOldKey(
  */
 export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
 	const plaintext = JSON.stringify(data);
-	const ciphertext = Cryption.aes.encrypt(plaintext, dek.value).toString();
+	const ciphertext = Cryption.cipher.encrypt(plaintext, dek.value).toString();
 
 	return { ciphertext, ...metadata };
 }
@@ -183,7 +184,7 @@ class DecryptionError extends Error {
  */
 export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashStore): unknown {
 	const { ciphertext } = pkg;
-	const plaintext = Cryption.aes.decrypt(ciphertext, dek.value).toString(encodeUTF8);
+	const plaintext = Cryption.cipher.decrypt(ciphertext, dek.value).toString(Cryption.dataEncoding);
 
 	if (!plaintext) {
 		throw DecryptionError.resultIsEmpty();
