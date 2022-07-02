@@ -1,15 +1,9 @@
 import atob from "atob-lite";
-import AES from "crypto-js/aes";
 import btoa from "btoa-lite";
 import CryptoJS from "crypto-js";
+import encodeBase64 from "crypto-js/enc-base64";
+import encodeUTF8 from "crypto-js/enc-utf8";
 import isString from "lodash/isString";
-
-class DecryptionError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "DecryptionError";
-	}
-}
 
 /**
  * Encryption materials that live on the server.
@@ -22,9 +16,7 @@ export interface KeyMaterial {
 	oldPassSalt?: string;
 }
 
-export type EPackage<M> = M & {
-	ciphertext: string;
-};
+export type EPackage<Metadata> = Metadata & { ciphertext: string };
 
 export type DEKMaterial = CryptoJS.lib.CipherParams;
 
@@ -58,12 +50,20 @@ export class HashStore {
 	}
 }
 
-const ITERATIONS = 10000;
+const Cryption = {
+	v0: {
+		keySizeWords: 256,
+		saltSizeBytes: 32,
+		iterations: 10000,
+		aes: CryptoJS.AES,
+		pbkdf2: CryptoJS.PBKDF2,
 
-/** Generates a cryptographically-secure random value. */
-function random(byteCount: number): string {
-	return CryptoJS.lib.WordArray.random(byteCount).toString(CryptoJS.enc.Base64);
-}
+		/** Generates a cryptographically-secure random value. */
+		randomValue(byteCount: number): string {
+			return CryptoJS.lib.WordArray.random(byteCount).toString(encodeBase64);
+		},
+	},
+} as const;
 
 /** Makes special potatoes that are unique to the `input`. */
 export async function hashed(input: string): Promise<string> {
@@ -73,11 +73,13 @@ export async function hashed(input: string): Promise<string> {
 export async function derivePKey(password: string, salt: string): Promise<HashStore> {
 	await new Promise(resolve => setTimeout(resolve, 10)); // wait 10 ms for UI
 	return new HashStore(
-		CryptoJS.PBKDF2(password, salt, {
-			iterations: ITERATIONS,
-			hasher: CryptoJS.algo.SHA512,
-			keySize: 256,
-		}).toString(CryptoJS.enc.Base64)
+		Cryption.v0
+			.pbkdf2(password, salt, {
+				iterations: Cryption.v0.iterations,
+				hasher: CryptoJS.algo.SHA512,
+				keySize: Cryption.v0.keySizeWords,
+			})
+			.toString(encodeBase64)
 	);
 }
 
@@ -93,7 +95,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 	dek: HashStore
 ): Promise<KeyMaterial> {
 	// To make passwords harder to guess
-	const passSalt = btoa(random(32));
+	const passSalt = btoa(Cryption.v0.randomValue(Cryption.v0.saltSizeBytes));
 
 	// To encrypt the dek
 	const pKey = await derivePKey(password, passSalt);
@@ -105,7 +107,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 
 export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
 	// To encrypt data
-	const dek = new HashStore(random(256));
+	const dek = new HashStore(Cryption.v0.randomValue(Cryption.v0.keySizeWords));
 	return await newDataEncryptionKeyMaterialForDEK(password, dek);
 }
 
@@ -136,9 +138,32 @@ export async function newMaterialFromOldKey(
  */
 export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
 	const plaintext = JSON.stringify(data);
-	const ciphertext = AES.encrypt(plaintext, dek.value).toString();
+	const ciphertext = Cryption.v0.aes.encrypt(plaintext, dek.value).toString();
 
 	return { ciphertext, ...metadata };
+}
+
+// TODO: I18N?
+class DecryptionError extends Error {
+	private constructor(message: string) {
+		super(message);
+		this.name = "DecryptionError";
+	}
+
+	static resultIsEmpty(): DecryptionError {
+		return new DecryptionError("Result was empty");
+	}
+
+	static parseFailed(error: unknown, plaintext: string): DecryptionError {
+		if (error instanceof Error) {
+			return new DecryptionError(
+				`Decrypted plaintext did not parse as valid JSON: ${error.message}: '${plaintext}'`
+			);
+		}
+		return new DecryptionError(
+			`Decrypted plaintext did not parse as valid JSON: ${JSON.stringify(error)}: '${plaintext}'`
+		);
+	}
 }
 
 /**
@@ -150,20 +175,15 @@ export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage
  */
 export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashStore): unknown {
 	const { ciphertext } = pkg;
-	const plaintext = AES.decrypt(ciphertext, dek.value).toString(CryptoJS.enc.Utf8);
+	const plaintext = Cryption.v0.aes.decrypt(ciphertext, dek.value).toString(encodeUTF8);
 
 	if (!plaintext) {
-		throw new DecryptionError("Result was empty");
+		throw DecryptionError.resultIsEmpty();
 	}
 
 	try {
 		return JSON.parse(plaintext) as unknown;
 	} catch (error) {
-		// TODO: I18N?
-		if (error instanceof Error) {
-			throw new DecryptionError(`JSON parse failed: ${error.message}: '${plaintext}'`);
-		} else {
-			throw new DecryptionError(`JSON parse failed: ${JSON.stringify(error)}: '${plaintext}'`);
-		}
+		throw DecryptionError.parseFailed(error, plaintext);
 	}
 }
