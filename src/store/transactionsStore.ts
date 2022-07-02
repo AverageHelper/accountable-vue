@@ -67,6 +67,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			Object.values(this.transactionsWatchers).forEach(unsubscribe => unsubscribe());
 			this.transactionsWatchers = {};
 			this.transactionsForAccount = {};
+			this.transactionsForAccountByMonth = {};
 			console.debug("transactionsStore: cache cleared");
 		},
 		async watchTransactions(account: Account, force: boolean = false) {
