@@ -58,7 +58,7 @@ export function transaction(
 			typeof params.amount === "number"
 				? dinero({ amount: params.amount * 100, currency: USD }) // for compatibility. # TODO: Migrate ancient transactions
 				: dinero(params.amount),
-		createdAt: params.createdAt,
+		createdAt: new Date(params.createdAt), // in case this is actually a string
 		title: (params.title?.trim() ?? "") || null,
 		notes: (params.notes?.trim() ?? "") || null,
 		locationId: (params.locationId?.trim() ?? "") || null,

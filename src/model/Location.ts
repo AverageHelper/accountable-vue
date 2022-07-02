@@ -43,7 +43,7 @@ export function location(params: Omit<Location, "objectType">): Location {
 	return {
 		coordinate: params.coordinate,
 		id: params.id,
-		lastUsed: params.lastUsed,
+		lastUsed: new Date(params.lastUsed), // in case this is actually a string
 		objectType: "Location",
 		subtitle: (params.subtitle?.trim() ?? "") || null,
 		title: params.title.trim() || "Untitled",

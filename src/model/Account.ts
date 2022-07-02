@@ -16,7 +16,7 @@ export type AccountRecordParams = Pick<Account, "createdAt" | "notes" | "title">
 
 export function account(params: Omit<Account, "objectType">): Account {
 	return {
-		createdAt: params.createdAt,
+		createdAt: new Date(params.createdAt), // in case this is actually a string
 		id: params.id,
 		notes: (params.notes?.trim() ?? "") || null,
 		objectType: "Account",

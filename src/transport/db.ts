@@ -456,6 +456,7 @@ export function recordFromSnapshot<G>(
 	const pkg = doc.data();
 	const record = decrypt(pkg, dek);
 	if (!typeGuard(record)) {
+		console.debug(`Record does not match '${typeGuard.name}' type guard`, record);
 		throw new TypeError(`Failed to parse record from server document ${doc.id}`); // TODO: I18N?
 	}
 	return { id: doc.id, record };

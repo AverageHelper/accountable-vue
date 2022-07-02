@@ -21,7 +21,7 @@ export type AttachmentRecordParams = Pick<
 
 export function attachment(params: Omit<Attachment, "objectType">): Attachment {
 	return {
-		createdAt: params.createdAt,
+		createdAt: new Date(params.createdAt), // in case this is actually a string
 		id: params.id,
 		notes: (params.notes?.trim() ?? "") || null,
 		objectType: "Attachment",
