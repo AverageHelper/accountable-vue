@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { PropType } from "vue";
+import type { Account } from "../../model/Account";
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type { Entry } from "@zip.js/zip.js";
+import type { PropType } from "vue";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import AccountListItem from "../../pages/accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";
+import { account as newAccount } from "../../model/Account";
 import { computed, ref, reactive, toRefs, watch, nextTick } from "vue";
-import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";
 import {
 	useAccountsStore,
@@ -65,7 +66,7 @@ const importProgressPercent = computed(() => {
 const hasDb = computed(() => db.value !== null);
 const storedAccounts = computed(() => accounts.allAccounts);
 const importedAccounts = computed(() =>
-	(db.value?.accounts ?? []).map(acct => new Account(acct.id, acct))
+	(db.value?.accounts ?? []).map(acct => newAccount({ ...acct, notes: acct.notes ?? null }))
 );
 const duplicateAccounts = computed(() =>
 	importedAccounts.value.filter(a1 => storedAccounts.value.some(a2 => a2.id === a1.id))

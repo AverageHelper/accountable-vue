@@ -2,10 +2,16 @@ import type { Tag, TagRecordParams } from "../model/Tag";
 import type { HashStore, TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { recordFromTag, tag } from "../model/Tag";
 import { stores } from "./stores";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
+import {
+	addTagToTransaction,
+	transaction as copy,
+	removeTagFromTransaction,
+} from "../model/Transaction";
 import {
 	createTag,
 	deriveDEK,
@@ -135,7 +141,7 @@ export const useTagsStore = defineStore("tags", {
 			const snap = await getDocs<TagRecordPackage>(collection);
 			return snap.docs
 				.map(doc => tagFromSnapshot(doc, dek))
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromTag(t), id: t.id }));
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
@@ -144,7 +150,7 @@ export const useTagsStore = defineStore("tags", {
 			const storedTag = this.items[tagToImport.id] ?? null;
 			if (storedTag) {
 				// If duplicate, overwrite the one we have
-				const newTag = storedTag.updatedWith(tagToImport);
+				const newTag = tag({ ...storedTag, ...tagToImport });
 				await this.updateTag(newTag, batch);
 			} else {
 				// If new, create a new tag
@@ -162,9 +168,9 @@ export const useTagsStore = defineStore("tags", {
 					const uBatch = writeBatch();
 					await Promise.all(
 						txns.map(txn => {
-							const t = txn.copy();
-							t.removeTagId(tagToImport.id);
-							t.addTagId(newTag.id);
+							const t = copy(txn);
+							removeTagFromTransaction(t, tag(tagToImport));
+							addTagToTransaction(t, newTag);
 							return transactions.updateTransaction(t, uBatch);
 						})
 					);

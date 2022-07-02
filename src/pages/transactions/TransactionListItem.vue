@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { PropType } from "vue";
+import type { Transaction } from "../../model/Transaction";
 import Checkbox from "../../components/inputs/Checkbox.vue";
 import ListItem from "../../components/ListItem.vue";
 import LocationIcon from "../../icons/Location.vue";
@@ -6,12 +8,12 @@ import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
-import { Transaction } from "../../model/Transaction";
+import { transaction as newTransaction } from "../../model/Transaction";
 import { transactionPath } from "../../router";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const props = defineProps({
-	transaction: { type: Transaction, required: true },
+	transaction: { type: Object as PropType<Transaction>, required: true },
 });
 const { transaction } = toRefs(props);
 
@@ -54,8 +56,9 @@ async function markReconciled(isReconciled: boolean) {
 	isChangingReconciled.value = true;
 
 	try {
-		const newTransaction = transaction.value.updatedWith({ isReconciled });
-		await transactions.updateTransaction(newTransaction);
+		const newTxn = newTransaction(transaction.value);
+		newTxn.isReconciled = isReconciled;
+		await transactions.updateTransaction(newTxn);
 	} catch (error) {
 		ui.handleError(error);
 	}

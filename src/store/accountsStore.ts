@@ -2,6 +2,7 @@ import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
 import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
+import { account, recordFromAccount } from "../model/Account";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
 import { t } from "../i18n";
@@ -148,7 +149,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
 			return await asyncMap(accounts, async acct => {
 				const transactions = await transactionsStore.getAllTransactionsAsJson(acct);
-				return { ...acct.toRecord(), id: acct.id, transactions };
+				return { ...recordFromAccount(acct), id: acct.id, transactions };
 			});
 		},
 		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {
@@ -159,7 +160,7 @@ export const useAccountsStore = defineStore("accounts", {
 			let newAccount: Account;
 			if (storedAccount) {
 				// If duplicate, overwrite the one we have
-				newAccount = storedAccount.updatedWith(accountToImport);
+				newAccount = account({ ...storedAccount, ...accountToImport });
 				await this.updateAccount(newAccount, batch);
 			} else {
 				// If new, create a new account

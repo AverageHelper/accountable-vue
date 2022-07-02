@@ -17,6 +17,12 @@ import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
 import {
+	recordFromTransaction,
+	removeAttachmentIdFromTransaction,
+	removeTagFromTransaction,
+	transaction,
+} from "../model/Transaction";
+import {
 	getTransactionsForAccount,
 	createTransaction,
 	deriveDEK,
@@ -299,7 +305,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			transaction: Transaction,
 			batch?: WriteBatch
 		): Promise<void> {
-			transaction.removeTagId(tag.id);
+			removeTagFromTransaction(transaction, tag);
 			await this.updateTransaction(transaction, batch);
 		},
 		async removeTagFromAllTransactions(tag: Tag): Promise<void> {
@@ -316,7 +322,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			transaction: Transaction,
 			batch?: WriteBatch
 		): Promise<void> {
-			transaction.removeAttachmentId(fileId);
+			removeAttachmentIdFromTransaction(transaction, fileId);
 			await this.updateTransaction(transaction, batch);
 		},
 		async deleteTagIfUnreferenced(tag: Tag, batch?: WriteBatch): Promise<void> {
@@ -348,7 +354,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			return snap.docs
 				.map(doc => transactionFromSnapshot(doc, dek))
 				.filter(transaction => transaction.accountId === account.id)
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromTransaction(t), id: t.id }));
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,
@@ -359,7 +365,11 @@ export const useTransactionsStore = defineStore("transactions", {
 			const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
 			if (storedTransaction) {
 				// If duplicate, overwrite the one we have
-				const newTransaction = storedTransaction.updatedWith(transactionToImport);
+				const newTransaction = transaction({
+					...storedTransaction,
+					...transactionToImport,
+					id: storedTransaction.id,
+				});
 				await this.updateTransaction(newTransaction, batch);
 			} else {
 				// If new, create a new transaction

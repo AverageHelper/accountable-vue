@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import TextAreaField from "../../components/inputs/TextAreaField.vue";
 import TextField from "../../components/inputs/TextField.vue";
-import { Account } from "../../model/Account";
+import { account as newAccount } from "../../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";
 import { useI18n } from "vue-i18n";
@@ -51,13 +52,14 @@ async function submit() {
 
 		if (ogAccount.value === null) {
 			await accounts.createAccount({
-				...Account.defaultRecord(),
+				createdAt: new Date(),
 				title: title.value,
 				notes: notes.value,
 			});
 		} else {
 			await accounts.updateAccount(
-				new Account(ogAccount.value.id, {
+				newAccount({
+					id: ogAccount.value.id,
 					title: title.value,
 					notes: notes.value || ogAccount.value.notes,
 					createdAt: ogAccount.value.createdAt,

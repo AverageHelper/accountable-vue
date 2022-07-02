@@ -16,6 +16,7 @@ import NavAction from "../../components/NavAction.vue";
 import TagList from "../../pages/tags/TagList.vue";
 import TransactionEdit from "./TransactionEdit.vue";
 import { accountPath } from "../../router";
+import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
 import { ref, computed, toRefs } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative } from "dinero.js";
@@ -50,6 +51,7 @@ const brokenReferenceToFix = ref<string | null>(null);
 const theseTransactions = computed(
 	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
+const numberOfTransactions = computed(() => Object.keys(theseTransactions.value).length);
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
 const locationId = computed(() => transaction.value?.locationId ?? null);
@@ -71,7 +73,7 @@ function goBack() {
 async function createTag(params: TagRecordParams) {
 	if (!transaction.value) return;
 	const newTag = await tags.createTag(params);
-	transaction.value.addTagId(newTag.id);
+	addTagToTransaction(transaction.value, newTag);
 	await transactions.updateTransaction(transaction.value);
 }
 
@@ -128,7 +130,7 @@ async function onFileReceived(file: File) {
 
 	try {
 		const attachment = await attachments.createAttachmentFromFile(file);
-		transaction.value.addAttachmentId(attachment.id);
+		addAttachmentToTransaction(transaction.value, attachment);
 		await transactions.updateTransaction(transaction.value);
 	} catch (error) {
 		ui.handleError(error);
@@ -217,6 +219,25 @@ async function onFileReceived(file: File) {
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>
+	</main>
+	<main v-else>
+		<!-- We should never get here, but in case we do, for debugging: -->
+		<h1>{{ $t("debug.something-is-wrong") }}</h1>
+		<p>{{ $t("debug.account-but-no-transaction") }}</p>
+		<i18n-t keypath="debug.transaction-id" tag="p" class="disclaimer">
+			<template #id>
+				<em>{{ transactionId }}</em>
+			</template>
+		</i18n-t>
+		<p class="disclaimer">{{
+			$tc("debug.count-all-transactions", numberOfTransactions, { n: numberOfTransactions })
+		}}</p>
+		<ul>
+			<li v-for="(txn, id) in theseTransactions" :key="id">
+				<strong>{{ id }}:&nbsp;</strong>
+				<span>{{ txn.id }}</span>
+			</li>
+		</ul>
 	</main>
 
 	<Modal :open="brokenReferenceToFix !== null && !!transaction" :close-modal="closeReferenceFixer">

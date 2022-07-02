@@ -1,8 +1,8 @@
 import type { EPackage, HashStore } from "./cryption";
-import type { LocationRecordParams } from "../model/Location";
+import type { Location, LocationRecordParams } from "../model/Location";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { encrypt } from "./cryption";
-import { Location } from "../model/Location";
+import { isLocationRecord, location, recordFromLocation } from "../model/Location";
 import type {
 	CollectionReference,
 	DocumentReference,
@@ -10,13 +10,11 @@ import type {
 	WriteBatch,
 } from "./db";
 
-export type LocationPref = "none" | "vague" | "specific";
-export const locationPrefs: ReadonlyArray<LocationPref> = ["none", "vague" /* , "specific"*/];
+export const locationPrefs = ["none", "vague" /* , "specific"*/] as const;
 
-interface LocationRecordPackageMetadata {
-	objectType: "Location";
-}
-export type LocationRecordPackage = EPackage<LocationRecordPackageMetadata>;
+export type LocationPref = typeof locationPrefs[number];
+
+export type LocationRecordPackage = EPackage<"Location">;
 
 function locationRef(location: Location): DocumentReference<LocationRecordPackage> {
 	return doc<LocationRecordPackage>(db, "locations", location.id);
@@ -30,8 +28,8 @@ export function locationFromSnapshot(
 	doc: QueryDocumentSnapshot<LocationRecordPackage>,
 	dek: HashStore
 ): Location {
-	const { id, record } = recordFromSnapshot(doc, dek, Location.isRecord);
-	return new Location(id, record.title, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isLocationRecord);
+	return location({ id, ...record });
 }
 
 export async function createLocation(
@@ -40,17 +38,14 @@ export async function createLocation(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Location> {
-	const meta: LocationRecordPackageMetadata = {
-		objectType: "Location",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Location", dek);
 	const ref = doc(locationsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Location(ref.id, record.title, record);
+	return location({ id: ref.id, ...record });
 }
 
 export async function updateLocation(
@@ -58,11 +53,8 @@ export async function updateLocation(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<void> {
-	const meta: LocationRecordPackageMetadata = {
-		objectType: "Location",
-	};
-	const record: LocationRecordParams = location.toRecord();
-	const pkg = encrypt(record, meta, dek);
+	const record = recordFromLocation(location);
+	const pkg = encrypt(record, "Location", dek);
 	const ref = locationRef(location);
 	if (batch) {
 		batch.set(ref, pkg);

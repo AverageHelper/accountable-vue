@@ -5,6 +5,7 @@ import Modal from "../../components/Modal.vue";
 import Tag from "./Tag.vue";
 import TagEdit from "./TagEdit.vue";
 import { ref, computed, nextTick, toRefs } from "vue";
+import { tag as newTag } from "../../model/Tag";
 import { useTagsStore } from "../../store";
 
 const emit = defineEmits(["create-tag", "modify-tag", "remove-tag"]);
@@ -49,7 +50,7 @@ function commitTag(params: TagRecordParams | null) {
 	} else if (isCreatingTag.value) {
 		emit("create-tag", params);
 	} else if (tagToEdit.value) {
-		const updatedTag = tagToEdit.value.updatedWith(params);
+		const updatedTag = newTag({ ...tagToEdit.value, ...params });
 		emit("modify-tag", updatedTag);
 	}
 	closeModal();

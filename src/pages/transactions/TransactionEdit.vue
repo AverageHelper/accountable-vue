@@ -2,7 +2,14 @@
 import type { Account } from "../../model/Account";
 import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
-import type { TransactionRecordParams } from "../../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../../model/Transaction";
+import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
+import { recordFromLocation } from "../../model/Location";
+import { ref, computed, toRefs, onMounted } from "vue";
+import { transaction as newTransaction } from "../../model/Transaction";
+import { USD } from "@dinero.js/currencies";
+import { useI18n } from "vue-i18n";
+import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import Checkbox from "../../components/inputs/Checkbox.vue";
 import CheckmarkIcon from "../../icons/Checkmark.vue";
@@ -13,12 +20,6 @@ import LocationField from "../locations/LocationField.vue";
 import TextAreaField from "../../components/inputs/TextAreaField.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import TrashIcon from "../../icons/Trash.vue";
-import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
-import { ref, computed, toRefs, onMounted } from "vue";
-import { Transaction } from "../../model/Transaction";
-import { USD } from "@dinero.js/currencies";
-import { useI18n } from "vue-i18n";
-import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -97,8 +98,9 @@ onMounted(() => {
 
 	const ogLocationId = ogTransaction.value?.locationId ?? null;
 	if (ogLocationId !== null && ogLocationId) {
-		const ogLocation = locations.items[ogLocationId]?.toRecord() ?? null;
-		locationData.value = ogLocation !== null ? { ...ogLocation, id: ogLocationId } : null;
+		const ogLocation = locations.items[ogLocationId];
+		const ogRecord = ogLocation ? recordFromLocation(ogLocation) : null;
+		locationData.value = ogRecord !== null ? { ...ogRecord, id: ogLocationId } : null;
 	}
 });
 
@@ -152,7 +154,9 @@ async function submit() {
 		if (ogTransaction.value === null) {
 			await transactions.createTransaction(params);
 		} else {
-			await transactions.updateTransaction(new Transaction(ogTransaction.value.id, params));
+			await transactions.updateTransaction(
+				newTransaction({ ...params, id: ogTransaction.value.id })
+			);
 		}
 
 		emit("finished");

@@ -1,8 +1,9 @@
+import type { CollectionReference, DocumentReference } from "./db.js";
 import type { DocumentData } from "./schemas";
 import type { Query } from "./db";
 import { AccountableError, UnexpectedResponseError, UnreachableError } from "./errors/index.js";
+import { collection, doc as docRef } from "./db.js";
 import { databaseCollection, databaseDocument } from "./api-types/index.js";
-import { DocumentReference, CollectionReference } from "./db.js";
 import { isRawServerResponse } from "./schemas";
 import isArray from "lodash/isArray";
 import isString from "lodash/isString";
@@ -45,13 +46,6 @@ export class DocumentSnapshot<T = DocumentData> {
 	data(): T | undefined {
 		return this.#data ?? undefined;
 	}
-
-	toString(): string {
-		return JSON.stringify({
-			ref: this.ref.path,
-			id: this.id,
-		});
-	}
 }
 
 export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
@@ -64,7 +58,9 @@ export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
 	data(): T {
 		const result = super.data();
 		if (result === undefined)
-			throw new TypeError(`Data at ref ${this.ref.path} is meant to exist but does not.`);
+			throw new TypeError(
+				`Data at ref ${this.ref.parent.id}/${this.ref.id} is meant to exist but does not.`
+			);
 		return result;
 	}
 }
@@ -201,15 +197,6 @@ export class QuerySnapshot<T> {
 		result.push(...removedDocs);
 
 		return result;
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			previousSnapshot: this.#previousSnapshot ? "<value>" : null,
-			docs: `<${this.docs.length} docs>`,
-			size: this.size,
-			query: JSON.parse(this.query.toString()) as unknown,
-		});
 	}
 }
 
@@ -372,7 +359,7 @@ export function onSnapshot<T>(
 		// console.debug(`Got ${type} message from ${url}`);
 		if (type === "collection") {
 			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array"); // TODO: I18N
-			const collectionRef = new CollectionReference(db, queryOrReference.id);
+			const collectionRef = collection(db, queryOrReference.id);
 			const snaps: Array<QueryDocumentSnapshot<T>> = data.map(doc => {
 				const id = doc["_id"];
 				if (!isString(id)) {
@@ -380,7 +367,7 @@ export function onSnapshot<T>(
 					onErrorCallback(err);
 					throw err;
 				}
-				const ref = new DocumentReference(collectionRef, id);
+				const ref = docRef(collectionRef.db, collectionRef.id, id);
 				return new QueryDocumentSnapshot<T>(ref, doc as unknown as T);
 			});
 			previousSnap = new QuerySnapshot<T>(previousSnap ?? collectionRef, snaps);
@@ -389,8 +376,8 @@ export function onSnapshot<T>(
 			return;
 		} else if (type === "document") {
 			if (isArray(data)) throw new UnexpectedResponseError("Data is an array"); // TODO: I18N
-			const collectionRef = new CollectionReference(db, queryOrReference.parent.id);
-			const ref = new DocumentReference(collectionRef, queryOrReference.id);
+			const collectionRef = collection(db, queryOrReference.parent.id);
+			const ref = docRef(collectionRef.db, collectionRef.id, queryOrReference.id);
 			const snap = new QueryDocumentSnapshot<T>(ref, data as T | null);
 			(onNextCallback as DocumentSnapshotCallback<T>)(snap);
 			return;
