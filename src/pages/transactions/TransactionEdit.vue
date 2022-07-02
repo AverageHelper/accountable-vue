@@ -3,13 +3,13 @@ import type { Account } from "../../model/Account";
 import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
 import type { Transaction, TransactionRecordParams } from "../../model/Transaction";
-import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
+import { equal, isNegative, isZero, toSnapshot } from "dinero.js";
 import { recordFromLocation } from "../../model/Location";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { transaction as newTransaction } from "../../model/Transaction";
-import { USD } from "@dinero.js/currencies";
 import { useI18n } from "vue-i18n";
 import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
+import { zeroDinero } from "../../helpers/dineroHelpers";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import Checkbox from "../../components/inputs/Checkbox.vue";
 import CheckmarkIcon from "../../icons/Checkmark.vue";
@@ -47,7 +47,7 @@ const title = ref("");
 const notes = ref("");
 const locationData = ref<(LocationRecordParams & { id: string | null }) | null>(null);
 const createdAt = ref(new Date());
-const amount = ref(dinero({ amount: 0, currency: USD }));
+const amount = ref(zeroDinero);
 const isReconciled = ref(false);
 
 const isAskingToDelete = ref(false);
@@ -56,9 +56,7 @@ const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length
 
 const hasChanges = computed(() => {
 	if (ogTransaction.value) {
-		const oldAmount = (
-			ogTransaction.value?.amount ?? dinero({ amount: 0, currency: USD })
-		).toJSON();
+		const oldAmount = (ogTransaction.value?.amount ?? zeroDinero).toJSON();
 		return (
 			createdAt.value !== (ogTransaction.value?.createdAt ?? new Date()) ||
 			title.value !== (ogTransaction.value?.title ?? "") ||
@@ -76,7 +74,7 @@ const hasChanges = computed(() => {
 	return (
 		title.value !== "" ||
 		notes.value !== "" ||
-		amount.value !== dinero({ amount: 0, currency: USD }) ||
+		!equal(amount.value, zeroDinero) ||
 		isReconciled.value !== false ||
 		(locationData.value?.title ?? "") !== "" ||
 		(locationData.value?.subtitle ?? "") !== "" ||

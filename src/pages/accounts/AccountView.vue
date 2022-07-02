@@ -11,13 +11,13 @@ import SearchBar from "../../components/SearchBar.vue";
 import TransactionCreateModal from "../transactions/TransactionCreateModal.vue";
 import TransactionMonthListItem from "../transactions/TransactionMonthListItem.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
-import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
+import { isNegative as isDineroNegative } from "dinero.js";
 import { ref, computed, toRefs, watch } from "vue";
 import { reverseChronologically } from "../../model/utility/sort";
-import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRoute, useRouter } from "vue-router";
+import { zeroDinero } from "../../helpers/dineroHelpers";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -63,9 +63,7 @@ const filteredTransactions = computed<Array<Transaction>>(() =>
 );
 
 const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
-const isNegative = computed(() =>
-	isDineroNegative(remainingBalance.value ?? dinero({ amount: 0, currency: USD }))
-);
+const isNegative = computed(() => isDineroNegative(remainingBalance.value ?? zeroDinero));
 
 watch(
 	account,
