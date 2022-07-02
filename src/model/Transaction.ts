@@ -143,7 +143,7 @@ export function newTransactionWithDelta(
 export function recordFromTransaction(transaction: Transaction): TransactionRecordParams {
 	return {
 		amount: toSnapshot(transaction.amount),
-		createdAt: transaction.createdAt,
+		createdAt: transaction.createdAt, // TODO: Don't serialize objects like Dates, they get stringified and come back different. (Wait until new Date API to migrate?)
 		title: transaction.title,
 		notes: transaction.notes,
 		locationId: transaction.locationId,
