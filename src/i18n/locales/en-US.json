@@ -110,6 +110,7 @@
 		"cookie-disclaimer": "Logging in will set one cookie, which contains your login token. This cookie lets your browser securely remember that you were logged in without Accountable needing to keep your login token someplace unsafe.",
 		"process": {
 			"authenticating": "Authenticating...",
+			"reauthenticating": "Re-authenticating...",
 			"generating-keys": "Generating keys...",
 			"fetching-keys": "Fetching keys...",
 			"deriving-pkey": "Deriving key from passphrase..."

@@ -81,7 +81,7 @@ async function submit() {
 			}}</ActionButton>
 
 			<span v-if="loginProcessState === 'AUTHENTICATING'">{{
-				$t("login.process.authenticating")
+				$t("login.process.reauthenticating")
 			}}</span>
 			<span v-if="loginProcessState === 'GENERATING_KEYS'">{{
 				$t("login.process.generating-keys")
