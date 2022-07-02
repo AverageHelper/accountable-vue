@@ -180,8 +180,8 @@ export const useTransactionsStore = defineStore("transactions", {
 						// Sort each transaction list
 						groupedTransactions[month]?.sort(reverseChronologically);
 					}
+					this.months = months; // save months before we save transactions, so components know how to sort things
 					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
-					this.months = months;
 				},
 				error => {
 					console.error(error);

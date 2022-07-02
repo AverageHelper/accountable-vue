@@ -34,11 +34,13 @@ export function simplifiedByteCount(num: number, locale?: LocaleCode): string {
 	 */
 	const units = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"] as const;
 
+	type Unit = typeof units[number];
+
 	// Get the nearest applicable unit
 	const exponent: number =
 		num > 0 ? Math.min(Math.floor(Math.log(num) / Math.log(1000)), units.length - 1) : 0;
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const unit = units[exponent] ?? units[units.length - 1]!;
+	const unit: Unit = units[exponent] ?? units[units.length - 1]!;
 	// ASSUMPTION: The `units` array is never empty
 
 	// Set up a unit formatter for the selected locale
