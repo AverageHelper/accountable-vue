@@ -1,7 +1,7 @@
 import atob from "atob-lite";
 import btoa from "btoa-lite";
 import CryptoJS from "crypto-js";
-import encodeBase64 from "crypto-js/enc-base64";
+import encodeBase64 from "crypto-js/enc-base64"; // TODO: Use CryptoJS.enc.Hex instead, it's nicer
 import encodeUTF8 from "crypto-js/enc-utf8";
 import isString from "lodash/isString";
 
@@ -53,12 +53,13 @@ export class HashStore {
 const Cryption = {
 	v0: {
 		/**
-		 * crypto-js uses 64-bit words for SHA-512
+		 * crypto-js uses 32-bit words for PBKDF2
 		 *
 		 * See https://github.com/brix/crypto-js/blob/develop/docs/QuickStartGuide.wiki#sha-2
+		 * See also https://cryptojs.gitbook.io/docs/#pbkdf2
 		 */
-		wordSizeBits: 64,
-		keySizeBits: 16384,
+		wordSizeBits: 32,
+		keySizeBits: 8192,
 		saltSizeBytes: 32,
 		iterations: 10000,
 		aes: CryptoJS.AES,
