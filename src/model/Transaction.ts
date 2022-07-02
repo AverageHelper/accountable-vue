@@ -118,7 +118,8 @@ export function isTransactionRecord(tbd: unknown): tbd is TransactionRecordParam
 		isStringOrNull((tbd as TransactionRecordParams).locationId) &&
 		isAmountSnapshot((tbd as TransactionRecordParams).amount) &&
 		isBoolean((tbd as TransactionRecordParams).isReconciled) &&
-		isDate((tbd as TransactionRecordParams).createdAt)
+		(isDate((tbd as TransactionRecordParams).createdAt) ||
+			isString((tbd as TransactionRecordParams).createdAt))
 	);
 }
 

@@ -36,7 +36,8 @@ export function isAccountRecord(tbd: unknown): tbd is AccountRecordParams {
 		"notes" in tbd &&
 		isString((tbd as AccountRecordParams).title) &&
 		isStringOrNull((tbd as AccountRecordParams).notes) &&
-		isDate((tbd as AccountRecordParams).createdAt)
+		(isDate((tbd as AccountRecordParams).createdAt) ||
+			isString((tbd as AccountRecordParams).createdAt))
 	);
 }
 

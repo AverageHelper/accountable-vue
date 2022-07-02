@@ -47,7 +47,8 @@ export function isAttachmentRecord(tbd: unknown): tbd is AttachmentRecordParams 
 		isString((tbd as AttachmentRecordParams).type) &&
 		isString((tbd as AttachmentRecordParams).storagePath) &&
 		isStringOrNull((tbd as AttachmentRecordParams).notes) &&
-		isDate((tbd as AttachmentRecordParams).createdAt)
+		(isDate((tbd as AttachmentRecordParams).createdAt) ||
+			isString((tbd as AttachmentRecordParams).createdAt))
 	);
 }
 

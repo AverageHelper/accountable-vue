@@ -64,7 +64,8 @@ export function isLocationRecord(tbd: unknown): tbd is LocationRecordParams {
 		isString((tbd as LocationRecordParams).title) &&
 		isStringOrNull((tbd as LocationRecordParams).subtitle) &&
 		isCoordinateOrNull((tbd as LocationRecordParams).coordinate) &&
-		isDate((tbd as LocationRecordParams).lastUsed)
+		(isDate((tbd as LocationRecordParams).lastUsed) ||
+			isString((tbd as LocationRecordParams).lastUsed))
 	);
 }
 
