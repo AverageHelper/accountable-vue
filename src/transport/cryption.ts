@@ -52,7 +52,13 @@ export class HashStore {
 
 const Cryption = {
 	v0: {
-		keySizeWords: 256,
+		/**
+		 * crypto-js uses 64-bit words for SHA-512
+		 *
+		 * See https://github.com/brix/crypto-js/blob/develop/docs/QuickStartGuide.wiki#sha-2
+		 */
+		wordSizeBits: 64,
+		keySizeBits: 16384,
 		saltSizeBytes: 32,
 		iterations: 10000,
 		aes: CryptoJS.AES,
@@ -72,12 +78,13 @@ export async function hashed(input: string): Promise<string> {
 
 export async function derivePKey(password: string, salt: string): Promise<HashStore> {
 	await new Promise(resolve => setTimeout(resolve, 10)); // wait 10 ms for UI
+
 	return new HashStore(
 		Cryption.v0
 			.pbkdf2(password, salt, {
 				iterations: Cryption.v0.iterations,
 				hasher: CryptoJS.algo.SHA512,
-				keySize: Cryption.v0.keySizeWords,
+				keySize: Cryption.v0.keySizeBits / Cryption.v0.wordSizeBits,
 			})
 			.toString(encodeBase64)
 	);
@@ -107,7 +114,9 @@ async function newDataEncryptionKeyMaterialForDEK(
 
 export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
 	// To encrypt data
-	const dek = new HashStore(Cryption.v0.randomValue(Cryption.v0.keySizeWords));
+	const dek = new HashStore(
+		Cryption.v0.randomValue(Cryption.v0.keySizeBits / Cryption.v0.wordSizeBits)
+	);
 	return await newDataEncryptionKeyMaterialForDEK(password, dek);
 }
 
