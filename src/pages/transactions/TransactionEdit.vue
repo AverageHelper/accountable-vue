@@ -155,7 +155,7 @@ async function submit() {
 			await transactions.createTransaction(params);
 		} else {
 			await transactions.updateTransaction(
-				newTransaction({ id: ogTransaction.value.id, ...params })
+				newTransaction({ ...params, id: ogTransaction.value.id })
 			);
 		}
 

@@ -3,8 +3,8 @@ import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
 import { location, recordFromLocation } from "../model/Location";
-import { newTransactionWithDelta } from "../model/Transaction";
 import { stores } from "./stores";
+import { transaction } from "../model/Transaction";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
@@ -196,12 +196,11 @@ export const useLocationsStore = defineStore("locations", {
 				for (const txns of chunk(matchingTransactions, 500)) {
 					const uBatch = writeBatch();
 					await Promise.all(
-						txns.map(t =>
-							transactions.updateTransaction(
-								newTransactionWithDelta(t, { locationId: newLocation.id }),
-								uBatch
-							)
-						)
+						txns.map(t => {
+							const newTxn = transaction(t);
+							newTxn.locationId = newLocation.id;
+							return transactions.updateTransaction(newTxn, uBatch);
+						})
 					);
 					await uBatch.commit();
 				}

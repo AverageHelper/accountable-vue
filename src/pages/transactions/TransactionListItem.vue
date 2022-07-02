@@ -8,7 +8,7 @@ import PaperclipIcon from "../../icons/Paperclip.vue";
 import { computed, ref, toRefs, onMounted } from "vue";
 import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
-import { newTransactionWithDelta } from "../../model/Transaction";
+import { transaction as newTransaction } from "../../model/Transaction";
 import { transactionPath } from "../../router";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 
@@ -56,8 +56,9 @@ async function markReconciled(isReconciled: boolean) {
 	isChangingReconciled.value = true;
 
 	try {
-		const newTransaction = newTransactionWithDelta(transaction.value, { isReconciled });
-		await transactions.updateTransaction(newTransaction);
+		const newTxn = newTransaction(transaction.value);
+		newTxn.isReconciled = isReconciled;
+		await transactions.updateTransaction(newTxn);
 	} catch (error) {
 		ui.handleError(error);
 	}

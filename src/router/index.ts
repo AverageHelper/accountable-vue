@@ -10,6 +10,7 @@ import Locations from "../pages/locations/Locations.vue";
 import Locked from "../pages/auth/Locked.vue";
 import Login from "../pages/auth/Login.vue";
 import MonthView from "../pages/transactions/MonthView.vue";
+import NotFound from "../pages/NotFound.vue";
 import Security from "../Security.vue";
 import Settings from "../pages/settings/Settings.vue";
 import Tags from "../pages/tags/Tags.vue";
@@ -213,5 +214,6 @@ export const router = createRouter({
 		locations,
 		tags,
 		settings,
+		{ path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
 	],
 });

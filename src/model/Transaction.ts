@@ -47,9 +47,6 @@ export type TransactionRecordParams = ReplaceWith<
 export function transaction(
 	params: Transaction | (TransactionRecordParams & Pick<Transaction, "id">)
 ): Transaction {
-	if ("objectType" in params) {
-		return newTransactionWithDelta(params, {});
-	}
 	return {
 		id: params.id,
 		objectType: "Transaction",
@@ -57,7 +54,9 @@ export function transaction(
 		amount:
 			typeof params.amount === "number"
 				? dinero({ amount: params.amount * 100, currency: USD }) // for compatibility. # TODO: Migrate ancient transactions
-				: dinero(params.amount),
+				: "amount" in params.amount
+				? dinero(params.amount)
+				: params.amount,
 		createdAt: new Date(params.createdAt), // in case this is actually a string
 		title: (params.title?.trim() ?? "") || null,
 		notes: (params.notes?.trim() ?? "") || null,
@@ -121,23 +120,6 @@ export function isTransactionRecord(tbd: unknown): tbd is TransactionRecordParam
 		(isDate((tbd as TransactionRecordParams).createdAt) ||
 			isString((tbd as TransactionRecordParams).createdAt))
 	);
-}
-
-/**
- * Creates a new {@link Transaction} by combining the properties of the given transaction with the given properties.
- * @param ogTransaction The original transaction.
- * @param delta The properties to apply to the new transaction. An empty value duplicates the transaction.
- */
-export function newTransactionWithDelta(
-	ogTransaction: Transaction,
-	delta: Partial<TransactionRecordParams>
-): Transaction {
-	const thisRecord = recordFromTransaction(ogTransaction);
-	return transaction({
-		id: ogTransaction.id,
-		...thisRecord,
-		...delta,
-	});
 }
 
 export function recordFromTransaction(transaction: Transaction): TransactionRecordParams {

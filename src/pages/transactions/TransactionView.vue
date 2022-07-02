@@ -51,6 +51,7 @@ const brokenReferenceToFix = ref<string | null>(null);
 const theseTransactions = computed(
 	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
 );
+const numberOfTransactions = computed(() => Object.keys(theseTransactions.value).length);
 const account = computed(() => accounts.items[accountId.value]);
 const transaction = computed(() => theseTransactions.value[transactionId.value]);
 const locationId = computed(() => transaction.value?.locationId ?? null);
@@ -218,6 +219,25 @@ async function onFileReceived(file: File) {
 			</li>
 		</List>
 		<FileInput @input="onFileReceived">Attach a file</FileInput>
+	</main>
+	<main v-else>
+		<!-- We should never get here, but in case we do, for debugging: -->
+		<h1>{{ $t("debug.something-is-wrong") }}</h1>
+		<p>{{ $t("debug.account-but-no-transaction") }}</p>
+		<i18n-t keypath="debug.transaction-id" tag="p" class="disclaimer">
+			<template #id>
+				<em>{{ transactionId }}</em>
+			</template>
+		</i18n-t>
+		<p class="disclaimer">{{
+			$tc("debug.count-all-transactions", numberOfTransactions, { n: numberOfTransactions })
+		}}</p>
+		<ul>
+			<li v-for="(txn, id) in theseTransactions" :key="id">
+				<strong>{{ id }}:&nbsp;</strong>
+				<span>{{ txn.id }}</span>
+			</li>
+		</ul>
 	</main>
 
 	<Modal :open="brokenReferenceToFix !== null && !!transaction" :close-modal="closeReferenceFixer">

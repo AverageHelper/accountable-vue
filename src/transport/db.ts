@@ -157,7 +157,7 @@ export function doc<T = DocumentData>(
 		const parent = collection<T>(dbOrCollection, collectionId);
 		return { id, parent, db: dbOrCollection, type: "document" };
 	}
-	const newId = uuid().replace(/-/gu, ""); // remove hyphens);
+	const newId = uuid().replace(/-/gu, ""); // remove hyphens
 	return {
 		id: newId,
 		parent: dbOrCollection,

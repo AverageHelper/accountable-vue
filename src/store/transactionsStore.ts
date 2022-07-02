@@ -17,10 +17,10 @@ import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
 import {
-	newTransactionWithDelta,
 	recordFromTransaction,
 	removeAttachmentIdFromTransaction,
 	removeTagFromTransaction,
+	transaction,
 } from "../model/Transaction";
 import {
 	getTransactionsForAccount,
@@ -365,7 +365,11 @@ export const useTransactionsStore = defineStore("transactions", {
 			const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
 			if (storedTransaction) {
 				// If duplicate, overwrite the one we have
-				const newTransaction = newTransactionWithDelta(storedTransaction, transactionToImport);
+				const newTransaction = transaction({
+					...storedTransaction,
+					...transactionToImport,
+					id: storedTransaction.id,
+				});
 				await this.updateTransaction(newTransaction, batch);
 			} else {
 				// If new, create a new transaction

@@ -30,7 +30,7 @@ export function transactionFromSnapshot(
 	dek: HashStore
 ): Transaction {
 	const { id, record } = recordFromSnapshot(doc, dek, isTransactionRecord);
-	return transaction({ id, ...record });
+	return transaction({ ...record, id });
 }
 
 export async function getTransactionsForAccount(
@@ -64,7 +64,7 @@ export async function createTransaction(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return transaction({ id: ref.id, ...record });
+	return transaction({ ...record, id: ref.id });
 }
 
 export async function updateTransaction(
