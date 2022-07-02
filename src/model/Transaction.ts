@@ -137,8 +137,7 @@ export function recordFromTransaction(transaction: Transaction): TransactionReco
 }
 
 export function addTagToTransaction(transaction: Transaction, tag: Tag): void {
-	const tagIdx = transaction.tagIds.indexOf(tag.id);
-	if (tagIdx === -1) {
+	if (!transaction.tagIds.includes(tag.id)) {
 		// tag not found, so add it!
 		transaction.tagIds.push(tag.id);
 	}
@@ -153,8 +152,7 @@ export function removeTagFromTransaction(transaction: Transaction, tag: Tag): vo
 }
 
 export function addAttachmentToTransaction(transaction: Transaction, file: Attachment): void {
-	const fileIdx = transaction.attachmentIds.indexOf(file.id);
-	if (fileIdx === -1) {
+	if (!transaction.attachmentIds.includes(file.id)) {
 		// file not found, so add it!
 		transaction.attachmentIds.push(file.id);
 	}
