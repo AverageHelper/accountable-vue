@@ -50,7 +50,7 @@ export class HashStore {
 	}
 }
 
-const Cryption = {
+const Protocols = {
 	v0: {
 		/**
 		 * crypto-js uses 32-bit words for PBKDF2
@@ -72,6 +72,8 @@ const Cryption = {
 	},
 } as const;
 
+const Cryption = Protocols.v0;
+
 /** Makes special potatoes that are unique to the `input`. */
 export async function hashed(input: string): Promise<string> {
 	return btoa((await derivePKey(input, "salt")).value);
@@ -81,13 +83,11 @@ export async function derivePKey(password: string, salt: string): Promise<HashSt
 	await new Promise(resolve => setTimeout(resolve, 10)); // wait 10 ms for UI
 
 	return new HashStore(
-		Cryption.v0
-			.pbkdf2(password, salt, {
-				iterations: Cryption.v0.iterations,
-				hasher: CryptoJS.algo.SHA512,
-				keySize: Cryption.v0.keySizeBits / Cryption.v0.wordSizeBits,
-			})
-			.toString(encodeBase64)
+		Cryption.pbkdf2(password, salt, {
+			iterations: Cryption.iterations,
+			hasher: CryptoJS.algo.SHA512,
+			keySize: Cryption.keySizeBits / Cryption.wordSizeBits,
+		}).toString(encodeBase64)
 	);
 }
 
@@ -103,7 +103,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 	dek: HashStore
 ): Promise<KeyMaterial> {
 	// To make passwords harder to guess
-	const passSalt = btoa(Cryption.v0.randomValue(Cryption.v0.saltSizeBytes));
+	const passSalt = btoa(Cryption.randomValue(Cryption.saltSizeBytes));
 
 	// To encrypt the dek
 	const pKey = await derivePKey(password, passSalt);
@@ -115,9 +115,7 @@ async function newDataEncryptionKeyMaterialForDEK(
 
 export async function newDataEncryptionKeyMaterial(password: string): Promise<KeyMaterial> {
 	// To encrypt data
-	const dek = new HashStore(
-		Cryption.v0.randomValue(Cryption.v0.keySizeBits / Cryption.v0.wordSizeBits)
-	);
+	const dek = new HashStore(Cryption.randomValue(Cryption.keySizeBits / Cryption.wordSizeBits));
 	return await newDataEncryptionKeyMaterialForDEK(password, dek);
 }
 
@@ -148,7 +146,7 @@ export async function newMaterialFromOldKey(
  */
 export function encrypt<M>(data: unknown, metadata: M, dek: HashStore): EPackage<M> {
 	const plaintext = JSON.stringify(data);
-	const ciphertext = Cryption.v0.aes.encrypt(plaintext, dek.value).toString();
+	const ciphertext = Cryption.aes.encrypt(plaintext, dek.value).toString();
 
 	return { ciphertext, ...metadata };
 }
@@ -185,7 +183,7 @@ class DecryptionError extends Error {
  */
 export function decrypt(pkg: Pick<EPackage<unknown>, "ciphertext">, dek: HashStore): unknown {
 	const { ciphertext } = pkg;
-	const plaintext = Cryption.v0.aes.decrypt(ciphertext, dek.value).toString(encodeUTF8);
+	const plaintext = Cryption.aes.decrypt(ciphertext, dek.value).toString(encodeUTF8);
 
 	if (!plaintext) {
 		throw DecryptionError.resultIsEmpty();
