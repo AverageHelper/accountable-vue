@@ -28,6 +28,11 @@ const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
 const timestamp = computed(() => toTimestamp(transaction.value.createdAt));
 
+const accountBalanceSoFar = computed(() => {
+	const balances = transactions.accountBalancesForTransaction[transaction.value.accountId] ?? {};
+	return balances[transaction.value.id] ?? null;
+});
+
 const transactionRoute = computed(() =>
 	transactionPath(transaction.value.accountId, transaction.value.id)
 );
@@ -50,6 +55,7 @@ function seeIfAnyAttachmentsAreBroken() {
 
 onMounted(() => {
 	seeIfAnyAttachmentsAreBroken();
+	void transactions.computeBalanceAfterTransaction(transaction.value);
 });
 
 async function markReconciled(isReconciled: boolean) {
@@ -73,6 +79,7 @@ async function markReconciled(isReconciled: boolean) {
 		:title="transaction.title ?? '--'"
 		:subtitle="timestamp"
 		:count="intlFormat(transaction.amount)"
+		:sub-count="accountBalanceSoFar ? intlFormat(accountBalanceSoFar) : '--'"
 		:negative="isNegative"
 	>
 		<template #icon>

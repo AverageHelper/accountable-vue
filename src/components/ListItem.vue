@@ -7,6 +7,7 @@ defineProps({
 	title: { type: String, required: true },
 	subtitle: { type: String as PropType<string | null>, default: null },
 	count: { type: [Number, String] as PropType<number | string | null>, default: null },
+	subCount: { type: String as PropType<string | null>, default: null },
 	negative: { type: Boolean, default: false },
 });
 </script>
@@ -22,7 +23,10 @@ defineProps({
 
 		<aside>
 			<slot name="aside" />
-			<span v-if="count !== null" class="count" :class="{ negative: negative }">{{ count }}</span>
+			<div class="counts">
+				<span v-if="count !== null" class="count" :class="{ negative: negative }">{{ count }}</span>
+				<span v-if="subCount !== null" class="subcount">{{ subCount }}</span>
+			</div>
 		</aside>
 
 		<Chevron class="chevron" />
@@ -67,9 +71,10 @@ defineProps({
 	aside {
 		display: flex;
 		flex-flow: row wrap;
+		align-items: center;
 		margin-left: auto;
 
-		> span {
+		span {
 			font-weight: bold;
 			min-width: 1em;
 			text-align: center;
@@ -79,14 +84,27 @@ defineProps({
 			margin-right: 8pt;
 		}
 
-		> .count {
-			background-color: color($gray);
-			color: color($inverse-label);
-			border-radius: 1em;
-			padding: 0 0.5em;
+		> .counts {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
 
-			&.negative {
-				background-color: color($red);
+			> .count {
+				background-color: color($gray);
+				color: color($inverse-label);
+				border-radius: 1em;
+				padding: 0 0.5em;
+
+				&.negative {
+					background-color: color($red);
+				}
+			}
+
+			> .subcount {
+				font-size: small;
+				color: color($secondary-label);
+				margin-top: 4pt;
+				padding: 0 0.5em;
 			}
 		}
 	}
