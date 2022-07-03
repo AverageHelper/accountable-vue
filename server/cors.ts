@@ -11,7 +11,7 @@ try {
 	allowedOrigins.add(host);
 } catch {} // nop
 
-process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins.values()))}\n`);
+process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins))}\n`);
 
 const corsOptions: CorsOptions = {
 	credentials: true,

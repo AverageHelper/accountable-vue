@@ -133,7 +133,7 @@ export function auth(this: void): Router {
 		)
 		.get(
 			"/session",
-			throttle(),
+			// throttle(),
 			asyncWrapper(async (req, res) => {
 				// ** If the user has the cookie set, respond with a JWT for the user
 
