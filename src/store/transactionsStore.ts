@@ -6,9 +6,9 @@ import type { Transaction, TransactionRecordParams } from "../model/Transaction"
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
 import { add, subtract } from "dinero.js";
+import { chronologically, reverseChronologically } from "../model/utility/sort";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
-import { reverseChronologically } from "../model/utility/sort";
 import { stores } from "./stores";
 import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
@@ -45,31 +45,60 @@ interface Month {
 export const useTransactionsStore = defineStore("transactions", {
 	state: () => ({
 		transactionsForAccount: {} as Dictionary<Dictionary<Transaction>>, // Account.id -> Transaction.id -> Transaction
-		accountBalancesForTransaction: {} as Dictionary<Dictionary<Dinero<number>>>, // Account.id -> Transaction.id -> amount
 		transactionsForAccountByMonth: {} as Dictionary<Dictionary<Array<Transaction>>>, // Account.id -> month -> Transaction[]
 		months: {} as Dictionary<Month>,
 		transactionsWatchers: {} as Dictionary<Unsubscribe>, // Transaction.id -> Unsubscribe
 	}),
 	getters: {
 		allTransactions(state): ReadonlyArray<Transaction> {
-			const result = new Set<Transaction>();
+			// WARN: Does not care about accounts
+			const result: Dictionary<Transaction> = {};
 
 			Object.values(state.transactionsForAccount).forEach(transactions => {
 				Object.values(transactions).forEach(transaction => {
-					result.add(transaction as Transaction);
+					result[transaction.id] ??= transaction;
 				});
 			});
 
-			return Array.from(result);
+			return Object.values(result); // should be 2486
+		},
+		sortedTransactions(): ReadonlyArray<Transaction> {
+			// WARN: Does not care about accounts
+			return this.allTransactions //
+				.slice()
+				.sort(chronologically);
+		},
+		allBalances(): Dictionary<Dictionary<Dinero<number>>> {
+			const accounts = useAccountsStore();
+			const balancesByAccount: Dictionary<Dictionary<Dinero<number>>> = {};
+
+			// Consider each account...
+			for (const accountId of accounts.allAccounts.map(a => a.id)) {
+				const balances: Dictionary<Dinero<number>> = {}; // Txn.id -> amount
+
+				// Go through each transaction once, counting the account's balance as we go...
+				let previous: Transaction | null = null;
+				for (const transaction of this.sortedTransactions.filter(t => t.accountId === accountId)) {
+					const amount = transaction.amount;
+					const previousBalance = previous ? balances[previous.id] ?? zeroDinero : zeroDinero;
+
+					// balance so far == current + previous balance so far
+					balances[transaction.id] = add(amount, previousBalance);
+					previous = transaction;
+				}
+
+				balancesByAccount[accountId] = balances;
+			}
+			return balancesByAccount;
 		},
 	},
 	actions: {
 		clearCache() {
 			Object.values(this.transactionsWatchers).forEach(unsubscribe => unsubscribe());
-			this.accountBalancesForTransaction = {};
 			this.transactionsWatchers = {};
 			this.transactionsForAccount = {};
 			this.transactionsForAccountByMonth = {};
+			this.months = {};
 			console.debug("transactionsStore: cache cleared");
 		},
 		async watchTransactions(account: Account, force: boolean = false) {
@@ -215,33 +244,6 @@ export const useTransactionsStore = defineStore("transactions", {
 			for (const account of accounts.allAccounts) {
 				await this.getTransactionsForAccount(account);
 			}
-		},
-		async computeBalanceAfterTransaction(txn: Transaction): Promise<void> {
-			// No transactions cached? Return for later.
-			const accountId = txn.accountId;
-			if (!this.transactionsForAccount[accountId]) return;
-
-			// Check cache for existing balance amount
-			this.accountBalancesForTransaction[accountId] ??= {};
-			const accountBalances = this.accountBalancesForTransaction[accountId] ?? {};
-			const storedbalance = accountBalances[txn.id];
-			if (storedbalance !== undefined) return; // balance already found and cached!
-
-			await new Promise(resolve => setTimeout(resolve, 15)); // wait 15 ms for UI to catch up
-
-			// Balance not found. Compute it!
-			let balance = txn.amount;
-			const allTransactions = this.allTransactions;
-			const idx = allTransactions.findIndex(t => t.id === txn.id);
-			const balances = allTransactions
-				.slice(0, idx) // transactions to check
-				.map(t => t.amount); // only need amount from each txn
-
-			balances.forEach(amount => {
-				balance = add(balance, amount);
-			});
-
-			accountBalances[txn.id] = balance;
 		},
 		tagIsReferenced(tagId: string): boolean {
 			for (const transaction of this.allTransactions) {
