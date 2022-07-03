@@ -5,9 +5,9 @@ import Checkbox from "../../components/inputs/Checkbox.vue";
 import ListItem from "../../components/ListItem.vue";
 import LocationIcon from "../../icons/Location.vue";
 import PaperclipIcon from "../../icons/Paperclip.vue";
-import { computed, ref, toRefs, onMounted } from "vue";
-import { intlFormat, toTimestamp } from "../../transformers";
 import { isNegative as isDineroNegative } from "dinero.js";
+import { computed, onMounted, ref, toRefs } from "vue";
+import { intlFormat, toTimestamp } from "../../transformers";
 import { transaction as newTransaction } from "../../model/Transaction";
 import { transactionPath } from "../../router";
 import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
@@ -27,6 +27,11 @@ const hasAttachments = computed(() => transaction.value.attachmentIds.length > 0
 const isAttachmentBroken = ref<boolean | "unknown">("unknown");
 const hasLocation = computed(() => transaction.value.locationId !== null);
 const timestamp = computed(() => toTimestamp(transaction.value.createdAt));
+
+const accountBalanceSoFar = computed(() => {
+	const allBalancesForAccount = transactions.allBalances[transaction.value.accountId] ?? {};
+	return allBalancesForAccount[transaction.value.id] ?? null;
+});
 
 const transactionRoute = computed(() =>
 	transactionPath(transaction.value.accountId, transaction.value.id)
@@ -73,6 +78,7 @@ async function markReconciled(isReconciled: boolean) {
 		:title="transaction.title ?? '--'"
 		:subtitle="timestamp"
 		:count="intlFormat(transaction.amount)"
+		:sub-count="accountBalanceSoFar ? intlFormat(accountBalanceSoFar) : '--'"
 		:negative="isNegative"
 	>
 		<template #icon>

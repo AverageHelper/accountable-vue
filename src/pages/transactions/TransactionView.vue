@@ -180,6 +180,11 @@ async function onFileReceived(file: File) {
 			<span class="key">Timestamp</span>
 			<span class="value">{{ timestamp }}</span>
 		</div>
+		<!-- Reconciliation -->
+		<div class="key-value-pair" aria-label="Is Transaction Reconciled?">
+			<span class="key">Reconciled</span>
+			<span class="value">{{ transaction.isReconciled ? "Yes" : "No" }}</span>
+		</div>
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>

@@ -25,9 +25,7 @@ const month = computed<string | null>(() => {
 
 const monthTransactions = computed<Array<Transaction>>(() => {
 	if (month.value === null || !month.value) return [];
-	const byMonth = (transactions.transactionsForAccountByMonth[accountId.value] ?? {}) as Dictionary<
-		Array<Transaction>
-	>; // FIXME: This assertion shouldn't be necessary
+	const byMonth = transactions.transactionsForAccountByMonth[accountId.value] ?? {};
 	return byMonth[month.value] ?? [];
 });
 

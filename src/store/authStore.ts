@@ -93,9 +93,10 @@ export const useAuthStore = defineStore("auth", {
 		async onSignedOut() {
 			this.clearCache();
 
-			const { accounts, attachments, tags, transactions } = await stores();
+			const { accounts, attachments, locations, tags, transactions } = await stores();
 			accounts.clearCache();
 			attachments.clearCache();
+			locations.clearCache();
 			tags.clearCache();
 			transactions.clearCache();
 		},
