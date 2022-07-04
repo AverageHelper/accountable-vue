@@ -19,7 +19,7 @@ export const ownersOnly: RequestHandler<Params> = (req, res, next): void => {
 	const uid = req.params.uid ?? "";
 
 	if (!auth || !uid || !safeCompare(uid, auth.uid)) {
-		throw new UnauthorizedError();
+		throw new UnauthorizedError("not-owner");
 	}
 	next();
 };

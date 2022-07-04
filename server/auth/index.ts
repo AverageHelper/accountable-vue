@@ -3,6 +3,7 @@ import { addJwtToBlacklist, jwtTokenFromRequest, newAccessToken } from "./jwt.js
 import { asyncWrapper } from "../asyncWrapper.js";
 import { Context } from "./Context.js";
 import { MAX_USERS } from "./limits.js";
+import { metadataFromRequest } from "./requireAuth.js";
 import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
@@ -95,7 +96,7 @@ export function auth(this: void): Router {
 				await upsertUser(user);
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(user);
+				const access_token = await newAccessToken(req, user);
 				const { totalSpace, usedSpace } = await statsForUser(user.uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
 			})
@@ -121,21 +122,36 @@ export function auth(this: void): Router {
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
 					console.debug(`Found no user under account ${JSON.stringify(givenAccountId)}`);
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
 					console.debug(`The given password doesn't match what's stored`);
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Generate an auth token and send it along
-				const access_token = await newAccessToken(storedUser);
+				const access_token = await newAccessToken(req, storedUser);
 				const uid = storedUser.uid;
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 				respondSuccess(res, { access_token, uid, totalSpace, usedSpace });
+			})
+		)
+		.get(
+			"/session",
+			// throttle(),
+			asyncWrapper(async (req, res) => {
+				// ** If the user has the cookie set, respond with a JWT for the user
+
+				const metadata = await metadataFromRequest(req); // throws if bad
+
+				const access_token = await newAccessToken(req, metadata.user);
+				const uid = metadata.user.uid;
+				const account = metadata.user.currentAccountId;
+				const { totalSpace, usedSpace } = await statsForUser(uid);
+				respondSuccess(res, { account, access_token, uid, totalSpace, usedSpace });
 			})
 		)
 		.post("/logout", throttle(), (req, res) => {
@@ -146,6 +162,8 @@ export function auth(this: void): Router {
 
 			// ** Blacklist the JWT
 			addJwtToBlacklist(token);
+
+			req.session = null;
 			respondSuccess(res);
 		})
 		.post<unknown, unknown, ReqBody>(
@@ -167,13 +185,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or password");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Delete the user
@@ -204,13 +222,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Store new credentials
@@ -248,13 +266,13 @@ export function auth(this: void): Router {
 				// ** Get credentials
 				const storedUser = await userWithAccountId(givenAccountId);
 				if (!storedUser) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Verify old credentials
 				const isPasswordGood = await bcrypt.compare(givenPassword, storedUser.passwordHash);
 				if (!isPasswordGood) {
-					throw new UnauthorizedError("Incorrect account ID or passphrase");
+					throw new UnauthorizedError("wrong-credentials");
 				}
 
 				// ** Store new credentials

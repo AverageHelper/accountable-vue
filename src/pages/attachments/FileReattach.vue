@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { Attachment } from "../../model/Attachment";
-import type { Transaction } from "../../model/Transaction";
 import type { PropType } from "vue";
+import type { Transaction } from "../../model/Transaction";
 import FileInput from "./FileInput.vue";
 import FileListItem from "./FileListItem.vue";
 import List from "../../components/List.vue";
 import ListItem from "../../components/ListItem.vue";
-import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 import { computed, toRefs } from "vue";
+import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
+import {
+	addAttachmentToTransaction,
+	transaction as copy,
+	removeAttachmentIdFromTransaction,
+} from "../../model/Transaction";
 
 const emit = defineEmits(["close"]);
 
@@ -25,9 +30,9 @@ const files = computed(() => attachments.allAttachments);
 const numberOfFiles = computed(() => files.value.length);
 
 async function selectNewFile(attachment: Attachment) {
-	const newTransaction = transaction.value.copy();
-	newTransaction.addAttachmentId(attachment.id);
-	newTransaction.removeAttachmentId(fileId.value);
+	const newTransaction = copy(transaction.value);
+	addAttachmentToTransaction(newTransaction, attachment);
+	removeAttachmentIdFromTransaction(newTransaction, fileId.value);
 	await transactions.updateTransaction(newTransaction);
 	emit("close");
 }
@@ -46,6 +51,7 @@ async function createNewFile(file: File | null): Promise<void> {
 
 <template>
 	<div>
+		<!-- TODO: I18N -->
 		<h3>Fix broken reference</h3>
 		<p
 			>This attachment somehow got lost in the mix, possibly due to an import bug. Select the

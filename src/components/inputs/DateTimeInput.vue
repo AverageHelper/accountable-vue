@@ -52,7 +52,7 @@ function onDateUpdated(event: Event) {
 				@input="onDateUpdated"
 			/>
 		</label>
-		<ActionButton kind="bordered" @click.prevent="reset">Now</ActionButton>
+		<ActionButton kind="bordered" @click.prevent="reset">{{ $t("date-time.now") }}</ActionButton>
 	</div>
 </template>
 

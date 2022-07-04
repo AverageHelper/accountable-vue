@@ -4,16 +4,13 @@ import type {
 	QueryDocumentSnapshot,
 	WriteBatch,
 } from "./db";
-import type { AccountRecordParams } from "../model/Account";
+import type { Account, AccountRecordParams } from "../model/Account";
 import type { EPackage, HashStore } from "./cryption";
+import { account, isAccountRecord, recordFromAccount } from "../model/Account";
 import { encrypt } from "./cryption";
-import { Account } from "../model/Account";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 
-interface AccountRecordPackageMetadata {
-	objectType: "Account";
-}
-export type AccountRecordPackage = EPackage<AccountRecordPackageMetadata>;
+export type AccountRecordPackage = EPackage<"Account">;
 
 export function accountsCollection(): CollectionReference<AccountRecordPackage> {
 	return collection<AccountRecordPackage>(db, "accounts");
@@ -27,8 +24,8 @@ export function accountFromSnapshot(
 	doc: QueryDocumentSnapshot<AccountRecordPackage>,
 	dek: HashStore
 ): Account {
-	const { id, record } = recordFromSnapshot(doc, dek, Account.isRecord);
-	return new Account(id, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isAccountRecord);
+	return account({ id, ...record });
 }
 
 export async function createAccount(
@@ -36,17 +33,14 @@ export async function createAccount(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Account> {
-	const meta: AccountRecordPackageMetadata = {
-		objectType: "Account",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Account", dek);
 	const ref = doc(accountsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Account(ref.id, record);
+	return account({ id: ref.id, ...record });
 }
 
 export async function updateAccount(
@@ -54,11 +48,8 @@ export async function updateAccount(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<void> {
-	const meta: AccountRecordPackageMetadata = {
-		objectType: "Account",
-	};
-	const record: AccountRecordParams = account.toRecord();
-	const pkg = encrypt(record, meta, dek);
+	const record = recordFromAccount(account);
+	const pkg = encrypt(record, "Account", dek);
 	const ref = accountRef(account);
 	if (batch) {
 		batch.set(ref, pkg);

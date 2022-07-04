@@ -14,7 +14,10 @@ const usedSpace = computed(() =>
 </script>
 
 <template>
-	<p class="storage">Used {{ usedSpace }} of {{ totalSpace }}</p>
+	<i18n-t keypath="common.disk-usage" tag="p">
+		<template #used>{{ usedSpace }}</template>
+		<template #total>{{ totalSpace }}</template>
+	</i18n-t>
 </template>
 
 <style scoped lang="scss">

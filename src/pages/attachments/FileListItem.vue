@@ -19,7 +19,7 @@ const attachments = useAttachmentsStore();
 const file = computed(() => attachments.items[fileId.value]);
 const title = computed<string>(() => file.value?.title ?? fileId.value);
 const subtitle = computed<string>(() => {
-	if (!file.value) return "Broken reference";
+	if (!file.value) return "Broken reference"; // TODO: I18N
 
 	const timestamp = toTimestamp(file.value.createdAt);
 

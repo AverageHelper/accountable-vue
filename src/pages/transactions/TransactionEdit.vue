@@ -2,7 +2,14 @@
 import type { Account } from "../../model/Account";
 import type { Location, LocationRecordParams } from "../../model/Location";
 import type { PropType } from "vue";
-import type { TransactionRecordParams } from "../../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../../model/Transaction";
+import { equal, isNegative, isZero, toSnapshot } from "dinero.js";
+import { recordFromLocation } from "../../model/Location";
+import { ref, computed, toRefs, onMounted } from "vue";
+import { transaction as newTransaction } from "../../model/Transaction";
+import { useI18n } from "vue-i18n";
+import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
+import { zeroDinero } from "../../helpers/dineroHelpers";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import Checkbox from "../../components/inputs/Checkbox.vue";
 import CheckmarkIcon from "../../icons/Checkmark.vue";
@@ -13,11 +20,6 @@ import LocationField from "../locations/LocationField.vue";
 import TextAreaField from "../../components/inputs/TextAreaField.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import TrashIcon from "../../icons/Trash.vue";
-import { dinero, isNegative, isZero, toSnapshot } from "dinero.js";
-import { ref, computed, toRefs, onMounted } from "vue";
-import { Transaction } from "../../model/Transaction";
-import { USD } from "@dinero.js/currencies";
-import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -30,6 +32,7 @@ const { account, transaction } = toRefs(props);
 const locations = useLocationsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
+const i18n = useI18n();
 
 const ogTransaction = computed(() => transaction.value);
 const ogLocation = computed(() =>
@@ -44,7 +47,7 @@ const title = ref("");
 const notes = ref("");
 const locationData = ref<(LocationRecordParams & { id: string | null }) | null>(null);
 const createdAt = ref(new Date());
-const amount = ref(dinero({ amount: 0, currency: USD }));
+const amount = ref(zeroDinero);
 const isReconciled = ref(false);
 
 const isAskingToDelete = ref(false);
@@ -53,9 +56,7 @@ const hasAttachments = computed(() => (ogTransaction.value?.attachmentIds.length
 
 const hasChanges = computed(() => {
 	if (ogTransaction.value) {
-		const oldAmount = (
-			ogTransaction.value?.amount ?? dinero({ amount: 0, currency: USD })
-		).toJSON();
+		const oldAmount = (ogTransaction.value?.amount ?? zeroDinero).toJSON();
 		return (
 			createdAt.value !== (ogTransaction.value?.createdAt ?? new Date()) ||
 			title.value !== (ogTransaction.value?.title ?? "") ||
@@ -73,7 +74,7 @@ const hasChanges = computed(() => {
 	return (
 		title.value !== "" ||
 		notes.value !== "" ||
-		amount.value !== dinero({ amount: 0, currency: USD }) ||
+		!equal(amount.value, zeroDinero) ||
 		isReconciled.value !== false ||
 		(locationData.value?.title ?? "") !== "" ||
 		(locationData.value?.subtitle ?? "") !== "" ||
@@ -95,8 +96,9 @@ onMounted(() => {
 
 	const ogLocationId = ogTransaction.value?.locationId ?? null;
 	if (ogLocationId !== null && ogLocationId) {
-		const ogLocation = locations.items[ogLocationId]?.toRecord() ?? null;
-		locationData.value = ogLocation !== null ? { ...ogLocation, id: ogLocationId } : null;
+		const ogLocation = locations.items[ogLocationId];
+		const ogRecord = ogLocation ? recordFromLocation(ogLocation) : null;
+		locationData.value = ogRecord !== null ? { ...ogRecord, id: ogLocationId } : null;
 	}
 });
 
@@ -105,7 +107,7 @@ async function submit() {
 
 	try {
 		if (!title.value.trim()) {
-			throw new Error("Title is required");
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 
 		// Handle location change (to another or to none)
@@ -150,7 +152,9 @@ async function submit() {
 		if (ogTransaction.value === null) {
 			await transactions.createTransaction(params);
 		} else {
-			await transactions.updateTransaction(new Transaction(ogTransaction.value.id, params));
+			await transactions.updateTransaction(
+				newTransaction({ ...params, id: ogTransaction.value.id })
+			);
 		}
 
 		emit("finished");
@@ -170,7 +174,7 @@ async function confirmDeleteTransaction() {
 
 	try {
 		if (ogTransaction.value === null) {
-			throw new Error("No account to delete");
+			throw new Error("No account to delete"); // TODO: I18N
 		}
 
 		await transactions.deleteTransaction(ogTransaction.value);
@@ -190,6 +194,7 @@ function cancelDeleteTransaction() {
 
 <template>
 	<form :class="{ expense: isExpense }" @submit.prevent="submit">
+		<!-- TODO: I18N -->
 		<h1 v-if="isCreatingTransaction">Create {{ isExpense ? "Expense" : "Income" }}</h1>
 		<h1 v-else>Edit {{ isExpense ? "Expense" : "Income" }}</h1>
 

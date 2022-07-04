@@ -1,7 +1,7 @@
 import atob from "atob-lite";
 
 export async function getDataAtUrl(url: string, contentType?: string): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return await new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
 		xhr.responseType = "text";
 		xhr.addEventListener("load", () => {
@@ -26,12 +26,12 @@ export function dataUriToBlob(dataUri: string): Blob {
 	// doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
 	const encodedByteString = dataUri.split(",")[1];
 	if (encodedByteString === undefined)
-		throw new TypeError("Invalid Data URI: Could not get byte string");
+		throw new TypeError("Invalid Data URI: Could not get byte string"); // TODO: I18N?
 	const byteString = atob(encodedByteString);
 
 	// separate out the mime component
 	const mimeString = dataUri.split(",")[0]?.split(":")[1]?.split(";")[0];
-	if (mimeString === undefined) throw new TypeError("Invalid Data URI: Could not get MIME string");
+	if (mimeString === undefined) throw new TypeError("Invalid Data URI: Could not get MIME string"); // TODO: I18N?
 
 	// write the bytes of the string to an ArrayBuffer
 	const ab = new ArrayBuffer(byteString.length);
@@ -50,14 +50,14 @@ export function dataUriToBlob(dataUri: string): Blob {
 }
 
 async function dataFromBlob(file: Blob, type: "dataUrl" | "text"): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return await new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
 			const result = reader.result;
 			if (typeof result === "string") {
 				resolve(result);
 			} else {
-				reject(new TypeError(`Expected string result, got ${typeof result}`));
+				reject(new TypeError(`Expected string result, got ${typeof result}`)); // TODO: I18N?
 			}
 		});
 		reader.addEventListener("error", error => {

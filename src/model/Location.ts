@@ -1,71 +1,79 @@
-import type { Identifiable } from "./utility/Identifiable";
+import type { Model } from "./utility/Model";
+import isDate from "lodash/isDate";
+import isNumber from "lodash/isNumber";
 import isString from "lodash/isString";
+
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
+}
 
 export interface Coordinate {
 	lat: number;
 	lng: number;
 }
 
-export interface LocationRecordParams {
-	title: string;
-	subtitle: string | null;
-	coordinate: Coordinate | null;
-	lastUsed: Date;
+export function isCoordinate(tbd: unknown): tbd is Coordinate {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"lat" in tbd &&
+		"lng" in tbd &&
+		isNumber((tbd as Coordinate).lat) &&
+		isNumber((tbd as Coordinate).lng)
+	);
 }
 
-export class Location implements Identifiable<string>, LocationRecordParams {
-	public readonly objectType = "Location";
-	public readonly id: string;
-	public readonly title: string;
-	public readonly subtitle: string | null;
-	public readonly coordinate: Coordinate | null;
-	public readonly lastUsed: Date;
+function isCoordinateOrNull(tbd: unknown): tbd is Coordinate | null {
+	return tbd === null || isCoordinate(tbd);
+}
 
-	constructor(id: string, title: string, record: Omit<LocationRecordParams, "title">) {
-		this.id = id;
-		this.title = title.trim();
-		const defaultRecord = Location.defaultRecord(record);
-		this.subtitle = (record.subtitle?.trim() ?? "") || defaultRecord.subtitle;
-		this.coordinate = record.coordinate ?? defaultRecord.coordinate;
-		this.lastUsed = record.lastUsed ?? defaultRecord.lastUsed;
-	}
+export interface Location extends Model<"Location"> {
+	readonly title: string;
+	readonly subtitle: string | null;
+	readonly coordinate: Coordinate | null;
+	readonly lastUsed: Date;
+}
 
-	static defaultRecord(this: void, record?: Partial<LocationRecordParams>): LocationRecordParams {
-		return {
-			title: record?.title ?? "",
-			subtitle: record?.subtitle ?? null,
-			coordinate: record?.coordinate ?? null,
-			lastUsed: record?.lastUsed ?? new Date(),
-		};
-	}
+export type LocationRecordParams = Pick<Location, "coordinate" | "lastUsed" | "subtitle" | "title">;
 
-	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is LocationRecordParams {
-		return (
-			toBeDetermined !== undefined &&
-			toBeDetermined !== null &&
-			typeof toBeDetermined === "object" &&
-			Boolean(toBeDetermined) &&
-			!Array.isArray(toBeDetermined) &&
-			"title" in toBeDetermined &&
-			isString((toBeDetermined as LocationRecordParams).title)
-		);
-	}
+export function location(params: Omit<Location, "objectType">): Location {
+	return {
+		coordinate: params.coordinate,
+		id: params.id,
+		lastUsed: new Date(params.lastUsed), // in case this is actually a string
+		objectType: "Location",
+		subtitle: (params.subtitle?.trim() ?? "") || null,
+		title: params.title.trim() || "Untitled",
+	};
+}
 
-	toRecord(): LocationRecordParams {
-		return {
-			title: this.title,
-			subtitle: this.subtitle,
-			coordinate: this.coordinate,
-			lastUsed: this.lastUsed,
-		};
-	}
+export function isLocationRecord(tbd: unknown): tbd is LocationRecordParams {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"title" in tbd &&
+		"subtitle" in tbd &&
+		"coordinate" in tbd &&
+		"lastUsed" in tbd &&
+		isString((tbd as LocationRecordParams).title) &&
+		isStringOrNull((tbd as LocationRecordParams).subtitle) &&
+		isCoordinateOrNull((tbd as LocationRecordParams).coordinate) &&
+		(isDate((tbd as LocationRecordParams).lastUsed) ||
+			isString((tbd as LocationRecordParams).lastUsed))
+	);
+}
 
-	updatedWith(params: Partial<LocationRecordParams>): Location {
-		const thisRecord = this.toRecord();
-		return new Location(this.id, params.title ?? this.title, { ...thisRecord, ...params });
-	}
-
-	toString(): string {
-		return JSON.stringify(this.toRecord());
-	}
+export function recordFromLocation(location: Location): LocationRecordParams {
+	return {
+		coordinate: location.coordinate,
+		lastUsed: location.lastUsed,
+		subtitle: location.subtitle,
+		title: location.title,
+	};
 }

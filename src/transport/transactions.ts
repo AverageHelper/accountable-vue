@@ -1,6 +1,6 @@
 import type { Account } from "../model/Account";
 import type { EPackage, HashStore } from "./cryption";
-import type { TransactionRecordParams } from "../model/Transaction";
+import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type {
 	CollectionReference,
 	DocumentReference,
@@ -9,12 +9,9 @@ import type {
 } from "./db";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc, getDocs } from "./db";
 import { encrypt } from "./cryption";
-import { Transaction } from "../model/Transaction";
+import { isTransactionRecord, recordFromTransaction, transaction } from "../model/Transaction";
 
-interface TransactionRecordPackageMetadata {
-	objectType: "Transaction";
-}
-export type TransactionRecordPackage = EPackage<TransactionRecordPackageMetadata>;
+export type TransactionRecordPackage = EPackage<"Transaction">;
 
 function transactionRef(transaction: Transaction): DocumentReference<TransactionRecordPackage> {
 	const id = transaction.id;
@@ -29,8 +26,8 @@ export function transactionFromSnapshot(
 	doc: QueryDocumentSnapshot<TransactionRecordPackage>,
 	dek: HashStore
 ): Transaction {
-	const { id, record } = recordFromSnapshot(doc, dek, Transaction.isRecord);
-	return new Transaction(id, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isTransactionRecord);
+	return transaction({ ...record, id });
 }
 
 export async function getTransactionsForAccount(
@@ -54,17 +51,14 @@ export async function createTransaction(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<Transaction> {
-	const meta: TransactionRecordPackageMetadata = {
-		objectType: "Transaction",
-	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "Transaction", dek);
 	const ref = doc(transactionsCollection());
 	if (batch) {
 		batch.set(ref, pkg);
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return new Transaction(ref.id, record);
+	return transaction({ ...record, id: ref.id });
 }
 
 export async function updateTransaction(
@@ -72,11 +66,8 @@ export async function updateTransaction(
 	dek: HashStore,
 	batch?: WriteBatch
 ): Promise<void> {
-	const meta: TransactionRecordPackageMetadata = {
-		objectType: "Transaction",
-	};
-	const record: TransactionRecordParams = transaction.toRecord();
-	const pkg = encrypt(record, meta, dek);
+	const record = recordFromTransaction(transaction);
+	const pkg = encrypt(record, "Transaction", dek);
 	const ref = transactionRef(transaction);
 	if (batch) {
 		batch.set(ref, pkg);

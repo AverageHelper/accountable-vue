@@ -27,65 +27,44 @@ import {
 } from "./onSnapshot.js";
 
 export class AccountableDB {
-	#jwt: string | null;
 	#currentUser: User | null;
 	public readonly url: Readonly<URL>;
 
 	constructor(url: string) {
-		this.#jwt = null;
 		this.#currentUser = null;
 		this.url = new URL(url);
-	}
-
-	get jwt(): Readonly<string | null> {
-		return this.#jwt;
 	}
 
 	get currentUser(): User | null {
 		return this.#currentUser;
 	}
 
-	setJwt(jwt: string, user: User): void {
-		if (!jwt) throw new TypeError("jwt cannot be empty");
-		this.#jwt = jwt;
+	setUser(user: User): void {
 		this.#currentUser = user;
 	}
 
-	clearJwt(): void {
-		this.#jwt = null;
+	clearUser(): void {
 		this.#currentUser = null;
 	}
 
 	toString(): string {
 		return JSON.stringify({
 			url: this.url,
-			jwt: this.#jwt !== null ? "<value>" : null,
 			currentUser: this.#currentUser ? "<signed in>" : null,
 		});
 	}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Query<T = DocumentData> {
+export interface Query<T = DocumentData> {
 	/** The type of this database reference. */
-	public readonly type: "query" | "collection";
+	readonly type: "query" | "collection";
 
 	/**
 	 * The {@link AccountableDB} instance for the Accountable database (useful for performing
 	 * transactions, etc.).
 	 */
-	public readonly db: AccountableDB;
-
-	constructor(db: AccountableDB) {
-		this.type = "query";
-		this.db = db;
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			type: this.type,
-		});
-	}
+	readonly db: AccountableDB;
 }
 
 export type CollectionID =
@@ -97,136 +76,94 @@ export type CollectionID =
 	| "transactions"
 	| "users";
 
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export interface CollectionReference<T = DocumentData> extends Query<T> {
 	/** The type of this Accountable reference. */
-	public readonly type = "collection";
+	readonly type: "collection";
 
 	/** The collection's identifier. */
-	public readonly id: Readonly<CollectionID>;
-
-	constructor(db: AccountableDB, id: CollectionID) {
-		super(db);
-		this.id = id;
-	}
-
-	/**
-	 * A string representing the path of the referenced collection (relative
-	 * to the root of the database).
-	 */
-	get path(): string {
-		return this.id.slice();
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			type: this.type,
-			id: this.id,
-			path: this.path,
-		});
-	}
+	readonly id: Readonly<CollectionID>;
 }
 
 /**
- * Gets a `CollectionReference` instance that refers to the collection at
+ * Creates a `CollectionReference` instance that refers to the collection at
  * the specified absolute path.
  *
  * @param db - A reference to the root `AccountableDB` instance.
- * @param path - A collection ID.
- * @returns The `CollectionReference` instance.
+ * @param id - A collection ID.
+ * @returns A new {@link CollectionReference} instance.
  */
 export function collection<T = DocumentData>(
 	db: AccountableDB,
 	id: CollectionID
 ): CollectionReference<T> {
-	return new CollectionReference(db, id);
+	return { db, id, type: "collection" };
 }
 
-export class DocumentReference<T = DocumentData> {
+export interface DocumentReference<T = DocumentData> {
 	/** The type of this database reference. */
-	public readonly type = "document";
+	readonly type: "document";
 
 	/**
 	 * The collection this `DocumentReference` belongs to.
 	 */
-	public readonly parent: CollectionReference<T>;
+	readonly parent: CollectionReference<T>;
 
 	/**
 	 * The document's identifier within its collection.
 	 */
-	public readonly id: string;
-
-	constructor(parent: CollectionReference<T>, id: string) {
-		if (!id) throw new TypeError("ID cannot be empty");
-		this.parent = parent;
-		this.id = id;
-	}
+	readonly id: string;
 
 	/**
 	 * The {@link AccountableDB} instance the document is in.
 	 * This is useful for performing transactions, for example.
 	 */
-	get db(): AccountableDB {
-		return this.parent.db;
-	}
-
-	/**
-	 * A string representing the path of the referenced document (relative
-	 * to the root of the database).
-	 */
-	get path(): string {
-		const parentId = this.parent.id;
-		const id = this.id;
-		return `${parentId}/${id}`;
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			type: this.type,
-			id: this.id,
-			path: this.path,
-		});
-	}
+	readonly db: AccountableDB;
 }
 
 /**
- * Gets a `DocumentReference` instance that refers to the document at the
+ * Creates a `DocumentReference` instance that refers to the document at the
  * specified absolute path.
  *
  * @param collection - A collection to use as the parent of the document.
- * @param id - A document ID.
- * @returns The `DocumentReference` instance.
+ * @returns A new {@link DocumentReference} instance.
  */
 export function doc<T = DocumentData>(collection: CollectionReference<T>): DocumentReference<T>;
 
 /**
- * Gets a `DocumentReference` instance that refers to the document at the
+ * Creates a `DocumentReference` instance that refers to the document at the
  * specified absolute path.
  *
  * @param db - A reference to the root `AccountableDB` instance.
- * @param collection - A collection ID.
+ * @param collectionId - A collection ID.
  * @param id - A document ID.
- * @returns The `DocumentReference` instance.
+ * @returns A new {@link DocumentReference} instance.
  */
 export function doc<T = DocumentData>(
 	db: AccountableDB,
-	collection: CollectionID,
+	collectionId: CollectionID,
 	id: string
 ): DocumentReference<T>;
 
 export function doc<T = DocumentData>(
 	dbOrCollection: AccountableDB | CollectionReference<T>,
-	collection?: CollectionID,
+	collectionId?: CollectionID,
 	id?: string
 ): DocumentReference<T> {
 	if ("url" in dbOrCollection) {
-		if (!collection || id === undefined) {
-			throw new TypeError(`Missing property in constructor`);
+		if (!collectionId || id === undefined) {
+			throw new TypeError(`Missing property in constructor`); // TODO: I18N?
 		}
-		const parent = new CollectionReference<T>(dbOrCollection, collection);
-		return new DocumentReference(parent, id);
+		if (!id) throw new TypeError("ID cannot be empty"); // TODO: I18N?
+		const parent = collection<T>(dbOrCollection, collectionId);
+		return { id, parent, db: dbOrCollection, type: "document" };
 	}
-	const newId = uuid().replace(/-/gu, ""); // remove hyphens);
-	return new DocumentReference(dbOrCollection, newId);
+	const newId = uuid().replace(/-/gu, ""); // remove hyphens
+	return {
+		id: newId,
+		parent: dbOrCollection,
+		db: dbOrCollection.db,
+		type: "document",
+	};
 }
 
 interface PutOperation {
@@ -255,14 +192,14 @@ export class WriteBatch {
 		// Ensure limit
 		const OP_LIMIT = 500;
 		if (this.#operations.length >= OP_LIMIT) {
-			throw new RangeError(`Cannot batch more than ${OP_LIMIT} write operations.`);
+			throw new RangeError(`Cannot batch more than ${OP_LIMIT} write operations.`); // TODO: I18N?
 		}
 
 		// Same db
 		if (!this.#db) {
 			this.#db = op.ref.db;
 		} else if (op.ref.db !== this.#db) {
-			throw new EvalError("Must use exactly one database in a write batch");
+			throw new EvalError("Must use exactly one database in a write batch"); // TODO: I18N?
 		}
 
 		// Push operation
@@ -286,9 +223,8 @@ export class WriteBatch {
 		if (!this.#db) return; // nothing to commit
 
 		// Build and commit the list of operations in one go
-		const jwt = this.#db.jwt;
 		const currentUser = this.#db.currentUser;
-		if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+		if (!currentUser) throw new AccountableError("database/unauthenticated");
 
 		const uid = currentUser.uid;
 		const batch = new URL(databaseBatchWrite(uid), this.#db.url);
@@ -310,7 +246,7 @@ export class WriteBatch {
 			}
 		});
 
-		await postTo(batch, data, jwt);
+		await postTo(batch, data);
 	}
 
 	toString(): string {
@@ -345,7 +281,7 @@ export function bootstrap(url?: string): AccountableDB {
 	const serverUrl = url ?? import.meta.env.VITE_ACCOUNTABLE_SERVER_URL;
 
 	if (serverUrl === undefined || !serverUrl) {
-		throw new TypeError("No value found for environment variable VITE_ACCOUNTABLE_SERVER_URL");
+		throw new TypeError("No value found for environment variable VITE_ACCOUNTABLE_SERVER_URL"); // TODO: I18N?
 	}
 
 	db = new AccountableDB(serverUrl);
@@ -372,7 +308,8 @@ export const previousStats: UserStats = {
  */
 export async function getUserStats(): Promise<UserStats> {
 	// This might be on the server too, but since Accountable gets this back with every write, we keep a copy here and use an async function to retrieve it.
-	return Promise.resolve(previousStats);
+	// TODO: Add an endpoint for this
+	return await Promise.resolve(previousStats);
 }
 
 /**
@@ -385,20 +322,19 @@ export async function getUserStats(): Promise<UserStats> {
 export async function getDoc<D, T extends PrimitiveRecord<D>>(
 	reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
-	const jwt = reference.db.jwt;
 	const currentUser = reference.db.currentUser;
-	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+	if (!currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
 
 	const docPath = new URL(databaseDocument(uid, collection, doc), reference.db.url);
-	const { data } = await getFrom(docPath, jwt);
+	const { data } = await getFrom(docPath);
 
-	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	if (data === undefined) throw new TypeError("Expected data from server, but got none"); // TODO: I18N?
 	if (isArray(data))
-		throw new TypeError("Expected a single document from server, but got an array");
+		throw new TypeError("Expected a single document from server, but got an array"); // TODO: I18N?
 
 	return new DocumentSnapshot<T>(reference, data as T | null);
 }
@@ -416,16 +352,15 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
 	reference: DocumentReference<T>,
 	data: T
 ): Promise<void> {
-	const jwt = reference.db.jwt;
 	const currentUser = reference.db.currentUser;
-	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+	if (!currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
 	const docPath = new URL(databaseDocument(uid, collection, doc), reference.db.url);
 
-	const { usedSpace, totalSpace } = await postTo(docPath, data, jwt);
+	const { usedSpace, totalSpace } = await postTo(docPath, data);
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 }
@@ -438,16 +373,15 @@ export async function setDoc<D, T extends PrimitiveRecord<D>>(
  * deleted from the backend (note that it won't resolve while you're offline).
  */
 export async function deleteDoc(reference: DocumentReference): Promise<void> {
-	const jwt = reference.db.jwt;
 	const currentUser = reference.db.currentUser;
-	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+	if (!currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = currentUser.uid;
 	const collection = reference.parent.id;
 	const doc = reference.id;
 	const docPath = new URL(databaseDocument(uid, collection, doc), reference.db.url);
 
-	const { usedSpace, totalSpace } = await deleteAt(docPath, jwt);
+	const { usedSpace, totalSpace } = await deleteAt(docPath);
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 }
@@ -458,27 +392,26 @@ export async function deleteDoc(reference: DocumentReference): Promise<void> {
  * @returns A `Promise` that will be resolved with the results of the query.
  */
 export async function getDocs<T>(query: CollectionReference<T>): Promise<QuerySnapshot<T>> {
-	const jwt = query.db.jwt;
 	const currentUser = query.db.currentUser;
-	if (jwt === null || !currentUser) throw new AccountableError("database/unauthenticated");
+	if (!currentUser) throw new AccountableError("database/unauthenticated");
 
 	const uid = currentUser.uid;
 	const collection = query.id;
 	const collPath = new URL(databaseCollection(uid, collection), query.db.url);
 
-	const { data } = await getFrom(collPath, jwt);
-	if (data === undefined) throw new TypeError("Expected data from server, but got none");
+	const { data } = await getFrom(collPath);
+	if (data === undefined) throw new TypeError("Expected data from server, but got none"); // TODO: I18N?
 	if (data === null || !isArray(data))
-		throw new TypeError("Expected an array of documents from server, but got one document");
+		throw new TypeError("Expected an array of documents from server, but got one document"); // TODO: I18N?
 
 	return new QuerySnapshot(
 		query,
 		data.map(data => {
 			const id = data["_id"];
 			delete data["_id"];
-			if (!isString(id)) throw new TypeError("Expected ID to be string");
+			if (!isString(id)) throw new TypeError("Expected ID to be string"); // TODO: I18N?
 
-			return new QueryDocumentSnapshot(new DocumentReference(query, id), data as unknown as T);
+			return new QueryDocumentSnapshot(doc(query.db, query.id, id), data as unknown as T);
 		})
 	);
 }
@@ -488,7 +421,7 @@ export function watchAllRecords<T = DocumentData>(
 	onSnap: (snap: QuerySnapshot<T>) => void | Promise<void>,
 	onError?: ((error: Error) => void) | undefined
 ): Unsubscribe {
-	const queueId = `watchAllRecords-${collection.path}`;
+	const queueId = `watchAllRecords-${collection.id}`;
 	const queue = useJobQueue<QuerySnapshot<T>>(queueId);
 	queue.process(onSnap);
 	const unsubscribe = onSnapshot<T>(collection, snap => queue.createJob(snap), onError);
@@ -504,7 +437,7 @@ export function watchRecord<T = DocumentData>(
 	onSnap: (snap: DocumentSnapshot<T>) => void | Promise<void>,
 	onError?: ((error: Error) => void) | undefined
 ): Unsubscribe {
-	const queueId = `watchRecord-${doc.path}`;
+	const queueId = `watchRecord-${doc.parent.id}-${doc.id}`;
 	const queue = useJobQueue<DocumentSnapshot<T>>(queueId);
 	queue.process(onSnap);
 	const unsubscribe = onSnapshot(doc, snap => queue.createJob(snap), onError);
@@ -515,15 +448,16 @@ export function watchRecord<T = DocumentData>(
 	};
 }
 
-export function recordFromSnapshot<G>(
-	doc: QueryDocumentSnapshot<EPackage<unknown>>,
+export function recordFromSnapshot<G, T extends string>(
+	doc: QueryDocumentSnapshot<EPackage<T>>,
 	dek: HashStore,
 	typeGuard: ValueIteratorTypeGuard<unknown, G>
 ): { id: string; record: G } {
 	const pkg = doc.data();
 	const record = decrypt(pkg, dek);
 	if (!typeGuard(record)) {
-		throw new TypeError(`Failed to parse record from Firestore document ${doc.id}`);
+		console.debug(`Record does not match '${typeGuard.name}' type guard`, record);
+		throw new TypeError(`Failed to parse record from server document ${doc.id}`); // TODO: I18N?
 	}
 	return { id: doc.id, record };
 }

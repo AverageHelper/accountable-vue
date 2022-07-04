@@ -5,17 +5,23 @@ import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
-import { dinero, add, subtract } from "dinero.js";
+import { add, subtract } from "dinero.js";
+import { chronologically, reverseChronologically } from "../model/utility/sort";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
-import { reverseChronologically } from "../model/utility/sort";
 import { stores } from "./stores";
-import { USD } from "@dinero.js/currencies";
 import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
+import { zeroDinero } from "../helpers/dineroHelpers";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
+import {
+	recordFromTransaction,
+	removeAttachmentIdFromTransaction,
+	removeTagFromTransaction,
+	transaction,
+} from "../model/Transaction";
 import {
 	getTransactionsForAccount,
 	createTransaction,
@@ -45,15 +51,45 @@ export const useTransactionsStore = defineStore("transactions", {
 	}),
 	getters: {
 		allTransactions(state): ReadonlyArray<Transaction> {
-			const result = new Set<Transaction>();
+			// WARN: Does not care about accounts
+			const result: Dictionary<Transaction> = {};
 
 			Object.values(state.transactionsForAccount).forEach(transactions => {
 				Object.values(transactions).forEach(transaction => {
-					result.add(transaction as Transaction);
+					result[transaction.id] ??= transaction;
 				});
 			});
 
-			return Array.from(result.values());
+			return Object.values(result); // should be 2486
+		},
+		sortedTransactions(): ReadonlyArray<Transaction> {
+			// WARN: Does not care about accounts
+			return this.allTransactions //
+				.slice()
+				.sort(chronologically);
+		},
+		allBalances(): Dictionary<Dictionary<Dinero<number>>> {
+			const accounts = useAccountsStore();
+			const balancesByAccount: Dictionary<Dictionary<Dinero<number>>> = {};
+
+			// Consider each account...
+			for (const accountId of accounts.allAccounts.map(a => a.id)) {
+				const balances: Dictionary<Dinero<number>> = {}; // Txn.id -> amount
+
+				// Go through each transaction once, counting the account's balance as we go...
+				let previous: Transaction | null = null;
+				for (const transaction of this.sortedTransactions.filter(t => t.accountId === accountId)) {
+					const amount = transaction.amount;
+					const previousBalance = previous ? balances[previous.id] ?? zeroDinero : zeroDinero;
+
+					// balance so far == current + previous balance so far
+					balances[transaction.id] = add(amount, previousBalance);
+					previous = transaction;
+				}
+
+				balancesByAccount[accountId] = balances;
+			}
+			return balancesByAccount;
 		},
 	},
 	actions: {
@@ -61,6 +97,8 @@ export const useTransactionsStore = defineStore("transactions", {
 			Object.values(this.transactionsWatchers).forEach(unsubscribe => unsubscribe());
 			this.transactionsWatchers = {};
 			this.transactionsForAccount = {};
+			this.transactionsForAccountByMonth = {};
+			this.months = {};
 			console.debug("transactionsStore: cache cleared");
 		},
 		async watchTransactions(account: Account, force: boolean = false) {
@@ -94,8 +132,7 @@ export const useTransactionsStore = defineStore("transactions", {
 					// Update cache
 					snap.docChanges().forEach(change => {
 						const accountTransactions = this.transactionsForAccount[account.id] ?? {};
-						let currentBalance =
-							accounts.currentBalance[account.id] ?? dinero({ amount: 0, currency: USD });
+						let currentBalance = accounts.currentBalance[account.id] ?? zeroDinero;
 
 						try {
 							switch (change.type) {
@@ -103,8 +140,7 @@ export const useTransactionsStore = defineStore("transactions", {
 									// Update the account's balance total
 									currentBalance = subtract(
 										currentBalance,
-										accountTransactions[change.doc.id]?.amount ??
-											dinero({ amount: 0, currency: USD })
+										accountTransactions[change.doc.id]?.amount ?? zeroDinero
 									);
 									// Forget this transaction
 									delete accountTransactions[change.doc.id];
@@ -118,8 +154,7 @@ export const useTransactionsStore = defineStore("transactions", {
 									// Update the account's balance total
 									currentBalance = add(
 										currentBalance,
-										accountTransactions[change.doc.id]?.amount ??
-											dinero({ amount: 0, currency: USD })
+										accountTransactions[change.doc.id]?.amount ?? zeroDinero
 									);
 									break;
 								}
@@ -128,8 +163,7 @@ export const useTransactionsStore = defineStore("transactions", {
 									// Remove this account's balance total
 									currentBalance = subtract(
 										currentBalance,
-										accountTransactions[change.doc.id]?.amount ??
-											dinero({ amount: 0, currency: USD })
+										accountTransactions[change.doc.id]?.amount ?? zeroDinero
 									);
 									// Update this transaction
 									const transaction = transactionFromSnapshot(change.doc, dek);
@@ -138,8 +172,7 @@ export const useTransactionsStore = defineStore("transactions", {
 									// Update this account's balance total
 									currentBalance = add(
 										currentBalance,
-										accountTransactions[change.doc.id]?.amount ??
-											dinero({ amount: 0, currency: USD })
+										accountTransactions[change.doc.id]?.amount ?? zeroDinero
 									);
 									break;
 								}
@@ -176,8 +209,8 @@ export const useTransactionsStore = defineStore("transactions", {
 						// Sort each transaction list
 						groupedTransactions[month]?.sort(reverseChronologically);
 					}
+					this.months = months; // save months before we save transactions, so components know how to sort things
 					this.transactionsForAccountByMonth[account.id] = groupedTransactions;
-					this.months = months;
 				},
 				error => {
 					console.error(error);
@@ -191,7 +224,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const accounts = useAccountsStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -200,7 +233,7 @@ export const useTransactionsStore = defineStore("transactions", {
 				(balance, transaction) => {
 					return add(balance, transaction.amount);
 				},
-				dinero({ amount: 0, currency: USD })
+				zeroDinero
 			);
 
 			this.transactionsForAccount[account.id] = transactions;
@@ -263,7 +296,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -275,7 +308,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			const authStore = useAuthStore();
 			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -299,7 +332,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			transaction: Transaction,
 			batch?: WriteBatch
 		): Promise<void> {
-			transaction.removeTagId(tag.id);
+			removeTagFromTransaction(transaction, tag);
 			await this.updateTransaction(transaction, batch);
 		},
 		async removeTagFromAllTransactions(tag: Tag): Promise<void> {
@@ -316,7 +349,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			transaction: Transaction,
 			batch?: WriteBatch
 		): Promise<void> {
-			transaction.removeAttachmentId(fileId);
+			removeAttachmentIdFromTransaction(transaction, fileId);
 			await this.updateTransaction(transaction, batch);
 		},
 		async deleteTagIfUnreferenced(tag: Tag, batch?: WriteBatch): Promise<void> {
@@ -338,7 +371,7 @@ export const useTransactionsStore = defineStore("transactions", {
 		async getAllTransactionsAsJson(account: Account): Promise<Array<TransactionSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -348,7 +381,7 @@ export const useTransactionsStore = defineStore("transactions", {
 			return snap.docs
 				.map(doc => transactionFromSnapshot(doc, dek))
 				.filter(transaction => transaction.accountId === account.id)
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromTransaction(t), id: t.id }));
 		},
 		async importTransaction(
 			transactionToImport: TransactionSchema,
@@ -359,7 +392,11 @@ export const useTransactionsStore = defineStore("transactions", {
 			const storedTransaction = storedTransactions[transactionToImport.id] ?? null;
 			if (storedTransaction) {
 				// If duplicate, overwrite the one we have
-				const newTransaction = storedTransaction.updatedWith(transactionToImport);
+				const newTransaction = transaction({
+					...storedTransaction,
+					...transactionToImport,
+					id: storedTransaction.id,
+				});
 				await this.updateTransaction(newTransaction, batch);
 			} else {
 				// If new, create a new transaction

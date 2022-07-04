@@ -1,87 +1,63 @@
-import type { Identifiable } from "./utility/Identifiable";
+import type { Model } from "./utility/Model";
+import isDate from "lodash/isDate";
 import isString from "lodash/isString";
 
-export interface AttachmentRecordParams {
-	title: string;
-	notes: string | null;
-	type: string;
-	createdAt: Date;
-	storagePath: string;
+function isStringOrNull(tbd: unknown): tbd is string | null {
+	return tbd === null || isString(tbd);
 }
 
-export class Attachment implements Identifiable<string>, AttachmentRecordParams {
-	public readonly objectType = "Attachment";
-	public readonly id: string;
-	public readonly type: string;
-	public readonly title: string;
-	public readonly notes: string | null;
-	public readonly createdAt: Date;
-	public readonly storagePath: string;
+export interface Attachment extends Model<"Attachment"> {
+	readonly title: string;
+	readonly notes: string | null;
+	readonly type: string;
+	readonly createdAt: Date;
+	readonly storagePath: string;
+}
 
-	constructor(
-		id: string,
-		storagePath: string,
-		record?: Partial<Omit<AttachmentRecordParams, "storagePath">>
-	) {
-		this.id = id;
-		this.storagePath = storagePath;
-		const defaultRecord = Attachment.defaultRecord(record);
-		this.type = record?.type ?? defaultRecord.type;
-		this.title = (record?.title?.trim() ?? defaultRecord.title) || defaultRecord.title;
-		this.notes = (record?.notes?.trim() ?? "") || defaultRecord.notes;
-		this.createdAt =
-			// handle case where decryption doesn't return a Date object
-			(record?.createdAt ? new Date(record.createdAt) : undefined) ?? defaultRecord.createdAt;
-	}
+export type AttachmentRecordParams = Pick<
+	Attachment,
+	"createdAt" | "notes" | "storagePath" | "title" | "type"
+>;
 
-	static defaultRecord(
-		this: void,
-		record?: Partial<AttachmentRecordParams>
-	): Omit<AttachmentRecordParams, "storagePath"> {
-		return {
-			type: record?.type ?? "unknown",
-			title: record?.title ?? `Attachment ${Math.floor(Math.random() * 10) + 1}`,
-			notes: record?.notes ?? null,
-			createdAt: record?.createdAt ?? new Date(),
-		};
-	}
+export function attachment(params: Omit<Attachment, "objectType">): Attachment {
+	return {
+		createdAt: new Date(params.createdAt), // in case this is actually a string
+		id: params.id,
+		notes: (params.notes?.trim() ?? "") || null,
+		objectType: "Attachment",
+		storagePath: params.storagePath,
+		title: params.title.trim() || `Attachment ${Math.floor(Math.random() * 10) + 1}`, // TODO: I18N
+		type: params.type || "unknown",
+	};
+}
 
-	static isRecord(this: void, toBeDetermined: unknown): toBeDetermined is AttachmentRecordParams {
-		return (
-			(toBeDetermined !== undefined &&
-				toBeDetermined !== null &&
-				typeof toBeDetermined === "object" &&
-				Boolean(toBeDetermined) &&
-				!Array.isArray(toBeDetermined) &&
-				"createdAt" in toBeDetermined &&
-				"title" in toBeDetermined &&
-				"notes" in toBeDetermined &&
-				(toBeDetermined as AttachmentRecordParams).title === null) ||
-			(isString((toBeDetermined as AttachmentRecordParams).title) &&
-				(toBeDetermined as AttachmentRecordParams).notes === null) ||
-			isString((toBeDetermined as AttachmentRecordParams).notes)
-		);
-	}
+export function isAttachmentRecord(tbd: unknown): tbd is AttachmentRecordParams {
+	return (
+		tbd !== undefined &&
+		tbd !== null &&
+		typeof tbd === "object" &&
+		Boolean(tbd) &&
+		!Array.isArray(tbd) &&
+		"createdAt" in tbd &&
+		"title" in tbd &&
+		"type" in tbd &&
+		"notes" in tbd &&
+		"storagePath" in tbd &&
+		isString((tbd as AttachmentRecordParams).title) &&
+		isString((tbd as AttachmentRecordParams).type) &&
+		isString((tbd as AttachmentRecordParams).storagePath) &&
+		isStringOrNull((tbd as AttachmentRecordParams).notes) &&
+		(isDate((tbd as AttachmentRecordParams).createdAt) ||
+			isString((tbd as AttachmentRecordParams).createdAt))
+	);
+}
 
-	toRecord(): AttachmentRecordParams {
-		return {
-			type: this.type,
-			title: this.title,
-			notes: this.notes,
-			createdAt: this.createdAt,
-			storagePath: this.storagePath,
-		};
-	}
-
-	updatedWith(params: Partial<AttachmentRecordParams>): Attachment {
-		const thisRecord = this.toRecord();
-		return new Attachment(this.id, params.storagePath ?? this.storagePath, {
-			...thisRecord,
-			...params,
-		});
-	}
-
-	toString(): string {
-		return JSON.stringify(this.toRecord());
-	}
+export function recordFromAttachment(attachment: Attachment): AttachmentRecordParams {
+	return {
+		createdAt: attachment.createdAt,
+		notes: attachment.notes,
+		storagePath: attachment.storagePath,
+		title: attachment.title,
+		type: attachment.type,
+	};
 }

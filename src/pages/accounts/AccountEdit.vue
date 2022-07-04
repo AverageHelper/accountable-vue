@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import TextAreaField from "../../components/inputs/TextAreaField.vue";
 import TextField from "../../components/inputs/TextField.vue";
-import { Account } from "../../model/Account";
+import { account as newAccount } from "../../model/Account";
 import { ref, computed, toRefs, onMounted } from "vue";
 import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";
+import { useI18n } from "vue-i18n";
 
 const emit = defineEmits(["deleted", "finished"]);
 
@@ -17,6 +19,7 @@ const { account: ogAccount } = toRefs(props);
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 const ui = useUiStore();
+const i18n = useI18n();
 
 const isCreatingAccount = computed(() => ogAccount.value === null);
 const numberOfTransactions = computed<number>(() => {
@@ -44,18 +47,19 @@ async function submit() {
 
 	try {
 		if (!title.value) {
-			throw new Error("Title is required");
+			throw new Error(i18n.t("error.form.missing-required-fields"));
 		}
 
 		if (ogAccount.value === null) {
 			await accounts.createAccount({
-				...Account.defaultRecord(),
+				createdAt: new Date(),
 				title: title.value,
 				notes: notes.value,
 			});
 		} else {
 			await accounts.updateAccount(
-				new Account(ogAccount.value.id, {
+				newAccount({
+					id: ogAccount.value.id,
 					title: title.value,
 					notes: notes.value || ogAccount.value.notes,
 					createdAt: ogAccount.value.createdAt,
@@ -76,7 +80,7 @@ async function deleteAccount() {
 
 	try {
 		if (ogAccount.value === null) {
-			throw new Error("No account to delete");
+			throw new Error("No account to delete"); // TODO: I18N
 		}
 
 		await accounts.deleteAccount(ogAccount.value);
@@ -92,6 +96,7 @@ async function deleteAccount() {
 
 <template>
 	<form @submit.prevent="submit">
+		<!-- TODO: I18N -->
 		<h1 v-if="isCreatingAccount">Create Account</h1>
 		<h1 v-else>Edit {{ ogAccount?.title ?? "Account" }}</h1>
 

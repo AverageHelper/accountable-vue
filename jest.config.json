@@ -8,12 +8,18 @@
 			"testEnvironment": "node",
 			"testPathIgnorePatterns": ["/node_modules/"],
 			"modulePathIgnorePatterns": ["<rootDir>/.*/__mocks__"],
-			"testRegex": ["src/.*\\.test\\.(t|j)s$"],
+			"moduleNameMapper": {
+				"^src/(.*)": "<rootDir>/src/$1",
+				"^(\\.{1,2}/.*)\\.js$": "$1"
+			},
+			"testRegex": [".*\\.test\\.(t|j)s$"],
 			"globals": {
 				"ts-jest": {
-					"tsconfig": "./tsconfig.test.json"
+					"tsconfig": "./tsconfig.test.json",
+					"useESM": true
 				}
 			},
+			"extensionsToTreatAsEsm": [".ts"],
 			"collectCoverage": true,
 			"collectCoverageFrom": ["src/**/*!(.d)!(.test).ts"],
 			"coverageDirectory": "coverage",

@@ -46,6 +46,14 @@ export function authLogIn(): "/v0/login" {
 
 /**
  * Route for:
+ * - POST `/v0/login`
+ */
+export function authRefreshSession(): "/v0/session" {
+	return `${BASE}/session`;
+}
+
+/**
+ * Route for:
  * - POST `/v0/logout`
  */
 export function authLogOut(): "/v0/logout" {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
 import type { Transaction } from "../../model/Transaction";
 import ListItem from "../../components/ListItem.vue";
-import { Account } from "../../model/Account";
 import { accountPath } from "../../router";
 import { computed, toRefs, onMounted } from "vue";
 import { intlFormat } from "../../transformers";
@@ -10,7 +10,7 @@ import { isNegative as isDineroNegative } from "dinero.js";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 
 const props = defineProps({
-	account: { type: Account, required: true },
+	account: { type: Object as PropType<Account>, required: true },
 	link: { type: Boolean, default: true },
 	count: { type: Number as PropType<number | null>, default: null },
 });
@@ -19,7 +19,7 @@ const { account, link, count } = toRefs(props);
 const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
-const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#"));
+const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#")); // TODO: I18N
 const theseTransactions = computed(
 	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
 );
@@ -37,7 +37,7 @@ const numberOfTransactions = computed<number | null>(() => {
 const subtitle = computed<string>(() => {
 	const notes = account.value.notes?.trim() ?? "";
 	const count = numberOfTransactions.value;
-	const countString = `${count ?? "?"} transaction${count === 1 ? "" : "s"}`;
+	const countString = `${count ?? "?"} transaction${count === 1 ? "" : "s"}`; // TODO: I18N
 
 	if (!notes) return countString;
 	if (count === null) return notes;

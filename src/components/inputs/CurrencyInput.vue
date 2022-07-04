@@ -7,6 +7,7 @@ import { dinero } from "dinero.js";
 import { intlFormat } from "../../transformers";
 import { ref, computed, toRefs, watch } from "vue";
 import { USD } from "@dinero.js/currencies";
+import { zeroDinero } from "../../helpers/dineroHelpers";
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -14,13 +15,16 @@ const props = defineProps({
 	label: { type: String as PropType<string | null>, default: null },
 	modelValue: {
 		type: Object as PropType<Dinero<number>>,
-		default: dinero({ amount: 0, currency: USD }),
+		default: zeroDinero,
 	},
 });
 const { modelValue } = toRefs(props);
 
 const isIncome = ref(false);
 
+const zeroValue = computed<string>(() => {
+	return intlFormat(zeroDinero, "standard");
+});
 const presentableValue = computed(() => {
 	return intlFormat(modelValue.value, "standard");
 });
@@ -58,10 +62,12 @@ defineExpose({ focus });
 			:label="label ?? undefined"
 			:model-value="presentableValue"
 			:maxlength="18"
-			placeholder="0.00"
+			:placeholder="zeroValue"
 			@input="onInput"
 		/>
-		<ActionButton class="negate" @click.prevent="isIncome = !isIncome">+/-</ActionButton>
+		<ActionButton class="negate" @click.prevent="isIncome = !isIncome">{{
+			$t("currency.positive-or-negative")
+		}}</ActionButton>
 	</label>
 </template>
 

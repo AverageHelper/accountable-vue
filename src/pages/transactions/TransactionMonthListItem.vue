@@ -19,6 +19,7 @@ const monthRoute = computed(() => {
 </script>
 
 <template>
+	<!-- TODO: I18N -->
 	<ListItem :to="monthRoute" :title="monthName" :subtitle="`${count} transactions`">
 		<template #icon>
 			<MonthIcon />

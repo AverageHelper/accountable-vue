@@ -25,9 +25,7 @@ const month = computed<string | null>(() => {
 
 const monthTransactions = computed<Array<Transaction>>(() => {
 	if (month.value === null || !month.value) return [];
-	const byMonth = (transactions.transactionsForAccountByMonth[accountId.value] ?? {}) as Dictionary<
-		Array<Transaction>
-	>; // FIXME: This assertion shouldn't be necessary
+	const byMonth = transactions.transactionsForAccountByMonth[accountId.value] ?? {};
 	return byMonth[month.value] ?? [];
 });
 
@@ -59,6 +57,7 @@ function finishCreatingTransaction() {
 			</li>
 			<li>
 				<p class="footer">
+					<!-- TODO: I18N -->
 					<span>{{ monthTransactions?.length ?? 0 }}</span> transaction<span
 						v-if="monthTransactions?.length !== 1"
 						>s</span

@@ -51,6 +51,7 @@ export type DocumentData<T> = {
 const dataItem = Joi.object({
 	ciphertext: Joi.string().required(),
 	objectType: Joi.string().required(),
+	cryption: Joi.string().valid("v0", "v1"),
 });
 export type DataItem = Joi.extractType<typeof dataItem>;
 

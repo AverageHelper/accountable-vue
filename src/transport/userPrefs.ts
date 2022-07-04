@@ -3,14 +3,13 @@ import type { EPackage, HashStore } from "./cryption";
 import type { LocationPref } from "./locations";
 import { db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { encrypt } from "./cryption";
+import { locationPrefs } from "./locations";
 
 export interface UserPreferences {
 	locationSensitivity: LocationPref;
 }
-interface UserPreferencesRecordPackageMetadata {
-	objectType: "UserPreferences";
-}
-export type UserPreferencesRecordPackage = EPackage<UserPreferencesRecordPackageMetadata>;
+
+export type UserPreferencesRecordPackage = EPackage<"UserPreferences">;
 
 export function defaultPrefs(this: void): UserPreferences {
 	return {
@@ -26,7 +25,7 @@ function isUserPreferences(tbd: unknown): tbd is UserPreferences {
 		Boolean(tbd) &&
 		!Array.isArray(tbd) &&
 		"locationSensitivity" in tbd &&
-		["none", "vague", "specific"].includes((tbd as UserPreferences).locationSensitivity)
+		locationPrefs.includes((tbd as UserPreferences).locationSensitivity)
 	);
 }
 
@@ -39,13 +38,10 @@ export async function setUserPreferences(
 	prefs: Partial<UserPreferences>,
 	dek: HashStore
 ): Promise<void> {
-	const meta: UserPreferencesRecordPackageMetadata = {
-		objectType: "UserPreferences",
-	};
 	const record: UserPreferences = {
 		locationSensitivity: prefs.locationSensitivity ?? "none",
 	};
-	const pkg = encrypt(record, meta, dek);
+	const pkg = encrypt(record, "UserPreferences", dek);
 	await setDoc(userRef(uid), pkg);
 }
 

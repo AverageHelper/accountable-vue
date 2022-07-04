@@ -1,4 +1,4 @@
-import { AccountableError } from "../transport/errors/index.js";
+import { AccountableError, NetworkError } from "../transport/errors/index.js";
 import { bootstrap, db, getUserStats, isWrapperInstantiated } from "../transport/db.js";
 import { defineStore } from "pinia";
 import { getServerVersion } from "../transport/server.js";
@@ -86,10 +86,11 @@ export const useUiStore = defineStore("ui", {
 			}
 		},
 		handleError(error: unknown) {
+			// TODO: I18N
 			const toast = useToast();
 
 			let message: string;
-			if (error instanceof Error) {
+			if (error instanceof Error || error instanceof NetworkError) {
 				message = error.message;
 			} else if (error instanceof AccountableError) {
 				message = error.code;

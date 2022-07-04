@@ -1,8 +1,9 @@
+import type { CollectionReference, DocumentReference } from "./db.js";
 import type { DocumentData } from "./schemas";
 import type { Query } from "./db";
 import { AccountableError, UnexpectedResponseError, UnreachableError } from "./errors/index.js";
+import { collection, doc as docRef } from "./db.js";
 import { databaseCollection, databaseDocument } from "./api-types/index.js";
-import { DocumentReference, CollectionReference } from "./db.js";
 import { isRawServerResponse } from "./schemas";
 import isArray from "lodash/isArray";
 import isString from "lodash/isString";
@@ -45,13 +46,6 @@ export class DocumentSnapshot<T = DocumentData> {
 	data(): T | undefined {
 		return this.#data ?? undefined;
 	}
-
-	toString(): string {
-		return JSON.stringify({
-			ref: this.ref.path,
-			id: this.id,
-		});
-	}
 }
 
 export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
@@ -64,7 +58,9 @@ export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
 	data(): T {
 		const result = super.data();
 		if (result === undefined)
-			throw new TypeError(`Data at ref ${this.ref.path} is meant to exist but does not.`);
+			throw new TypeError(
+				`Data at ref ${this.ref.parent.id}/${this.ref.id} is meant to exist but does not.`
+			);
 		return result;
 	}
 }
@@ -201,15 +197,6 @@ export class QuerySnapshot<T> {
 		result.push(...removedDocs);
 
 		return result;
-	}
-
-	toString(): string {
-		return JSON.stringify({
-			previousSnapshot: this.#previousSnapshot ? "<value>" : null,
-			docs: `<${this.docs.length} docs>`,
-			size: this.size,
-			query: JSON.parse(this.query.toString()) as unknown,
-		});
 	}
 }
 
@@ -353,7 +340,7 @@ export function onSnapshot<T>(
 		} catch (error) {
 			throw new UnexpectedResponseError(
 				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
-			);
+			); // TODO: I18N
 		}
 
 		if (message === "ARE_YOU_STILL_THERE") {
@@ -365,22 +352,22 @@ export function onSnapshot<T>(
 		if (!isRawServerResponse(message))
 			throw new UnexpectedResponseError(
 				`Invalid server response: ${JSON.stringify(message, undefined, "  ")}`
-			);
+			); // TODO: I18N
 		const data = message.data;
-		if (data === undefined) throw new UnexpectedResponseError("Message data is undefined");
+		if (data === undefined) throw new UnexpectedResponseError("Message data is undefined"); // TODO: I18N
 
 		// console.debug(`Got ${type} message from ${url}`);
 		if (type === "collection") {
-			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array");
-			const collectionRef = new CollectionReference(db, queryOrReference.id);
+			if (!data || !isArray(data)) throw new UnexpectedResponseError("Data is not an array"); // TODO: I18N
+			const collectionRef = collection(db, queryOrReference.id);
 			const snaps: Array<QueryDocumentSnapshot<T>> = data.map(doc => {
 				const id = doc["_id"];
 				if (!isString(id)) {
-					const err = new TypeError("Expected ID to be string");
+					const err = new TypeError("Expected ID to be string"); // TODO: I18N
 					onErrorCallback(err);
 					throw err;
 				}
-				const ref = new DocumentReference(collectionRef, id);
+				const ref = docRef(collectionRef.db, collectionRef.id, id);
 				return new QueryDocumentSnapshot<T>(ref, doc as unknown as T);
 			});
 			previousSnap = new QuerySnapshot<T>(previousSnap ?? collectionRef, snaps);
@@ -388,9 +375,9 @@ export function onSnapshot<T>(
 
 			return;
 		} else if (type === "document") {
-			if (isArray(data)) throw new UnexpectedResponseError("Data is an array");
-			const collectionRef = new CollectionReference(db, queryOrReference.parent.id);
-			const ref = new DocumentReference(collectionRef, queryOrReference.id);
+			if (isArray(data)) throw new UnexpectedResponseError("Data is an array"); // TODO: I18N
+			const collectionRef = collection(db, queryOrReference.parent.id);
+			const ref = docRef(collectionRef.db, collectionRef.id, queryOrReference.id);
 			const snap = new QueryDocumentSnapshot<T>(ref, data as T | null);
 			(onNextCallback as DocumentSnapshotCallback<T>)(snap);
 			return;
@@ -409,12 +396,12 @@ export function onSnapshot<T>(
 		// Connection closed. Find out why
 		if (event.code !== WS_NORMAL) {
 			let message = `WebSocket closed with code ${event.code}`;
-			// TODO: Abstract these cases into Error subclasses so we can internationalize
+			// TODO: Abstract these cases into Error subclasses so we can do i18n
 			if (event.reason?.trim()) {
 				message += `: ${event.reason}`;
 			} else if (!navigator.onLine) {
 				// Offline status could cause a 1006, so we handle this case first
-				// TODO: Show some UI or smth to indicate online status, and add a way to manually reconnect
+				// TODO: Show some UI or smth to indicate online status, and add a way to manually reconnect.
 				message += ": Internet connection lost";
 			} else if (event.code === WS_UNKNOWN) {
 				message += ": The server closed the connection without telling us why";

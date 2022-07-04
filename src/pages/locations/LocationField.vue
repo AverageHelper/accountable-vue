@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Coordinate, LocationRecordParams } from "../../model/Location";
+import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
 import type { IPLocateResult } from "../../transport";
 import type { PropType } from "vue";
 import ActionButton from "../../components/buttons/ActionButton.vue";
@@ -10,7 +10,7 @@ import LocationListItem from "./LocationListItem.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref, toRefs, watch } from "vue";
 import { fetchLocationData } from "../../transport";
-import { Location } from "../../model/Location";
+import { location as newLocation } from "../../model/Location";
 import { settingsPath } from "../../router";
 import { useAuthStore, useLocationsStore, useUiStore } from "../../store";
 
@@ -65,13 +65,14 @@ const newLocationTitle = ref("");
 const newLocationSubtitle = ref("");
 const newLocationCoordinates = ref<Coordinate | null>(null);
 
-const textLocationPreview = computed(
-	() =>
-		new Location("sample", `"${newLocationTitle.value}"`, {
-			subtitle: null,
-			coordinate: null,
-			lastUsed: new Date(),
-		})
+const textLocationPreview = computed(() =>
+	newLocation({
+		id: "sample",
+		title: `"${newLocationTitle.value}"`, // TODO: I18N (quotes)
+		subtitle: null,
+		coordinate: null,
+		lastUsed: new Date(),
+	})
 );
 
 const selectedLocationId = ref<string | null>(null);
@@ -170,6 +171,7 @@ function updateSubtitle(subtitle: string) {
 	<label ref="root" @focusin="updateFocusState" @focusout="updateFocusState">
 		<div class="container">
 			<div class="fields">
+				<!-- TODO: I18N -->
 				<TextField
 					ref="titleField"
 					:model-value="title"

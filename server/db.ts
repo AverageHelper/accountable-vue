@@ -5,10 +5,9 @@ import type { Request } from "express";
 import type { WebSocket } from "./database/websockets.js";
 import { asyncWrapper } from "./asyncWrapper.js";
 import { close, send, WebSocketCode } from "./database/websockets.js";
-import { deleteItem, ensure, getFileContents, moveFile } from "./database/filesystem.js";
+import { deleteItem, ensure, getFileContents, moveFile, tmpDir } from "./database/filesystem.js";
 import { dirname, resolve as resolvePath, sep as pathSeparator, join } from "path";
 import { env } from "./environment.js";
-import { fileURLToPath } from "url";
 import { handleErrors } from "./handleErrors.js";
 import { maxSpacePerUser } from "./auth/limits.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
@@ -16,7 +15,6 @@ import { respondData, respondError, respondSuccess } from "./responses.js";
 import { Router } from "express";
 import { simplifiedByteCount } from "./transformers/simplifiedByteCount.js";
 import { statsForUser } from "./database/io.js";
-import { tmpdir } from "os";
 import multer, { diskStorage } from "multer";
 import {
 	CollectionReference,
@@ -67,9 +65,6 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 	return new DocumentReference(collection, documentId);
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 /**
  * Asserts that the given value is a valid file path segment.
  *
@@ -83,10 +78,10 @@ function assertPathSegment(value: string | undefined, name: string): string {
 	if (value === undefined || !value) throw new BadRequestError(`Missing ${name}`);
 
 	// Make sure value doesn't contain a path separator
-	if (value.includes(pathSeparator))
+	if (value.includes(pathSeparator) || value.includes(".."))
 		throw new BadRequestError(`${name} cannot contain a '${pathSeparator}' character`);
 
-	return value;
+	return value.trim();
 }
 
 /**
@@ -107,19 +102,31 @@ function requireFilePathParameters(params: Params): Required<Omit<Params, "colle
  * The parent folder of this file path is garanteed to exist.
  *
  * @throws a {@link BadRequestError} if the given params don't form a proper file path.
- * @returns a filesystem path for the given file params.
+ * @returns a filesystem path for the given file params, or `null` if the path is invalid.
  */
-async function temporaryFilePath(params: Params): Promise<string> {
+export async function temporaryFilePath(params: Params): Promise<string | null> {
 	const { uid, documentId, fileName } = requireFilePathParameters(params);
 
-	const tmp = tmpdir();
+	// Make sure fileName doesn't contain a path separator
+	if (fileName.includes("..") || fileName.includes(pathSeparator)) return null;
+
+	// Make sure uid doesn't contain stray path arguments
+	if (uid.includes("..") || uid.includes(pathSeparator)) return null;
+
+	const tmp = tmpDir();
 	const folder = resolvePath(
 		tmp,
 		`./accountable-attachment-temp/users/${uid}/attachments/${documentId}/blobs`
 	);
-	await ensure(folder);
 
-	return join(folder, fileName);
+	const path = join(folder, fileName.trim());
+	if (path.includes("..")) {
+		console.error(`Someone might be trying a path traversal with '${path}'`);
+		return null;
+	}
+
+	await ensure(folder);
+	return path;
 }
 
 function permanentAttachmentFolderForRef<T extends AnyDataItem>(
@@ -130,7 +137,7 @@ function permanentAttachmentFolderForRef<T extends AnyDataItem>(
 	assertPathSegment(ref.parent.id, "collectionId");
 	assertPathSegment(ref.id, "documentId");
 
-	const DB_ROOT = env("DB") ?? resolvePath(__dirname, "./db");
+	const DB_ROOT = env("DB") ?? resolvePath("./db");
 	return resolvePath(DB_ROOT, `./users/${uid}/attachments/${ref.id}/blobs`);
 }
 
@@ -139,16 +146,28 @@ function permanentAttachmentFolderForRef<T extends AnyDataItem>(
  * is garanteed to exist.
  *
  * @throws a {@link BadRequestError} if the given params don't form a proper file path.
- * @returns a filesystem path for the given file params.
+ * @returns a filesystem path for the given file params, or `null` if the path is invalid.
  */
-async function permanentFilePath(params: Params): Promise<string> {
+async function permanentFilePath(params: Params): Promise<string | null> {
 	const { uid, documentId, fileName } = requireFilePathParameters(params);
 
-	const DB_ROOT = env("DB") ?? resolvePath(__dirname, "./db");
-	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments/${documentId}/blobs`);
-	await ensure(folder);
+	// Make sure fileName doesn't contain a path separator
+	if (fileName.includes("..") || fileName.includes(pathSeparator)) return null;
 
-	return join(folder, fileName);
+	// Make sure uid doesn't contain stray path arguments
+	if (uid.includes("..") || uid.includes(pathSeparator)) return null;
+
+	const DB_ROOT = env("DB") ?? resolvePath("./db");
+	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments/${documentId}/blobs`);
+
+	const path = join(folder, fileName.trim());
+	if (path.includes("..")) {
+		console.error(`Someone might be trying a path traversal with '${path}'`);
+		return null;
+	}
+
+	await ensure(folder);
+	return path;
 }
 
 const upload = multer({
@@ -157,19 +176,33 @@ const upload = multer({
 		files: 1,
 	},
 	storage: diskStorage({
-		async destination(req, _, cb) {
-			const path = dirname(await temporaryFilePath(req.params));
-			console.debug(`Writing uploaded file to '${path}'...`);
-			if (path === null || !path) {
-				cb(new BadRequestError("Your UID or that file name don't add up to a valid path"), "");
-			} else {
-				cb(null, path);
-			}
+		destination(req, _, cb) {
+			// eslint-disable-next-line promise/prefer-await-to-then
+			void temporaryFilePath(req.params).then(tmp => {
+				/* eslint-disable promise/no-callback-in-promise */
+				if (tmp === null) {
+					cb(new BadRequestError("Your UID or that file name don't add up to a valid path"), "");
+					return;
+				}
+				const path = dirname(tmp);
+				console.debug(`Writing uploaded file to '${path}'...`);
+				if (path === null || !path) {
+					cb(new BadRequestError("Your UID or that file name don't add up to a valid path"), "");
+				} else {
+					cb(null, path);
+				}
+				/* eslint-enable promise/no-callback-in-promise */
+			});
 		},
 		filename(req, _, cb) {
 			// Use the given file name
 			try {
 				const { fileName } = requireFilePathParameters(req.params);
+				if (fileName.includes("..")) {
+					console.error(`Someone might be trying a path traversal with '${fileName}'`);
+					cb(new BadRequestError("That file name doesn't add up to a valid path"), "");
+					return;
+				}
 				cb(null, fileName);
 			} catch (error) {
 				if (error instanceof Error) {
@@ -304,6 +337,11 @@ export function db(this: void): Router {
 				// Move the file from the staging area into permanet storage
 				const tempPath = await temporaryFilePath(req.params);
 				const permPath = await permanentFilePath(req.params);
+
+				if (tempPath === null || permPath === null) {
+					throw new BadRequestError("Your UID or that file name don't add up to a valid path");
+				}
+
 				await moveFile(tempPath, permPath);
 
 				{

@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { PropType } from "vue";
+import type { Account } from "../../model/Account";
 import type { DatabaseSchema } from "../../model/DatabaseSchema";
 import type { Entry } from "@zip.js/zip.js";
+import type { PropType } from "vue";
 import ActionButton from "../../components/buttons/ActionButton.vue";
 import AccountListItem from "../../pages/accounts/AccountListItem.vue";
 import Checkmark from "../../icons/Checkmark.vue";
 import List from "../../components/List.vue";
 import Modal from "../../components/Modal.vue";
+import { account as newAccount } from "../../model/Account";
 import { computed, ref, reactive, toRefs, watch, nextTick } from "vue";
-import { Account } from "../../model/Account";
 import { useToast } from "vue-toastification";
 import {
 	useAccountsStore,
@@ -65,7 +66,7 @@ const importProgressPercent = computed(() => {
 const hasDb = computed(() => db.value !== null);
 const storedAccounts = computed(() => accounts.allAccounts);
 const importedAccounts = computed(() =>
-	(db.value?.accounts ?? []).map(acct => new Account(acct.id, acct))
+	(db.value?.accounts ?? []).map(acct => newAccount({ ...acct, notes: acct.notes ?? null }))
 );
 const duplicateAccounts = computed(() =>
 	importedAccounts.value.filter(a1 => storedAccounts.value.some(a2 => a2.id === a1.id))
@@ -87,7 +88,7 @@ const transactionCounts = computed<Dictionary<number>>(() => {
 
 watch(importedAccounts, importedAccounts => {
 	if (hasDb.value && importedAccounts.length === 0) {
-		toast.info(`${fileName.value || "That file"} contains no financial data.`);
+		toast.info(`${fileName.value || "That file"} contains no financial data.`); // TODO: I18N
 		forgetDb();
 	}
 });
@@ -137,7 +138,7 @@ async function beginImport() {
 		itemsImported.value += numberOfAttachmentsToImport.value;
 		await nextTick();
 
-		toast.success("Imported all the things!");
+		toast.success("Imported all the things!"); // TODO: I18N
 		emit("finished");
 	} catch (error) {
 		ui.handleError(error);
@@ -149,6 +150,7 @@ async function beginImport() {
 
 <template>
 	<Modal :open="hasDb" :close-modal="forgetDb">
+		<!-- TODO: I18N -->
 		<h1>Select Accounts from &quot;{{ fileName }}&quot;</h1>
 
 		<div v-if="newAccounts.length > 0">

@@ -21,6 +21,7 @@ export type AccountableErrorCode =
 	| "storage/unauthenticated";
 
 function messageFromCode(code: AccountableErrorCode): string {
+	// TODO: I18N
 	switch (code) {
 		case "auth/account-already-exists":
 			return "That account already exists";

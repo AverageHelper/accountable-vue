@@ -7,28 +7,33 @@ import OutLink from "./components/OutLink.vue";
 <template>
 	<footer>
 		<p><AppVersion /></p>
-		<p
-			>This project is licensed under the
-			<OutLink
-				to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
-				title="View the full license"
-				>GNU General Public License v3.0</OutLink
-			>.</p
-		>
-		<p
-			>Feel free to
-			<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
-				>open an issue</OutLink
-			>
-			or submit a pull request on this project's
-			<OutLink href="https://github.com/AverageHelper/accountable-vue">GitHub page</OutLink>.</p
-		>
+		<i18n-t keypath="footer.license" tag="p">
+			<template #name>
+				<OutLink
+					to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
+					:title="$t('footer.view-license')"
+					>{{ $t("footer.license-name") }}</OutLink
+				>
+			</template>
+		</i18n-t>
+		<i18n-t keypath="footer.pr" tag="p">
+			<template #issue>
+				<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose">{{
+					$t("footer.issue")
+				}}</OutLink>
+			</template>
+			<template #github>
+				<OutLink href="https://github.com/AverageHelper/accountable-vue">{{
+					$t("footer.github")
+				}}</OutLink>
+			</template>
+		</i18n-t>
 		<p>
 			<OutLink
 				href="https://github.com/AverageHelper/accountable-vue"
-				title="View this project's source code"
+				:title="$t('footer.view-source')"
 			>
-				<GitHubIcon alt="Check out my GitHub" title="Check out my GitHub" />
+				<GitHubIcon :alt="$t('footer.view-github')" :title="$t('footer.view-github')" />
 			</OutLink>
 		</p>
 	</footer>

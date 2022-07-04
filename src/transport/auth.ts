@@ -1,15 +1,16 @@
 /* eslint-disable deprecation/deprecation */
 import type { KeyMaterial } from "./cryption";
 import type { AccountableDB, DocumentReference } from "./db";
-import { AccountableError } from "./errors/index.js";
 import { doc, db, getDoc, previousStats, setDoc, deleteDoc } from "./db";
 import {
 	authJoin,
 	authLeave,
 	authLogIn,
 	authLogOut,
+	authRefreshSession,
 	authUpdateAccountId,
 	authUpdatePassword,
+	getFrom,
 	postTo,
 } from "./api-types/index.js";
 
@@ -67,34 +68,36 @@ export async function createUserWithAccountIdAndPassword(
 	account: string,
 	password: string
 ): Promise<UserCredential> {
+	// TODO: I18N
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const join = new URL(authJoin(), db.url);
 	const { access_token, uid, usedSpace, totalSpace } = await postTo(join, { account, password });
 	if (access_token === undefined || uid === undefined)
-		throw new TypeError("Expected access token from server, but got none");
+		throw new TypeError("Expected access token from server, but got none"); // TODO: I18N
 
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 
 	const user: User = { accountId: account, uid };
-	db.setJwt(access_token, user);
+	db.setUser(user);
 	return { user };
 }
 
 /**
  * Signs out the current user.
  *
- * @param auth - The {@link AccountableDB} instance.
+ * @param db - The {@link AccountableDB} instance.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function signOut(db: AccountableDB): Promise<void> {
-	const jwt = db.jwt;
-	if (jwt === null) return;
-
 	const logout = new URL(authLogOut(), db.url);
-	await postTo(logout, {}, jwt);
-	db.clearJwt();
+	await postTo(logout, {});
+	db.clearUser();
+	previousStats.usedSpace = null;
+	previousStats.totalSpace = null;
 }
 
 /**
@@ -110,25 +113,49 @@ export async function signOut(db: AccountableDB): Promise<void> {
  * @param db - The {@link AccountableDB} instance.
  * @param account - The user's account ID.
  * @param password - The user's password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function signInWithAccountIdAndPassword(
 	db: AccountableDB,
 	account: string,
 	password: string
 ): Promise<UserCredential> {
+	// TODO: I18N
 	if (!account) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
 	const login = new URL(authLogIn(), db.url);
 	const { access_token, uid, usedSpace, totalSpace } = await postTo(login, { account, password });
 	if (access_token === undefined || uid === undefined)
-		throw new TypeError("Expected access token from server, but got none");
+		throw new TypeError("Expected access token from server, but got none"); // TODO: I18N
 
 	previousStats.usedSpace = usedSpace ?? null;
 	previousStats.totalSpace = totalSpace ?? null;
 
 	const user: User = { accountId: account, uid };
-	db.setJwt(access_token, user);
+	db.setUser(user);
+	return { user };
+}
+
+/**
+ * Asynchronously refreshes the login token
+ *
+ * @param db - The {@link AccountableDB} instance.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
+ */
+export async function refreshSession(db: AccountableDB): Promise<UserCredential> {
+	const session = new URL(authRefreshSession(), db.url);
+	const { account, access_token, uid, usedSpace, totalSpace } = await getFrom(session);
+	if (account === undefined || access_token === undefined || uid === undefined)
+		throw new TypeError("Expected access token from server, but got none"); // TODO: I18N
+
+	previousStats.usedSpace = usedSpace ?? null;
+	previousStats.totalSpace = totalSpace ?? null;
+
+	const user: User = { accountId: account, uid };
+	db.setUser(user);
 	return { user };
 }
 
@@ -138,10 +165,11 @@ export async function signInWithAccountIdAndPassword(
  * @param db - The {@link AccountableDB} instance.
  * @param user - The user.
  * @param password - The user's chosen password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function deleteUser(db: AccountableDB, user: User, password: string): Promise<void> {
-	if (db.jwt === null || !db.jwt) throw new AccountableError("auth/unauthenticated");
-	if (!password) throw new TypeError("password parameter cannot be empty");
+	if (!password) throw new TypeError("password parameter cannot be empty"); // TODO: I18N
 
 	const leave = new URL(authLeave(), db.url);
 	await postTo(leave, {
@@ -156,12 +184,15 @@ export async function deleteUser(db: AccountableDB, user: User, password: string
  * @param user - The user.
  * @param newAccountId - The new account ID.
  * @param password - The user's chosen password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function updateAccountId(
 	user: User,
 	newAccountId: string,
 	password: string
 ): Promise<void> {
+	// TODO: I18N
 	if (!newAccountId) throw new TypeError("accountID parameter cannot be empty");
 	if (!password) throw new TypeError("password parameter cannot be empty");
 
@@ -180,6 +211,8 @@ export async function updateAccountId(
  * @param user - The user.
  * @param oldPassword - The old password.
  * @param newPassword - The new password.
+ *
+ * @throws a `NetworkError` if something goes wrong with the request.
  */
 export async function updatePassword(
 	db: AccountableDB,
@@ -187,6 +220,7 @@ export async function updatePassword(
 	oldPassword: string,
 	newPassword: string
 ): Promise<void> {
+	// TODO: I18N
 	if (!oldPassword) throw new TypeError("old-password parameter cannot be empty");
 	if (!newPassword) throw new TypeError("new-password parameter cannot be empty");
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { AttachmentSchema } from "../../model/DatabaseSchema";
+import type { Attachment } from "../../model/Attachment";
 import ActionButton from "../../components/buttons/ActionButton.vue";
-import { Attachment } from "../../model/Attachment";
+import { attachment as newAttachment } from "../../model/Attachment";
 import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
 import { ref } from "vue";
@@ -49,7 +50,7 @@ async function downloadStuff(shouldMinify: boolean) {
 		// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB. Maybe operate on the attachments a few at a time?
 		console.debug("Downloading attachments");
 		const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
-			const file = new Attachment(a.id, a.storagePath, a);
+			const file = newAttachment({ ...a, notes: a.notes ?? null, type: a.type ?? "" });
 			const data = await attachments.imageDataFromFile(file, false);
 			return [file, data];
 		});
@@ -83,6 +84,7 @@ async function downloadStuff(shouldMinify: boolean) {
 
 <template>
 	<form @submit.prevent>
+		<!-- TODO: I18N -->
 		<h3>Export</h3>
 		<p
 			>Exports an <strong>unencrypted</strong> copy of all your data in JSON format. (Except

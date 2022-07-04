@@ -28,17 +28,23 @@ function cancelClearNewLoginStatus() {
 
 <template>
 	<Modal :open="isNewLogin">
-		<h1>Your New Account</h1>
-		<p>This is your new account ID. You will need it and your passphrase to log in later.</p>
-		<p
-			>REMEMBER THIS: <code v-if="isNewLogin">{{ accountId }}</code></p
-		>
-		<p>Write it down. (Try a <OutLink to="https://bitwarden.com">password manager</OutLink>.)</p>
-		<p>If you lose it, we won't be able to get it back for you.</p>
+		<h1>{{ $t("login.new-account.heading") }}</h1>
+		<p>{{ $t("login.new-account.p1") }}</p>
+		<i18n-t keypath="login.new-account.remember-this" tag="p">
+			<template #accountId>
+				<code v-if="isNewLogin">{{ accountId }}</code>
+			</template>
+		</i18n-t>
+		<i18n-t keypath="login.new-account.write-it-down" tag="p">
+			<template #manager>
+				<OutLink to="https://bitwarden.com">{{ $t("login.new-account.manager") }}</OutLink>
+			</template>
+		</i18n-t>
+		<p>{{ $t("login.new-account.no-recovery") }}</p>
 
-		<ActionButton kind="bordered-primary" @click.prevent="askToClearNewLoginStatus"
-			>Got it</ActionButton
-		>
+		<ActionButton kind="bordered-primary" @click.prevent="askToClearNewLoginStatus">{{
+			$t("login.new-account.acknowledge")
+		}}</ActionButton>
 	</Modal>
 
 	<ConfirmGotNewAccountId

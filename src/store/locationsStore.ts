@@ -2,7 +2,9 @@ import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { location, recordFromLocation } from "../model/Location";
 import { stores } from "./stores";
+import { transaction } from "../model/Transaction";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
@@ -49,7 +51,7 @@ export const useLocationsStore = defineStore("locations", {
 
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 
@@ -84,8 +86,8 @@ export const useLocationsStore = defineStore("locations", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -113,8 +115,8 @@ export const useLocationsStore = defineStore("locations", {
 			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
-			if (uid === null) throw new Error("Sign in first");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -141,7 +143,7 @@ export const useLocationsStore = defineStore("locations", {
 		async getAllLocations(): Promise<void> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -157,7 +159,7 @@ export const useLocationsStore = defineStore("locations", {
 		async getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
 			const authStore = useAuthStore();
 			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key");
+			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -166,7 +168,7 @@ export const useLocationsStore = defineStore("locations", {
 			const snap = await getDocs<LocationRecordPackage>(collection);
 			return snap.docs
 				.map(doc => locationFromSnapshot(doc, dek))
-				.map(t => ({ ...t.toRecord(), id: t.id }));
+				.map(t => ({ ...recordFromLocation(t), id: t.id }));
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
 			const { transactions } = await stores();
@@ -175,7 +177,7 @@ export const useLocationsStore = defineStore("locations", {
 			const storedLocation = this.items[locationToImport.id] ?? null;
 			if (storedLocation) {
 				// If duplicate, overwrite the one we have
-				const newLocation = storedLocation.updatedWith(locationToImport);
+				const newLocation = location({ ...storedLocation, ...locationToImport });
 				await this.updateLocation(newLocation, batch);
 			} else {
 				// If new, create a new location
@@ -194,9 +196,11 @@ export const useLocationsStore = defineStore("locations", {
 				for (const txns of chunk(matchingTransactions, 500)) {
 					const uBatch = writeBatch();
 					await Promise.all(
-						txns.map(t =>
-							transactions.updateTransaction(t.updatedWith({ locationId: newLocation.id }), uBatch)
-						)
+						txns.map(t => {
+							const newTxn = transaction(t);
+							newTxn.locationId = newLocation.id;
+							return transactions.updateTransaction(newTxn, uBatch);
+						})
 					);
 					await uBatch.commit();
 				}

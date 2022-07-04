@@ -4,19 +4,16 @@ import type {
 	QueryDocumentSnapshot,
 	WriteBatch,
 } from "./db";
+import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { StorageReference } from "./storage.js";
-import type { AttachmentRecordParams } from "../model/Attachment";
 import type { EPackage, HashStore } from "./cryption";
-import { Attachment } from "../model/Attachment";
+import { attachment, isAttachmentRecord, recordFromAttachment } from "../model/Attachment";
 import { collection, db, doc, recordFromSnapshot, setDoc, deleteDoc } from "./db";
 import { deleteObject, downloadString, ref, uploadString } from "./storage.js";
 import { encrypt, decrypt } from "./cryption";
 import { dataUrlFromFile } from "./getDataAtUrl";
 
-interface AttachmentRecordPackageMetadata {
-	objectType: "Attachment";
-}
-export type AttachmentRecordPackage = EPackage<AttachmentRecordPackageMetadata>;
+export type AttachmentRecordPackage = EPackage<"Attachment">;
 
 export function attachmentsCollection(): CollectionReference<AttachmentRecordPackage> {
 	return collection<AttachmentRecordPackage>(db, "attachments");
@@ -45,15 +42,15 @@ function attachmentStorageRef(storagePath: string): StorageReference {
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
 	const storageRef = attachmentStorageRef(file.storagePath);
 	const encryptedData = await downloadString(storageRef);
-	if (encryptedData === null) throw new EvalError("No data found at the ref");
+	if (encryptedData === null) throw new EvalError("No data found at the ref"); // TODO: I18N
 	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
 	if (!("ciphertext" in pkg)) {
-		throw new TypeError("Improperly formatted payload.");
+		throw new TypeError("Improperly formatted payload."); // TODO: I18N
 	}
 
 	const imageData = decrypt(pkg, dek);
 	if (typeof imageData !== "string") {
-		throw new TypeError(`Expected string output. Got ${typeof imageData}`);
+		throw new TypeError(`Expected string output. Got ${typeof imageData}`); // TODO: I18N
 	}
 	return imageData;
 }
@@ -62,9 +59,8 @@ export function attachmentFromSnapshot(
 	doc: QueryDocumentSnapshot<AttachmentRecordPackage>,
 	dek: HashStore
 ): Attachment {
-	const { id, record } = recordFromSnapshot(doc, dek, Attachment.isRecord);
-	const storagePath = record.storagePath;
-	return new Attachment(id, storagePath, record);
+	const { id, record } = recordFromSnapshot(doc, dek, isAttachmentRecord);
+	return attachment({ id, ...record });
 }
 
 export async function createAttachment(
@@ -73,11 +69,8 @@ export async function createAttachment(
 	record: Omit<AttachmentRecordParams, "storagePath">,
 	dek: HashStore
 ): Promise<Attachment> {
-	const meta: AttachmentRecordPackageMetadata = {
-		objectType: "Attachment",
-	};
 	const imageData = await dataUrlFromFile(file);
-	const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
+	const fileToUpload = JSON.stringify(encrypt(imageData, "ImageData", dek));
 
 	const ref = doc(attachmentsCollection()); // generates unique document ID
 	const storageName = doc(attachmentsCollection()); // generates unique file name
@@ -88,10 +81,10 @@ export async function createAttachment(
 
 	const recordToSave = record as typeof record & { storagePath?: string };
 	recordToSave.storagePath = storagePath;
-	const pkg = encrypt(recordToSave, meta, dek);
+	const pkg = encrypt(recordToSave, "Attachment", dek);
 	await setDoc(ref, pkg); // Save the record
 
-	return new Attachment(ref.id, storagePath, recordToSave);
+	return attachment({ id: ref.id, storagePath, ...recordToSave });
 }
 
 export async function updateAttachment(
@@ -100,12 +93,8 @@ export async function updateAttachment(
 	attachment: Attachment,
 	dek: HashStore
 ): Promise<void> {
-	const meta: AttachmentRecordPackageMetadata = {
-		objectType: "Attachment",
-	};
-
-	const record: AttachmentRecordParams = attachment.toRecord();
-	const pkg = encrypt(record, meta, dek);
+	const record = recordFromAttachment(attachment);
+	const pkg = encrypt(record, "Attachment", dek);
 	await setDoc(attachmentRef(uid, attachment), pkg);
 
 	if (file) {
@@ -115,7 +104,7 @@ export async function updateAttachment(
 
 		// store the new file
 		const imageData = await dataUrlFromFile(file);
-		const fileToUpload = JSON.stringify(encrypt(imageData, {}, dek));
+		const fileToUpload = JSON.stringify(encrypt(imageData, "ImageData", dek));
 
 		await uploadString(storageRef, fileToUpload);
 	}

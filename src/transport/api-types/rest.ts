@@ -8,40 +8,34 @@ export interface ServerResponse extends RawServerResponse {
 	message: string;
 }
 
-export interface ServerResponse extends RawServerResponse {
-	status: HttpStatusCode;
-	message: string;
+/** Performs a GET request at the provided URL. */
+export async function getFrom(url: URL): Promise<ServerResponse> {
+	return await doRequest(url, { method: "GET" });
 }
 
-/** Performs a GET request at the provided URL, optionally using the given JWT. */
-export async function getFrom(url: URL, token?: string): Promise<ServerResponse> {
-	return await doRequest(url, { method: "GET" }, token);
-}
-
-/** Performs a POST request at the provided URL using the given body and optional JWT. */
+/** Performs a POST request at the provided URL using the given body. */
 export async function postTo(
 	url: URL,
-	body: DocumentData | Array<DocumentWriteBatch>,
-	token?: string
+	body: DocumentData | Array<DocumentWriteBatch>
 ): Promise<ServerResponse> {
-	return await doRequest(url, { method: "POST", body: JSON.stringify(body) }, token);
+	return await doRequest(url, { method: "POST", body: JSON.stringify(body) });
 }
 
-/** Performs a DELETE request at the provided URL using the given JWT. */
-export async function deleteAt(url: URL, token?: string): Promise<ServerResponse> {
-	return await doRequest(url, { method: "DELETE" }, token);
+/** Performs a DELETE request at the provided URL. */
+export async function deleteAt(url: URL): Promise<ServerResponse> {
+	return await doRequest(url, { method: "DELETE" });
 }
 
-/** Performs a multipart GET request at the provided URL using the given JWT. */
-export async function downloadFrom(url: URL, token: string): Promise<string> {
-	const response = await getFrom(url, token);
+/** Performs a multipart GET request at the provided URL. */
+export async function downloadFrom(url: URL): Promise<string> {
+	const response = await getFrom(url);
 	const data = response.data as unknown;
 	if (!isFileData(data)) throw new UnexpectedResponseError("Invalid file data");
 	return data.contents;
 }
 
-/** Performs a multipart POST request at the provided URL using the given body and JWT. */
-export async function uploadTo(url: URL, fileBody: string, token: string): Promise<ServerResponse> {
+/** Performs a multipart POST request at the provided URL using the given body. */
+export async function uploadTo(url: URL, fileBody: string): Promise<ServerResponse> {
 	const urlString = url.toString();
 	const fileName = urlString.slice(Math.max(0, urlString.lastIndexOf("/") + 1));
 	if (!fileName) throw new TypeError(`Couldn't get file name from '${urlString}'`);
@@ -58,7 +52,7 @@ export async function uploadTo(url: URL, fileBody: string, token: string): Promi
 	const headers: Record<string, string | null> = {
 		"Content-Type": null,
 	};
-	return await doRequest(url, { method: "POST", headers, body }, token);
+	return await doRequest(url, { method: "POST", headers, body });
 }
 
 const OK = HttpStatusCode.OK;
@@ -80,7 +74,7 @@ async function doRequest(
 	if (token !== undefined) {
 		headers["Authorization"] = `BEARER ${token}`;
 	}
-	const request: RequestInit = { ...req, headers };
+	const request: RequestInit = { ...req, headers, credentials: "include" };
 	let result: ServerResponse;
 	try {
 		const response = await fetch(url.href, request);

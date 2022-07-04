@@ -4,12 +4,14 @@ import ConfirmDeleteEverything from "./ConfirmDeleteEverything.vue";
 import TextField from "../../components/inputs/TextField.vue";
 import { computed, ref } from "vue";
 import { logoutPath } from "../../router";
-import { useRouter } from "vue-router";
 import { useAuthStore, useUiStore } from "../../store";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 const auth = useAuthStore();
 const ui = useUiStore();
 const router = useRouter();
+const i18n = useI18n();
 
 const accountId = computed(() => auth.accountId);
 const password = ref("");
@@ -31,7 +33,7 @@ async function confirmDeleteEverything() {
 	isDeleting.value = true;
 
 	try {
-		if (!password.value) throw new Error("Password is required.");
+		if (!password.value) throw new Error(i18n.t("error.form.missing-required-fields"));
 		await auth.destroyVault(password.value);
 
 		await router.push(logoutPath());
@@ -48,6 +50,7 @@ function cancelDeleteEverything() {
 
 <template>
 	<form @submit.prevent="askToDeleteEverything">
+		<!-- TODO: I18N -->
 		<h3>Delete Everything</h3>
 		<p>You have the option to delete all of your data on Accountable.</p>
 

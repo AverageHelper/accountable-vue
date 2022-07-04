@@ -11,13 +11,13 @@ import SearchBar from "../../components/SearchBar.vue";
 import TransactionCreateModal from "../transactions/TransactionCreateModal.vue";
 import TransactionMonthListItem from "../transactions/TransactionMonthListItem.vue";
 import TransactionListItem from "../transactions/TransactionListItem.vue";
-import { dinero, isNegative as isDineroNegative } from "dinero.js";
 import { intlFormat } from "../../transformers";
+import { isNegative as isDineroNegative } from "dinero.js";
 import { ref, computed, toRefs, watch } from "vue";
 import { reverseChronologically } from "../../model/utility/sort";
-import { USD } from "@dinero.js/currencies";
 import { useAccountsStore, useTransactionsStore } from "../../store";
 import { useRoute, useRouter } from "vue-router";
+import { zeroDinero } from "../../helpers/dineroHelpers";
 
 const props = defineProps({
 	accountId: { type: String, required: true },
@@ -34,18 +34,24 @@ const isEditingTransaction = ref(false);
 
 const account = computed(() => accounts.items[accountId.value] ?? null);
 const theseTransactions = computed<Array<Transaction>>(() => {
-	const allTransactions = (transactions.transactionsForAccount[accountId.value] ??
-		{}) as Dictionary<Transaction>;
+	const allTransactions = transactions.transactionsForAccount[accountId.value] ?? {};
 	return Object.values(allTransactions).sort(reverseChronologically);
 });
+
 const transactionMonths = computed(() => {
+	const now = new Date();
 	const months = transactions.months;
 	return Object.entries(transactions.transactionsForAccountByMonth[accountId.value] ?? {}).sort(
-		([a], [b]) => {
-			const now = new Date();
+		([monthId1], [monthId2]) => {
 			// Look up the month's cached start date
-			const aStart = months[a]?.start ?? now;
-			const bStart = months[b]?.start ?? now;
+			const a = months[monthId1];
+			const b = months[monthId2];
+
+			if (!a) console.warn(`Month ${monthId1} (a) doesn't exist in cache`);
+			if (!b) console.warn(`Month ${monthId2} (b) doesn't exist in cache`);
+
+			const aStart = a?.start ?? now;
+			const bStart = b?.start ?? now;
 			// Order reverse chronologically
 			return bStart.getTime() - aStart.getTime();
 		}
@@ -63,9 +69,7 @@ const filteredTransactions = computed<Array<Transaction>>(() =>
 );
 
 const remainingBalance = computed(() => accounts.currentBalance[accountId.value] ?? null);
-const isNegative = computed(() =>
-	isDineroNegative(remainingBalance.value ?? dinero({ amount: 0, currency: USD }))
-);
+const isNegative = computed(() => isDineroNegative(remainingBalance.value ?? zeroDinero));
 
 watch(
 	account,
@@ -102,6 +106,7 @@ function finishEditingAccount() {
 	<main class="content">
 		<div class="heading">
 			<div class="account-title">
+				<!-- TODO: I18N -->
 				<h1>{{ account?.title || "Account" }}</h1>
 				<ActionButton class="edit" @click="startEditingAccount">
 					<EditIcon />

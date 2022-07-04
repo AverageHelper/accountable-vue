@@ -28,6 +28,7 @@ function yes() {
 
 <template>
 	<Confirm :is-open="isOpen" :close-modal="no">
+		<!-- TODO: I18N -->
 		<template #message
 			>Are you sure you want to delete <strong v-if="file">{{ file.title }}</strong
 			><span v-else>this file</span>? This cannot be undone.</template

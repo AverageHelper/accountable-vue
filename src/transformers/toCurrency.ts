@@ -1,4 +1,5 @@
 import type { Dinero } from "dinero.js";
+import { currentLocale } from "../i18n";
 import { toFormat } from "dinero.js";
 
 type NegativeStyle = "accounting" | "standard";
@@ -8,7 +9,8 @@ export function intlFormat(
 	negativeStyle: NegativeStyle = "accounting"
 ): string {
 	return toFormat(dinero, ({ amount, currency }) => {
-		const formatter = new Intl.NumberFormat("en-US", {
+		const locale = currentLocale.value.code;
+		const formatter = new Intl.NumberFormat(locale, {
 			style: "currency",
 			currency: currency.code,
 			currencySign: negativeStyle,

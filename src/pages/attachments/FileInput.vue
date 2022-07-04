@@ -35,6 +35,7 @@ function click() {
 			@change="onFileChanged"
 		/>
 		<span>
+			<!-- TODO: I18N -->
 			<slot :click="click">Choose a file</slot>
 		</span>
 	</label>

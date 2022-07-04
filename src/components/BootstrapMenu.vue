@@ -2,10 +2,11 @@
 import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+// import { currentLocale } from "../i18n";
 
 interface Page {
 	path: string;
-	title: string;
+	titleKey: string;
 }
 
 const navButton = ref<HTMLButtonElement | null>(null);
@@ -16,14 +17,14 @@ const homeRoute = computed(() => homePath());
 
 const pages = computed<Array<Page>>(() => {
 	const pages: Array<Page> = [
-		{ path: homePath(), title: "Home" },
-		{ path: aboutPath(), title: "About" },
-		{ path: securityPath(), title: "Security" },
-		{ path: installPath(), title: "Install" },
+		{ path: homePath(), titleKey: "home.nav.home" },
+		{ path: aboutPath(), titleKey: "home.nav.about" },
+		{ path: securityPath(), titleKey: "home.nav.security" },
+		{ path: installPath(), titleKey: "home.nav.install" },
 	];
 
 	if (loginEnabled.value) {
-		pages.push({ path: loginPath(), title: "Login" });
+		pages.push({ path: loginPath(), titleKey: "home.nav.log-in" });
 	}
 
 	return pages;
@@ -35,6 +36,7 @@ const currentPath = computed(() => route.path);
 
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
+		<!-- TODO: I18N -->
 		<router-link :to="homeRoute" class="navbar-brand" role="text" aria-label="Accountable"
 			>A&cent;countable</router-link
 		>
@@ -55,6 +57,10 @@ const currentPath = computed(() => route.path);
 
 		<div id="navbarNav" class="collapse navbar-collapse" :class="{ show: isNavButtonOpen }">
 			<ul class="navbar-nav mr-auto">
+				<!-- <li class="nav-item">
+					<span class="visually-hidden">Current Language: {{ currentLocale.language }}</span>
+					<p class="flag-icon">{{ currentLocale.flag }}</p>
+				</li> -->
 				<li
 					v-for="page in pages"
 					:key="page.path"
@@ -66,8 +72,10 @@ const currentPath = computed(() => route.path);
 						:class="{ active: currentPath === page.path }"
 						:to="page.path"
 						@click="isNavButtonOpen = false"
-						>{{ page.title }}
-						<span v-if="currentPath === page.path" class="visually-hidden">(current)</span>
+						>{{ $t(page.titleKey) }}
+						<span v-if="currentPath === page.path" class="visually-hidden">{{
+							$t("common.current-aside")
+						}}</span>
 					</router-link>
 				</li>
 			</ul>
@@ -138,5 +146,10 @@ nav.navbar {
 			}
 		}
 	}
+}
+
+.flag-icon {
+	margin: 0;
+	padding: 0;
 }
 </style>
