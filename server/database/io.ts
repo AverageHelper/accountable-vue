@@ -8,7 +8,6 @@ import { mkdir, rm, unlink } from "fs/promises";
 import { NotEnoughRoomError } from "../errors/index.js";
 import { simplifiedByteCount } from "../transformers/index.js";
 import { useJobQueue } from "@averagehelper/job-queue";
-import { v4 as uuid } from "uuid";
 import path from "path";
 
 export async function ensure(path: string): Promise<void> {
@@ -24,14 +23,6 @@ export const DB_DIR = dbEnv //
 	? path.resolve(dbEnv)
 	: path.resolve(__dirname, "../../db");
 process.stdout.write(`Database and storage directory: ${DB_DIR}\n`);
-
-/**
- * Returns a fresh document ID that is virtually guaranteed
- * not to have been used before.
- */
-export function newDocumentId(this: void): string {
-	return uuid().replace(/-/gu, ""); // remove hyphens
-}
 
 type UserIndexDb = Record<string, User>;
 type UserDb = Record<string, Record<string, AnyDataItem>>;

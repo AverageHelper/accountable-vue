@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Updated `nodemon`
+- Large file storage is now handled by the same API endpoints as database storage.
+- Use [`multer`](https://www.npmjs.com/package/multer) instead of [`busboy`](https://www.npmjs.com/package/connect-busboy) for processing files.
+
+### Security
+- Updated [`nodemon`](https://www.npmjs.com/package/nodemon), which removed a lot of useless dependencies and solved a test-time vulnerability.
 
 ## [0.8.1] - 2022-07-02
 ### Added

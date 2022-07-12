@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Accountable
-  version: 0.4.3
+  version: 0.5.0
   description: This is the Accountable Server. It doesn't do much, because the Accountable client does most of the hard work. You can read the source code on [GitHub](https://github.com/AverageHelper/accountable-vue).
   license:
     name: GNU General Public License v3.0
@@ -17,9 +17,7 @@ tags:
   - name: auth
     description: User authentication
   - name: database
-    description: Document-based storage for small pieces of data
-  - name: storage
-    description: File-based storage for large blocks of data, such as images
+    description: Arbitrary persistent data storage
 paths:
   "/v0/":
     get:
@@ -496,6 +494,8 @@ paths:
       summary: "Perform a batch of up to 500 document writes for a user"
       description: Does nothing when the batch is empty
       operationId: batch-write
+      security:
+        - jwt: []
       requestBody:
         required: true
         content:
@@ -815,7 +815,7 @@ paths:
     delete:
       tags:
         - database
-      summary: Delete a document
+      summary: Delete a document and any associated binary data blobs
       operationId: delete-doc
       security:
         - jwt: []
@@ -886,11 +886,11 @@ paths:
         required: true
         schema:
           type: string
-  "/v0/files/users/{uid}/attachments/{fileName}":
+  "/v0/db/users/{uid}/attachments/{doc}/blob/{key}":
     get:
       tags:
-        - storage
-      summary: Get a file
+        - database
+      summary: Retrieve binary data previously attached to a document
       operationId: get-file
       security:
         - jwt: []
@@ -947,8 +947,8 @@ paths:
                       - "No data found"
     post:
       tags:
-        - storage
-      summary: Write a file
+        - database
+      summary: Attach binary data (at most 50 MB) to a document
       operationId: set-file
       security:
         - jwt: []
@@ -1013,8 +1013,8 @@ paths:
                       - "No data found"
     delete:
       tags:
-        - storage
-      summary: Delete a file
+        - database
+      summary: Remove binary data from a document
       operationId: delete-file
       security:
         - jwt: []
@@ -1084,9 +1084,15 @@ paths:
         required: true
         schema:
           type: string
-      - name: fileName
+      - name: doc
         in: path
-        description: The name of a file.
+        description: The ID of the document.
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        description: A string that refers to the binary data. For example, a file name.
         required: true
         schema:
           type: string
