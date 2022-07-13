@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Nothing, yet!
 
+## [0.9.1] - 2022-07-12
+### Fixed
+- Don't delete EVERY ATTACHMENT FILE when deleting unrelated documents.
+
 ## [0.9.0] - 2022-07-12
 ### Changed
 - Large file storage is now handled in the same set of API endpoints as database storage, to simplify documentation.
@@ -214,7 +218,8 @@ Just some re-working to make our vendor bundle fit within the recommended 500 Ki
 ### Added
 - Initial commit
 
-[Unreleased]: https://github.com/AverageHelper/accountable-vue/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/AverageHelper/accountable-vue/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/AverageHelper/accountable-vue/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/AverageHelper/accountable-vue/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/AverageHelper/accountable-vue/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/AverageHelper/accountable-vue/compare/v0.7.0...v0.8.0

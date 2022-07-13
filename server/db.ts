@@ -1,5 +1,5 @@
 import type { DataItem, Unsubscribe, UserKeys } from "./database/index.js";
-import type { AnyDataItem, DocumentData } from "./database/schemas.js";
+import type { DocumentData } from "./database/schemas.js";
 import type { DocUpdate } from "./database/io.js";
 import type { Request } from "express";
 import type { WebSocket } from "./database/websockets.js";
@@ -127,18 +127,6 @@ export async function temporaryFilePath(params: Params): Promise<string | null> 
 	await ensure(folder);
 	console.debug(`temporaryFilePath: ${path}`);
 	return path;
-}
-
-function permanentAttachmentFolderForRef<T extends AnyDataItem>(
-	uid: string,
-	ref: DocumentReference<T>
-): string {
-	assertPathSegment(uid, "uid");
-	assertPathSegment(ref.parent.id, "collectionId");
-	assertPathSegment(ref.id, "documentId");
-
-	const DB_ROOT = env("DB") ?? resolvePath("./db");
-	return resolvePath(DB_ROOT, `./users/${uid}/attachments`);
 }
 
 /**
@@ -503,19 +491,7 @@ export function db(this: void): Router {
 
 				const { totalSpace, usedSpace } = await statsForUser(uid);
 
-				// Delete any associated files
-				try {
-					const blobsFolder = permanentAttachmentFolderForRef(uid, ref);
-					await deleteItem(blobsFolder);
-				} catch (error) {
-					console.error(
-						`Failed to delete a file associated with the document 'users/%s/%s/%s': %s`,
-						uid,
-						ref.parent.id,
-						ref.id,
-						JSON.stringify(error)
-					);
-				}
+				// TODO: Delete any associated files
 
 				respondSuccess(res, { totalSpace, usedSpace });
 			})
