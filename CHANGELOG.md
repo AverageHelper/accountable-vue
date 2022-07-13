@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.0] - 2022-07-12
 ### Changed
-- Large file storage is now handled in the same set of API endpoints as database storage.
+- Large file storage is now handled in the same set of API endpoints as database storage, to simplify documentation.
+- Large files are ingested first to a system-determined temporary directory, then moved into their permanent spot on the filesystem.
 - Use [`multer`](https://www.npmjs.com/package/multer) instead of [`busboy`](https://www.npmjs.com/package/connect-busboy) for processing files.
 
 ### Security
