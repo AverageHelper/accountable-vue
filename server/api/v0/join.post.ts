@@ -1,11 +1,19 @@
-import { defineEventHandler } from "h3";
-
-import type { User } from "../../database/schemas.js";
-import { BadRequestError, DuplicateAccountError, NotEnoughRoomError } from "../../errors/index.js";
-import { MAX_USERS } from "../../auth/limits.js";
-import { newAccessToken } from "../../auth/jwt.js";
-import { numberOfUsers, statsForUser, upsertUser } from "../../database/io.js";
-import { generateHash, generateSalt, newDocumentId, userWithAccountId } from "../../auth";
+import type { User } from "~~/server/database/schemas.js";
+import { defineEventHandler, useBody } from "h3";
+import { MAX_USERS } from "~~/server/auth/limits.js";
+import { newAccessToken } from "~~/server/auth/jwt.js";
+import { numberOfUsers, statsForUser, upsertUser } from "~~/server/database/io.js";
+import {
+	BadRequestError,
+	DuplicateAccountError,
+	NotEnoughRoomError,
+} from "~~/server/errors/index.js";
+import {
+	generateHash,
+	generateSalt,
+	newDocumentId,
+	userWithAccountId,
+} from "~~/server/auth/index.js";
 
 interface ReqBody {
 	account?: unknown;
@@ -16,8 +24,9 @@ interface ReqBody {
 
 export default defineEventHandler(async event => {
 	const req = event.req;
-	const givenAccountId = req.body.account;
-	const givenPassword = req.body.password;
+	const body = await useBody<ReqBody>(event);
+	const givenAccountId = body.account;
+	const givenPassword = body.password;
 	if (typeof givenAccountId !== "string" || typeof givenPassword !== "string") {
 		throw new BadRequestError("Improper parameter types");
 	}

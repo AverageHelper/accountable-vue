@@ -49,7 +49,7 @@ interface Params {
 	fileName?: string;
 }
 
-function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
+export function collectionRef(req: Request<Params>): CollectionReference<DataItem> | null {
 	const uid = (req.params.uid ?? "") || null;
 	const collectionId = req.params.collectionId ?? "";
 	if (uid === null || !isCollectionId(collectionId)) return null;
@@ -57,7 +57,7 @@ function collectionRef(req: Request<Params>): CollectionReference<DataItem> | nu
 	return new CollectionReference(uid, collectionId);
 }
 
-function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
+export function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
 	const documentId = req.params.documentId ?? "";
 	const collection = collectionRef(req);
 	if (!collection) return null;
@@ -74,7 +74,7 @@ function documentRef(req: Request<Params>): DocumentReference<DataItem> | null {
  * @throws a {@link BadRequestError} if `value` is not a valid file path segment.
  * @returns the given `value`
  */
-function assertPathSegment(value: string | undefined, name: string): string {
+export function assertPathSegment(value: string | undefined, name: string): string {
 	if (value === undefined || !value) throw new BadRequestError(`Missing ${name}`);
 
 	// Make sure value doesn't contain a path separator
@@ -89,7 +89,7 @@ function assertPathSegment(value: string | undefined, name: string): string {
 /**
  * Ensures that the appropriate parameters are present and valid file path segments.
  */
-function requireFilePathParameters(params: Params): Required<Omit<Params, "collectionId">> {
+export function requireFilePathParameters(params: Params): Required<Omit<Params, "collectionId">> {
 	const { uid, documentId, fileName } = params;
 
 	return {
@@ -136,7 +136,7 @@ export async function temporaryFilePath(params: Params): Promise<string | null> 
  * @throws a {@link BadRequestError} if the given params don't form a proper file path.
  * @returns a filesystem path for the given file params, or `null` if the path is invalid.
  */
-async function permanentFilePath(params: Params): Promise<string | null> {
+export async function permanentFilePath(params: Params): Promise<string | null> {
 	const { uid, fileName } = requireFilePathParameters(params);
 
 	// Make sure fileName doesn't contain a path separator
