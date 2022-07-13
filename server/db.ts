@@ -509,8 +509,11 @@ export function db(this: void): Router {
 					await deleteItem(blobsFolder);
 				} catch (error) {
 					console.error(
-						`Failed to delete a file associated with the document 'users/${uid}/${ref.parent.id}/${ref.id}'`,
-						error
+						`Failed to delete a file associated with the document 'users/%s/%s/%s': %s`,
+						uid,
+						ref.parent.id,
+						ref.id,
+						JSON.stringify(error)
 					);
 				}
 
