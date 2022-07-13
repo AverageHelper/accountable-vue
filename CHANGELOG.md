@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Nothing, yet!
+### Changed
+- Moved the codebase to Nuxt.js. This lets us combine our server and client codebases, which in turn lets us share configuration and reduce code duplication. Users should notice nothing new, other than a version bump!
 
 ## [0.9.1] - 2022-07-12
 ### Fixed
