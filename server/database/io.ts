@@ -1,19 +1,15 @@
 import type { AnyDataItem, Identified, IdentifiedDataItem, User } from "./schemas.js";
 import type { CollectionReference, DocumentReference } from "./references.js";
+import { deleteItem, ensure } from "./filesystem.js";
 import { env } from "../environment.js";
 import { fileURLToPath } from "url";
 import { folderSize, maxSpacePerUser } from "../auth/limits.js";
 import { Low, JSONFile } from "lowdb";
-import { mkdir, rm, unlink } from "fs/promises";
+import { rm } from "fs/promises";
 import { NotEnoughRoomError } from "../errors/index.js";
 import { simplifiedByteCount } from "../transformers/index.js";
 import { useJobQueue } from "@averagehelper/job-queue";
 import path from "path";
-
-export async function ensure(path: string): Promise<void> {
-	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
-	await mkdir(path, { recursive: true });
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -312,7 +308,7 @@ export async function deleteDbCollection<T extends AnyDataItem>(
 	if (ref.id === "users") {
 		// Special handling, delete all users, burn everything
 		const usersDir = path.join(DB_DIR, "users");
-		await unlink(usersDir);
+		await deleteItem(usersDir);
 
 		// Clear the user index
 		await dbForUser(ref.uid, (data, write) => {

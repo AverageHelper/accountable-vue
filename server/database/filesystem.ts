@@ -17,8 +17,14 @@ export async function deleteItem(path: string): Promise<void> {
 
 /** Ensures that a directory exists at the given path */
 export async function ensure(path: string): Promise<void> {
-	// process.stdout.write(`Ensuring directory is available at ${path}...\n`);
-	await mkdir(path, { recursive: true });
+	try {
+		await mkdir(path, { recursive: true });
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+			return; // already exists! :D
+		}
+		throw error;
+	}
 }
 
 /**
@@ -57,6 +63,7 @@ export async function getFileContents(path: string): Promise<string> {
 		return await readFile(path, { encoding: "utf-8" });
 	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+			console.warn(`No data found at path ${path}`);
 			throw new NotFoundError();
 		}
 		throw error;
