@@ -5,8 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Nothing, yet!
+
+## [0.9.0] - 2022-07-12
 ### Changed
-- Updated `nodemon`
+- Large file storage is now handled in the same set of API endpoints as database storage, to simplify documentation.
+- Large files are ingested first to a system-determined temporary directory, then moved into their permanent spot on the filesystem.
+- Use [`multer`](https://www.npmjs.com/package/multer) instead of [`busboy`](https://www.npmjs.com/package/connect-busboy) for processing files.
+
+### Security
+- Updated [`nodemon`](https://www.npmjs.com/package/nodemon), which removed a lot of useless dependencies and solved a test-time vulnerability.
 
 ## [0.8.1] - 2022-07-02
 ### Added
@@ -206,7 +214,8 @@ Just some re-working to make our vendor bundle fit within the recommended 500 Ki
 ### Added
 - Initial commit
 
-[Unreleased]: https://github.com/AverageHelper/accountable-vue/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/AverageHelper/accountable-vue/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/AverageHelper/accountable-vue/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/AverageHelper/accountable-vue/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/AverageHelper/accountable-vue/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/AverageHelper/accountable-vue/compare/v0.6.4...v0.7.0

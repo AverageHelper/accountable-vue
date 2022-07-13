@@ -79,7 +79,9 @@ function assertPathSegment(value: string | undefined, name: string): string {
 
 	// Make sure value doesn't contain a path separator
 	if (value.includes(pathSeparator) || value.includes(".."))
-		throw new BadRequestError(`${name} cannot contain a '${pathSeparator}' character`);
+		throw new BadRequestError(
+			`${name} cannot contain a '${pathSeparator}' character or a parent directory marker`
+		);
 
 	return value.trim();
 }
@@ -105,7 +107,7 @@ function requireFilePathParameters(params: Params): Required<Omit<Params, "colle
  * @returns a filesystem path for the given file params, or `null` if the path is invalid.
  */
 export async function temporaryFilePath(params: Params): Promise<string | null> {
-	const { uid, documentId, fileName } = requireFilePathParameters(params);
+	const { uid, fileName } = requireFilePathParameters(params);
 
 	// Make sure fileName doesn't contain a path separator
 	if (fileName.includes("..") || fileName.includes(pathSeparator)) return null;
@@ -114,10 +116,7 @@ export async function temporaryFilePath(params: Params): Promise<string | null> 
 	if (uid.includes("..") || uid.includes(pathSeparator)) return null;
 
 	const tmp = tmpDir();
-	const folder = resolvePath(
-		tmp,
-		`./accountable-attachment-temp/users/${uid}/attachments/${documentId}/blobs`
-	);
+	const folder = resolvePath(tmp, `./accountable-attachment-temp/users/${uid}/attachments`);
 
 	const path = join(folder, fileName.trim());
 	if (path.includes("..")) {
@@ -126,6 +125,7 @@ export async function temporaryFilePath(params: Params): Promise<string | null> 
 	}
 
 	await ensure(folder);
+	console.debug(`temporaryFilePath: ${path}`);
 	return path;
 }
 
@@ -138,7 +138,7 @@ function permanentAttachmentFolderForRef<T extends AnyDataItem>(
 	assertPathSegment(ref.id, "documentId");
 
 	const DB_ROOT = env("DB") ?? resolvePath("./db");
-	return resolvePath(DB_ROOT, `./users/${uid}/attachments/${ref.id}/blobs`);
+	return resolvePath(DB_ROOT, `./users/${uid}/attachments`);
 }
 
 /**
@@ -149,7 +149,7 @@ function permanentAttachmentFolderForRef<T extends AnyDataItem>(
  * @returns a filesystem path for the given file params, or `null` if the path is invalid.
  */
 async function permanentFilePath(params: Params): Promise<string | null> {
-	const { uid, documentId, fileName } = requireFilePathParameters(params);
+	const { uid, fileName } = requireFilePathParameters(params);
 
 	// Make sure fileName doesn't contain a path separator
 	if (fileName.includes("..") || fileName.includes(pathSeparator)) return null;
@@ -158,7 +158,7 @@ async function permanentFilePath(params: Params): Promise<string | null> {
 	if (uid.includes("..") || uid.includes(pathSeparator)) return null;
 
 	const DB_ROOT = env("DB") ?? resolvePath("./db");
-	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments/${documentId}/blobs`);
+	const folder = resolvePath(DB_ROOT, `./users/${uid}/attachments`);
 
 	const path = join(folder, fileName.trim());
 	if (path.includes("..")) {
@@ -167,6 +167,11 @@ async function permanentFilePath(params: Params): Promise<string | null> {
 	}
 
 	await ensure(folder);
+	console.debug(
+		`permanentFilePath(params: { uid: ${params.uid ?? "undefined"}, fileName: ${
+			params.fileName ?? "undefined"
+		} }): ${path}`
+	);
 	return path;
 }
 
@@ -481,6 +486,9 @@ export function db(this: void): Router {
 				// TODO: Also delete associated files
 
 				const { totalSpace, usedSpace } = await statsForUser(uid);
+
+				// TODO: Also delete associated files
+
 				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)
@@ -508,6 +516,21 @@ export function db(this: void): Router {
 				}
 
 				const { totalSpace, usedSpace } = await statsForUser(uid);
+
+				// Delete any associated files
+				try {
+					const blobsFolder = permanentAttachmentFolderForRef(uid, ref);
+					await deleteItem(blobsFolder);
+				} catch (error) {
+					console.error(
+						`Failed to delete a file associated with the document 'users/%s/%s/%s': %s`,
+						uid,
+						ref.parent.id,
+						ref.id,
+						JSON.stringify(error)
+					);
+				}
+
 				respondSuccess(res, { totalSpace, usedSpace });
 			})
 		)

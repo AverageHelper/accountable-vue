@@ -21,13 +21,13 @@ describe("File path constructor", () => {
 
 	test.each`
 		fileName            | documentId         | uid              | result
-		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"  somefile.txt"} | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"  somefile.txt"} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
+		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"  somefile.txt"} | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"  somefile.txt"} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
 	`(
 		"Returns a path (fileName: '$fileName', documentId: '$documentId', uid: '$uid'",
 		async (params: { fileName: string; documentId: string; uid: string; result: string }) => {
@@ -46,11 +46,7 @@ describe("File path constructor", () => {
 	`(
 		"Throws if the path contains path arguments (fileName: '$fileName', documentId: '$documentId', uid: 'uid')",
 		async (params: { fileName: string; documentId: string; uid: string }) => {
-			await expect(temporaryFilePath(params)).rejects.toThrowError(
-				// new BadRequestError(`fileName cannot contain a '/' character`)
-				// new BadRequestError(expect.stringContaining("cannot contain a '/' character") as string)
-				BadRequestError
-			);
+			await expect(temporaryFilePath(params)).rejects.toThrowError(BadRequestError);
 		}
 	);
 });

@@ -1,5 +1,6 @@
 /* eslint-disable deprecation/deprecation */
-import type { AccountableDB } from "./db";
+import type { AccountableDB, DocumentReference } from "./db";
+import type { AttachmentRecordPackage } from "./attachments";
 import { AccountableError } from "./errors/index.js";
 import { previousStats } from "./db";
 import { deleteAt, downloadFrom, storageFile, uploadTo } from "./api-types/index.js";
@@ -20,6 +21,11 @@ export interface StorageReference {
 	readonly uid: Readonly<string>;
 
 	/**
+	 * A reference to the document that owns this storage reference.
+	 */
+	readonly docRef: DocumentReference<AttachmentRecordPackage>;
+
+	/**
 	 * The short name of this object, which is the last component of the full path.
 	 * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
 	 */
@@ -30,10 +36,16 @@ export interface StorageReference {
  * Returns a {@link StorageReference} for the given url.
  * @param db - {@link AccountableDB} instance.
  * @param uid - The ID of the user that owns the reference.
+ * @param docRef - A reference to the document that owns the reference.
  * @param name - The file name.
  */
-export function ref(db: AccountableDB, uid: string, name: string): StorageReference {
-	return { db, uid, name };
+export function ref(
+	db: AccountableDB,
+	uid: string,
+	docRef: DocumentReference<AttachmentRecordPackage>,
+	name: string
+): StorageReference {
+	return { db, uid, docRef, name };
 }
 
 /**
@@ -47,8 +59,10 @@ export function ref(db: AccountableDB, uid: string, name: string): StorageRefere
 export async function downloadString(ref: StorageReference): Promise<string> {
 	const uid = ref.db.currentUser?.uid;
 	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
+	if (ref.docRef.parent.id !== "attachments")
+		throw new AccountableError("storage/invalid-argument");
 
-	const itemPath = storageFile(uid, `${ref.name}.json`);
+	const itemPath = storageFile(uid, ref.docRef.id, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	return await downloadFrom(url);
 }
@@ -63,7 +77,7 @@ export async function uploadString(ref: StorageReference, value: string): Promis
 	const uid = ref.db.currentUser?.uid;
 	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = storageFile(uid, `${ref.name}.json`);
+	const itemPath = storageFile(uid, ref.docRef.id, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	const { usedSpace, totalSpace } = await uploadTo(url, value);
 	previousStats.usedSpace = usedSpace ?? null;
@@ -80,7 +94,7 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
 	const uid = ref.db.currentUser?.uid;
 	if (uid === undefined || !uid) throw new AccountableError("storage/unauthenticated");
 
-	const itemPath = storageFile(uid, `${ref.name}.json`);
+	const itemPath = storageFile(uid, ref.docRef.id, `${ref.name}.json`);
 	const url = new URL(itemPath, ref.db.url);
 	const { usedSpace, totalSpace } = await deleteAt(url);
 	previousStats.usedSpace = usedSpace ?? null;
