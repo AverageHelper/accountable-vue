@@ -30,7 +30,6 @@
 		"n-digit-token": "^2.1.0",
 		"rate-limiter-flexible": "^2.3.6",
 		"source-map-support": "^0.5.21",
-		"stream-meter": "^1.0.4",
 		"tsscmp": "^1.0.6",
 		"uuid": "^8.3.2"
 	},
@@ -50,7 +49,6 @@
 		"@types/jsonwebtoken": "^8.5.6",
 		"@types/multer": "^1.4.7",
 		"@types/source-map-support": "^0.5.4",
-		"@types/stream-meter": "^0.0.22",
 		"@types/tsscmp": "^1.0.0",
 		"@types/uuid": "^8.3.3",
 		"@types/ws": "^8.2.1",
