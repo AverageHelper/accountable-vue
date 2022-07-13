@@ -5,6 +5,6 @@
 		"declaration": true,
 		"noEmit": false
 	},
-	"include": ["**/*.ts", "**/*.d.ts", "**/*.json", "**/*.vue"],
-	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts", "./server/**"]
+	"include": ["**/*.ts", "*.ts", "**/*.d.ts", "**/*.json", "**/*.vue", "*.vue"],
+	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts"]
 }

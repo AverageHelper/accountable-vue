@@ -119,30 +119,6 @@
 			}
 		},
 		{
-			"files": ["./server/**/*.ts"],
-			"parserOptions": {
-				"project": "./tsconfig.json",
-				"tsconfigRootDir": "./server"
-			}
-		},
-		{
-			"files": ["./server/**/*.test.ts", "./server/tests/**/*.ts", "./server/**/__mocks__/**/*.ts"],
-			"extends": ["plugin:prettier/recommended"],
-			"plugins": ["prettier", "@typescript-eslint"],
-			"parser": "@typescript-eslint/parser",
-			"parserOptions": {
-				"project": "./tsconfig.test.json",
-				"tsconfigRootDir": "."
-			},
-			"env": {
-				"jest": true
-			},
-			"rules": {
-				"prettier/prettier": "warn",
-				"max-nested-callbacks": "off" // Unit tests involve a lot of nested callbacks
-			}
-		},
-		{
 			"files": ["*.js", "*.cjs"],
 			"parser": "null"
 		}
