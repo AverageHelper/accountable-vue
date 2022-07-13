@@ -21,13 +21,13 @@ describe("File path constructor", () => {
 
 	test.each`
 		fileName            | documentId         | uid              | result
-		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"  somefile.txt"} | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"  somefile.txt"} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
-		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/some-doc-1234/blobs/somefile.txt"}
+		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user  "} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt  "} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"  somefile.txt"} | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"  real-user"} | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"  somefile.txt"} | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
+		${"somefile.txt"}   | ${"some-doc-1234"} | ${"real-user"}   | ${"/foo/bar/accountable-attachment-temp/users/real-user/attachments/somefile.txt"}
 	`(
 		"Returns a path (fileName: '$fileName', documentId: '$documentId', uid: '$uid'",
 		async (params: { fileName: string; documentId: string; uid: string; result: string }) => {
