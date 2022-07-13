@@ -10,9 +10,7 @@ import { ping } from "./ping.js";
 import { respondError } from "./responses.js";
 import { serverVersion } from "./serverVersion.js";
 import { session } from "./auth/jwt.js";
-import { storage } from "./storage/index.js";
 import { version as appVersion } from "./version.js";
-import busboy from "connect-busboy";
 // import csurf from "csurf"; // TODO: Might be important later
 import express from "express";
 import expressWs from "express-ws";
@@ -31,14 +29,8 @@ app
 	.get(`/v${API_VERSION}/`, lol)
 	.get(`/v${API_VERSION}/ping`, ping)
 	.get(`/v${API_VERSION}/version`, serverVersion)
-	.use(
-		busboy({
-			highWaterMark: 2 * 1024 * 1024, // 2 MiB buffer
-		})
-	)
 	.set("trust proxy", 1) // trust first proxy
 	.use(session)
-	.use(`/v${API_VERSION}/files`, storage()) // Storage endpoints (checks auth)
 	.use(express.json({ limit: "5mb" }))
 	.use(express.urlencoded({ limit: "5mb", extended: true }))
 	.use(`/v${API_VERSION}/`, auth()) // Auth endpoints

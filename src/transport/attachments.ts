@@ -26,7 +26,9 @@ function attachmentRef(
 	return doc<AttachmentRecordPackage>(db, "attachments", attachment.id);
 }
 
-function attachmentStorageRef(storagePath: string): StorageReference {
+function attachmentStorageRef(file: Attachment): StorageReference {
+	const storagePath = file.storagePath;
+
 	// For some reason, String.prototype.match does not work for this
 	const parts =
 		Array.from(storagePath.matchAll(/users\/([\w\d]+)\/attachments\/([\w\d]+)\.json/gu))[0] ?? [];
@@ -36,11 +38,12 @@ function attachmentStorageRef(storagePath: string): StorageReference {
 	const fileName = parts[2];
 	if (uid === undefined) throw new TypeError(errMsg);
 	if (fileName === undefined) throw new TypeError(errMsg);
-	return ref(db, uid, fileName);
+	const docRef = attachmentRef(uid, file);
+	return ref(db, uid, docRef, fileName);
 }
 
 export async function embeddableDataForFile(dek: HashStore, file: Attachment): Promise<string> {
-	const storageRef = attachmentStorageRef(file.storagePath);
+	const storageRef = attachmentStorageRef(file);
 	const encryptedData = await downloadString(storageRef);
 	if (encryptedData === null) throw new EvalError("No data found at the ref"); // TODO: I18N
 	const pkg = JSON.parse(encryptedData) as { ciphertext: string };
@@ -72,19 +75,18 @@ export async function createAttachment(
 	const imageData = await dataUrlFromFile(file);
 	const fileToUpload = JSON.stringify(encrypt(imageData, "ImageData", dek));
 
-	const ref = doc(attachmentsCollection()); // generates unique document ID
+	const docRef = doc(attachmentsCollection()); // generates unique document ID
 	const storageName = doc(attachmentsCollection()); // generates unique file name
 
 	const storagePath = `users/${uid}/attachments/${storageName.id}.json`;
-	const storageRef = attachmentStorageRef(storagePath);
+	const storageRef = ref(docRef.db, uid, docRef, storageName.id);
 	await uploadString(storageRef, fileToUpload); // Store the attachment
 
-	const recordToSave = record as typeof record & { storagePath?: string };
-	recordToSave.storagePath = storagePath;
+	const recordToSave: AttachmentRecordParams = { ...record, storagePath };
 	const pkg = encrypt(recordToSave, "Attachment", dek);
-	await setDoc(ref, pkg); // Save the record
+	await setDoc(docRef, pkg); // Save the record
 
-	return attachment({ id: ref.id, storagePath, ...recordToSave });
+	return attachment({ id: docRef.id, ...recordToSave });
 }
 
 export async function updateAttachment(
@@ -99,7 +101,7 @@ export async function updateAttachment(
 
 	if (file) {
 		// delete the old file
-		const storageRef = attachmentStorageRef(attachment.storagePath);
+		const storageRef = attachmentStorageRef(attachment);
 		await deleteObject(storageRef);
 
 		// store the new file
@@ -116,7 +118,7 @@ export async function deleteAttachment(
 	batch?: WriteBatch
 ): Promise<void> {
 	// Delete the storage blob
-	const storageRef = attachmentStorageRef(attachment.storagePath);
+	const storageRef = attachmentStorageRef(attachment);
 	await deleteObject(storageRef);
 
 	// Delete the metadata entry

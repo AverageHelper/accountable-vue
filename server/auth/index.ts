@@ -7,6 +7,7 @@ import { metadataFromRequest } from "./requireAuth.js";
 import { respondSuccess } from "../responses.js";
 import { Router } from "express";
 import { throttle } from "./throttle.js";
+import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 import {
 	BadRequestError,
@@ -17,7 +18,6 @@ import {
 import {
 	destroyUser,
 	findUserWithProperties,
-	newDocumentId,
 	numberOfUsers,
 	statsForUser,
 	upsertUser,
@@ -42,6 +42,14 @@ async function userWithAccountId(accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
 	// TODO: Rename `currentAccountId` to `accountId`
 	return await findUserWithProperties({ currentAccountId: accountId });
+}
+
+/**
+ * Returns a fresh document ID that is virtually guaranteed
+ * not to have been used before.
+ */
+function newDocumentId(this: void): string {
+	return uuid().replace(/-/gu, ""); // remove hyphens
 }
 
 /**

@@ -119,9 +119,9 @@ export function databaseCollection<UID extends string>(
  * - POST   `/v0/db/users/{user.id}/{collection.id}/{document.id}`
  * - DELETE `/v0/db/users/{user.id}/{collection.id}/{document.id}`
  */
-export function databaseDocument<UID extends string, Doc extends string>(
+export function databaseDocument<UID extends string, Col extends CollectionId, Doc extends string>(
 	uid: UID,
-	collectionId: CollectionId,
+	collectionId: Col,
 	documentId: Doc
 ): `/v0/db/users/${typeof uid}/${typeof collectionId}/${typeof documentId}` {
 	return `${BASE}/db/users/${uid}/${collectionId}/${documentId}`;
@@ -129,13 +129,14 @@ export function databaseDocument<UID extends string, Doc extends string>(
 
 /**
  * Route for:
- * - GET    `/v0/files/users/{user.id}/attachments/{file.name}`
- * - POST   `/v0/files/users/{user.id}/attachments/{file.name}`
- * - DELETE `/v0/files/users/{user.id}/attachments/{file.name}`
+ * - GET    `/v0/db/users/{user.id}/attachments/{document.id}/blob/{file.name}`
+ * - POST   `/v0/db/users/{user.id}/attachments/{document.id}/blob/{file.name}`
+ * - DELETE `/v0/db/users/{user.id}/attachments/{document.id}/blob/{file.name}`
  */
-export function storageFile<UID extends string, File extends string>(
+export function storageFile<UID extends string, Doc extends string, File extends string>(
 	uid: UID,
+	documentId: Doc,
 	fileName: File
-): `/v0/files/users/${typeof uid}/attachments/${typeof fileName}` {
-	return `${BASE}/files/users/${uid}/attachments/${fileName}`;
+): `/v0/db/users/${typeof uid}/attachments/${typeof documentId}/blob/${typeof fileName}` {
+	return `${databaseDocument(uid, "attachments", documentId)}/blob/${fileName}`;
 }
