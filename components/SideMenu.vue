@@ -99,10 +99,10 @@ onBeforeUnmount(() => {
 		<List v-show="isMenuOpen" class="side-menu">
 			<template v-for="item in settingsItems" :key="item.id">
 				<li v-if="!item.requiresLogin || isLoggedIn">
-					<router-link :to="item.path" @click="close">
+					<nuxt-link :to="item.path" @click="close">
 						<component :is="item.icon" v-if="item.icon" />
 						<span>{{ $t(item.id) }}</span>
-					</router-link>
+					</nuxt-link>
 				</li>
 			</template>
 			<li>

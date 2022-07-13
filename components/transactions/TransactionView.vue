@@ -188,7 +188,7 @@ async function onFileReceived(file: File) {
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>
-			<router-link :to="accountRoute" class="value">{{ account?.title ?? accountId }}</router-link>
+			<nuxt-link :to="accountRoute" class="value">{{ account?.title ?? accountId }}</nuxt-link>
 		</div>
 		<!-- Notes -->
 		<div v-if="transaction.notes" class="key-value-pair" aria-label="Transaction Notes">

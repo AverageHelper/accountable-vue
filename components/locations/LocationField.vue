@@ -231,7 +231,7 @@ function updateSubtitle(subtitle: string) {
 
 		<p v-if="!mayGetLocation" class="disclaimer" @click.stop.prevent
 			>To get your current location, you'll need to enable the location service in
-			<router-link :to="settingsRoute">Settings</router-link>.</p
+			<nuxt-link :to="settingsRoute">Settings</nuxt-link>.</p
 		>
 	</label>
 </template>

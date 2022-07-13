@@ -15,9 +15,9 @@ const labelId = computed(() => labelIdForTab(tab.value));
 </script>
 
 <template>
-	<router-link class="item-container" :class="{ selected: isSelected }" :to="to">{{
+	<nuxt-link class="item-container" :class="{ selected: isSelected }" :to="to">{{
 		$t(labelId)
-	}}</router-link>
+	}}</nuxt-link>
 </template>
 
 <style scoped lang="scss">

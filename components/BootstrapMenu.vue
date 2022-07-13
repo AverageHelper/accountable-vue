@@ -37,8 +37,8 @@ const currentPath = computed(() => route.path);
 <template>
 	<nav class="navbar navbar-expand-sm navbar-dark">
 		<!-- TODO: I18N -->
-		<router-link :to="homeRoute" class="navbar-brand" role="text" aria-label="Accountable"
-			>A&cent;countable</router-link
+		<nuxt-link :to="homeRoute" class="navbar-brand" role="text" aria-label="Accountable"
+			>A&cent;countable</nuxt-link
 		>
 		<button
 			ref="navButton"
@@ -67,7 +67,7 @@ const currentPath = computed(() => route.path);
 					class="nav-item"
 					:class="{ active: currentPath === page.path }"
 				>
-					<router-link
+					<nuxt-link
 						class="nav-link"
 						:class="{ active: currentPath === page.path }"
 						:to="page.path"
@@ -76,7 +76,7 @@ const currentPath = computed(() => route.path);
 						<span v-if="currentPath === page.path" class="visually-hidden">{{
 							$t("common.current-aside")
 						}}</span>
-					</router-link>
+					</nuxt-link>
 				</li>
 			</ul>
 		</div>

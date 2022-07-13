@@ -26,12 +26,12 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 
 		<!-- Get started now -->
 		<section id="get-started">
-			<NuxtLink :to="aboutRoute">
+			<nuxt-link :to="aboutRoute">
 				<ActionButton kind="bordered-secondary">{{ $t("common.learn-more") }}</ActionButton>
-			</NuxtLink>
-			<NuxtLink v-if="isSignupEnabled" :to="signupRoute">
+			</nuxt-link>
+			<nuxt-link v-if="isSignupEnabled" :to="signupRoute">
 				<ActionButton kind="bordered-primary-green">{{ $t("home.sign-up-now") }}</ActionButton>
-			</NuxtLink>
+			</nuxt-link>
 			<a v-else href="#" @click.prevent>
 				<ActionButton kind="bordered-primary-green">{{ $t("home.coming-soon") }}</ActionButton>
 			</a>
@@ -43,7 +43,7 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 			<h3>{{ $t("home.accountability.heading") }}</h3>
 			<i18n-t keypath="home.accountability.p1" tag="p">
 				<template #tool>
-					<NuxtLink :to="aboutRoute">{{ $t("home.accountability.tool") }}</NuxtLink>
+					<nuxt-link :to="aboutRoute">{{ $t("home.accountability.tool") }}</nuxt-link>
 				</template>
 			</i18n-t>
 		</section>

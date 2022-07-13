@@ -13,7 +13,7 @@ defineProps({
 </script>
 
 <template>
-	<component :is="to === null ? 'div' : 'router-link'" class="list-item" :to="to ?? '#'">
+	<component :is="to === null ? 'div' : 'nuxt-link'" class="list-item" :to="to ?? '#'">
 		<slot name="icon" />
 
 		<div class="content">
