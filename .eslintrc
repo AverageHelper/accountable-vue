@@ -1,6 +1,6 @@
 {
 	"root": true,
-	"ignorePatterns": ["dist", "node_modules", "src/version.ts", "server/version.ts", ".gitignore"],
+	"ignorePatterns": ["dist", "node_modules", "version.ts", ".gitignore"],
 
 	"extends": [
 		"strictest/eslint",
@@ -49,12 +49,13 @@
 		"@typescript-eslint/no-dynamic-delete": "off",
 		"new-cap": "off", // Many decorators do not follow normal function conventions
 		"unicorn/catch-error-name": ["warn", { "name": "error" }],
+		"unicorn/filename-case": "off", // Nuxt.js has some opinions on filename case
 		"unicorn/import-index": ["error", { "ignoreImports": true }]
 	},
 
 	"overrides": [
 		{
-			"files": ["src/**/*.vue"],
+			"files": ["**/*.vue"],
 			"parser": "vue-eslint-parser",
 			"parserOptions": {
 				"parser": "@typescript-eslint/parser",
@@ -101,7 +102,7 @@
 			}
 		},
 		{
-			"files": ["./*.ts", "src/**/*.test.ts", "tests/**/*.ts", "**/__mocks__/**/*.ts"],
+			"files": ["./*.ts", "**/*.test.ts", "tests/**/*.ts", "**/__mocks__/**/*.ts"],
 			"extends": ["plugin:prettier/recommended"],
 			"plugins": ["prettier", "@typescript-eslint"],
 			"parser": "@typescript-eslint/parser",

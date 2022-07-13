@@ -10,6 +10,10 @@ Dockerfile
 logs
 node_modules
 
+# Nuxt dev/build outputs
+.output
+.nuxt
+
 # Generated files
 **/db/**
 **/db-test/**
@@ -17,8 +21,7 @@ dist
 dist-ssr
 ./config
 coverage
-src/version.ts
-server/version.ts
+version.ts
 tmp
 temp
 *.local

@@ -4,6 +4,7 @@
 		"lib": ["ES2021"],
 		"module": "ES2022",
 		"moduleResolution": "node",
+		"composite": true,
 		"allowSyntheticDefaultImports": true,
 		"useDefineForClassFields": true,
 		"resolveJsonModule": true,

@@ -1,27 +1,25 @@
 {
 	"name": "accountable-vue",
-	"version": "0.9.1",
+	"version": "0.10.0",
 	"license": "GPL-3.0",
-	"description": "A Vue app for managing monetary assets.",
+	"description": "A Nuxt.js app for managing monetary assets.",
 	"scripts": {
-		"start": "./node_modules/.bin/concurrently -rkn SERVER,APP -s first \"npm run dev:server\" \"npm run dev:client\"",
+		"dev": "./node_modules/.bin/nuxt dev",
+		"generate": "./node_modules/.bin/nuxt generate",
+		"preview": "./node_modules/.bin/nuxt preview",
+		"start": "./node_modules/.bin/nuxt start",
 		"serve": "./node_modules/.bin/vite preview --port 3000 --open",
-		"test": "jest",
+		"test": "./node_modules/.bin/jest",
 		"test:watch": "npm run test -- --watch",
-		"dev:client": "./node_modules/.bin/vite --open",
-		"dev:server": "cd ./server && npm start",
-		"prod:server": "NODE_ENV=production node ./server",
-		"build": "npm run build:client && npm run build:server",
-		"build:server": "cd ./server && npm run build",
-		"build:client": "rm -rf ./dist && npm run lint && npm run vue:tsc && npm run vite:build",
-		"build:client:quick": "rm -rf ./dist && npm run export-version && npm run vite:build",
-		"vue:tsc": "./node_modules/.bin/vue-tsc --noEmit --project tsconfig.prod.json",
-		"vite:build": "./node_modules/.bin/vite build",
+		"prebuild": "npm run lint && vue:tsc",
+		"build": "npm run buildonly",
+		"buildonly": "nuxt build",
+		"build:client:quick": "rm -rf ./dist && npm run export-version && npm run buildonly",
 		"lint": "npm run export-version && npm run lintonly:vue && npm run lintonly:js",
 		"lint:fix": "npm run export-version && npm run lintonly:vue -- --fix && npm run lintonly:js -- --fix",
 		"lintonly:vue": "./node_modules/.bin/eslint . --ext .vue",
 		"lintonly:js": "./node_modules/.bin/eslint . --ext .js,.ts",
-		"export-version": "./node_modules/.bin/genversion ./src/version.ts -es && cd server && npm run export-version"
+		"export-version": "./node_modules/.bin/genversion ./version.ts -es"
 	},
 	"type": "module",
 	"dependencies": {
@@ -73,6 +71,7 @@
 		"jest": "^27.3.1",
 		"jest-environment-node": "^27.3.1",
 		"jest-extended": "^1.1.0",
+		"nuxt": "^3.0.0-rc.5",
 		"postcss": "^8.4.5",
 		"prettier": "^2.6.2",
 		"rollup-plugin-analyzer": "^4.0.0",
@@ -82,7 +81,6 @@
 		"typescript": "^4.7.3",
 		"vite": "^2.7.12",
 		"vite-tsconfig-paths": "^3.3.17",
-		"vue-eslint-parser": "^8.0.0",
-		"vue-tsc": "^0.31.4"
+		"vue-eslint-parser": "^8.0.0"
 	}
 }

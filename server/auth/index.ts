@@ -30,15 +30,15 @@ interface ReqBody {
 	newpassword?: unknown;
 }
 
-async function generateSalt(): Promise<string> {
+export async function generateSalt(): Promise<string> {
 	return await bcrypt.genSalt(15);
 }
 
-async function generateHash(input: string, salt: string): Promise<string> {
+export async function generateHash(input: string, salt: string): Promise<string> {
 	return await bcrypt.hash(input, salt);
 }
 
-async function userWithAccountId(accountId: string): Promise<User | null> {
+export async function userWithAccountId(accountId: string): Promise<User | null> {
 	// Find first user whose account ID matches
 	// TODO: Rename `currentAccountId` to `accountId`
 	return await findUserWithProperties({ currentAccountId: accountId });
@@ -48,7 +48,7 @@ async function userWithAccountId(accountId: string): Promise<User | null> {
  * Returns a fresh document ID that is virtually guaranteed
  * not to have been used before.
  */
-function newDocumentId(this: void): string {
+export function newDocumentId(this: void): string {
 	return uuid().replace(/-/gu, ""); // remove hyphens
 }
 

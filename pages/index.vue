@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import "source-map-support/register";
 import ActionButton from "./components/buttons/ActionButton.vue";
 import Footer from "./Footer.vue";
 import EncryptionIcon from "./icons/Lock.vue";
 import LedgerIcon from "./icons/MoneyTower.vue";
 import OpenSourceIcon from "./icons/IdeaBox.vue";
-import { aboutPath, signupPath } from "./router";
-import { computed } from "vue";
+import { aboutPath, signupPath } from "@/router";
+import { computed, useHead } from "#imports";
+
+useHead({
+	title: "Accountable",
+	viewport: "width=device-width, initial-scale=1.0",
+	charset: "UTF-8",
+});
 
 const aboutRoute = computed(() => aboutPath());
 const signupRoute = computed(() => signupPath());
@@ -19,12 +26,12 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 
 		<!-- Get started now -->
 		<section id="get-started">
-			<router-link :to="aboutRoute">
+			<NuxtLink :to="aboutRoute">
 				<ActionButton kind="bordered-secondary">{{ $t("common.learn-more") }}</ActionButton>
-			</router-link>
-			<router-link v-if="isSignupEnabled" :to="signupRoute">
+			</NuxtLink>
+			<NuxtLink v-if="isSignupEnabled" :to="signupRoute">
 				<ActionButton kind="bordered-primary-green">{{ $t("home.sign-up-now") }}</ActionButton>
-			</router-link>
+			</NuxtLink>
 			<a v-else href="#" @click.prevent>
 				<ActionButton kind="bordered-primary-green">{{ $t("home.coming-soon") }}</ActionButton>
 			</a>
@@ -36,7 +43,7 @@ const isSignupEnabled = computed(() => import.meta.env.VITE_ENABLE_SIGNUP === "t
 			<h3>{{ $t("home.accountability.heading") }}</h3>
 			<i18n-t keypath="home.accountability.p1" tag="p">
 				<template #tool>
-					<router-link :to="aboutRoute">{{ $t("home.accountability.tool") }}</router-link>
+					<NuxtLink :to="aboutRoute">{{ $t("home.accountability.tool") }}</NuxtLink>
 				</template>
 			</i18n-t>
 		</section>

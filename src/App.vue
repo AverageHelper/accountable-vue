@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Navbar from "./components/Navbar.vue";
 import { onMounted } from "vue";
-import { useUiStore } from "./store/uiStore";
+import { useUiStore } from "@/store/uiStore";
 
 const ui = useUiStore();
 

@@ -48,7 +48,7 @@ import OutLink from "./components/OutLink.vue";
 			</template>
 			<template #source>
 				<OutLink
-					to="https://github.com/AverageHelper/accountable-vue/blob/main/src/transport/cryption.ts"
+					to="https://github.com/AverageHelper/accountable-vue/blob/main/transport/cryption.ts"
 					>{{ $t("security-faq.where-keys.source") }}</OutLink
 				>
 			</template>

@@ -1,6 +1,6 @@
-import { computed } from "vue";
+import { computed, defineNuxtPlugin } from "#imports";
 import { createI18n } from "vue-i18n";
-import enUS from "./locales/en-US.json";
+import enUS from "../locales/en-US.json";
 
 const messages = {
 	"en-US": enUS,
@@ -52,6 +52,10 @@ export const i18n = createI18n({
 	fallbackLocale: DEFAULT_LOCALE_CODE,
 	globalInjection: true,
 	messages,
+});
+
+export default defineNuxtPlugin(nuxtApp => {
+	nuxtApp.vueApp.use(i18n);
 });
 
 /** Locale message translation. */

@@ -14,7 +14,7 @@ const loginRoute = computed(() => loginPath());
 			<h1>{{ $t("install.service.heading") }}</h1>
 			<i18n-t keypath="install.service.p1" tag="p">
 				<template #login>
-					<router-link :to="loginRoute">{{ $t("home.nav.log-in") }}</router-link>
+					<NuxtLink :to="loginRoute">{{ $t("home.nav.log-in") }}</NuxtLink>
 				</template>
 			</i18n-t>
 		</template>

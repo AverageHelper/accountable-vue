@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Attachment } from "../../model/Attachment";
+import type { Attachment } from "@/model/Attachment";
 import ConfirmDestroyFile from "./ConfirmDestroyFile.vue";
 import FileListItem from "./FileListItem.vue";
-import List from "../../components/List.vue";
+import List from "@/components/List.vue";
 import { ref, computed } from "vue";
-import { useAttachmentsStore, useUiStore } from "../../store";
+import { useAttachmentsStore, useUiStore } from "@/store";
 
 const attachments = useAttachmentsStore();
 const ui = useUiStore();
