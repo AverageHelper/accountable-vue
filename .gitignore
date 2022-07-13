@@ -15,7 +15,7 @@ node_modules
 .nuxt
 
 # Generated files
-**/db/**
+server/db
 **/db-test/**
 dist
 dist-ssr
