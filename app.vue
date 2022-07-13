@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Navbar from "./components/Navbar.vue";
 import { onMounted } from "vue";
-import { useUiStore } from "@/store/uiStore";
+import { useUiStore } from "./store/uiStore";
 
 const ui = useUiStore();
 
@@ -12,15 +12,9 @@ onMounted(() => {
 
 <template>
 	<Navbar />
-	<keep-alive>
-		<router-view />
-	</keep-alive>
-	<!-- <router-view v-slot="{ Component }">
-			<keep-alive>
-				<component :is="Component" />
-			</keep-alive>
-		</router-view> -->
-	<div id="modal"></div>
+	<NuxtLayout>
+		<NuxtPage />
+	</NuxtLayout>
 </template>
 
 <style lang="scss">

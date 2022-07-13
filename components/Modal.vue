@@ -23,7 +23,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<teleport to="#modal">
+	<teleport to="body">
 		<transition name="modal">
 			<div v-if="open" class="modal__wrapper" @click.self="onClose">
 				<a v-if="closeModal" href="#" class="modal__close-button" @click.prevent="closeModal">
