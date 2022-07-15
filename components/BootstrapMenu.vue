@@ -2,7 +2,7 @@
 import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-// import { currentLocale } from "../i18n";
+// import { currentLocale } from "@/locales/client";
 
 interface Page {
 	path: string;

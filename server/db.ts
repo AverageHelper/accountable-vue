@@ -13,7 +13,7 @@ import { maxSpacePerUser } from "./auth/limits.js";
 import { ownersOnly, requireAuth } from "./auth/index.js";
 import { respondData, respondError, respondSuccess } from "./responses.js";
 import { Router } from "express";
-import { simplifiedByteCount } from "./transformers/simplifiedByteCount.js";
+import { simplifiedByteCount } from "~~/transformers/simplifiedByteCount.js";
 import { statsForUser } from "./database/io.js";
 import multer, { diskStorage } from "multer";
 import {

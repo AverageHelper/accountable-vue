@@ -3,7 +3,7 @@ import { defineEventHandler, useQuery } from "h3";
 import { moveFile } from "~~/server/database/filesystem.js";
 import { permanentFilePath, temporaryFilePath } from "~~/server/db.js";
 import { statsForUser } from "~~/server/database/io.js";
-import { simplifiedByteCount } from "~~/server/transformers/index.js";
+import { simplifiedByteCount } from "~~/transformers/index.js";
 import { maxSpacePerUser } from "~~/server/auth/index.js";
 
 export default defineEventHandler(async event => {

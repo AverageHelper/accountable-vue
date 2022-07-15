@@ -6,7 +6,8 @@ export type EnvKey =
 	| "HOST"
 	| "MAX_BYTES"
 	| "MAX_USERS"
-	| "NODE_ENV";
+	| "NODE_ENV"
+	| "PORT";
 
 /**
  * Retrieves an environment value for the given key, or `undefined` if none was set.

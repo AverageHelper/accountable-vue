@@ -4,7 +4,7 @@ import { deleteItem } from "~~/server/database/filesystem.js";
 import { maxSpacePerUser } from "~~/server/auth/index.js";
 import { permanentFilePath } from "~~/server/db.js";
 import { respondError } from "~~/server/responses.js";
-import { simplifiedByteCount } from "~~/server/transformers/index.js";
+import { simplifiedByteCount } from "~~/transformers/index.js";
 import { statsForUser } from "~~/server/database/io.js";
 
 export default defineEventHandler(async event => {

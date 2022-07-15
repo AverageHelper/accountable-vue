@@ -5,7 +5,7 @@ import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from ".
 import { account, recordFromAccount } from "../model/Account";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
-import { t } from "../i18n";
+import { t } from "@/locales/client";
 import { useAuthStore } from "./authStore";
 import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";

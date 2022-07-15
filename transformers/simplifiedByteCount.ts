@@ -1,5 +1,5 @@
-import type { LocaleCode } from "../i18n";
-import { currentLocale } from "../i18n";
+import type { LocaleCode } from "@/locales/client";
+import { currentLocale } from "@/locales/client";
 
 /**
  * Creates a human-readable string from a given byte count.

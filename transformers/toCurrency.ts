@@ -1,5 +1,5 @@
 import type { Dinero } from "dinero.js";
-import { currentLocale } from "../i18n";
+import { currentLocale } from "@/locales/client";
 import { toFormat } from "dinero.js";
 
 type NegativeStyle = "accounting" | "standard";

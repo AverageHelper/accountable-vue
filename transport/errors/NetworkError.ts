@@ -1,5 +1,5 @@
 import type { ServerResponse } from "../api-types/index.js";
-import { t } from "../../i18n";
+import { t } from "@/locales/client";
 
 type ErrorCode =
 	| "account-conflict"

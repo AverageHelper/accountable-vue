@@ -3,6 +3,7 @@ import type { DocUpdate } from "~~/server/database/io.js";
 import { BadRequestError, NotFoundError } from "~~/server/errors/index.js";
 import { defineEventHandler, useBody, useQuery } from "h3";
 import { statsForUser } from "~~/server/database/io.js";
+import { version as appVersion } from "~~/version.js";
 import {
 	CollectionReference,
 	deleteDocuments,
@@ -12,6 +13,13 @@ import {
 	isNonEmptyArray,
 	setDocuments,
 } from "~~/server/database/index.js";
+import { env } from "~~/server/environment.js";
+
+const PORT = env("PORT");
+
+process.stdout.write(
+	`Accountable storage server v${appVersion} listening on port ${PORT ?? "'unknown'"}\n`
+);
 
 export default defineEventHandler(async event => {
 	const params = useQuery(event);

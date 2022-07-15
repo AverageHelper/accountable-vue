@@ -19,24 +19,6 @@ tags:
   - name: database
     description: Arbitrary persistent data storage
 paths:
-  "/v0/":
-    get:
-      tags:
-        - misc
-      summary: Get back a silly response
-      operationId: silly
-      responses:
-        200:
-          description: The server works
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    enum:
-                      - "lol"
   "/v0/ping":
     get:
       tags:
