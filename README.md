@@ -18,7 +18,15 @@ The aim of Accountable is to be cross-platform and portable. Eventually, I plan 
 
 ### Prerequesites
 
-This project requires Node 14 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
+To run the app in your browser, you'll need one of the following browsers and versions:
+- Chrome >=87
+- Firefox >=78
+- Safari >=13
+- Edge >=88
+
+(I've not tested any of these boundaries, but [Vite.js recommends them](https://vitejs.dev/guide/migration.html#modern-browser-baseline-change).)
+
+Developing for this project requires Node 14.18 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
 
 ```sh
 $ npm -v && node -v
@@ -45,6 +53,9 @@ VITE_ACCOUNTABLE_SERVER_URL={your Accountable backend URL here}:40850
 
 # Enable the "Login" menu item
 VITE_ENABLE_LOGIN=true
+
+# Enable the "signup" behaviors
+VITE_ENABLE_SIGNUP=false
 ```
 
 If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
@@ -60,7 +71,7 @@ $ npm run dev:client          # Start a local webserver
 
 > Note: The build script injects your .env values at build time. If you must change .env, remember to re-build the client.
 
-The webserver will print a URL in your terminal to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
+The webserver will print a URL in your terminal to paste into your browser. It should look something like [http://127.0.0.1:5173](http://127.0.0.1:5173). Give that a go, and you're off to the races!
 
 I recommend you deploy the client (the contents of the `accountable-vue/dist` folder) on a webserver like [nginx](https://nginx.org/en/).
 

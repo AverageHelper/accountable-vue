@@ -1,17 +1,30 @@
 import type { CorsOptions } from "cors";
+import { env } from "./environment.js";
 import { OriginError } from "./errors/index.js";
-import { requireEnv } from "./environment.js";
+import { URL } from "url";
 import _cors from "cors";
 
-const allowedOrigins = new Set(["http://localhost:3000"]);
+const allowedOriginHostnames = new Set<string>();
+
+// Add typical localhost variants
+allowedOriginHostnames.add("localhost");
+allowedOriginHostnames.add("127.0.0.1");
+allowedOriginHostnames.add("::1");
 
 // Add configured host to list of allowed origins
-try {
-	const host = requireEnv("HOST");
-	allowedOrigins.add(host);
-} catch {} // nop
+const configuredHostUrl = env("HOST") ?? null;
+if (configuredHostUrl !== null) {
+	try {
+		const { hostname } = new URL(configuredHostUrl);
+		allowedOriginHostnames.add(hostname);
+	} catch {
+		process.stderr.write(`Value for env key HOST is not a valid URL: '${configuredHostUrl}'/n`);
+	}
+}
 
-process.stdout.write(`allowedOrigins: ${JSON.stringify(Array.from(allowedOrigins))}\n`);
+process.stdout.write(
+	`allowedOriginHostnames: ${JSON.stringify(Array.from(allowedOriginHostnames))}\n`
+);
 
 const corsOptions: CorsOptions = {
 	credentials: true,
@@ -23,8 +36,19 @@ const corsOptions: CorsOptions = {
 		}
 
 		// Guard Origin
-		if (!allowedOrigins.has(origin)) {
-			process.stdout.write(`Blocking request from origin: ${origin}\n`);
+		try {
+			const { hostname } = new URL(origin);
+
+			if (!allowedOriginHostnames.has(hostname)) {
+				process.stdout.write(
+					`Blocking request from origin: ${origin} (inferred hostname: ${hostname})\n`
+				);
+				return callback(new OriginError(), false);
+			}
+		} catch {
+			process.stdout.write(
+				`Blocking request from origin: ${origin} (inferred hostname: <invalid-url>)\n`
+			);
 			return callback(new OriginError(), false);
 		}
 
