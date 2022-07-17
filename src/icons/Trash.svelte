@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" class="icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" class="icon {$$props.class}">
 	<path
 		fill="currentColor"
 		fill-rule="nonzero"

@@ -3,7 +3,7 @@
 	fill-rule="evenodd"
 	clip-rule="evenodd"
 	viewBox="0 0 24 24"
-	class="icon"
+	class="icon {$$props.class}"
 >
 	<path
 		fill="currentColor"
