@@ -5,7 +5,7 @@
 	"description": "A Vue app for managing monetary assets.",
 	"scripts": {
 		"start": "./node_modules/.bin/concurrently -rkn SERVER,APP -s first \"npm run dev:server\" \"npm run dev:client\"",
-		"serve": "./node_modules/.bin/vite preview --port 3000 --open",
+		"serve": "./node_modules/.bin/vite preview --open",
 		"test": "jest",
 		"test:watch": "npm run test -- --watch",
 		"dev:client": "./node_modules/.bin/vite --open",
@@ -81,7 +81,7 @@
 		"ts-jest": "^27.0.7",
 		"typescript": "^4.7.3",
 		"vite": "^3.0.0",
-		"vite-tsconfig-paths": "^3.3.17",
+		"vite-tsconfig-paths": "^3.5.0",
 		"vue-eslint-parser": "^8.0.0",
 		"vue-tsc": "^0.31.4"
 	}

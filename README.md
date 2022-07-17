@@ -53,6 +53,9 @@ VITE_ACCOUNTABLE_SERVER_URL={your Accountable backend URL here}:40850
 
 # Enable the "Login" menu item
 VITE_ENABLE_LOGIN=true
+
+# Enable the "signup" behaviors
+VITE_ENABLE_SIGNUP=false
 ```
 
 If you're hosting the Accountable server on the same machine that hosts the Accountable client, do NOT use `localhost` for the `VITE_ACCOUNTABLE_SERVER_URL`. You must set this to a URL that _clients_—that is, web browsers—can use to access your Accountable backend.
