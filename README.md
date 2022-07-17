@@ -18,7 +18,15 @@ The aim of Accountable is to be cross-platform and portable. Eventually, I plan 
 
 ### Prerequesites
 
-This project requires Node 14 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
+To run the app in your browser, you'll need one of the following browsers and versions:
+- Chrome >=87
+- Firefox >=78
+- Safari >=13
+- Edge >=88
+
+(I've not tested any of these boundaries, but [Vite.js recommends them](https://vitejs.dev/guide/migration.html#modern-browser-baseline-change).)
+
+Developing for this project requires Node 14.18 and NPM v7 or above. You can check what versions you have installed by running `npm -v` and `node -v`:
 
 ```sh
 $ npm -v && node -v
