@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import analyze from "rollup-plugin-analyzer";
 import autoprefixer from "autoprefixer";
 import path from "path";
@@ -8,6 +9,7 @@ import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
 	plugins: [
+		svelte(),
 		vue(),
 		// vueI18n({
 		// 	include: path.resolve(__dirname, "./src/i18n/lang"),

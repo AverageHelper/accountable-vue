@@ -1,9 +1,10 @@
 {
 	"recommendations": [
-		"Vue.volar",
+		"svelte.svelte-vscode",
 		"esbenp.prettier-vscode",
 		"dbaeumer.vscode-eslint",
 		"mikestead.dotenv",
-		"mrmlnc.vscode-scss"
+		"mrmlnc.vscode-scss",
+		"Lokalise.i18n-ally"
 	]
 }

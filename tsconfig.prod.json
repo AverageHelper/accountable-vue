@@ -2,7 +2,8 @@
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"declaration": true,
-		"noEmit": false
+		"noEmit": false,
+		"types": ["svelte"]
 	},
 	"include": ["**/*.ts", "**/*.d.ts", "**/*.json", "**/*.vue"],
 	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts", "./server/**"]
