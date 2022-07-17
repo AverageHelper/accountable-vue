@@ -71,7 +71,7 @@ $ npm run dev:client          # Start a local webserver
 
 > Note: The build script injects your .env values at build time. If you must change .env, remember to re-build the client.
 
-The webserver will print a URL in your terminal to paste into your browser. It should look something like [http://localhost:3000/](http://localhost:3000/). Give that a go, and you're off to the races!
+The webserver will print a URL in your terminal to paste into your browser. It should look something like [http://127.0.0.1:5173](http://127.0.0.1:5173). Give that a go, and you're off to the races!
 
 I recommend you deploy the client (the contents of the `accountable-vue/dist` folder) on a webserver like [nginx](https://nginx.org/en/).
 
