@@ -7,7 +7,6 @@
 	$: isDarkMode = preferredColorScheme === "dark";
 </script> -->
 
-<!-- {#if !isDarkMode} -->
 <svg
 	style="fill-rule: nonzero; clip-rule: evenodd; stroke-linecap: round; stroke-linejoin: round"
 	xmlns="http://www.w3.org/2000/svg"
@@ -22,7 +21,7 @@
 		vectornator:layerName="Layer 1"
 	/>
 </svg>
-<!-- {:else}
+<!-- {#if !isDarkMode}
 	<svg
 		style="fill-rule: nonzero; clip-rule: evenodd; stroke-linecap: round; stroke-linejoin: round"
 		xmlns="http://www.w3.org/2000/svg"
@@ -37,8 +36,8 @@
 			vectornator:layerName="Layer 1"
 		/>
 	</svg>
+{:else}
 	<svg
-		v-else
 		style="fill-rule: nonzero; clip-rule: evenodd; stroke-linecap: round; stroke-linejoin: round"
 		xmlns="http://www.w3.org/2000/svg"
 		xml:space="preserve"
