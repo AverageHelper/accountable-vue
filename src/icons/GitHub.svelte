@@ -1,11 +1,11 @@
-<script lang="ts">
-	// import { useUiStore } from "../store";
+<!-- <script lang="ts">
+	import { useUiStore } from "../store";
 
-	// const ui = useUiStore();
+	const ui = useUiStore();
 
-	// const preferredColorScheme = ui.preferredColorScheme;
-	// const isDarkMode = preferredColorScheme.value === "dark";
-</script>
+	$: preferredColorScheme = ui.preferredColorScheme;
+	$: isDarkMode = preferredColorScheme === "dark";
+</script> -->
 
 <!-- {#if !isDarkMode} -->
 <svg
@@ -22,8 +22,8 @@
 		vectornator:layerName="Layer 1"
 	/>
 </svg>
-<!-- {:else} -->
-<!-- <svg
+<!-- {:else}
+	<svg
 		style="fill-rule: nonzero; clip-rule: evenodd; stroke-linecap: round; stroke-linejoin: round"
 		xmlns="http://www.w3.org/2000/svg"
 		xml:space="preserve"

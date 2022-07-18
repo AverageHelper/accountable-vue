@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"declaration": true,
 		"noEmit": false,
-		"types": ["svelte"]
+		"types": ["vite/client", "svelte"]
 	},
 	"include": ["**/*.ts", "**/*.d.ts", "**/*.json", "**/*.vue"],
 	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts", "./server/**"]

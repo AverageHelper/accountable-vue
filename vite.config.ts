@@ -3,13 +3,16 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import analyze from "rollup-plugin-analyzer";
 import autoprefixer from "autoprefixer";
 import path from "path";
+import sveltePreprocess from "svelte-preprocess";
 import tsconfigPaths from "vite-tsconfig-paths";
 import vue from "@vitejs/plugin-vue";
 // import vueI18n from "@intlify/vite-plugin-vue-i18n";
 
 export default defineConfig({
 	plugins: [
-		svelte(),
+		svelte({
+			preprocess: sveltePreprocess(),
+		}),
 		vue(),
 		// vueI18n({
 		// 	include: path.resolve(__dirname, "./src/i18n/lang"),

@@ -46,6 +46,14 @@ export const useAuthStore = defineStore("auth", {
 		preferences: defaultPrefs(),
 		userPrefsWatcher: null as null | Unsubscribe,
 	}),
+	getters: {
+		isSignupEnabled(): boolean {
+			return import.meta.env.VITE_ENABLE_SIGNUP === "true";
+		},
+		isLoginEnabled(): boolean {
+			return import.meta.env.VITE_ENABLE_LOGIN === "true";
+		},
+	},
 	actions: {
 		clearCache() {
 			if (this.userPrefsWatcher) this.userPrefsWatcher(); // needs to die before auth watcher
