@@ -79,14 +79,14 @@
 		await transactions.deleteTagIfUnreferenced(tag.detail); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
 	}
 
-	function askToDeleteFile(file: Attachment) {
-		fileToDelete = file;
+	function askToDeleteFile(file: CustomEvent<Attachment>) {
+		fileToDelete = file.detail;
 	}
 
-	async function confirmDeleteFile(file: Attachment) {
+	async function confirmDeleteFile(file: CustomEvent<Attachment>) {
 		if (!transaction) return;
 		try {
-			await attachments.deleteAttachment(file);
+			await attachments.deleteAttachment(file.detail);
 		} catch (error) {
 			ui.handleError(error);
 		} finally {
@@ -102,7 +102,7 @@
 		brokenReferenceToFix = null;
 	}
 
-	async function deleteFileReference(fileId: string) {
+	async function deleteFileReference({ detail: fileId }: CustomEvent<string>) {
 		if (!transaction) return;
 		try {
 			await transactions.removeAttachmentFromTransaction(fileId, transaction);
@@ -212,13 +212,13 @@
 				<li>
 					{#if attachments.items[fileId]}
 						<FileListItem
-							file-id={fileId}
+							{fileId}
 							on:delete={askToDeleteFile}
 							on:delete-reference={deleteFileReference}
 						/>
 					{:else}
 						<FileListItem
-							file-id={fileId}
+							{fileId}
 							on:click={e => {
 								e.preventDefault();
 								openReferenceFixer(fileId);
@@ -260,7 +260,7 @@
 
 <ConfirmDestroyFile
 	file={fileToDelete}
-	is-open={fileToDelete !== null}
+	isOpen={fileToDelete !== null}
 	on:yes={confirmDeleteFile}
 	on:no={cancelDeleteFile}
 />
