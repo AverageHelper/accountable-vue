@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Tag } from "../../model/Tag";
 	import { createEventDispatcher } from "svelte";
-	import { useTransactionsStore } from "../../store";
+	import { numberOfReferencesForTag } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Confirm from "../../components/Confirm.svelte";
 
@@ -13,9 +13,7 @@
 	export let tag: Tag;
 	export let isOpen: boolean;
 
-	const transactions = useTransactionsStore();
-
-	$: count = transactions.numberOfReferencesForTag(tag.id);
+	$: count = numberOfReferencesForTag(tag.id);
 
 	function no() {
 		dispatch("no", tag);

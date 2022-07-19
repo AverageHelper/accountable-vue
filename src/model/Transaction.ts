@@ -27,6 +27,24 @@ export interface Transaction extends Model<"Transaction"> {
 	attachmentIds: Array<string>;
 }
 
+/**
+ * Replaces the type of the given key of an interface with a different type.
+ *
+ * For example:
+ * ```
+ * interface File {
+ *   name: string;
+ *   size: number;
+ * }
+ *
+ * const different: ReplaceWith<File, "size", string> = {
+ *   name: "Foo",
+ *   size: "Bar" // The type here is now `string`, not `number`, so this is valid
+ * };
+ * ```
+ */
+type ReplaceWith<T, K extends keyof T, U> = Omit<T, K> & Record<K, U>;
+
 export type TransactionRecordParams = ReplaceWith<
 	Pick<
 		Transaction,

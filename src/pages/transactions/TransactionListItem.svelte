@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Transaction } from "../../model/Transaction";
-	import { handleError, useAttachmentsStore, useTransactionsStore } from "../../store";
+	import { allBalances, handleError, updateTransaction, useAttachmentsStore } from "../../store";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { onMount } from "svelte";
@@ -14,7 +14,6 @@
 	export let transaction: Transaction;
 
 	const attachments = useAttachmentsStore();
-	const transactions = useTransactionsStore();
 
 	let isChangingReconciled = false;
 	$: isNegative = isDineroNegative(transaction.amount);
@@ -24,8 +23,7 @@
 	$: hasLocation = transaction.locationId !== null;
 	$: timestamp = toTimestamp(transaction.createdAt);
 
-	$: accountBalanceSoFar =
-		(transactions.allBalances[transaction.accountId] ?? {})[transaction.id] ?? null;
+	$: accountBalanceSoFar = ($allBalances[transaction.accountId] ?? {})[transaction.id] ?? null;
 
 	$: transactionRoute = transactionPath(transaction.accountId, transaction.id);
 
@@ -55,7 +53,7 @@
 		try {
 			const newTxn = newTransaction(transaction);
 			newTxn.isReconciled = isReconciled.detail;
-			await transactions.updateTransaction(newTxn);
+			await updateTransaction(newTxn);
 		} catch (error) {
 			handleError(error);
 		}

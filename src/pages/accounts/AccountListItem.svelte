@@ -4,7 +4,7 @@
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { onMount } from "svelte";
-	import { useAccountsStore, useTransactionsStore } from "../../store";
+	import { getTransactionsForAccount, transactionsForAccount, useAccountsStore } from "../../store";
 	import ListItem from "../../components/ListItem.svelte";
 
 	export let account: Account;
@@ -12,10 +12,9 @@
 	export let count: number | null = null;
 
 	const accounts = useAccountsStore();
-	const transactions = useTransactionsStore();
 
 	$: accountRoute = link ? accountPath(account.id) : "#"; // TODO: I18N
-	$: theseTransactions = transactions.transactionsForAccount[account.id];
+	$: theseTransactions = $transactionsForAccount[account.id];
 
 	$: remainingBalance = accounts.currentBalance[account.id] ?? null;
 	$: isBalanceNegative = remainingBalance !== null && isDineroNegative(remainingBalance);
@@ -36,7 +35,7 @@
 		: `${countString} - ${notes}`;
 
 	onMount(async () => {
-		await transactions.getTransactionsForAccount(account);
+		await getTransactionsForAccount(account);
 	});
 </script>
 

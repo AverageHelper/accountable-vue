@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useAccountsStore, useTransactionsStore } from "../../store";
+	import { transactionsForAccountByMonth, useAccountsStore } from "../../store";
 	import AddRecordListItem from "../accounts/AddRecordListItem.svelte";
 	import List from "../../components/List.svelte";
 	import TransactionCreateModal from "./TransactionCreateModal.svelte";
@@ -9,7 +9,6 @@
 	export let rawMonth: string;
 
 	const accounts = useAccountsStore();
-	const transactions = useTransactionsStore();
 
 	let isEditingTransaction = false;
 
@@ -18,9 +17,7 @@
 		decodeURIComponent(rawMonth);
 
 	$: monthTransactions =
-		month === null || !month
-			? []
-			: (transactions.transactionsForAccountByMonth[accountId] ?? {})[month] ?? [];
+		month === null || !month ? [] : ($transactionsForAccountByMonth[accountId] ?? {})[month] ?? [];
 
 	$: account = accounts.items[accountId] ?? null;
 

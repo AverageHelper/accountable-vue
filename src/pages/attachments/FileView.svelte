@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "../../model/Attachment";
+	import { allTransactions, useAttachmentsStore } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { toTimestamp } from "../../transformers";
-	import { useAttachmentsStore, useTransactionsStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import DownloadButton from "../../components/buttons/DownloadButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
@@ -18,11 +18,10 @@
 	}>();
 
 	const attachments = useAttachmentsStore();
-	const transactions = useTransactionsStore();
 
 	let imageUrl: string | null = null;
 	let imageLoadError: Error | null = null;
-	$: linkedTransactions = transactions.allTransactions.filter(
+	$: linkedTransactions = $allTransactions.filter(
 		t => file !== null && t.attachmentIds.includes(file?.id)
 	);
 	$: transactionCount = linkedTransactions.length;

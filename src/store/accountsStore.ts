@@ -6,7 +6,6 @@ import { _ } from "svelte-i18n";
 import { account, recordFromAccount } from "../model/Account";
 import { defineStore } from "pinia";
 import { get } from "svelte/store";
-import { stores } from "./stores";
 import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
@@ -27,8 +26,8 @@ const t = get(_);
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
-		items: {} as Dictionary<Account>, // Account.id -> Account
-		currentBalance: {} as Dictionary<Dinero<number>>, // Account.id -> Dinero
+		items: {} as Record<string, Account>, // Account.id -> Account
+		currentBalance: {} as Record<string, Dinero<number>>, // Account.id -> Dinero
 		loadError: null as Error | null,
 		accountsWatcher: null as Unsubscribe | null,
 	}),
@@ -114,11 +113,12 @@ export const useAccountsStore = defineStore("accounts", {
 		},
 		async deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			// Don't delete if we have transactions
-			const { useTransactionsStore } = await import("./transactionsStore");
-			const transactions = useTransactionsStore();
-			await transactions.getTransactionsForAccount(account);
+			const { getTransactionsForAccount, transactionsForAccount } = await import(
+				"./transactionsStore"
+			);
+			await getTransactionsForAccount(account);
 
-			const accountTransactions = transactions.transactionsForAccount[account.id] ?? {};
+			const accountTransactions = get(transactionsForAccount)[account.id] ?? {};
 			const transactionCount = Object.keys(accountTransactions).length;
 			if (transactionCount !== 0) {
 				throw new Error("Cannot delete an account that has transactions."); // TODO: I18N
@@ -139,7 +139,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
-			const { transactions: transactionsStore } = await stores();
+			const { getAllTransactionsAsJson } = await import("./transactionsStore");
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -148,7 +148,7 @@ export const useAccountsStore = defineStore("accounts", {
 			const snap = await getDocs<AccountRecordPackage>(collection);
 			const accounts = snap.docs.map(doc => accountFromSnapshot(doc, dek));
 			return await asyncMap(accounts, async acct => {
-				const transactions = await transactionsStore.getAllTransactionsAsJson(acct);
+				const transactions = await getAllTransactionsAsJson(acct);
 				return { ...recordFromAccount(acct), id: acct.id, transactions };
 			});
 		},
@@ -172,8 +172,8 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 			if (!batch) await updateUserStats();
 
-			const { transactions } = await stores();
-			await transactions.importTransactions(accountToImport.transactions ?? [], newAccount);
+			const { importTransactions } = await import("./transactionsStore");
+			await importTransactions(accountToImport.transactions ?? [], newAccount);
 		},
 	},
 });

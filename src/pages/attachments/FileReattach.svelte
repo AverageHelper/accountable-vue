@@ -2,7 +2,7 @@
 	import type { Attachment } from "../../model/Attachment";
 	import type { Transaction } from "../../model/Transaction";
 	import { createEventDispatcher } from "svelte";
-	import { handleError, useAttachmentsStore, useTransactionsStore } from "../../store";
+	import { handleError, updateTransaction, useAttachmentsStore } from "../../store";
 	import FileInput from "./FileInput.svelte";
 	import FileListItem from "./FileListItem.svelte";
 	import List from "../../components/List.svelte";
@@ -21,7 +21,6 @@
 	export let fileId: string;
 
 	const attachments = useAttachmentsStore();
-	const transactions = useTransactionsStore();
 
 	$: files = attachments.allAttachments;
 	$: numberOfFiles = files.length;
@@ -30,7 +29,7 @@
 		const newTransaction = copy(transaction);
 		addAttachmentToTransaction(newTransaction, attachment);
 		removeAttachmentIdFromTransaction(newTransaction, fileId);
-		await transactions.updateTransaction(newTransaction);
+		await updateTransaction(newTransaction);
 		dispatch("close");
 	}
 

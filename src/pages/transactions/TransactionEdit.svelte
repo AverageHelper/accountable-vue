@@ -5,7 +5,6 @@
 	import { _ } from "svelte-i18n";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { equal, isNegative, isZero, toSnapshot } from "dinero.js";
-	import { handleError, useLocationsStore, useTransactionsStore } from "../../store";
 	import { recordFromLocation } from "../../model/Location";
 	import { transaction as newTransaction } from "../../model/Transaction";
 	import { zeroDinero } from "../../helpers/dineroHelpers";
@@ -19,6 +18,14 @@
 	import TextAreaField from "../../components/inputs/TextAreaField.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 	import TrashIcon from "../../icons/Trash.svelte";
+	import {
+		createTransaction,
+		deleteTransaction,
+		handleError,
+		numberOfReferencesForLocation,
+		updateTransaction,
+		useLocationsStore,
+	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
 		deleted: void;
@@ -29,7 +36,6 @@
 	export let transaction: Transaction | null = null;
 
 	const locations = useLocationsStore();
-	const transactions = useTransactionsStore();
 
 	$: ogTransaction = transaction;
 	$: ogLocation =
@@ -107,7 +113,7 @@
 				// Just delete the location if this is the only transaction which references it
 				const ogLocation = locations.items[ogLocationId];
 				if (ogLocation) {
-					const referenceCount = transactions.numberOfReferencesForLocation(ogLocation.id);
+					const referenceCount = numberOfReferencesForLocation(ogLocation.id);
 					if (referenceCount > 1) {
 						await locations.deleteLocation(ogLocation);
 					}
@@ -139,9 +145,9 @@
 				attachmentIds: ogTransaction?.attachmentIds ?? [],
 			};
 			if (ogTransaction === null) {
-				await transactions.createTransaction(params);
+				await createTransaction(params);
 			} else {
-				await transactions.updateTransaction(newTransaction({ ...params, id: ogTransaction.id }));
+				await updateTransaction(newTransaction({ ...params, id: ogTransaction.id }));
 			}
 
 			dispatch("finished");
@@ -165,7 +171,7 @@
 				throw new Error("No account to delete"); // TODO: I18N
 			}
 
-			await transactions.deleteTransaction(ogTransaction);
+			await deleteTransaction(ogTransaction);
 			dispatch("deleted");
 			dispatch("finished");
 		} catch (error) {

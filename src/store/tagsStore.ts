@@ -2,8 +2,8 @@ import type { Tag, TagRecordParams } from "../model/Tag";
 import type { HashStore, TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { get } from "svelte/store";
 import { recordFromTag, tag } from "../model/Tag";
-import { stores } from "./stores";
 import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
@@ -26,7 +26,7 @@ import {
 
 export const useTagsStore = defineStore("tags", {
 	state: () => ({
-		items: {} as Dictionary<Tag>, // Tag.id -> Tag
+		items: {} as Record<string, Tag>, // Tag.id -> Tag
 		loadError: null as Error | null,
 		tagsWatcher: null as Unsubscribe | null,
 	}),
@@ -140,7 +140,7 @@ export const useTagsStore = defineStore("tags", {
 				.map(t => ({ ...recordFromTag(t), id: t.id }));
 		},
 		async importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
-			const { transactions } = await stores();
+			const { allTransactions, updateTransaction } = await import("./transactionsStore");
 
 			const storedTag = this.items[tagToImport.id] ?? null;
 			if (storedTag) {
@@ -156,7 +156,7 @@ export const useTagsStore = defineStore("tags", {
 				const newTag = await this.createTag(params, batch);
 
 				// Update transactions with new tag ID
-				const matchingTransactions = transactions.allTransactions.filter(t =>
+				const matchingTransactions = get(allTransactions).filter(t =>
 					t.tagIds.includes(tagToImport.id)
 				);
 				for (const txns of chunk(matchingTransactions, 500)) {
@@ -166,7 +166,7 @@ export const useTagsStore = defineStore("tags", {
 							const t = copy(txn);
 							removeTagFromTransaction(t, tag(tagToImport));
 							addTagToTransaction(t, newTag);
-							return transactions.updateTransaction(t, uBatch);
+							return updateTransaction(t, uBatch);
 						})
 					);
 					await uBatch.commit();

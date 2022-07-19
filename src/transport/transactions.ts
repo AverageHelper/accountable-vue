@@ -33,10 +33,10 @@ export function transactionFromSnapshot(
 export async function getTransactionsForAccount(
 	account: Account,
 	dek: HashStore
-): Promise<Dictionary<Transaction>> {
+): Promise<Record<string, Transaction>> {
 	const snap = await getDocs<TransactionRecordPackage>(transactionsCollection());
 
-	const result: Dictionary<Transaction> = {};
+	const result: Record<string, Transaction> = {};
 	for (const doc of snap.docs) {
 		const transaction = transactionFromSnapshot(doc, dek);
 		if (transaction.accountId === account.id) {

@@ -3,7 +3,6 @@
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { reverseChronologically } from "../../model/utility/sort";
-	import { useAccountsStore, useTransactionsStore } from "../../store";
 	import { useRoute, useRouter } from "vue-router";
 	import { zeroDinero } from "../../helpers/dineroHelpers";
 	import AccountEdit from "./AccountEdit.svelte";
@@ -17,44 +16,45 @@
 	import TransactionCreateModal from "../transactions/TransactionCreateModal.svelte";
 	import TransactionMonthListItem from "../transactions/TransactionMonthListItem.svelte";
 	import TransactionListItem from "../transactions/TransactionListItem.svelte";
+	import {
+		months,
+		transactionsForAccount,
+		transactionsForAccountByMonth,
+		useAccountsStore,
+		watchTransactions,
+	} from "../../store";
 
 	export let accountId: string;
 
 	const route = useRoute();
 	const router = useRouter();
 	const accounts = useAccountsStore();
-	const transactions = useTransactionsStore();
 
 	let isEditingAccount = false;
 	let isEditingTransaction = false;
 
 	$: account = accounts.items[accountId] ?? null;
-	$: theseTransactions = Object.values(
-		(transactions.transactionsForAccount[accountId] ?? {}) as Record<string, Transaction>
-	).sort(reverseChronologically);
+	$: theseTransactions = Object.values($transactionsForAccount[accountId] ?? {}) //
+		.sort(reverseChronologically);
 
 	let transactionMonths: Array<[string, Array<Transaction>]>;
 	$: {
 		const now = new Date();
-		const months = transactions.months;
-		transactionMonths = Object.entries(
-			(transactions.transactionsForAccountByMonth[accountId] ?? {}) as Record<
-				string,
-				Array<Transaction>
-			>
-		).sort(([monthId1], [monthId2]) => {
-			// Look up the month's cached start date
-			const a = months[monthId1];
-			const b = months[monthId2];
+		transactionMonths = Object.entries($transactionsForAccountByMonth[accountId] ?? {}).sort(
+			([monthId1], [monthId2]) => {
+				// Look up the month's cached start date
+				const a = $months[monthId1];
+				const b = $months[monthId2];
 
-			if (!a) console.warn(`Month ${monthId1} (a) doesn't exist in cache`);
-			if (!b) console.warn(`Month ${monthId2} (b) doesn't exist in cache`);
+				if (!a) console.warn(`Month ${monthId1} (a) doesn't exist in cache`);
+				if (!b) console.warn(`Month ${monthId2} (b) doesn't exist in cache`);
 
-			const aStart = a?.start ?? now;
-			const bStart = b?.start ?? now;
-			// Order reverse chronologically
-			return bStart.getTime() - aStart.getTime();
-		});
+				const aStart = a?.start ?? now;
+				const bStart = b?.start ?? now;
+				// Order reverse chronologically
+				return bStart.getTime() - aStart.getTime();
+			}
+		);
 	}
 
 	$: searchClient = new Fuse(theseTransactions, { keys: ["title", "notes"] });
@@ -67,7 +67,7 @@
 	$: remainingBalance = accounts.currentBalance[accountId] ?? null;
 	$: isNegative = isDineroNegative(remainingBalance ?? zeroDinero);
 
-	$: void transactions.watchTransactions(account);
+	$: void watchTransactions(account);
 
 	function goBack() {
 		router.back();

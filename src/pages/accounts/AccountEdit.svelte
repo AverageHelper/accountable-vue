@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 	import { account as newAccount } from "../../model/Account";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { handleError, useAccountsStore, useTransactionsStore } from "../../store";
+	import { transactionsForAccount, handleError, useAccountsStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextAreaField from "../../components/inputs/TextAreaField.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
@@ -16,12 +16,11 @@
 	export let account: Account | null = null;
 
 	const accounts = useAccountsStore();
-	const transactions = useTransactionsStore();
 
 	$: isCreatingAccount = account === null;
 	$: numberOfTransactions = !account
 		? 0
-		: Object.keys(transactions.transactionsForAccount[account.id] ?? {}).length;
+		: Object.keys($transactionsForAccount[account.id] ?? {}).length;
 
 	let isLoading = false;
 	let title = "";

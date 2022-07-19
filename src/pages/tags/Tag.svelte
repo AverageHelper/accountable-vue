@@ -1,16 +1,14 @@
 <script lang="ts">
 	import type { Tag } from "../../model/Tag";
+	import { numberOfReferencesForTag } from "../../store";
 	import TinyButton from "../../components/buttons/TinyButton.svelte";
-	import { useTransactionsStore } from "../../store";
 
 	export let tag: Tag;
 	export let showsCount: boolean = false;
 	export let onSelect: ((tag: Tag) => void) | null = null;
 	export let onRemove: ((tag: Tag) => void) | null = null;
 
-	const transactions = useTransactionsStore();
-
-	$: count = transactions.numberOfReferencesForTag(tag.id);
+	$: count = numberOfReferencesForTag(tag.id);
 </script>
 
 <div

@@ -2,8 +2,8 @@ import type { Location, LocationRecordParams } from "../model/Location";
 import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { defineStore } from "pinia";
+import { get } from "svelte/store";
 import { location, recordFromLocation } from "../model/Location";
-import { stores } from "./stores";
 import { transaction } from "../model/Transaction";
 import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
@@ -22,7 +22,7 @@ import {
 
 export const useLocationsStore = defineStore("locations", {
 	state: () => ({
-		items: {} as Dictionary<Location>, // Location.id -> Location
+		items: {} as Record<string, Location>, // Location.id -> Location
 		loadError: null as Error | null,
 		locationsWatcher: null as Unsubscribe | null,
 	}),
@@ -168,7 +168,7 @@ export const useLocationsStore = defineStore("locations", {
 				.map(t => ({ ...recordFromLocation(t), id: t.id }));
 		},
 		async importLocation(locationToImport: LocationSchema, batch?: WriteBatch): Promise<void> {
-			const { transactions } = await stores();
+			const { allTransactions, updateTransaction } = await import("./transactionsStore");
 
 			const storedLocation = this.items[locationToImport.id] ?? null;
 			if (storedLocation) {
@@ -186,7 +186,7 @@ export const useLocationsStore = defineStore("locations", {
 				const newLocation = await this.createLocation(params, batch);
 
 				// Update transactions with new location ID
-				const matchingTransactions = transactions.allTransactions.filter(
+				const matchingTransactions = get(allTransactions).filter(
 					t => t.locationId === locationToImport.id
 				);
 				for (const txns of chunk(matchingTransactions, 500)) {
@@ -195,7 +195,7 @@ export const useLocationsStore = defineStore("locations", {
 						txns.map(t => {
 							const newTxn = transaction(t);
 							newTxn.locationId = newLocation.id;
-							return transactions.updateTransaction(newTxn, uBatch);
+							return updateTransaction(newTxn, uBatch);
 						})
 					);
 					await uBatch.commit();
@@ -205,10 +205,10 @@ export const useLocationsStore = defineStore("locations", {
 			}
 		},
 		async importLocations(data: Array<LocationSchema>): Promise<void> {
-			const { transactions } = await stores();
+			const { getAllTransactions } = await import("./transactionsStore");
 			// Assume we've imported all transactions,
 			// but don't assume we have them cached yet
-			await transactions.getAllTransactions();
+			await getAllTransactions();
 			await this.getAllLocations();
 
 			// Only batch 250 at a time, since each import does up to 2 writes

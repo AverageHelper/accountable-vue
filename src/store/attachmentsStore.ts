@@ -5,7 +5,7 @@ import type { Entry as ZipEntry } from "@zip.js/zip.js";
 import { attachment, recordFromAttachment } from "../model/Attachment";
 import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
-import { stores } from "./stores";
+import { get } from "svelte/store";
 import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
@@ -28,8 +28,8 @@ import {
 
 export const useAttachmentsStore = defineStore("attachments", {
 	state: () => ({
-		items: {} as Dictionary<Attachment>, // Attachment.id -> Attachment
-		files: {} as Dictionary<string>, // Attachment.id -> image data URL
+		items: {} as Record<string, Attachment>, // Attachment.id -> Attachment
+		files: {} as Record<string, string>, // Attachment.id -> image data URL
 		loadError: null as Error | null,
 		attachmentsWatcher: null as Unsubscribe | null,
 	}),
@@ -133,18 +133,17 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
-			const { useTransactionsStore } = await import("./transactionsStore");
-			const transactions = useTransactionsStore();
+			const { allTransactions, removeAttachmentFromTransaction } = await import(
+				"./transactionsStore"
+			);
 
 			// Remove this attachment from any transactions which reference it
-			const relevantTransactions = transactions.allTransactions.filter(t =>
+			const relevantTransactions = get(allTransactions).filter(t =>
 				t.attachmentIds.includes(attachment.id)
 			);
 			for (const ts of chunk(relevantTransactions, 500)) {
 				const tBatch = writeBatch();
-				await Promise.all(
-					ts.map(t => transactions.removeAttachmentFromTransaction(attachment.id, t, tBatch))
-				);
+				await Promise.all(ts.map(t => removeAttachmentFromTransaction(attachment.id, t, tBatch)));
 				await tBatch.commit();
 			}
 
@@ -230,18 +229,20 @@ export const useAttachmentsStore = defineStore("attachments", {
 				};
 				const newAttachment = await this.createAttachment(params, fileToImport);
 
-				const { transactions } = await stores();
+				const { allTransactions, getAllTransactions, updateTransaction } = await import(
+					"./transactionsStore"
+				);
 				// Assume we've imported all transactions,
 				// but don't assume we have them cached yet
-				await transactions.getAllTransactions();
+				await getAllTransactions();
 
-				for (const transaction of transactions.allTransactions) {
+				for (const transaction of get(allTransactions)) {
 					if (!transaction.attachmentIds.includes(attachmentToImport.id)) continue;
 
 					// Update the transaction with new attachment ID
 					removeAttachmentIdFromTransaction(transaction, attachmentToImport.id);
 					addAttachmentToTransaction(transaction, newAttachment);
-					await transactions.updateTransaction(transaction);
+					await updateTransaction(transaction);
 				}
 			}
 		},

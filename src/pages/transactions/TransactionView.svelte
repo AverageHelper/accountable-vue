@@ -21,12 +21,16 @@
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
 	import {
+		deleteTagIfUnreferenced,
 		handleError,
+		removeAttachmentFromTransaction,
+		removeTagFromTransaction,
+		transactionsForAccount,
+		updateTransaction,
 		useAccountsStore,
 		useAttachmentsStore,
 		useLocationsStore,
 		useTagsStore,
-		useTransactionsStore,
 	} from "../../store";
 
 	export let accountId: string;
@@ -36,14 +40,13 @@
 	const accounts = useAccountsStore();
 	const attachments = useAttachmentsStore();
 	const locations = useLocationsStore();
-	const transactions = useTransactionsStore();
 	const tags = useTagsStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
 	let brokenReferenceToFix: string | null = null;
 
-	$: theseTransactions = transactions.transactionsForAccount[accountId] ?? {};
+	$: theseTransactions = $transactionsForAccount[accountId] ?? {};
 
 	$: numberOfTransactions = Object.keys(theseTransactions).length;
 	$: account = accounts.items[accountId];
@@ -65,7 +68,7 @@
 		if (!transaction) return;
 		const newTag = await tags.createTag(params.detail);
 		addTagToTransaction(transaction, newTag);
-		await transactions.updateTransaction(transaction);
+		await updateTransaction(transaction);
 	}
 
 	function modifyTag(tag: CustomEvent<TagObject>) {
@@ -74,8 +77,8 @@
 
 	async function removeTag(tag: CustomEvent<TagObject>) {
 		if (!transaction) return;
-		await transactions.removeTagFromTransaction(tag.detail, transaction);
-		await transactions.deleteTagIfUnreferenced(tag.detail); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
+		await removeTagFromTransaction(tag.detail, transaction);
+		await deleteTagIfUnreferenced(tag.detail); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
 	}
 
 	function askToDeleteFile(file: CustomEvent<Attachment>) {
@@ -104,7 +107,7 @@
 	async function deleteFileReference({ detail: fileId }: CustomEvent<string>) {
 		if (!transaction) return;
 		try {
-			await transactions.removeAttachmentFromTransaction(fileId, transaction);
+			await removeAttachmentFromTransaction(fileId, transaction);
 		} catch (error) {
 			handleError(error);
 		} finally {
@@ -122,7 +125,7 @@
 		try {
 			const attachment = await attachments.createAttachmentFromFile(file.detail);
 			addAttachmentToTransaction(transaction, attachment);
-			await transactions.updateTransaction(transaction);
+			await updateTransaction(transaction);
 		} catch (error) {
 			handleError(error);
 		}

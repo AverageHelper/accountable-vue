@@ -101,12 +101,13 @@ export const useAuthStore = defineStore("auth", {
 		async onSignedOut() {
 			this.clearCache();
 
-			const { accounts, attachments, locations, tags, transactions } = await stores();
+			const { accounts, attachments, locations, tags } = await stores();
+			const { clearCache: clearTransactionsCache } = await import("./transactionsStore");
 			accounts.clearCache();
 			attachments.clearCache();
 			locations.clearCache();
 			tags.clearCache();
-			transactions.clearCache();
+			clearTransactionsCache();
 		},
 		async fetchSession() {
 			bootstrap();
@@ -197,9 +198,10 @@ export const useAuthStore = defineStore("auth", {
 		async destroyVault(password: string) {
 			if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
-			const { accounts, attachments, locations, tags, transactions } = await stores();
+			const { accounts, attachments, locations, tags } = await stores();
+			const { deleteAllTransactions } = await import("./transactionsStore");
 			await attachments.deleteAllAttachments();
-			await transactions.deleteAllTransactions();
+			await deleteAllTransactions();
 			await tags.deleteAllTags();
 			await accounts.deleteAllAccounts();
 			await locations.deleteAllLocation();
