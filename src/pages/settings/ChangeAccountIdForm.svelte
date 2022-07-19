@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { toast } from "@zerodevx/svelte-toast";
 	import { useAuthStore } from "../../store/authStore";
-	import { useToast } from "vue-toastification";
 	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import NewLoginModal from "../../components/NewLoginModal.svelte";
@@ -9,7 +9,6 @@
 
 	const auth = useAuthStore();
 	const ui = useUiStore();
-	const toast = useToast();
 
 	let isLoading = false;
 	$: currentAccountId = auth.accountId;
@@ -31,7 +30,7 @@
 			isLoading = true;
 
 			await auth.regenerateAccountId(currentPassword);
-			toast.success("Your account ID has been updated!"); // TODO: I18N
+			toast.push("Your account ID has been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
 			ui.handleError(error);

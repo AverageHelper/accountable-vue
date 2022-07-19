@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { toast } from "@zerodevx/svelte-toast";
 	import { useAuthStore } from "../../store/authStore";
-	import { useToast } from "vue-toastification";
 	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
 	const auth = useAuthStore();
 	const ui = useUiStore();
-	const toast = useToast();
 
 	let isLoading = false;
 	let currentPassword = "";
@@ -36,7 +35,7 @@
 			isLoading = true;
 
 			await auth.updatePassword(currentPassword, newPassword);
-			toast.success("Your passphrase has been updated!"); // TODO: I18N
+			toast.push("Your passphrase has been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
 			ui.handleError(error);

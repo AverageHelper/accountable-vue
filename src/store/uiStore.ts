@@ -2,8 +2,8 @@ import { AccountableError, NetworkError } from "../transport/errors/index.js";
 import { bootstrap, db, getUserStats, isWrapperInstantiated } from "../transport/db.js";
 import { defineStore } from "pinia";
 import { getServerVersion } from "../transport/server.js";
-import { useToast } from "vue-toastification";
 import { StructError } from "superstruct";
+import { toast } from "@zerodevx/svelte-toast";
 
 type ColorScheme = "light" | "dark";
 
@@ -87,8 +87,6 @@ export const useUiStore = defineStore("ui", {
 		},
 		handleError(error: unknown) {
 			// TODO: I18N
-			const toast = useToast();
-
 			let message: string;
 			if (error instanceof Error || error instanceof NetworkError) {
 				message = error.message;
@@ -101,16 +99,18 @@ export const useUiStore = defineStore("ui", {
 			}
 
 			if (message.includes("auth/invalid-email")) {
-				toast.error("That doesn't quite look like an email address. (You should never see this)");
+				toast.push("That doesn't quite look like an email address. (You should never see this)", {
+					classes: ["toast-error"],
+				});
 			} else if (
 				message.includes("auth/wrong-password") ||
 				message.includes("auth/user-not-found")
 			) {
-				toast.error("Incorrect account ID or password.");
+				toast.push("Incorrect account ID or password.", { classes: ["toast-error"] });
 			} else if (message.includes("auth/email-already-in-use")) {
-				toast.error("Someone already has an account with that ID.");
+				toast.push("Someone already has an account with that ID.", { classes: ["toast-error"] });
 			} else {
-				toast.error(message);
+				toast.push(message, { classes: ["toast-error"] });
 			}
 			console.error(error);
 		},

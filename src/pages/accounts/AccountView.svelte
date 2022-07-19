@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { Transaction } from "../../model/Transaction";
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
-	import { computed } from "vue";
 	import { reverseChronologically } from "../../model/utility/sort";
 	import { useAccountsStore, useTransactionsStore } from "../../store";
 	import { useRoute, useRouter } from "vue-router";
@@ -29,29 +29,33 @@
 	let isEditingTransaction = false;
 
 	$: account = accounts.items[accountId] ?? null;
-	$: theseTransactions = Object.values(transactions.transactionsForAccount[accountId] ?? {}).sort(
-		reverseChronologically
-	);
+	$: theseTransactions = Object.values(
+		(transactions.transactionsForAccount[accountId] ?? {}) as Record<string, Transaction>
+	).sort(reverseChronologically);
 
-	const transactionMonths = computed(() => {
+	let transactionMonths: Array<[string, Array<Transaction>]>;
+	$: {
 		const now = new Date();
 		const months = transactions.months;
-		return Object.entries(transactions.transactionsForAccountByMonth[accountId] ?? {}).sort(
-			([monthId1], [monthId2]) => {
-				// Look up the month's cached start date
-				const a = months[monthId1];
-				const b = months[monthId2];
+		transactionMonths = Object.entries(
+			(transactions.transactionsForAccountByMonth[accountId] ?? {}) as Record<
+				string,
+				Array<Transaction>
+			>
+		).sort(([monthId1], [monthId2]) => {
+			// Look up the month's cached start date
+			const a = months[monthId1];
+			const b = months[monthId2];
 
-				if (!a) console.warn(`Month ${monthId1} (a) doesn't exist in cache`);
-				if (!b) console.warn(`Month ${monthId2} (b) doesn't exist in cache`);
+			if (!a) console.warn(`Month ${monthId1} (a) doesn't exist in cache`);
+			if (!b) console.warn(`Month ${monthId2} (b) doesn't exist in cache`);
 
-				const aStart = a?.start ?? now;
-				const bStart = b?.start ?? now;
-				// Order reverse chronologically
-				return bStart.getTime() - aStart.getTime();
-			}
-		);
-	});
+			const aStart = a?.start ?? now;
+			const bStart = b?.start ?? now;
+			// Order reverse chronologically
+			return bStart.getTime() - aStart.getTime();
+		});
+	}
 
 	$: searchClient = new Fuse(theseTransactions, { keys: ["title", "notes"] });
 	$: searchQuery = (route.query["q"] ?? "").toString();
@@ -128,7 +132,7 @@
 			<li>
 				<AddRecordListItem on:click={startCreatingTransaction} />
 			</li>
-			{#each Object.entries(transactionMonths) as [month, monthTransactions] (month)}
+			{#each transactionMonths as [month, monthTransactions] (month)}
 				<li>
 					<TransactionMonthListItem
 						{accountId}

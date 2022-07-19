@@ -2,8 +2,8 @@
 	import type { LocationPref } from "../../transport";
 	import { locationPrefs as sensitivityOptions } from "../../transport";
 	import { onMount } from "svelte";
+	import { toast } from "@zerodevx/svelte-toast";
 	import { useAuthStore } from "../../store/authStore";
-	import { useToast } from "vue-toastification";
 	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Checkmark from "../../icons/Checkmark.svelte";
@@ -11,7 +11,6 @@
 
 	const auth = useAuthStore();
 	const ui = useUiStore();
-	const toast = useToast();
 
 	let isLoading = false;
 	$: currentSensitivity = auth.preferences.locationSensitivity;
@@ -44,7 +43,7 @@
 			await auth.updateUserPreferences({
 				locationSensitivity: selectedSensitivity,
 			});
-			toast.success("Your preferences have been updated!"); // TODO: I18N
+			toast.push("Your preferences have been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
 			ui.handleError(error);

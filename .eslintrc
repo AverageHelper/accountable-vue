@@ -54,53 +54,6 @@
 
 	"overrides": [
 		{
-			"files": ["src/**/*.vue"],
-			"parser": "vue-eslint-parser",
-			"parserOptions": {
-				"parser": "@typescript-eslint/parser",
-				"project": "./tsconfig.prod.json",
-				"tsconfigRootDir": ".",
-				"extraFileExtensions": [".vue"],
-				"plugins": ["@typescript-eslint"]
-			},
-			"extends": [
-				"@vue/typescript/recommended",
-				"plugin:vue/vue3-recommended",
-				// "@vue/prettier/recommended",
-				// "@vue/prettier/@typescript-eslint",
-				"eslint:recommended",
-				"plugin:@typescript-eslint/recommended",
-				"plugin:@typescript-eslint/recommended-requiring-type-checking"
-			],
-			"rules": {
-				"no-undef": "off", // TypeScript does this for us
-				"quotes": ["warn", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
-				"keyword-spacing": "warn",
-				"vue/no-unused-components": "warn",
-				"vue/component-name-in-template-casing": ["error", "PascalCase"],
-				"vue/custom-event-name-casing": "warn",
-				"vue/match-component-file-name": [
-					"warn",
-					{
-						"extensions": ["vue"],
-						"shouldMatchCase": true
-					}
-				],
-				"vue/html-self-closing": "off",
-				"vue/max-attributes-per-line": "off",
-				"vue/html-closing-bracket-newline": "off",
-				"vue/multiline-html-element-content-newline": "off",
-				"vue/multi-word-component-names": "off",
-				"vue/v-on-event-hyphenation": "off",
-				"vue/html-indent": "off",
-				"vue/singleline-html-element-content-newline": "off",
-				"@typescript-eslint/no-floating-promises": "warn",
-				"@typescript-eslint/no-misused-promises": "off",
-				"@typescript-eslint/prefer-regexp-exec": "off",
-				"@typescript-eslint/no-unused-vars": "warn"
-			}
-		},
-		{
 			"files": ["./*.ts", "src/**/*.test.ts", "tests/**/*.ts", "**/__mocks__/**/*.ts"],
 			"extends": ["plugin:prettier/recommended"],
 			"plugins": ["prettier", "@typescript-eslint"],

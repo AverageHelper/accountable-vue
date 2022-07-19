@@ -4,7 +4,7 @@
 	import type { Entry } from "@zip.js/zip.js";
 	import { account as newAccount } from "../../model/Account";
 	import { createEventDispatcher, tick } from "svelte";
-	import { useToast } from "vue-toastification";
+	import { toast } from "@zerodevx/svelte-toast";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import AccountListItem from "../../pages/accounts/AccountListItem.svelte";
 	import Checkmark from "../../icons/Checkmark.svelte";
@@ -17,9 +17,6 @@
 		useTagsStore,
 		useUiStore,
 	} from "../../store";
-
-	// FIXME: This should come from global.d.ts, but doesn't.
-	type Dictionary<T> = Record<string, T | undefined>;
 
 	const dispatch = createEventDispatcher<{
 		finished: void;
@@ -34,7 +31,6 @@
 	const locations = useLocationsStore();
 	const tags = useTagsStore();
 	const ui = useUiStore();
-	const toast = useToast();
 
 	let accountIdsToImport = new Set<string>();
 	$: numberOfAttachmentsToImport = db?.attachments?.length ?? 0;
@@ -76,13 +72,13 @@
 	$: newAccounts = importedAccounts //
 		.filter(a1 => !storedAccounts.some(a2 => a2.id === a1.id));
 
-	let transactionCounts: Dictionary<number> = {};
+	let transactionCounts: Record<string, number> = {};
 	$: (db?.accounts ?? []).forEach(a => {
 		transactionCounts[a.id] = (a.transactions ?? []).length;
 	});
 
 	$: if (hasDb && importedAccounts.length === 0) {
-		toast.info(`${fileName || "That file"} contains no financial data.`); // TODO: I18N
+		toast.push(`${fileName || "That file"} contains no financial data.`); // TODO: I18N
 		forgetDb();
 	}
 
@@ -134,7 +130,7 @@
 			itemsImported += numberOfAttachmentsToImport;
 			await tick();
 
-			toast.success("Imported all the things!"); // TODO: I18N
+			toast.push("Imported all the things!", { classes: ["toast-success"] }); // TODO: I18N
 			dispatch("finished");
 		} catch (error) {
 			ui.handleError(error);

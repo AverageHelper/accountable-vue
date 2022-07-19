@@ -5,16 +5,15 @@
 	import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 	import { create } from "superstruct";
 	import { schema } from "../../model/DatabaseSchema";
+	import { toast } from "@zerodevx/svelte-toast";
 	import { useUiStore } from "../../store";
 	import { useRouter } from "vue-router";
-	import { useToast } from "vue-toastification";
 	import FileInput from "../attachments/FileInput.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ImportProcessModal from "./ImportProcessModal.svelte";
 
 	const ui = useUiStore();
 	const router = useRouter();
-	const toast = useToast();
 
 	let isLoading = false;
 	let archive: Array<Entry> | null = null;
@@ -28,15 +27,20 @@
 		db = null;
 		isLoading = true;
 
-		let progressMessage = `Loading ${file.name}`; // TODO: I18N
-		const progressMeter = toast.info(progressMessage);
+		let msg = `Loading ${file.name}`; // TODO: I18N
+		const progressMeter = toast.push(msg, {
+			duration: 300,
+			initial: 0,
+			next: 0,
+			dismissable: false,
+		});
 
 		const reader = new ZipReader(new BlobReader(file));
 		try {
 			const zipFile = await reader.getEntries({
 				onprogress: progress => {
-					progressMessage = `Loading ${file.name}: ${progress}%`; // TODO: I18N
-					toast.update(progressMeter, { content: progressMessage });
+					msg = `Loading ${file.name}: ${progress}%`; // TODO: I18N
+					toast.set(progressMeter, { msg, next: progress });
 				},
 			});
 
@@ -52,7 +56,7 @@
 		} catch (error) {
 			ui.handleError(error);
 		} finally {
-			toast.dismiss(progressMeter);
+			toast.set(progressMeter, { next: 1 });
 			await reader.close();
 		}
 
