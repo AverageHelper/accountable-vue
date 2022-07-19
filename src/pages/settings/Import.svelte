@@ -1,0 +1,106 @@
+<script lang="ts">
+	import type { DatabaseSchema } from "../../model/DatabaseSchema";
+	import type { Entry } from "@zip.js/zip.js";
+	import { accountsPath } from "../../router";
+	import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
+	import { create } from "superstruct";
+	import { schema } from "../../model/DatabaseSchema";
+	import { useUiStore } from "../../store";
+	import { useRouter } from "vue-router";
+	import { useToast } from "vue-toastification";
+	import FileInput from "../attachments/FileInput.svelte";
+	import ActionButton from "../../components/buttons/ActionButton.svelte";
+	import ImportProcessModal from "./ImportProcessModal.svelte";
+
+	const ui = useUiStore();
+	const router = useRouter();
+	const toast = useToast();
+
+	let isLoading = false;
+	let archive: Array<Entry> | null = null;
+	let dbName = "";
+	let db: DatabaseSchema | null = null;
+
+	async function onFileReceived(event: CustomEvent<File>) {
+		const file = event.detail;
+		archive = null;
+		dbName = "";
+		db = null;
+		isLoading = true;
+
+		let progressMessage = `Loading ${file.name}`; // TODO: I18N
+		const progressMeter = toast.info(progressMessage);
+
+		const reader = new ZipReader(new BlobReader(file));
+		try {
+			const zipFile = await reader.getEntries({
+				onprogress: progress => {
+					progressMessage = `Loading ${file.name}: ${progress}%`; // TODO: I18N
+					toast.update(progressMeter, { content: progressMessage });
+				},
+			});
+
+			const dbFile = zipFile.find(f => f.filename === "accountable/database.json");
+			if (!dbFile?.getData)
+				throw new TypeError("accountable/database.json not present at root of zip"); // TODO: I18N
+
+			const jsonString = (await dbFile.getData(new TextWriter())) as string;
+			const json = JSON.parse(jsonString) as unknown;
+			db = create(json, schema);
+			dbName = file.name;
+			archive = zipFile;
+		} catch (error) {
+			ui.handleError(error);
+		} finally {
+			toast.dismiss(progressMeter);
+			await reader.close();
+		}
+
+		isLoading = false;
+	}
+
+	function forgetFile() {
+		db = null;
+		dbName = "";
+		void router.push(accountsPath());
+	}
+</script>
+
+<form on:submit|preventDefault>
+	<!-- TODO: I18N -->
+	<h3>Import</h3>
+	<p>Import a JSON file describing one or more accounts.</p>
+	<div class="buttons">
+		<FileInput accept="application/zip" disabled={isLoading} on:input={onFileReceived} let:click>
+			<ActionButton
+				kind="bordered"
+				disabled={isLoading}
+				on:click={e => {
+					e.preventDefault();
+					click();
+				}}>Import</ActionButton
+			>
+		</FileInput>
+	</div>
+</form>
+
+<ImportProcessModal fileName={dbName} {db} zip={archive} on:finished={forgetFile} />
+
+<style type="text/scss">
+	p {
+		margin-bottom: 0;
+	}
+
+	.buttons {
+		display: flex;
+		flex-flow: row wrap;
+
+		:not(:last-child) {
+			margin-right: 8pt;
+		}
+
+		* {
+			text-decoration: none;
+		}
+	}
+</style>

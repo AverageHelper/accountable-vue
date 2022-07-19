@@ -242,7 +242,7 @@
 			>{$_c("debug.count-all-transactions", numberOfTransactions, { n: numberOfTransactions })}</p
 		>
 		<ul>
-			{#each Object.entries(theseTransactions) as [txn, id] (id)}
+			{#each Object.entries(theseTransactions) as [id, txn] (id)}
 				<li>
 					<strong>{id}:&nbsp;</strong>
 					<span>{txn.id}</span>

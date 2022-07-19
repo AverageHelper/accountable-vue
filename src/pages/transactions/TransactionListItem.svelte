@@ -1,0 +1,141 @@
+<script lang="ts">
+	import type { Transaction } from "../../model/Transaction";
+	import { isNegative as isDineroNegative } from "dinero.js";
+	import { intlFormat, toTimestamp } from "../../transformers";
+	import { onMount } from "svelte";
+	import { transaction as newTransaction } from "../../model/Transaction";
+	import { transactionPath } from "../../router";
+	import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
+	import Checkbox from "../../components/inputs/Checkbox.svelte";
+	import ListItem from "../../components/ListItem.svelte";
+	import LocationIcon from "../../icons/Location.svelte";
+	import PaperclipIcon from "../../icons/Paperclip.svelte";
+
+	export let transaction: Transaction;
+
+	const attachments = useAttachmentsStore();
+	const transactions = useTransactionsStore();
+	const ui = useUiStore();
+
+	let isChangingReconciled = false;
+	$: isNegative = isDineroNegative(transaction.amount);
+	$: hasAttachments = transaction.attachmentIds.length > 0;
+
+	let isAttachmentBroken: boolean | "unknown" = "unknown";
+	$: hasLocation = transaction.locationId !== null;
+	$: timestamp = toTimestamp(transaction.createdAt);
+
+	$: accountBalanceSoFar =
+		(transactions.allBalances[transaction.accountId] ?? {})[transaction.id] ?? null;
+
+	$: transactionRoute = transactionPath(transaction.accountId, transaction.id);
+
+	function seeIfAnyAttachmentsAreBroken() {
+		if (isAttachmentBroken !== "unknown") return;
+		const attachmentIds = transaction.attachmentIds;
+
+		// Check if an attachment is broken
+		for (const id of attachmentIds) {
+			const file = attachments.items[id];
+			if (!file) {
+				isAttachmentBroken = true;
+				return;
+			}
+		}
+
+		isAttachmentBroken = false;
+	}
+
+	onMount(() => {
+		seeIfAnyAttachmentsAreBroken();
+	});
+
+	async function markReconciled(isReconciled: CustomEvent<boolean>) {
+		isChangingReconciled = true;
+
+		try {
+			const newTxn = newTransaction(transaction);
+			newTxn.isReconciled = isReconciled.detail;
+			await transactions.updateTransaction(newTxn);
+		} catch (error) {
+			ui.handleError(error);
+		}
+
+		isChangingReconciled = false;
+	}
+</script>
+
+<ListItem
+	to={transactionRoute}
+	title={transaction.title ?? "--"}
+	subtitle={timestamp}
+	count={intlFormat(transaction.amount)}
+	subCount={accountBalanceSoFar ? intlFormat(accountBalanceSoFar) : "--"}
+	negative={isNegative}
+>
+	<div slot="icon" class="checkbox">
+		<Checkbox
+			disabled={isChangingReconciled}
+			class={isChangingReconciled ? "isChanging" : ""}
+			value={transaction.isReconciled}
+			on:change={markReconciled}
+			on:click={e => {
+				e.stopPropagation();
+				e.preventDefault();
+			}}
+		/>
+		{#if isChangingReconciled}
+			<span class="loading" style="min-height: 33pt">...</span>
+		{/if}
+	</div>
+
+	<div slot="aside" class="indicators">
+		{#if hasLocation}
+			<div title={transaction.locationId ?? ""}>
+				<LocationIcon />
+			</div>
+		{/if}
+		<!-- TODO: I18N -->
+		{#if hasAttachments}
+			<div
+				title={`${transaction.attachmentIds.length} attachment${
+					transaction.attachmentIds.length === 1 ? "" : "s"
+				}`}
+			>
+				{#if isAttachmentBroken}
+					<strong>?</strong>
+				{/if}
+				<PaperclipIcon />
+			</div>
+		{/if}
+	</div>
+</ListItem>
+
+<style type="text/scss">
+	@use "styles/colors" as *;
+
+	.checkbox {
+		position: relative;
+
+		.isChanging {
+			opacity: 0;
+		}
+
+		.loading {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-75%, -35%);
+		}
+	}
+
+	.indicators {
+		display: flex;
+		flex-flow: row wrap;
+		color: color($secondary-label);
+
+		:not(:last-child) {
+			margin-bottom: 2pt;
+		}
+	}
+</style>
