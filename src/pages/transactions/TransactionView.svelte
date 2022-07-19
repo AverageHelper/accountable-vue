@@ -21,6 +21,7 @@
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
 	import {
+		createTag as _createTag,
 		deleteTagIfUnreferenced,
 		handleError,
 		removeAttachmentFromTransaction,
@@ -30,7 +31,6 @@
 		useAccountsStore,
 		useAttachmentsStore,
 		useLocationsStore,
-		useTagsStore,
 	} from "../../store";
 
 	export let accountId: string;
@@ -40,7 +40,6 @@
 	const accounts = useAccountsStore();
 	const attachments = useAttachmentsStore();
 	const locations = useLocationsStore();
-	const tags = useTagsStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
@@ -66,7 +65,7 @@
 
 	async function createTag(params: CustomEvent<TagRecordParams>) {
 		if (!transaction) return;
-		const newTag = await tags.createTag(params.detail);
+		const newTag = await _createTag(params.detail);
 		addTagToTransaction(transaction, newTag);
 		await updateTransaction(transaction);
 	}

@@ -101,12 +101,13 @@ export const useAuthStore = defineStore("auth", {
 		async onSignedOut() {
 			this.clearCache();
 
-			const { accounts, attachments, locations, tags } = await stores();
-			const { clearCache: clearTransactionsCache } = await import("./transactionsStore");
+			const { accounts, attachments, locations } = await stores();
+			const { clearTagsCache } = await import("./tagsStore");
+			const { clearTransactionsCache } = await import("./transactionsStore");
 			accounts.clearCache();
 			attachments.clearCache();
 			locations.clearCache();
-			tags.clearCache();
+			clearTagsCache();
 			clearTransactionsCache();
 		},
 		async fetchSession() {
@@ -198,11 +199,12 @@ export const useAuthStore = defineStore("auth", {
 		async destroyVault(password: string) {
 			if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
-			const { accounts, attachments, locations, tags } = await stores();
+			const { accounts, attachments, locations } = await stores();
+			const { deleteAllTags } = await import("./tagsStore");
 			const { deleteAllTransactions } = await import("./transactionsStore");
 			await attachments.deleteAllAttachments();
 			await deleteAllTransactions();
-			await tags.deleteAllTags();
+			await deleteAllTags();
 			await accounts.deleteAllAccounts();
 			await locations.deleteAllLocation();
 			await deleteUserPreferences(auth.currentUser.uid);
@@ -282,8 +284,8 @@ export const useAuthStore = defineStore("auth", {
 				accounts: accountsStore,
 				attachments: attachmentsStore,
 				locations: locationsStore,
-				tags: tagsStore,
 			} = await stores();
+			const { getAllTagsAsJson } = await import("./tagsStore");
 
 			const { dekMaterial } = await this.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
@@ -295,7 +297,7 @@ export const useAuthStore = defineStore("auth", {
 				accountsStore.getAllAccountsAsJson(),
 				attachmentsStore.getAllAttachmentsAsJson(),
 				locationsStore.getAllLocationsAsJson(),
-				tagsStore.getAllTagsAsJson(),
+				getAllTagsAsJson(),
 			]);
 
 			const prefs = snap.exists() //

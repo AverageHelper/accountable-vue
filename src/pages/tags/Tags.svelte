@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { useTagsStore } from "../../store";
+	import { allTags } from "../../store";
 	import List from "../../components/List.svelte";
 	import Tag from "./Tag.svelte";
 
-	const tags = useTagsStore();
-
-	$: allTags = tags.allTags;
-	$: numberOfTags = allTags.length;
+	$: numberOfTags = $allTags.length;
 </script>
 
 <main class="content">
@@ -17,7 +14,7 @@
 	</div>
 
 	<List>
-		{#each allTags as tag (tag.id)}
+		{#each $allTags as tag (tag.id)}
 			<li>
 				<Tag {tag} showsCount={true} />
 				<!-- <ConfirmDestroyTag

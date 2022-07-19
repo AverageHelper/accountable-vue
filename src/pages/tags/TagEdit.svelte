@@ -2,7 +2,7 @@
 	import type { ColorID } from "../../model/Color";
 	import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 	import { createEventDispatcher } from "svelte";
-	import { removeTagFromAllTransactions, useTagsStore } from "../../store";
+	import { allTags as _allTags, deleteTag, removeTagFromAllTransactions } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Checkmark from "../../icons/Checkmark.svelte";
 	import ColorPicker from "../../components/inputs/ColorPicker.svelte";
@@ -19,15 +19,13 @@
 
 	export let params: TagRecordParams | null = null;
 
-	const tags = useTagsStore();
-
 	let nameField: TextField | undefined;
 	let name = "";
 	let colorId: ColorID = "blue";
 	let tagIdToDestroy: string | null = null;
 
 	$: canSave = name !== "";
-	$: allTags = tags.allTags //
+	$: allTags = $_allTags //
 		.slice()
 		.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -60,7 +58,7 @@
 	async function confirmDeleteTag(tag: CustomEvent<TagObject>) {
 		tagIdToDestroy = null;
 		await removeTagFromAllTransactions(tag.detail);
-		await tags.deleteTag(tag.detail);
+		await deleteTag(tag.detail);
 	}
 
 	export function focus() {

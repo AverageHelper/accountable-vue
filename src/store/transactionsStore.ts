@@ -93,7 +93,7 @@ export const allBalances = derived(sortedTransactions, $sortedTransactions => {
 	return balancesByAccount;
 });
 
-export function clearCache(): void {
+export function clearTransactionsCache(): void {
 	Object.values(get(transactionsWatchers)).forEach(unsubscribe => unsubscribe());
 	transactionsWatchers.set({});
 	transactionsForAccount.set({});
@@ -401,9 +401,8 @@ export async function deleteTagIfUnreferenced(tag: Tag, batch?: WriteBatch): Pro
 	if (tagIsReferenced(tag.id)) return;
 
 	// This tag is unreferenced
-	const { useTagsStore } = await import("./tagsStore");
-	const tags = useTagsStore();
-	await tags.deleteTag(tag, batch);
+	const { deleteTag } = await import("./tagsStore");
+	await deleteTag(tag, batch);
 }
 
 export async function deleteLocationIfUnreferenced(

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
+	import { useAccountsStore, useAttachmentsStore, useLocationsStore, watchTags } from "../../store";
 	import AccountEdit from "./AccountEdit.svelte";
 	import AccountListItem from "./AccountListItem.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -10,17 +11,10 @@
 	import Modal from "../../components/Modal.svelte";
 	import NewLoginModal from "../../components/NewLoginModal.svelte";
 	import ReloadIcon from "../../icons/Reload.svelte";
-	import {
-		useAccountsStore,
-		useAttachmentsStore,
-		useLocationsStore,
-		useTagsStore,
-	} from "../../store";
 
 	const accounts = useAccountsStore();
 	const attachments = useAttachmentsStore();
 	const locations = useLocationsStore();
-	const tags = useTagsStore();
 
 	$: allAccounts = accounts.allAccounts;
 	$: numberOfAccounts = accounts.numberOfAccounts;
@@ -33,7 +27,7 @@
 			accounts.watchAccounts(),
 			attachments.watchAttachments(),
 			locations.watchLocations(),
-			tags.watchTags(),
+			watchTags(),
 		]);
 	}
 

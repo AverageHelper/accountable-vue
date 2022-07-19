@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+	import { allTags } from "../../store";
 	import { createEventDispatcher, tick } from "svelte";
 	import { tag as newTag } from "../../model/Tag";
-	import { useTagsStore } from "../../store";
 	import Modal from "../../components/Modal.svelte";
 	import Tag from "./Tag.svelte";
 	import TagEdit from "./TagEdit.svelte";
@@ -21,9 +21,7 @@
 	$: isEditingTag = tagToEdit !== null;
 	$: isModalOpen = isCreatingTag || isEditingTag;
 
-	const tags = useTagsStore();
-
-	$: referencedTags = tags.allTags
+	$: referencedTags = $allTags
 		.filter(tag => tagIds.includes(tag.id))
 		.sort((a, b) => a.name.localeCompare(b.name));
 
