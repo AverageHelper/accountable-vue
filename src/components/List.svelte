@@ -6,7 +6,7 @@
 	}
 </script>
 
-<ul bind:this={root}>
+<ul bind:this={root} class={$$props.class}>
 	<slot />
 </ul>
 

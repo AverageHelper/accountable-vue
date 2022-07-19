@@ -28,7 +28,7 @@
 	}
 </script>
 
-<label class="checkbox" tabindex="0" on:keyup={onKeyup}>
+<label class="checkbox {$$props.class}" tabindex="0" on:keyup={onKeyup}>
 	<input type="checkbox" checked={value} {disabled} on:change={onChange} />
 	<label class="mark {disabled ? 'disabled' : ''}" on:click={toggle} />
 	{#if label}

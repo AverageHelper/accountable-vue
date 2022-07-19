@@ -1,0 +1,311 @@
+<script lang="ts">
+	import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
+	import type { Attachment } from "../../model/Attachment";
+	import { _ } from "svelte-i18n";
+	import { accountPath } from "../../router";
+	import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
+	import { intlFormat, toTimestamp } from "../../transformers";
+	import { isNegative } from "dinero.js";
+	import { useRouter } from "vue-router";
+	import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.svelte";
+	import EditButton from "../../components/buttons/EditButton.svelte";
+	import FileInput from "../attachments/FileInput.svelte";
+	import FileListItem from "../attachments/FileListItem.svelte";
+	import FileReattach from "../attachments/FileReattach.svelte";
+	import I18N from "../../components/I18N.svelte";
+	import List from "../../components/List.svelte";
+	import LocationIcon from "../../icons/Location.svelte";
+	import LocationView from "../locations/LocationView.svelte";
+	import Modal from "../../components/Modal.svelte";
+	import NavAction from "../../components/NavAction.svelte";
+	import TagList from "../../pages/tags/TagList.svelte";
+	import TransactionEdit from "./TransactionEdit.svelte";
+	import {
+		useAccountsStore,
+		useAttachmentsStore,
+		useLocationsStore,
+		useTagsStore,
+		useTransactionsStore,
+		useUiStore,
+	} from "../../store";
+
+	export let accountId: string;
+	export let transactionId: string;
+
+	const router = useRouter();
+	const accounts = useAccountsStore();
+	const attachments = useAttachmentsStore();
+	const locations = useLocationsStore();
+	const transactions = useTransactionsStore();
+	const tags = useTagsStore();
+	const ui = useUiStore();
+
+	let fileToDelete: Attachment | null = null;
+	let isViewingLocation = false;
+	let brokenReferenceToFix: string | null = null;
+
+	$: theseTransactions = transactions.transactionsForAccount[accountId] ?? {};
+
+	$: numberOfTransactions = Object.keys(theseTransactions).length;
+	$: account = accounts.items[accountId];
+	$: transaction = theseTransactions[transactionId];
+	$: locationId = transaction?.locationId ?? null;
+	$: location = locationId !== null ? locations.items[locationId] ?? null : null;
+
+	$: timestamp = !transaction //
+		? ""
+		: toTimestamp(transaction.createdAt);
+
+	$: accountRoute = accountPath(accountId);
+
+	function goBack() {
+		router.back();
+	}
+
+	async function createTag(params: CustomEvent<TagRecordParams>) {
+		if (!transaction) return;
+		const newTag = await tags.createTag(params.detail);
+		addTagToTransaction(transaction, newTag);
+		await transactions.updateTransaction(transaction);
+	}
+
+	function modifyTag(tag: CustomEvent<TagObject>) {
+		console.debug("modify", tag.detail);
+	}
+
+	async function removeTag(tag: CustomEvent<TagObject>) {
+		if (!transaction) return;
+		await transactions.removeTagFromTransaction(tag.detail, transaction);
+		await transactions.deleteTagIfUnreferenced(tag.detail); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
+	}
+
+	function askToDeleteFile(file: Attachment) {
+		fileToDelete = file;
+	}
+
+	async function confirmDeleteFile(file: Attachment) {
+		if (!transaction) return;
+		try {
+			await attachments.deleteAttachment(file);
+		} catch (error) {
+			ui.handleError(error);
+		} finally {
+			fileToDelete = null;
+		}
+	}
+
+	function openReferenceFixer(fileId: string) {
+		brokenReferenceToFix = fileId;
+	}
+
+	function closeReferenceFixer() {
+		brokenReferenceToFix = null;
+	}
+
+	async function deleteFileReference(fileId: string) {
+		if (!transaction) return;
+		try {
+			await transactions.removeAttachmentFromTransaction(fileId, transaction);
+		} catch (error) {
+			ui.handleError(error);
+		} finally {
+			fileToDelete = null;
+		}
+	}
+
+	function cancelDeleteFile() {
+		fileToDelete = null;
+	}
+
+	async function onFileReceived(file: CustomEvent<File>) {
+		if (!transaction) return;
+
+		try {
+			const attachment = await attachments.createAttachmentFromFile(file.detail);
+			addAttachmentToTransaction(transaction, attachment);
+			await transactions.updateTransaction(transaction);
+		} catch (error) {
+			ui.handleError(error);
+		}
+	}
+</script>
+
+<!-- FIXME: Make this match the account view, with the button beside the title -->
+{#if account && transaction}
+	<NavAction>
+		<EditButton let:onFinished>
+			<TransactionEdit {account} {transaction} on:deleted={goBack} on:finished={onFinished} />
+		</EditButton>
+	</NavAction>
+{/if}
+
+{#if transaction}
+	<main class="content">
+		{#if transaction.title || location}
+			<div class="heading">
+				<h1>&quot;{transaction.title ?? location?.title}&quot;</h1>
+				<!-- TODO: Default to the transaction ID -->
+			</div>
+		{/if}
+
+		<TagList
+			tagIds={transaction.tagIds ?? []}
+			on:create-tag={createTag}
+			on:modify-tag={modifyTag}
+			on:remove-tag={removeTag}
+		/>
+
+		<!-- TODO: I18N -->
+		<h3>Details</h3>
+		<!-- Amount -->
+		<div class="key-value-pair" aria-label="Transaction Amount">
+			<span class="key">Amount</span>
+			<span class="value amount {isNegative(transaction.amount) ? 'negative' : ''}"
+				>{intlFormat(transaction.amount, "standard")}</span
+			>
+		</div>
+		<!-- Timestamp -->
+		<div class="key-value-pair" aria-label="Transaction Timestamp">
+			<span class="key">Timestamp</span>
+			<span class="value">{timestamp}</span>
+		</div>
+		<!-- Reconciliation -->
+		<div class="key-value-pair" aria-label="Is Transaction Reconciled?">
+			<span class="key">Reconciled</span>
+			<span class="value">{transaction.isReconciled ? "Yes" : "No"}</span>
+		</div>
+		<!-- Account -->
+		<div class="key-value-pair" aria-label="Transaction Account">
+			<span class="key">Account</span>
+			<router-link :to="accountRoute" class="value">{account?.title ?? accountId}</router-link>
+		</div>
+		<!-- Notes -->
+		{#if transaction.notes}
+			<div class="key-value-pair" aria-label="Transaction Notes">
+				<span class="key">Notes</span>
+				<span class="value">&quot;{transaction.notes}&quot;</span>
+			</div>
+		{/if}
+		<!-- Location -->
+		{#if locationId}
+			<div class="key-value-pair" aria-label="Transaction Location">
+				<span class="key">Location</span>
+				{#if location?.coordinate || location?.subtitle}
+					<a href="#" class="value" on:click|preventDefault={() => (isViewingLocation = true)}
+						>{location?.title ?? locationId}
+						{#if location?.coordinate}<LocationIcon />{/if}
+					</a>
+				{:else}
+					<span class="value">&quot;{location?.title ?? locationId}&quot;</span>
+				{/if}
+				<Modal open={isViewingLocation} close-modal={() => (isViewingLocation = false)}>
+					{#if location}
+						<LocationView {location} />
+					{/if}
+				</Modal>
+			</div>
+		{/if}
+
+		<h3>Files</h3>
+		<List>
+			{#each transaction.attachmentIds as fileId}
+				<li>
+					{#if attachments.items[fileId]}
+						<FileListItem
+							file-id={fileId}
+							on:delete={askToDeleteFile}
+							on:delete-reference={deleteFileReference}
+						/>
+					{:else}
+						<FileListItem
+							file-id={fileId}
+							on:click={e => {
+								e.preventDefault();
+								openReferenceFixer(fileId);
+							}}
+						/>
+					{/if}
+				</li>
+			{/each}
+		</List>
+		<FileInput on:input={onFileReceived}>Attach a file</FileInput>
+	</main>
+{:else}
+	<main>
+		<!-- We should never get here, but in case we do, for debugging: -->
+		<h1>{$_("debug.something-is-wrong")}</h1>
+		<p>{$_("debug.account-but-no-transaction")}</p>
+		<I18N keypath="debug.transaction-id" tag="p" class="disclaimer">
+			<em slot="id">{transactionId}</em>
+		</I18N>
+		<p class="disclaimer"
+			>{$_c("debug.count-all-transactions", numberOfTransactions, { n: numberOfTransactions })}</p
+		>
+		<ul>
+			{#each Object.entries(theseTransactions) as [txn, id] (id)}
+				<li>
+					<strong>{id}:&nbsp;</strong>
+					<span>{txn.id}</span>
+				</li>
+			{/each}
+		</ul>
+	</main>
+{/if}
+
+<Modal open={brokenReferenceToFix !== null && !!transaction} close-modal={closeReferenceFixer}>
+	{#if brokenReferenceToFix !== null && !!transaction}
+		<FileReattach {transaction} file-id={brokenReferenceToFix} on:close={closeReferenceFixer} />
+	{/if}
+</Modal>
+
+<ConfirmDestroyFile
+	file={fileToDelete}
+	is-open={fileToDelete !== null}
+	on:yes={confirmDeleteFile}
+	on:no={cancelDeleteFile}
+/>
+
+<style type="text/scss">
+	@use "styles/colors" as *;
+
+	.content {
+		max-width: 400pt;
+		margin: 0 auto;
+
+		.amount {
+			&.negative {
+				color: color($red);
+			}
+		}
+
+		.key-value-pair {
+			width: 100%;
+			display: flex;
+			flex-flow: row nowrap;
+			justify-content: space-between;
+
+			> .key {
+				flex: 0 0 auto; // don't grow, take up only needed space
+			}
+
+			&::after {
+				content: "";
+				min-width: 0.5em;
+				height: 1em;
+				margin: 0 2pt;
+				border-bottom: 1pt dotted color($label);
+				flex: 1 0 auto; // Grow, don't shrink
+				order: 1; // this goes in the middle
+			}
+
+			> .value {
+				text-align: right;
+				font-weight: bold;
+				white-space: pre-wrap;
+				max-width: 80%;
+				flex: 0 0 auto; // don't grow, take up only needed space
+				order: 2;
+			}
+		}
+	}
+</style>

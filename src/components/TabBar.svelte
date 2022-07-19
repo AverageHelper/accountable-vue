@@ -31,7 +31,7 @@
 {#if !tooSmall}
 	<nav class={$$props.class}>
 		{#each tabs as tab}
-			<TabItem class="item" {tab} is-selected={currentTab === tab} />
+			<TabItem class="item" {tab} isSelected={currentTab === tab} />
 		{/each}
 	</nav>
 {/if}

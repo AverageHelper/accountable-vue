@@ -134,7 +134,7 @@
 					label={$_("login.account-id")}
 					placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
 					autocomplete="username"
-					shows-required={false}
+					showsRequired={false}
 					required
 					on:input={e => onUpdateAccountId(e.detail)}
 				/>
@@ -146,7 +146,7 @@
 				label={$_(isSignupMode ? "login.new-passphrase" : "login.current-passphrase")}
 				placeholder="********"
 				autocomplete={isSignupMode ? "new-password" : "current-password"}
-				shows-required={false}
+				showsRequired={false}
 				required
 			/>
 			{#if isSignupMode}
@@ -156,7 +156,7 @@
 					label={$_("login.repeat-passphrase")}
 					placeholder="********"
 					autocomplete="new-password"
-					shows-required={false}
+					showsRequired={false}
 					required={isSignupMode}
 				/>
 			{/if}

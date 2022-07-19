@@ -46,7 +46,7 @@
 	$: (true || isIncome) && updateValue(presentableValue);
 </script>
 
-<label class="currency-input__container">
+<label class="currency-input__container {$$props.class}">
 	<TextField
 		class="currency-input"
 		{label}

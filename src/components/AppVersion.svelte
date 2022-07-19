@@ -15,7 +15,7 @@
 	const repositoryUrl = `https://github.com/AverageHelper/accountable-vue/tree/v${clientVersion}`;
 </script>
 
-<OutLink to={repositoryUrl}
+<OutLink to={repositoryUrl} class={$$props.class}
 	>{$_("common.accountable")}
 	{$_("common.client")} v{clientVersion},
 	{$_("common.server")}

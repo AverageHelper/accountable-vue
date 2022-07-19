@@ -19,10 +19,10 @@
 	<List>
 		{#each allTags as tag (tag.id)}
 			<li>
-				<Tag {tag} shows-count={true} />
+				<Tag {tag} showsCount={true} />
 				<!-- <ConfirmDestroyTag
 					{tag}
-					is-open={tagIdToDestroy === tag.id}
+					isOpen={tagIdToDestroy === tag.id}
 					on:yes={confirmDeleteTag}
 					on:no={cancelDeleteTag}
 				/> -->

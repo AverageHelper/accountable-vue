@@ -58,7 +58,7 @@
 				disabled={true}
 				label={$_("login.account-id")}
 				autocomplete="username"
-				shows-required={false}
+				showsRequired={false}
 				required
 			/>
 			<TextField
@@ -68,7 +68,7 @@
 				label={$_("login.current-passphrase")}
 				placeholder="********"
 				autocomplete="current-password"
-				shows-required={false}
+				showsRequired={false}
 				required
 			/>
 			<ActionButton type="submit" kind="bordered-primary" disabled={isLoading}

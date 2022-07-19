@@ -13,8 +13,8 @@
 		dispatch("change", colorId);
 	}
 
-	function onKeyup(event: KeyboardEvent, colorId: ColorID) {
-		if (event.key !== " " && event.key !== "Spacebar") return;
+	function onKeyup(event: CustomEvent<KeyboardEvent>, colorId: ColorID) {
+		if (event.detail.key !== " " && event.detail.key !== "Spacebar") return;
 		event.stopPropagation();
 		select(colorId);
 	}
@@ -24,11 +24,11 @@
 	{#each colors as colorId}
 		<li>
 			<ColorDot
-				color-id={colorId}
+				{colorId}
 				class={colorId === value ? "selected" : ""}
 				tabindex="0"
 				on:keyup={e => onKeyup(e, colorId)}
-				@click="select(colorId)"
+				on:click={() => select(colorId)}
 			>
 				<div class="check" />
 			</ColorDot>

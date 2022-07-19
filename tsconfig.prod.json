@@ -5,6 +5,13 @@
 		"noEmit": false,
 		"types": ["vite/client", "svelte"]
 	},
-	"include": ["**/*.ts", "**/*.d.ts", "**/*.json", "**/*.vue"],
-	"exclude": ["**/*.test.ts", "**/__mocks__/**/*.ts", "./server/**"]
+	"include": ["src/**/*"],
+	"exclude": [
+		"node_modules/*",
+		"__sapper__/*",
+		"public/*",
+		"**/*.test.ts",
+		"**/__mocks__/**/*.ts",
+		"./server/**"
+	]
 }

@@ -80,7 +80,7 @@
 	});
 </script>
 
-<svelte:element this={tag}>
+<svelte:element this={tag} class={$$props.class}>
 	{#each cutted as cut, i}
 		{#if cut.isVar}
 			<span bind:this={_slots[i]} data-i18n-key={cut.name}>
