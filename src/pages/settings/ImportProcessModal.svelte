@@ -11,11 +11,11 @@
 	import List from "../../components/List.svelte";
 	import Modal from "../../components/Modal.svelte";
 	import {
+		handleError,
 		useAccountsStore,
 		useAttachmentsStore,
 		useLocationsStore,
 		useTagsStore,
-		useUiStore,
 	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
@@ -30,7 +30,6 @@
 	const attachments = useAttachmentsStore();
 	const locations = useLocationsStore();
 	const tags = useTagsStore();
-	const ui = useUiStore();
 
 	let accountIdsToImport = new Set<string>();
 	$: numberOfAttachmentsToImport = db?.attachments?.length ?? 0;
@@ -133,7 +132,7 @@
 			toast.push("Imported all the things!", { classes: ["toast-success"] }); // TODO: I18N
 			dispatch("finished");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isImporting = false;

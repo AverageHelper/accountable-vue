@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Transaction } from "../../model/Transaction";
+	import { handleError, useAttachmentsStore, useTransactionsStore } from "../../store";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { onMount } from "svelte";
 	import { transaction as newTransaction } from "../../model/Transaction";
 	import { transactionPath } from "../../router";
-	import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
 	import Checkbox from "../../components/inputs/Checkbox.svelte";
 	import ListItem from "../../components/ListItem.svelte";
 	import LocationIcon from "../../icons/Location.svelte";
@@ -15,7 +15,6 @@
 
 	const attachments = useAttachmentsStore();
 	const transactions = useTransactionsStore();
-	const ui = useUiStore();
 
 	let isChangingReconciled = false;
 	$: isNegative = isDineroNegative(transaction.amount);
@@ -58,7 +57,7 @@
 			newTxn.isReconciled = isReconciled.detail;
 			await transactions.updateTransaction(newTxn);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isChangingReconciled = false;

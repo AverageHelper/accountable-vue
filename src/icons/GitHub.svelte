@@ -1,10 +1,7 @@
 <!-- <script lang="ts">
-	import { useUiStore } from "../store";
+	import { preferredColorScheme } from "../store";
 
-	const ui = useUiStore();
-
-	$: preferredColorScheme = ui.preferredColorScheme;
-	$: isDarkMode = preferredColorScheme === "dark";
+	$: isDarkMode = $preferredColorScheme === "dark";
 </script> -->
 
 <svg

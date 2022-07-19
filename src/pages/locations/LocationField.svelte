@@ -3,9 +3,9 @@
 	import type { IPLocateResult } from "../../transport";
 	import { createEventDispatcher } from "svelte";
 	import { fetchLocationData } from "../../transport";
+	import { handleError, useAuthStore, useLocationsStore } from "../../store";
 	import { location as newLocation } from "../../model/Location";
 	import { settingsPath } from "../../router";
-	import { useAuthStore, useLocationsStore, useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Fuse from "fuse.js";
 	import List from "../../components/List.svelte";
@@ -35,7 +35,6 @@
 
 	const auth = useAuthStore();
 	const locations = useLocationsStore();
-	const ui = useUiStore();
 
 	let root: HTMLLabelElement | undefined;
 	let titleField: TextField | undefined;
@@ -111,7 +110,7 @@
 			data = await fetchLocationData();
 		} catch (error) {
 			// CORS errors, and possibly others, throw an empty string. Not sure why.
-			ui.handleError(((error as null | undefined) ?? "") || "Something went wrong, not sure what.");
+			handleError(((error as null | undefined) ?? "") || "Something went wrong, not sure what.");
 			return;
 		}
 

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { handleError } from "../../store";
 	import { toast } from "@zerodevx/svelte-toast";
 	import { useAuthStore } from "../../store/authStore";
-	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
 	const auth = useAuthStore();
-	const ui = useUiStore();
 
 	let isLoading = false;
 	let currentPassword = "";
@@ -38,7 +37,7 @@
 			toast.push("Your passphrase has been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 		isLoading = false;
 	}

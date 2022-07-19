@@ -2,12 +2,13 @@ import type { Account, AccountRecordParams } from "../model/Account";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
 import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
+import { _ } from "svelte-i18n";
 import { account, recordFromAccount } from "../model/Account";
 import { defineStore } from "pinia";
+import { get } from "svelte/store";
 import { stores } from "./stores";
-import { t } from "../i18n";
+import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
-import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	asyncMap,
@@ -21,6 +22,8 @@ import {
 	watchAllRecords,
 	writeBatch,
 } from "../transport";
+
+const t = get(_);
 
 export const useAccountsStore = defineStore("accounts", {
 	state: () => ({
@@ -90,30 +93,27 @@ export const useAccountsStore = defineStore("accounts", {
 		},
 		async createAccount(record: AccountRecordParams, batch?: WriteBatch): Promise<Account> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			const account = await createAccount(record, dek, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 			return account;
 		},
 		async updateAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAccount(account, dek, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 		},
 		async deleteAccount(account: Account, batch?: WriteBatch): Promise<void> {
 			// Don't delete if we have transactions
-			const uiStore = useUiStore();
 			const { useTransactionsStore } = await import("./transactionsStore");
 			const transactions = useTransactionsStore();
 			await transactions.getTransactionsForAccount(account);
@@ -125,7 +125,7 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 
 			await deleteAccount(account, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 		},
 		async deleteAllAccounts(): Promise<void> {
 			for (const accounts of chunk(this.allAccounts, 500)) {
@@ -153,7 +153,6 @@ export const useAccountsStore = defineStore("accounts", {
 			});
 		},
 		async importAccount(accountToImport: AccountSchema, batch?: WriteBatch): Promise<void> {
-			const uiStore = useUiStore();
 			const accountId = accountToImport.id;
 			const storedAccount = this.items[accountId] ?? null;
 
@@ -171,7 +170,7 @@ export const useAccountsStore = defineStore("accounts", {
 				};
 				newAccount = await this.createAccount(params, batch);
 			}
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 
 			const { transactions } = await stores();
 			await transactions.importTransactions(accountToImport.transactions ?? [], newAccount);

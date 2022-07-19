@@ -1,16 +1,15 @@
 <script lang="ts">
 	import type { LocationPref } from "../../transport";
+	import { handleError } from "../../store";
 	import { locationPrefs as sensitivityOptions } from "../../transport";
 	import { onMount } from "svelte";
 	import { toast } from "@zerodevx/svelte-toast";
 	import { useAuthStore } from "../../store/authStore";
-	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Checkmark from "../../icons/Checkmark.svelte";
 	import OutLink from "../../components/OutLink.svelte";
 
 	const auth = useAuthStore();
-	const ui = useUiStore();
 
 	let isLoading = false;
 	$: currentSensitivity = auth.preferences.locationSensitivity;
@@ -46,7 +45,7 @@
 			toast.push("Your preferences have been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 		isLoading = false;
 	}

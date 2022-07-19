@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { handleError, useAuthStore } from "../../store";
 	import { logoutPath } from "../../router";
-	import { useAuthStore, useUiStore } from "../../store";
 	import { useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ConfirmDeleteEverything from "./ConfirmDeleteEverything.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
 	const auth = useAuthStore();
-	const ui = useUiStore();
 	const router = useRouter();
 
 	$: accountId = auth.accountId;
@@ -37,7 +36,7 @@
 
 			await router.push(logoutPath());
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 			isDeleting = false;
 		}
 	}

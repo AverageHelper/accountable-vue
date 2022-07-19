@@ -4,12 +4,11 @@
 	import { attachment as newAttachment } from "../../model/Attachment";
 	import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 	import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
-	import { useAttachmentsStore, useAuthStore, useUiStore } from "../../store";
+	import { handleError, useAttachmentsStore, useAuthStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 
 	const auth = useAuthStore();
 	const attachments = useAttachmentsStore();
-	const ui = useUiStore();
 
 	let isLoading = false;
 
@@ -75,7 +74,7 @@
 			// ** Get it
 			downloadFileAtUrl(dataUri, "accountable.zip");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 			await writer.close();
 		}
 		isLoading = false;

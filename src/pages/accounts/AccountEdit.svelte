@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 	import { account as newAccount } from "../../model/Account";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { useAccountsStore, useTransactionsStore, useUiStore } from "../../store";
+	import { handleError, useAccountsStore, useTransactionsStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextAreaField from "../../components/inputs/TextAreaField.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
@@ -17,7 +17,6 @@
 
 	const accounts = useAccountsStore();
 	const transactions = useTransactionsStore();
-	const ui = useUiStore();
 
 	$: isCreatingAccount = account === null;
 	$: numberOfTransactions = !account
@@ -65,7 +64,7 @@
 
 			dispatch("finished");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isLoading = false;
@@ -84,7 +83,7 @@
 			dispatch("deleted");
 			dispatch("finished");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isLoading = false;

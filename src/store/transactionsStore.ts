@@ -9,10 +9,10 @@ import { add, subtract } from "dinero.js";
 import { chronologically, reverseChronologically } from "../model/utility/sort";
 import { defineStore } from "pinia";
 import { getDocs } from "../transport/index.js";
+import { handleError, updateUserStats } from "./uiStore";
 import { stores } from "./stores";
 import { useAccountsStore } from "./accountsStore";
 import { useAuthStore } from "./authStore";
-import { useUiStore } from "./uiStore";
 import { zeroDinero } from "../helpers/dineroHelpers";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
@@ -181,8 +181,7 @@ export const useTransactionsStore = defineStore("transactions", {
 							accounts.currentBalance[account.id] = currentBalance;
 							this.transactionsForAccount[account.id] = accountTransactions;
 						} catch (error) {
-							const ui = useUiStore();
-							ui.handleError(error);
+							handleError(error);
 						}
 					});
 
@@ -294,31 +293,28 @@ export const useTransactionsStore = defineStore("transactions", {
 			batch?: WriteBatch
 		): Promise<Transaction> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			const transaction = await createTransaction(record, dek, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 			return transaction;
 		},
 		async updateTransaction(transaction: Transaction, batch?: WriteBatch) {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
 
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateTransaction(transaction, dek, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 		},
 		async deleteTransaction(transaction: Transaction, batch?: WriteBatch) {
-			const uiStore = useUiStore();
 			await deleteTransaction(transaction, batch);
-			if (!batch) await uiStore.updateUserStats();
+			if (!batch) await updateUserStats();
 		},
 		async deleteAllTransactions(): Promise<void> {
 			for (const transactions of chunk(this.allTransactions, 500)) {
@@ -415,13 +411,12 @@ export const useTransactionsStore = defineStore("transactions", {
 			}
 		},
 		async importTransactions(data: Array<TransactionSchema>, account: Account): Promise<void> {
-			const uiStore = useUiStore();
 			for (const transactions of chunk(data, 500)) {
 				const batch = writeBatch();
 				await Promise.all(transactions.map(t => this.importTransaction(t, account, batch)));
 				await batch.commit();
 			}
-			await uiStore.updateUserStats();
+			await updateUserStats();
 		},
 	},
 });

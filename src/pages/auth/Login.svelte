@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { accountsPath, loginPath, signupPath } from "../../router";
+	import { bootstrap, handleError } from "../../store";
 	import { onMount } from "svelte";
 	import { useRoute, useRouter } from "vue-router";
 	import { useAuthStore } from "../../store/authStore";
-	import { useUiStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
 	const auth = useAuthStore();
-	const ui = useUiStore();
 	const router = useRouter();
 	const route = useRoute();
 
@@ -37,7 +36,7 @@
 
 	onMount(() => {
 		accountIdField?.focus();
-		ui.bootstrap();
+		bootstrap();
 	});
 
 	$: switch (mode) {
@@ -103,7 +102,7 @@
 
 			await router.replace(accountsPath());
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			isLoading = false;
 		}

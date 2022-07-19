@@ -2,7 +2,7 @@
 	import type { Attachment } from "../../model/Attachment";
 	import type { Transaction } from "../../model/Transaction";
 	import { createEventDispatcher } from "svelte";
-	import { useAttachmentsStore, useTransactionsStore, useUiStore } from "../../store";
+	import { handleError, useAttachmentsStore, useTransactionsStore } from "../../store";
 	import FileInput from "./FileInput.svelte";
 	import FileListItem from "./FileListItem.svelte";
 	import List from "../../components/List.svelte";
@@ -22,7 +22,6 @@
 
 	const attachments = useAttachmentsStore();
 	const transactions = useTransactionsStore();
-	const ui = useUiStore();
 
 	$: files = attachments.allAttachments;
 	$: numberOfFiles = files.length;
@@ -43,7 +42,7 @@
 			const attachment = await attachments.createAttachmentFromFile(file);
 			await selectNewFile(attachment);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 	}
 </script>

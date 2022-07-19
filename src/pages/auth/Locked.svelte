@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { accountsPath } from "../../router";
+	import { handleError, useAuthStore } from "../../store";
 	import { onMount } from "svelte";
-	import { useAuthStore, useUiStore } from "../../store";
 	import { useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
@@ -10,7 +10,6 @@
 	import TextField from "../../components/inputs/TextField.svelte";
 
 	const auth = useAuthStore();
-	const ui = useUiStore();
 	const router = useRouter();
 
 	$: bootstrapError = ui.bootstrapError;
@@ -36,7 +35,7 @@
 
 			await router.replace(accountsPath());
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			isLoading = false;
 		}

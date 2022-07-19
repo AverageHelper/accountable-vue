@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type { Attachment } from "../../model/Attachment";
-	import { useAttachmentsStore, useUiStore } from "../../store";
+	import { handleError, useAttachmentsStore } from "../../store";
 	import ConfirmDestroyFile from "./ConfirmDestroyFile.svelte";
 	import FileListItem from "./FileListItem.svelte";
 	import List from "../../components/List.svelte";
 
 	const attachments = useAttachmentsStore();
-	const ui = useUiStore();
 
 	$: files = attachments.allAttachments;
 	$: numberOfFiles = files.length;
@@ -21,7 +20,7 @@
 		try {
 			await attachments.deleteAttachment(file.detail);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			fileToDelete = null;
 		}

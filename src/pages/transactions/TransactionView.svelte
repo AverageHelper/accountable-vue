@@ -21,12 +21,12 @@
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
 	import {
+		handleError,
 		useAccountsStore,
 		useAttachmentsStore,
 		useLocationsStore,
 		useTagsStore,
 		useTransactionsStore,
-		useUiStore,
 	} from "../../store";
 
 	export let accountId: string;
@@ -38,7 +38,6 @@
 	const locations = useLocationsStore();
 	const transactions = useTransactionsStore();
 	const tags = useTagsStore();
-	const ui = useUiStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
@@ -88,7 +87,7 @@
 		try {
 			await attachments.deleteAttachment(file.detail);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			fileToDelete = null;
 		}
@@ -107,7 +106,7 @@
 		try {
 			await transactions.removeAttachmentFromTransaction(fileId, transaction);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			fileToDelete = null;
 		}
@@ -125,7 +124,7 @@
 			addAttachmentToTransaction(transaction, attachment);
 			await transactions.updateTransaction(transaction);
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 	}
 </script>
@@ -254,7 +253,7 @@
 
 <Modal open={brokenReferenceToFix !== null && !!transaction} close-modal={closeReferenceFixer}>
 	{#if brokenReferenceToFix !== null && !!transaction}
-		<FileReattach {transaction} file-id={brokenReferenceToFix} on:close={closeReferenceFixer} />
+		<FileReattach {transaction} fileId={brokenReferenceToFix} on:close={closeReferenceFixer} />
 	{/if}
 </Modal>
 

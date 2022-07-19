@@ -5,9 +5,9 @@
 	import { _ } from "svelte-i18n";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { equal, isNegative, isZero, toSnapshot } from "dinero.js";
+	import { handleError, useLocationsStore, useTransactionsStore } from "../../store";
 	import { recordFromLocation } from "../../model/Location";
 	import { transaction as newTransaction } from "../../model/Transaction";
-	import { useLocationsStore, useTransactionsStore, useUiStore } from "../../store";
 	import { zeroDinero } from "../../helpers/dineroHelpers";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Checkbox from "../../components/inputs/Checkbox.svelte";
@@ -30,7 +30,6 @@
 
 	const locations = useLocationsStore();
 	const transactions = useTransactionsStore();
-	const ui = useUiStore();
 
 	$: ogTransaction = transaction;
 	$: ogLocation =
@@ -147,7 +146,7 @@
 
 			dispatch("finished");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isLoading = false;
@@ -170,7 +169,7 @@
 			dispatch("deleted");
 			dispatch("finished");
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		}
 
 		isLoading = false;

@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { simplifiedByteCount } from "../transformers";
-	import { useUiStore } from "../store";
+	import { totalSpace, usedSpace } from "../store";
 
-	const ui = useUiStore();
-
-	$: totalSpace = ui.totalSpace;
-	$: usedSpace = ui.usedSpace;
-
-	$: total = totalSpace !== null ? simplifiedByteCount(totalSpace) : "--";
-	$: used = usedSpace !== null ? simplifiedByteCount(usedSpace) : "--";
+	$: total = totalSpace !== null ? simplifiedByteCount($totalSpace) : "--";
+	$: used = usedSpace !== null ? simplifiedByteCount($usedSpace) : "--";
 </script>
 
 <p class="storage">{$_("common.disk-usage", { values: { used, total } })}</p>

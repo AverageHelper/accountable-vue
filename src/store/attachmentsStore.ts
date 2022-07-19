@@ -6,8 +6,8 @@ import { attachment, recordFromAttachment } from "../model/Attachment";
 import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
+import { updateUserStats } from "./uiStore";
 import { useAuthStore } from "./authStore";
-import { useUiStore } from "./uiStore";
 import chunk from "lodash/chunk";
 import {
 	addAttachmentToTransaction,
@@ -103,7 +103,6 @@ export const useAttachmentsStore = defineStore("attachments", {
 			file: File
 		): Promise<Attachment> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
@@ -112,13 +111,12 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			const newAttachment = await createAttachment(uid, file, record, dek);
-			await uiStore.updateUserStats();
+			await updateUserStats();
 			this.items[newAttachment.id] = newAttachment;
 			return newAttachment;
 		},
 		async updateAttachment(attachment: Attachment, file?: File): Promise<void> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			const pKey = authStore.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
@@ -127,12 +125,11 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const { dekMaterial } = await authStore.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await updateAttachment(uid, file ?? null, attachment, dek);
-			await uiStore.updateUserStats();
+			await updateUserStats();
 			this.items[attachment.id] = attachment;
 		},
 		async deleteAttachment(attachment: Attachment, batch?: WriteBatch): Promise<void> {
 			const authStore = useAuthStore();
-			const uiStore = useUiStore();
 			const uid = authStore.uid;
 			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
 
@@ -153,7 +150,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 
 			await deleteAttachment(uid, attachment, batch);
 			delete this.items[attachment.id];
-			await uiStore.updateUserStats();
+			await updateUserStats();
 		},
 		async deleteAllAttachments(): Promise<void> {
 			for (const attachments of chunk(this.allAttachments, 500)) {

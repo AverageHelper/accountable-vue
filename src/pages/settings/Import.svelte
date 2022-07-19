@@ -4,15 +4,14 @@
 	import { accountsPath } from "../../router";
 	import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 	import { create } from "superstruct";
+	import { handleError } from "../../store";
 	import { schema } from "../../model/DatabaseSchema";
 	import { toast } from "@zerodevx/svelte-toast";
-	import { useUiStore } from "../../store";
 	import { useRouter } from "vue-router";
 	import FileInput from "../attachments/FileInput.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ImportProcessModal from "./ImportProcessModal.svelte";
 
-	const ui = useUiStore();
 	const router = useRouter();
 
 	let isLoading = false;
@@ -54,7 +53,7 @@
 			dbName = file.name;
 			archive = zipFile;
 		} catch (error) {
-			ui.handleError(error);
+			handleError(error);
 		} finally {
 			toast.set(progressMeter, { next: 1 });
 			await reader.close();

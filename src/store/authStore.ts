@@ -1,9 +1,9 @@
 import type { DatabaseSchema } from "../model/DatabaseSchema";
 import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../transport";
 import type { User } from "../transport/auth.js";
+import { bootstrap, updateUserStats } from "./uiStore";
 import { defineStore } from "pinia";
 import { stores } from "./stores";
-import { useUiStore } from "./uiStore";
 import { UnauthorizedError } from "../../server/errors";
 import { v4 as uuid } from "uuid";
 import {
@@ -109,13 +109,12 @@ export const useAuthStore = defineStore("auth", {
 			transactions.clearCache();
 		},
 		async fetchSession() {
-			const uiStore = useUiStore();
-			uiStore.bootstrap();
+			bootstrap();
 			try {
 				this.loginProcessState = "AUTHENTICATING";
 				// Salt using the user's account ID
 				const { user } = await refreshSession(auth);
-				await uiStore.updateUserStats();
+				await updateUserStats();
 				this.onSignedIn(user);
 			} catch (error) {
 				console.error(error);
@@ -134,7 +133,6 @@ export const useAuthStore = defineStore("auth", {
 			// TODO: Instead of re-authing, download the ledger and attempt a decrypt with the given password. If fail, throw. If succeed, continue.
 		},
 		async login(accountId: string, password: string) {
-			const uiStore = useUiStore();
 			try {
 				this.loginProcessState = "AUTHENTICATING";
 				// TODO: Also salt the password hash
@@ -144,7 +142,7 @@ export const useAuthStore = defineStore("auth", {
 					accountId,
 					await hashed(password) // FIXME: Should use OPAQUE or SRP instead
 				);
-				await uiStore.updateUserStats();
+				await updateUserStats();
 
 				// Get the salt and dek material from server
 				this.loginProcessState = "FETCHING_KEYS";
@@ -171,7 +169,6 @@ export const useAuthStore = defineStore("auth", {
 			return uuid().replace(/\W+/gu, "");
 		},
 		async createVault(accountId: string, password: string) {
-			const uiStore = useUiStore();
 			try {
 				this.loginProcessState = "AUTHENTICATING";
 				const { user } = await createUserWithAccountIdAndPassword(
@@ -183,7 +180,7 @@ export const useAuthStore = defineStore("auth", {
 				this.loginProcessState = "GENERATING_KEYS";
 				const material = await newDataEncryptionKeyMaterial(password);
 				await setAuthMaterial(user.uid, material);
-				await uiStore.updateUserStats();
+				await updateUserStats();
 
 				this.loginProcessState = "DERIVING_PKEY";
 				this.pKey = await derivePKey(password, material.passSalt);
@@ -213,7 +210,6 @@ export const useAuthStore = defineStore("auth", {
 			await this.onSignedOut();
 		},
 		async updateUserPreferences(prefs: Partial<UserPreferences>) {
-			const uiStore = useUiStore();
 			const uid = this.uid;
 			const pKey = this.pKey as HashStore | null;
 			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
@@ -222,7 +218,7 @@ export const useAuthStore = defineStore("auth", {
 			const { dekMaterial } = await this.getDekMaterial();
 			const dek = deriveDEK(pKey, dekMaterial);
 			await setUserPreferences(uid, prefs, dek);
-			await uiStore.updateUserStats();
+			await updateUserStats();
 		},
 		async regenerateAccountId(currentPassword: string) {
 			const user = auth.currentUser;
@@ -236,7 +232,6 @@ export const useAuthStore = defineStore("auth", {
 			this.isNewLogin = true;
 		},
 		async updatePassword(oldPassword: string, newPassword: string) {
-			const uiStore = useUiStore();
 			const user = auth.currentUser;
 			if (user === null) {
 				throw new Error("Not logged in"); // TODO: I18N
@@ -269,7 +264,7 @@ export const useAuthStore = defineStore("auth", {
 
 			// Erase the old key
 			await setAuthMaterial(user.uid, newMaterial);
-			await uiStore.updateUserStats();
+			await updateUserStats();
 		},
 		async logout() {
 			await signOut(auth);

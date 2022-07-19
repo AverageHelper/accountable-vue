@@ -2,16 +2,12 @@
 	import type { SvelteToastOptions } from "@zerodevx/svelte-toast";
 	import { onMount } from "svelte";
 	import { SvelteToast } from "@zerodevx/svelte-toast";
-	import { useUiStore } from "./store/uiStore";
+	import { watchColorScheme } from "./store/uiStore";
 	import Navbar from "./components/Navbar.svelte";
-
-	const ui = useUiStore();
 
 	const options: SvelteToastOptions = {};
 
-	onMount(() => {
-		ui.watchColorScheme();
-	});
+	onMount(watchColorScheme);
 </script>
 
 <Navbar />

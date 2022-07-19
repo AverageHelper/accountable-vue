@@ -17,10 +17,9 @@
 		"build:client:quick": "rm -rf ./dist && npm run export-version && npm run vite:build",
 		"svelte-check": "./node_modules/.bin/svelte-check --tsconfig tsconfig.prod.json",
 		"vite:build": "./node_modules/.bin/vite build",
-		"lint": "npm run export-version && npm run lintonly:vue && npm run lintonly:js",
-		"lint:fix": "npm run export-version && npm run lintonly:vue -- --fix && npm run lintonly:js -- --fix",
-		"lintonly:vue": "./node_modules/.bin/eslint . --ext .vue",
-		"lintonly:js": "./node_modules/.bin/eslint . --ext .js,.ts",
+		"lint": "npm run export-version && npm run lintonly",
+		"lint:fix": "npm run export-version && npm run lintonly -- --fix",
+		"lintonly": "./node_modules/.bin/eslint . --ext .js,.ts",
 		"export-version": "./node_modules/.bin/genversion ./src/version.ts -es && cd server && npm run export-version"
 	},
 	"type": "module",
@@ -40,9 +39,7 @@
 		"superstruct": "^0.15.3",
 		"svelte-i18n": "^3.4.0",
 		"svelte-portal": "^2.2.0",
-		"uuid": "^8.3.2",
-		"vue": "^3.2.16",
-		"vue-router": "^4.0.11"
+		"uuid": "^8.3.2"
 	},
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^1.0.1",
@@ -83,7 +80,6 @@
 		"ts-jest": "^27.0.7",
 		"typescript": "^4.7.3",
 		"vite": "3.0.0",
-		"vite-tsconfig-paths": "3.5.0",
-		"vue-eslint-parser": "^8.0.0"
+		"vite-tsconfig-paths": "3.5.0"
 	}
 }
