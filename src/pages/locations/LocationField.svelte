@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
 	import type { IPLocateResult } from "../../transport";
+	import { allLocations, handleError, locations, useAuthStore } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { fetchLocationData } from "../../transport";
-	import { handleError, useAuthStore, useLocationsStore } from "../../store";
 	import { location as newLocation } from "../../model/Location";
 	import { settingsPath } from "../../router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -34,7 +34,6 @@
 	export let value: (LocationRecordParams & { id: string | null }) | null = null;
 
 	const auth = useAuthStore();
-	const locations = useLocationsStore();
 
 	let root: HTMLLabelElement | undefined;
 	let titleField: TextField | undefined;
@@ -44,13 +43,12 @@
 	$: locationPreference = auth.preferences.locationSensitivity;
 	$: mayGetLocation = locationPreference !== "none";
 
-	$: allLocations = locations.allLocations;
-	$: searchClient = new Fuse(allLocations, { keys: ["title", "subtitle"] });
+	$: searchClient = new Fuse($allLocations, { keys: ["title", "subtitle"] });
 	$: shouldSearch = selectedLocationId === null && newLocationTitle !== "";
 
 	$: recentLocations = shouldSearch
 		? searchClient.search(newLocationTitle).map(r => r.item)
-		: allLocations;
+		: $allLocations;
 
 	let newLocationTitle = "";
 	let newLocationSubtitle = "";
@@ -65,8 +63,7 @@
 	});
 
 	let selectedLocationId: string | null = null;
-	$: selectedLocation =
-		selectedLocationId !== null ? locations.items[selectedLocationId] ?? null : null;
+	$: selectedLocation = selectedLocationId !== null ? $locations[selectedLocationId] ?? null : null;
 
 	$: title = selectedLocation?.title ?? newLocationTitle;
 	$: subtitle = selectedLocation?.subtitle ?? newLocationSubtitle;

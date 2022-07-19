@@ -1,13 +1,10 @@
 <script lang="ts">
-	import { useLocationsStore } from "../../store";
+	import { allLocations } from "../../store";
 	import List from "../../components/List.svelte";
 	import LocationListItem from "./LocationListItem.svelte";
 
-	const locations = useLocationsStore();
-
 	// FIXME: This somehow stays between login sessions
-	$: allLocations = locations.allLocations;
-	$: numberOfLocations = allLocations.length;
+	$: numberOfLocations = $allLocations.length;
 </script>
 
 <main class="content">
@@ -18,7 +15,7 @@
 	</div>
 
 	<List>
-		{#each allLocations as location (location.id)}
+		{#each $allLocations as location (location.id)}
 			<li>
 				<LocationListItem {location} />
 			</li>

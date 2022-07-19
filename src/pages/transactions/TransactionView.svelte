@@ -24,13 +24,13 @@
 		createTag as _createTag,
 		deleteTagIfUnreferenced,
 		handleError,
+		locations,
 		removeAttachmentFromTransaction,
 		removeTagFromTransaction,
 		transactionsForAccount,
 		updateTransaction,
 		useAccountsStore,
 		useAttachmentsStore,
-		useLocationsStore,
 	} from "../../store";
 
 	export let accountId: string;
@@ -39,7 +39,6 @@
 	const router = useRouter();
 	const accounts = useAccountsStore();
 	const attachments = useAttachmentsStore();
-	const locations = useLocationsStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
@@ -51,7 +50,7 @@
 	$: account = accounts.items[accountId];
 	$: transaction = theseTransactions[transactionId];
 	$: locationId = transaction?.locationId ?? null;
-	$: location = locationId !== null ? locations.items[locationId] ?? null : null;
+	$: location = locationId !== null ? $locations[locationId] ?? null : null;
 
 	$: timestamp = !transaction //
 		? ""

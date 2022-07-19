@@ -19,12 +19,14 @@
 	import TextField from "../../components/inputs/TextField.svelte";
 	import TrashIcon from "../../icons/Trash.svelte";
 	import {
+		createLocation,
 		createTransaction,
+		deleteLocation,
 		deleteTransaction,
 		handleError,
+		locations,
 		numberOfReferencesForLocation,
 		updateTransaction,
-		useLocationsStore,
 	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
@@ -35,12 +37,10 @@
 	export let account: Account;
 	export let transaction: Transaction | null = null;
 
-	const locations = useLocationsStore();
-
 	$: ogTransaction = transaction;
 	$: ogLocation =
 		ogTransaction?.locationId !== null && ogTransaction?.locationId !== undefined
-			? locations.items[ogTransaction.locationId] ?? null
+			? $locations[ogTransaction.locationId] ?? null
 			: null;
 	$: isCreatingTransaction = ogTransaction === null;
 
@@ -91,7 +91,7 @@
 
 		const ogLocationId = ogTransaction?.locationId ?? null;
 		if (ogLocationId !== null && ogLocationId) {
-			const ogLocation = locations.items[ogLocationId];
+			const ogLocation = $locations[ogLocationId];
 			const ogRecord = ogLocation ? recordFromLocation(ogLocation) : null;
 			locationData = ogRecord !== null ? { ...ogRecord, id: ogLocationId } : null;
 		}
@@ -111,11 +111,11 @@
 			if (ogLocationId !== null) {
 				// The next step will replace the location link
 				// Just delete the location if this is the only transaction which references it
-				const ogLocation = locations.items[ogLocationId];
+				const ogLocation = $locations[ogLocationId];
 				if (ogLocation) {
 					const referenceCount = numberOfReferencesForLocation(ogLocation.id);
 					if (referenceCount > 1) {
-						await locations.deleteLocation(ogLocation);
+						await deleteLocation(ogLocation);
 					}
 				}
 			}
@@ -126,10 +126,10 @@
 			if (locationData) {
 				if (locationData.id !== null) {
 					// Existing location
-					newLocation = locations.items[locationData.id] ?? null;
+					newLocation = $locations[locationData.id] ?? null;
 				} else {
 					// New location
-					newLocation = await locations.createLocation(locationData);
+					newLocation = await createLocation(locationData);
 				}
 			}
 

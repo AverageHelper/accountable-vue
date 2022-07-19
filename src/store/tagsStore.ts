@@ -23,12 +23,12 @@ import {
 	writeBatch,
 } from "../transport";
 
-export const items = writable<Record<string, Tag>>({}); // Tag.id -> Tag
-export const loadError = writable<Error | null>(null);
+export const tags = writable<Record<string, Tag>>({}); // Tag.id -> Tag
+export const tagsLoadError = writable<Error | null>(null);
 export const tagsWatcher = writable<Unsubscribe | null>(null);
 
-export const allTags = derived(items, $items => {
-	return Object.values($items);
+export const allTags = derived(tags, $tags => {
+	return Object.values($tags);
 });
 
 export function clearTagsCache(): void {
@@ -37,8 +37,8 @@ export function clearTagsCache(): void {
 		watcher();
 		tagsWatcher.set(null);
 	}
-	items.set({});
-	loadError.set(null);
+	tags.set({});
+	tagsLoadError.set(null);
 	console.debug("tagsStore: cache cleared");
 }
 
@@ -58,7 +58,7 @@ export async function watchTags(force: boolean = false): Promise<void> {
 	const dek = deriveDEK(pKey, dekMaterial);
 
 	const collection = tagsCollection();
-	loadError.set(null);
+	tagsLoadError.set(null);
 	tagsWatcher.set(
 		watchAllRecords(
 			collection,
@@ -66,8 +66,8 @@ export async function watchTags(force: boolean = false): Promise<void> {
 				snap.docChanges().forEach(change => {
 					switch (change.type) {
 						case "removed":
-							items.update(items => {
-								const copy = { ...items };
+							tags.update(tags => {
+								const copy = { ...tags };
 								delete copy[change.doc.id];
 								return copy;
 							});
@@ -75,8 +75,8 @@ export async function watchTags(force: boolean = false): Promise<void> {
 
 						case "added":
 						case "modified":
-							items.update(items => {
-								const copy = { ...items };
+							tags.update(tags => {
+								const copy = { ...tags };
 								copy[change.doc.id] = tagFromSnapshot(change.doc, dek);
 								return copy;
 							});
@@ -85,7 +85,7 @@ export async function watchTags(force: boolean = false): Promise<void> {
 				});
 			},
 			error => {
-				loadError.set(error);
+				tagsLoadError.set(error);
 				const watcher = get(tagsWatcher);
 				if (watcher) watcher();
 				tagsWatcher.set(null);
@@ -108,8 +108,8 @@ export async function createTag(record: TagRecordParams, batch?: WriteBatch): Pr
 	const { dekMaterial } = await authStore.getDekMaterial();
 	const dek = deriveDEK(pKey, dekMaterial);
 	const newTag = await _createTag(record, dek, batch);
-	items.update(items => {
-		const copy = { ...items };
+	tags.update(tags => {
+		const copy = { ...tags };
 		copy[newTag.id] = newTag;
 		return copy;
 	});
@@ -125,8 +125,8 @@ export async function updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 	const { dekMaterial } = await authStore.getDekMaterial();
 	const dek = deriveDEK(pKey, dekMaterial);
 	await _updateTag(tag, dek, batch);
-	items.update(items => {
-		const copy = { ...items };
+	tags.update(tags => {
+		const copy = { ...tags };
 		copy[tag.id] = tag;
 		return copy;
 	});
@@ -135,8 +135,8 @@ export async function updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 
 export async function deleteTag(tag: Tag, batch?: WriteBatch): Promise<void> {
 	await _deleteTag(tag, batch);
-	items.update(items => {
-		const copy = { ...items };
+	tags.update(tags => {
+		const copy = { ...tags };
 		delete copy[tag.id];
 		return copy;
 	});
@@ -169,7 +169,7 @@ export async function getAllTagsAsJson(): Promise<Array<TagSchema>> {
 export async function importTag(tagToImport: TagSchema, batch?: WriteBatch): Promise<void> {
 	const { allTransactions, updateTransaction } = await import("./transactionsStore");
 
-	const storedTag = get(items)[tagToImport.id] ?? null;
+	const storedTag = get(tags)[tagToImport.id] ?? null;
 	if (storedTag) {
 		// If duplicate, overwrite the one we have
 		const newTag = tag({ ...storedTag, ...tagToImport });

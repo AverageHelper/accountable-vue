@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
-	import { useAccountsStore, useAttachmentsStore, useLocationsStore, watchTags } from "../../store";
+	import { useAccountsStore, useAttachmentsStore, watchLocations, watchTags } from "../../store";
 	import AccountEdit from "./AccountEdit.svelte";
 	import AccountListItem from "./AccountListItem.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -14,7 +14,6 @@
 
 	const accounts = useAccountsStore();
 	const attachments = useAttachmentsStore();
-	const locations = useLocationsStore();
 
 	$: allAccounts = accounts.allAccounts;
 	$: numberOfAccounts = accounts.numberOfAccounts;
@@ -26,7 +25,7 @@
 		await Promise.all([
 			accounts.watchAccounts(),
 			attachments.watchAttachments(),
-			locations.watchLocations(),
+			watchLocations(),
 			watchTags(),
 		]);
 	}

@@ -412,9 +412,8 @@ export async function deleteLocationIfUnreferenced(
 	if (locationIsReferenced(location.id)) return;
 
 	// This location is unreferenced
-	const { useLocationsStore } = await import("./locationsStore");
-	const locations = useLocationsStore();
-	await locations.deleteLocation(location, batch);
+	const { deleteLocation } = await import("./locationsStore");
+	await deleteLocation(location, batch);
 }
 
 export async function getAllTransactionsAsJson(
