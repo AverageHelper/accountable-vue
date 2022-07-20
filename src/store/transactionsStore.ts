@@ -6,13 +6,12 @@ import type { TransactionRecordPackage, Unsubscribe, WriteBatch } from "../trans
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
 import { add, subtract } from "dinero.js";
+import { allAccounts, currentBalance } from "./accountsStore";
 import { chronologically, reverseChronologically } from "../model/utility/sort";
 import { derived, get, writable } from "svelte/store";
 import { getDekMaterial, pKey } from "./authStore";
 import { getDocs } from "../transport/index.js";
 import { handleError, updateUserStats } from "./uiStore";
-import { stores } from "./stores";
-import { useAccountsStore } from "./accountsStore";
 import { zeroDinero } from "../helpers/dineroHelpers";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
@@ -70,11 +69,10 @@ export const sortedTransactions = derived(allTransactions, $allTransactions => {
 });
 
 export const allBalances = derived(sortedTransactions, $sortedTransactions => {
-	const accounts = useAccountsStore();
 	const balancesByAccount: Record<string, Record<string, Dinero<number>>> = {};
 
 	// Consider each account...
-	for (const accountId of accounts.allAccounts.map(a => a.id)) {
+	for (const accountId of get(allAccounts).map(a => a.id)) {
 		const balances: Record<string, Dinero<number>> = {}; // Txn.id -> amount
 
 		// Go through each transaction once, counting the account's balance as we go...
@@ -116,8 +114,11 @@ export async function watchTransactions(account: Account, force: boolean = false
 	}
 
 	// Clear the known balance, the watcher will set it right
-	const accounts = useAccountsStore();
-	delete accounts.currentBalance[account.id];
+	currentBalance.update(currentBalance => {
+		const copy = { ...currentBalance };
+		delete copy[account.id];
+		return copy;
+	});
 
 	// Get decryption key ready
 	const key = get(pKey);
@@ -142,14 +143,14 @@ export async function watchTransactions(account: Account, force: boolean = false
 				// Update cache
 				snap.docChanges().forEach(change => {
 					const accountTransactions = get(transactionsForAccount)[account.id] ?? {};
-					let currentBalance = accounts.currentBalance[account.id] ?? zeroDinero;
+					let balance = get(currentBalance)[account.id] ?? zeroDinero;
 
 					try {
 						switch (change.type) {
 							case "removed":
 								// Update the account's balance total
-								currentBalance = subtract(
-									currentBalance,
+								balance = subtract(
+									balance,
 									accountTransactions[change.doc.id]?.amount ?? zeroDinero
 								);
 								// Forget this transaction
@@ -162,17 +163,14 @@ export async function watchTransactions(account: Account, force: boolean = false
 								if (transaction.accountId !== account.id) break;
 								accountTransactions[change.doc.id] = transaction;
 								// Update the account's balance total
-								currentBalance = add(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? zeroDinero
-								);
+								balance = add(balance, accountTransactions[change.doc.id]?.amount ?? zeroDinero);
 								break;
 							}
 
 							case "modified": {
 								// Remove this account's balance total
-								currentBalance = subtract(
-									currentBalance,
+								balance = subtract(
+									balance,
 									accountTransactions[change.doc.id]?.amount ?? zeroDinero
 								);
 								// Update this transaction
@@ -180,15 +178,16 @@ export async function watchTransactions(account: Account, force: boolean = false
 								if (transaction.accountId !== account.id) break;
 								accountTransactions[change.doc.id] = transaction;
 								// Update this account's balance total
-								currentBalance = add(
-									currentBalance,
-									accountTransactions[change.doc.id]?.amount ?? zeroDinero
-								);
+								balance = add(balance, accountTransactions[change.doc.id]?.amount ?? zeroDinero);
 								break;
 							}
 						}
 
-						accounts.currentBalance[account.id] = currentBalance;
+						currentBalance.update(currentBalance => {
+							const copy = { ...currentBalance };
+							copy[account.id] = balance;
+							return copy;
+						});
 						transactionsForAccount.update(transactionsForAccount => {
 							const copy = { ...transactionsForAccount };
 							copy[account.id] = accountTransactions;
@@ -245,7 +244,6 @@ export async function watchTransactions(account: Account, force: boolean = false
 }
 
 export async function getTransactionsForAccount(account: Account): Promise<void> {
-	const accounts = useAccountsStore();
 	const key = get(pKey);
 	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
@@ -264,12 +262,11 @@ export async function getTransactionsForAccount(account: Account): Promise<void>
 		copy[account.id] = transactions;
 		return copy;
 	});
-	accounts.currentBalance[account.id] = totalBalance;
+	get(currentBalance)[account.id] = totalBalance;
 }
 
 export async function getAllTransactions(): Promise<void> {
-	const { accounts } = await stores();
-	for (const account of accounts.allAccounts) {
+	for (const account of get(allAccounts)) {
 		await getTransactionsForAccount(account);
 	}
 }

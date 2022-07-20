@@ -13,11 +13,24 @@
 		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		"plugin:prettier/recommended"
 	],
-	"plugins": ["prettier", "unicorn", "promise", "deprecation", "@typescript-eslint"],
+	"plugins": [
+		"prettier",
+		"unicorn",
+		"promise",
+		"deprecation",
+		"svelte3",
+		"@typescript-eslint",
+		"disable"
+	],
+	"processor": "disable/disable",
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"project": "./tsconfig.prod.json",
-		"tsconfigRootDir": "."
+		"tsconfigRootDir": ".",
+		"extraFileExtensions": [".svelte"]
+	},
+	"settings": {
+		"svelte3/typescript": true
 	},
 	"rules": {
 		"deprecation/deprecation": "warn",
@@ -53,6 +66,13 @@
 	},
 
 	"overrides": [
+		{
+			"files": ["*.svelte"],
+			"processor": "svelte3/svelte3",
+			"settings": {
+				"disable/plugins": ["prettier"]
+			}
+		},
 		{
 			"files": ["./*.ts", "src/**/*.test.ts", "tests/**/*.ts", "**/__mocks__/**/*.ts"],
 			"extends": ["plugin:prettier/recommended"],

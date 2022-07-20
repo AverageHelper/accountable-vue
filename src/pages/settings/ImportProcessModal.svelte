@@ -11,11 +11,12 @@
 	import List from "../../components/List.svelte";
 	import Modal from "../../components/Modal.svelte";
 	import {
+		allAccounts as storedAccounts,
 		handleError,
+		importAccount,
 		importAttachments,
 		importLocations,
 		importTags,
-		useAccountsStore,
 	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
@@ -25,8 +26,6 @@
 	export let fileName: string = "";
 	export let zip: Array<Entry> | null = null;
 	export let db: DatabaseSchema | null = null;
-
-	const accounts = useAccountsStore();
 
 	let accountIdsToImport = new Set<string>();
 	$: numberOfAttachmentsToImport = db?.attachments?.length ?? 0;
@@ -58,15 +57,14 @@
 		.format(importProgress);
 
 	$: hasDb = db !== null;
-	$: storedAccounts = accounts.allAccounts;
 	$: importedAccounts = (db?.accounts ?? []) //
 		.map(acct => newAccount({ ...acct, notes: acct.notes ?? null }));
 
 	$: duplicateAccounts = importedAccounts //
-		.filter(a1 => storedAccounts.some(a2 => a2.id === a1.id));
+		.filter(a1 => $storedAccounts.some(a2 => a2.id === a1.id));
 
 	$: newAccounts = importedAccounts //
-		.filter(a1 => !storedAccounts.some(a2 => a2.id === a1.id));
+		.filter(a1 => !$storedAccounts.some(a2 => a2.id === a1.id));
 
 	let transactionCounts: Record<string, number> = {};
 	$: (db?.accounts ?? []).forEach(a => {
@@ -107,7 +105,7 @@
 			for (const accountId of accountIdsToImport) {
 				const accountToImport = db.accounts?.find(a => a.id === accountId);
 				if (!accountToImport) continue;
-				await accounts.importAccount(accountToImport);
+				await importAccount(accountToImport);
 
 				itemsImported += transactionCounts.value[accountToImport.id] ?? 0;
 				itemsImported += 1;

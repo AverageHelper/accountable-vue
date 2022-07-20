@@ -27,7 +27,7 @@ import {
 
 export const attachments = writable<Record<string, Attachment>>({}); // Attachment.id -> Attachment
 export const files = writable<Record<string, string>>({}); // Attachment.id -> image data URL
-export const loadError = writable<Error | null>(null);
+export const attachmentsLoadError = writable<Error | null>(null);
 export const attachmentsWatcher = writable<Unsubscribe | null>(null);
 
 export const allAttachments = derived(attachments, $attachments => {
@@ -42,7 +42,7 @@ export function clearAttachmentsCache(): void {
 	}
 	files.set({});
 	attachments.set({});
-	loadError.set(null);
+	attachmentsLoadError.set(null);
 	console.debug("attachmentsStore: cache cleared");
 }
 
@@ -61,7 +61,7 @@ export async function watchAttachments(force: boolean = false): Promise<void> {
 	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = attachmentsCollection();
-	loadError.set(null);
+	attachmentsLoadError.set(null);
 	attachmentsWatcher.set(
 		watchAllRecords(
 			collection,
@@ -88,7 +88,7 @@ export async function watchAttachments(force: boolean = false): Promise<void> {
 				});
 			},
 			error => {
-				loadError.set(error);
+				attachmentsLoadError.set(error);
 				const watcher = get(attachmentsWatcher);
 				if (watcher) watcher();
 				attachmentsWatcher.set(null);

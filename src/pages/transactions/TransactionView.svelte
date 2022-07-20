@@ -21,6 +21,8 @@
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
 	import {
+		accounts,
+		attachments,
 		createAttachmentFromFile,
 		createTag as _createTag,
 		deleteAttachment,
@@ -31,14 +33,12 @@
 		removeTagFromTransaction,
 		transactionsForAccount,
 		updateTransaction,
-		useAccountsStore,
 	} from "../../store";
 
 	export let accountId: string;
 	export let transactionId: string;
 
 	const router = useRouter();
-	const accounts = useAccountsStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
@@ -47,7 +47,7 @@
 	$: theseTransactions = $transactionsForAccount[accountId] ?? {};
 
 	$: numberOfTransactions = Object.keys(theseTransactions).length;
-	$: account = accounts.items[accountId];
+	$: account = $accounts[accountId];
 	$: transaction = theseTransactions[transactionId];
 	$: locationId = transaction?.locationId ?? null;
 	$: location = locationId !== null ? $locations[locationId] ?? null : null;
@@ -210,7 +210,7 @@
 		<List>
 			{#each transaction.attachmentIds as fileId}
 				<li>
-					{#if attachments.items[fileId]}
+					{#if $attachments[fileId]}
 						<FileListItem
 							{fileId}
 							on:delete={askToDeleteFile}

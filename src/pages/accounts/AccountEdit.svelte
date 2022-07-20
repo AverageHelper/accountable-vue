@@ -3,10 +3,16 @@
 	import { _ } from "svelte-i18n";
 	import { account as newAccount } from "../../model/Account";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { transactionsForAccount, handleError, useAccountsStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextAreaField from "../../components/inputs/TextAreaField.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
+	import {
+		createAccount,
+		deleteAccount as _deleteAccount,
+		handleError,
+		transactionsForAccount,
+		updateAccount,
+	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
 		deleted: void;
@@ -14,8 +20,6 @@
 	}>();
 
 	export let account: Account | null = null;
-
-	const accounts = useAccountsStore();
 
 	$: isCreatingAccount = account === null;
 	$: numberOfTransactions = !account
@@ -25,7 +29,7 @@
 	let isLoading = false;
 	let title = "";
 	let notes = "";
-	// $: createdAt = props.account.createdAt ?? new Date();
+	// $: createdAt = account.createdAt ?? new Date();
 
 	let titleField: TextField | undefined;
 
@@ -45,13 +49,13 @@
 			}
 
 			if (account === null) {
-				await accounts.createAccount({
+				await createAccount({
 					createdAt: new Date(),
 					title: title.trim(),
 					notes: notes.trim(),
 				});
 			} else {
-				await accounts.updateAccount(
+				await updateAccount(
 					newAccount({
 						id: account.id,
 						title: title.trim(),
@@ -78,7 +82,7 @@
 				throw new Error("No account to delete"); // TODO: I18N
 			}
 
-			await accounts.deleteAccount(account);
+			await _deleteAccount(account);
 			dispatch("deleted");
 			dispatch("finished");
 		} catch (error) {

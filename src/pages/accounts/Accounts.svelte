@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
-	import { useAccountsStore, watchAttachments, watchLocations, watchTags } from "../../store";
 	import AccountEdit from "./AccountEdit.svelte";
 	import AccountListItem from "./AccountListItem.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -11,18 +10,22 @@
 	import Modal from "../../components/Modal.svelte";
 	import NewLoginModal from "../../components/NewLoginModal.svelte";
 	import ReloadIcon from "../../icons/Reload.svelte";
+	import {
+		accountsLoadError,
+		allAccounts,
+		numberOfAccounts,
+		watchAccounts,
+		watchAttachments,
+		watchLocations,
+		watchTags,
+	} from "../../store";
 
-	const accounts = useAccountsStore();
-
-	$: allAccounts = accounts.allAccounts;
-	$: numberOfAccounts = accounts.numberOfAccounts;
-	$: loadError = accounts.loadError;
 	let isCreatingAccount = false;
 
 	async function load() {
 		console.debug("Starting watchers...");
 		await Promise.all([
-			accounts.watchAccounts(),
+			watchAccounts(), //
 			watchAttachments(),
 			watchLocations(),
 			watchTags(),
@@ -47,8 +50,8 @@
 		<h1>Accounts</h1>
 	</div>
 
-	<ErrorNotice error={loadError} />
-	{#if loadError}
+	<ErrorNotice error={$accountsLoadError} />
+	{#if $accountsLoadError}
 		<ActionButton on:click={load}>
 			<ReloadIcon />
 		</ActionButton>
@@ -57,15 +60,15 @@
 			<li>
 				<AddRecordListItem noun="account" on:click={startCreatingAccount} />
 			</li>
-			{#each allAccounts as account (account.id)}
+			{#each $allAccounts as account (account.id)}
 				<li>
 					<AccountListItem {account} />
 				</li>
 			{/each}
-			{#if numberOfAccounts > 0}
+			{#if $numberOfAccounts > 0}
 				<li>
 					<p class="footer"
-						>{$_c("common.count.account", numberOfAccounts, { n: numberOfAccounts })}</p
+						>{$_c("common.count.account", $numberOfAccounts, { n: $numberOfAccounts })}</p
 					>
 				</li>
 			{/if}

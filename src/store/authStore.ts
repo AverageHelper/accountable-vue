@@ -3,7 +3,6 @@ import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../tr
 import type { User } from "../transport/auth.js";
 import { bootstrap, updateUserStats } from "./uiStore";
 import { get, writable } from "svelte/store";
-import { stores } from "./stores";
 import { UnauthorizedError } from "../../server/errors";
 import { v4 as uuid } from "uuid";
 import {
@@ -100,12 +99,12 @@ export function onSignedIn(user: User): void {
 export async function onSignedOut(): Promise<void> {
 	clearAuthCache();
 
-	const { accounts } = await stores();
+	const { clearAccountsCache } = await import("./accountsStore");
 	const { clearAttachmentsCache } = await import("./attachmentsStore");
 	const { clearLocationsCache } = await import("./locationsStore");
 	const { clearTagsCache } = await import("./tagsStore");
 	const { clearTransactionsCache } = await import("./transactionsStore");
-	accounts.clearCache();
+	clearAccountsCache();
 	clearAttachmentsCache();
 	clearLocationsCache();
 	clearTagsCache();
@@ -207,7 +206,7 @@ export function clearNewLoginStatus(): void {
 export async function destroyVault(password: string): Promise<void> {
 	if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
-	const { accounts } = await stores();
+	const { deleteAllAccounts } = await import("./accountsStore");
 	const { deleteAllAttachments } = await import("./attachmentsStore");
 	const { deleteAllLocation } = await import("./locationsStore");
 	const { deleteAllTags } = await import("./tagsStore");
@@ -217,7 +216,7 @@ export async function destroyVault(password: string): Promise<void> {
 	await deleteAllAttachments();
 	await deleteAllTransactions();
 	await deleteAllTags();
-	await accounts.deleteAllAccounts();
+	await deleteAllAccounts();
 	await deleteAllLocation();
 	await deleteUserPreferences(auth.currentUser.uid);
 	await deleteAuthMaterial(auth.currentUser.uid);
@@ -297,9 +296,7 @@ export async function getAllUserDataAsJson(): Promise<DatabaseSchema> {
 	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 	if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-	const {
-		accounts: accountsStore, //
-	} = await stores();
+	const { getAllAccountsAsJson } = await import("./accountsStore");
 	const { getAllAttachmentsAsJson } = await import("./attachmentsStore");
 	const { getAllLocationsAsJson } = await import("./locationsStore");
 	const { getAllTagsAsJson } = await import("./tagsStore");
@@ -311,7 +308,7 @@ export async function getAllUserDataAsJson(): Promise<DatabaseSchema> {
 	const snap = await getDoc(userDoc);
 
 	const [accounts, attachments, locations, tags] = await Promise.all([
-		accountsStore.getAllAccountsAsJson(),
+		getAllAccountsAsJson(),
 		getAllAttachmentsAsJson(),
 		getAllLocationsAsJson(),
 		getAllTagsAsJson(),

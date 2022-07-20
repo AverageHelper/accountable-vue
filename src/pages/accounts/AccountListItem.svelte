@@ -1,22 +1,20 @@
 <script lang="ts">
 	import type { Account } from "../../model/Account";
 	import { accountPath } from "../../router";
+	import { currentBalance, getTransactionsForAccount, transactionsForAccount } from "../../store";
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { onMount } from "svelte";
-	import { getTransactionsForAccount, transactionsForAccount, useAccountsStore } from "../../store";
 	import ListItem from "../../components/ListItem.svelte";
 
 	export let account: Account;
 	export let link: boolean = true;
 	export let count: number | null = null;
 
-	const accounts = useAccountsStore();
-
 	$: accountRoute = link ? accountPath(account.id) : "#"; // TODO: I18N
 	$: theseTransactions = $transactionsForAccount[account.id];
 
-	$: remainingBalance = accounts.currentBalance[account.id] ?? null;
+	$: remainingBalance = $currentBalance[account.id] ?? null;
 	$: isBalanceNegative = remainingBalance !== null && isDineroNegative(remainingBalance);
 
 	$: numberOfTransactions =

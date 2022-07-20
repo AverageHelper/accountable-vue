@@ -17,10 +17,11 @@
 	import TransactionMonthListItem from "../transactions/TransactionMonthListItem.svelte";
 	import TransactionListItem from "../transactions/TransactionListItem.svelte";
 	import {
+		accounts,
+		currentBalance,
 		months,
 		transactionsForAccount,
 		transactionsForAccountByMonth,
-		useAccountsStore,
 		watchTransactions,
 	} from "../../store";
 
@@ -28,12 +29,11 @@
 
 	const route = useRoute();
 	const router = useRouter();
-	const accounts = useAccountsStore();
 
 	let isEditingAccount = false;
 	let isEditingTransaction = false;
 
-	$: account = accounts.items[accountId] ?? null;
+	$: account = $accounts[accountId] ?? null;
 	$: theseTransactions = Object.values($transactionsForAccount[accountId] ?? {}) //
 		.sort(reverseChronologically);
 
@@ -64,7 +64,7 @@
 			? searchClient.search(searchQuery).map(r => r.item)
 			: theseTransactions;
 
-	$: remainingBalance = accounts.currentBalance[accountId] ?? null;
+	$: remainingBalance = $currentBalance[accountId] ?? null;
 	$: isNegative = isDineroNegative(remainingBalance ?? zeroDinero);
 
 	$: void watchTransactions(account);
