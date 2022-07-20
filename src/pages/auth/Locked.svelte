@@ -1,28 +1,32 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { accountsPath } from "../../router";
-	import { handleError, useAuthStore } from "../../store";
 	import { onMount } from "svelte";
 	import { useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
+	import {
+		accountId as _accountId,
+		bootstrap,
+		bootstrapError,
+		handleError,
+		loginProcessState,
+		unlockVault,
+	} from "../../store";
 
-	const auth = useAuthStore();
 	const router = useRouter();
 
-	$: bootstrapError = ui.bootstrapError;
-	$: accountId = auth.accountId ?? "";
+	$: accountId = $_accountId ?? "";
 	let password = "";
 	let isLoading = false;
-	$: loginProcessState = auth.loginProcessState;
 
 	let passwordField: TextField | undefined;
 
 	onMount(() => {
 		passwordField?.focus();
-		ui.bootstrap();
+		bootstrap();
 	});
 
 	async function submit() {
@@ -31,7 +35,7 @@
 
 			if (!accountId || !password) throw new Error($_("error.form.missing-required-fields"));
 
-			await auth.unlockVault(password);
+			await unlockVault(password);
 
 			await router.replace(accountsPath());
 		} catch (error) {
@@ -42,9 +46,9 @@
 	}
 </script>
 
-{#if bootstrapError}
+{#if $bootstrapError}
 	<main class="content">
-		<ErrorNotice error={bootstrapError} />
+		<ErrorNotice error={$bootstrapError} />
 		<Footer />
 	</main>
 {:else}
@@ -74,16 +78,16 @@
 				>{$_("locked.unlock")}</ActionButton
 			>
 
-			{#if loginProcessState === "AUTHENTICATING"}
+			{#if $loginProcessState === "AUTHENTICATING"}
 				<span>{$_("login.process.reauthenticating")}</span>
 			{/if}
-			{#if loginProcessState === "GENERATING_KEYS"}
+			{#if $loginProcessState === "GENERATING_KEYS"}
 				<span>{$_("login.process.generating-keys")}</span>
 			{/if}
-			{#if loginProcessState === "FETCHING_KEYS"}
+			{#if $loginProcessState === "FETCHING_KEYS"}
 				<span>{$_("login.process.fetching-keys")}</span>
 			{/if}
-			{#if loginProcessState === "DERIVING_PKEY"}
+			{#if $loginProcessState === "DERIVING_PKEY"}
 				<span>{$_("login.process.deriving-pkey")}</span>
 			{/if}
 		</form>

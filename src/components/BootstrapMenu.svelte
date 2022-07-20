@@ -1,18 +1,15 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
+	import { isLoginEnabled } from "../store";
 	import { useRoute } from "vue-router";
-	import { useAuthStore } from "../store";
 
 	interface Page {
 		path: string;
 		titleKey: string;
 	}
 
-	const auth = useAuthStore();
-
 	let isNavButtonOpen = false; // This is exactly what Bootstrap does lol
-	const loginEnabled = auth.isLoginEnabled;
 
 	const homeRoute = homePath();
 
@@ -23,7 +20,7 @@
 		{ path: installPath(), titleKey: "home.nav.install" },
 	];
 
-	if (loginEnabled) {
+	if (isLoginEnabled) {
 		pages.push({ path: loginPath(), titleKey: "home.nav.log-in" });
 	}
 

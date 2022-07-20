@@ -1,11 +1,11 @@
 import type { Location, LocationRecordParams } from "../model/Location";
-import type { HashStore, LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
+import type { LocationRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { LocationSchema } from "../model/DatabaseSchema";
 import { derived, get, writable } from "svelte/store";
+import { getDekMaterial, pKey, uid } from "./authStore";
 import { location, recordFromLocation } from "../model/Location";
 import { transaction } from "../model/Transaction";
 import { updateUserStats } from "./uiStore";
-import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	createLocation as _createLocation,
@@ -47,11 +47,10 @@ export async function watchLocations(force: boolean = false): Promise<void> {
 		locationsWatcher.set(null);
 	}
 
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = locationsCollection();
 	locationsLoadError.set(null);
@@ -95,14 +94,13 @@ export async function createLocation(
 	record: LocationRecordParams,
 	batch?: WriteBatch
 ): Promise<Location> {
-	const authStore = useAuthStore();
-	const uid = authStore.uid;
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-	if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+	const userId = get(uid);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	// If the record matches the title and coords of an extant location, return that instead
 	const extantLocation = record.coordinate
@@ -116,7 +114,7 @@ export async function createLocation(
 		: // title matches
 		  get(allLocations).find(l => record.title === l.title && record.subtitle === l.subtitle);
 
-	const newLocation = extantLocation ?? (await _createLocation(uid, record, dek, batch));
+	const newLocation = extantLocation ?? (await _createLocation(userId, record, dek, batch));
 	if (!batch) await updateUserStats();
 
 	locations.update(locations => {
@@ -128,14 +126,13 @@ export async function createLocation(
 }
 
 export async function updateLocation(location: Location, batch?: WriteBatch): Promise<void> {
-	const authStore = useAuthStore();
-	const uid = authStore.uid;
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-	if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+	const userId = get(uid);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	await _updateLocation(location, dek, batch);
 	if (!batch) await updateUserStats();
 	locations.update(locations => {
@@ -167,12 +164,11 @@ export async function deleteLocation(location: Location, batch?: WriteBatch): Pr
 }
 
 export async function getAllLocations(): Promise<void> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = locationsCollection();
 	const snap = await getDocs<LocationRecordPackage>(collection);
@@ -188,12 +184,11 @@ export async function getAllLocations(): Promise<void> {
 }
 
 export async function getAllLocationsAsJson(): Promise<Array<LocationSchema>> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = locationsCollection();
 	const snap = await getDocs<LocationRecordPackage>(collection);

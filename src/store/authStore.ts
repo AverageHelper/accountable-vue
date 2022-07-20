@@ -2,7 +2,7 @@ import type { DatabaseSchema } from "../model/DatabaseSchema";
 import type { HashStore, KeyMaterial, Unsubscribe, UserPreferences } from "../transport";
 import type { User } from "../transport/auth.js";
 import { bootstrap, updateUserStats } from "./uiStore";
-import { defineStore } from "pinia";
+import { get, writable } from "svelte/store";
 import { stores } from "./stores";
 import { UnauthorizedError } from "../../server/errors";
 import { v4 as uuid } from "uuid";
@@ -31,288 +31,299 @@ import {
 	signInWithAccountIdAndPassword,
 	signOut,
 	updateAccountId,
-	updatePassword,
+	updatePassword as _updatePassword,
 } from "../transport/auth.js";
 
 type LoginProcessState = "AUTHENTICATING" | "GENERATING_KEYS" | "FETCHING_KEYS" | "DERIVING_PKEY";
 
-export const useAuthStore = defineStore("auth", {
-	state: () => ({
-		isNewLogin: false,
-		accountId: null as string | null,
-		uid: null as string | null,
-		pKey: null as HashStore | null,
-		loginProcessState: null as LoginProcessState | null,
-		preferences: defaultPrefs(),
-		userPrefsWatcher: null as null | Unsubscribe,
-	}),
-	getters: {
-		isSignupEnabled(): boolean {
-			return import.meta.env.VITE_ENABLE_SIGNUP === "true";
-		},
-		isLoginEnabled(): boolean {
-			return import.meta.env.VITE_ENABLE_LOGIN === "true";
-		},
-	},
-	actions: {
-		clearCache() {
-			if (this.userPrefsWatcher) this.userPrefsWatcher(); // needs to die before auth watcher
-			this.userPrefsWatcher = null;
-			this.pKey?.destroy();
-			this.pKey = null;
-			this.loginProcessState = null;
-			this.uid = null;
-			this.accountId = null;
-			this.isNewLogin = false;
-			this.preferences = defaultPrefs();
-			console.debug("authStore: cache cleared");
-		},
-		lockVault() {
-			this.pKey?.destroy();
-			this.pKey = null;
-			this.isNewLogin = false;
-			this.loginProcessState = null;
-			console.debug("authStore: keys forgotten, vault locked");
-		},
-		onSignedIn(user: User) {
-			this.accountId = user.accountId;
-			this.uid = user.uid;
+export const isNewLogin = writable(false);
+export const accountId = writable<string | null>(null);
+export const uid = writable<string | null>(null);
+export const pKey = writable<HashStore | null>(null);
+export const loginProcessState = writable<LoginProcessState | null>(null);
+export const preferences = writable(defaultPrefs());
+export const userPrefsWatcher = writable<Unsubscribe | null>(null);
 
-			if (this.userPrefsWatcher) {
-				this.userPrefsWatcher();
-				this.userPrefsWatcher = null;
+export const isSignupEnabled = import.meta.env.VITE_ENABLE_SIGNUP === "true";
+export const isLoginEnabled = import.meta.env.VITE_ENABLE_LOGIN === "true";
+
+export function clearAuthCache(): void {
+	const watcher = get(userPrefsWatcher);
+	if (watcher) watcher(); // needs to die before auth watcher
+	userPrefsWatcher.set(null);
+	get(pKey)?.destroy();
+	pKey.set(null);
+	loginProcessState.set(null);
+	uid.set(null);
+	accountId.set(null);
+	isNewLogin.set(false);
+	preferences.set(defaultPrefs());
+	console.debug("authStore: cache cleared");
+}
+
+export function lockVault(): void {
+	get(pKey)?.destroy();
+	pKey.set(null);
+	isNewLogin.set(false);
+	loginProcessState.set(null);
+	console.debug("authStore: keys forgotten, vault locked");
+}
+
+export function onSignedIn(user: User): void {
+	accountId.set(user.accountId);
+	uid.set(user.uid);
+
+	const watcher = get(userPrefsWatcher);
+	if (watcher) {
+		watcher();
+		userPrefsWatcher.set(null);
+	}
+
+	const key = get(pKey);
+	if (key === null) return; // No decryption key
+
+	const userDoc = userRef(user.uid);
+	userPrefsWatcher.set(
+		watchRecord(userDoc, async snap => {
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
+			if (snap.exists()) {
+				const prefs = userPreferencesFromSnapshot(snap, dek);
+				preferences.set(prefs);
+			} else {
+				preferences.set(defaultPrefs());
 			}
+		})
+	);
+}
 
-			const pKey = this.pKey as HashStore | null;
-			if (pKey === null) return; // No decryption key
+export async function onSignedOut(): Promise<void> {
+	clearAuthCache();
 
-			const userDoc = userRef(user.uid);
-			this.userPrefsWatcher = watchRecord(userDoc, async snap => {
-				const { dekMaterial } = await this.getDekMaterial();
-				const dek = deriveDEK(pKey, dekMaterial);
-				if (snap.exists()) {
-					const prefs = userPreferencesFromSnapshot(snap, dek);
-					this.preferences = prefs;
-				} else {
-					this.preferences = defaultPrefs();
-				}
-			});
-		},
-		async onSignedOut() {
-			this.clearCache();
+	const { accounts, attachments } = await stores();
+	const { clearLocationsCache } = await import("./locationsStore");
+	const { clearTagsCache } = await import("./tagsStore");
+	const { clearTransactionsCache } = await import("./transactionsStore");
+	accounts.clearCache();
+	attachments.clearCache();
+	clearLocationsCache();
+	clearTagsCache();
+	clearTransactionsCache();
+}
 
-			const { accounts, attachments, locations } = await stores();
-			const { clearTagsCache } = await import("./tagsStore");
-			const { clearTransactionsCache } = await import("./transactionsStore");
-			accounts.clearCache();
-			attachments.clearCache();
-			locations.clearCache();
-			clearTagsCache();
-			clearTransactionsCache();
-		},
-		async fetchSession() {
-			bootstrap();
-			try {
-				this.loginProcessState = "AUTHENTICATING";
-				// Salt using the user's account ID
-				const { user } = await refreshSession(auth);
-				await updateUserStats();
-				this.onSignedIn(user);
-			} catch (error) {
-				console.error(error);
-			} finally {
-				// In any event, error or not:
-				this.loginProcessState = null;
-			}
-		},
-		async unlockVault(password: string) {
-			const uid = this.uid;
-			const accountId = this.accountId;
-			if (uid === null || accountId === null) throw new UnauthorizedError("missing-token");
+export async function fetchSession(): Promise<void> {
+	bootstrap();
+	try {
+		loginProcessState.set("AUTHENTICATING");
+		// Salt using the user's account ID
+		const { user } = await refreshSession(auth);
+		await updateUserStats();
+		onSignedIn(user);
+	} catch (error) {
+		console.error(error);
+	} finally {
+		// In any event, error or not:
+		loginProcessState.set(null);
+	}
+}
 
-			await this.login(accountId, password);
+export async function unlockVault(password: string): Promise<void> {
+	const acctId = get(accountId);
+	if (get(uid) === null || acctId === null) throw new UnauthorizedError("missing-token");
 
-			// TODO: Instead of re-authing, download the ledger and attempt a decrypt with the given password. If fail, throw. If succeed, continue.
-		},
-		async login(accountId: string, password: string) {
-			try {
-				this.loginProcessState = "AUTHENTICATING";
-				// TODO: Also salt the password hash
-				// Salt using the user's account ID
-				const { user } = await signInWithAccountIdAndPassword(
-					auth,
-					accountId,
-					await hashed(password) // FIXME: Should use OPAQUE or SRP instead
-				);
-				await updateUserStats();
+	await login(acctId, password);
 
-				// Get the salt and dek material from server
-				this.loginProcessState = "FETCHING_KEYS";
-				const material = await this.getDekMaterial();
+	// TODO: Instead of re-authing, download the ledger and attempt a decrypt with the given password. If fail, throw. If succeed, continue.
+}
 
-				// Derive a pKey from the password, and remember it
-				this.loginProcessState = "DERIVING_PKEY";
-				this.pKey = await derivePKey(password, material.passSalt);
-				this.onSignedIn(user);
-			} finally {
-				// In any event, error or not:
-				this.loginProcessState = null;
-			}
-		},
-		async getDekMaterial(this: void): Promise<KeyMaterial> {
-			const user = auth.currentUser;
-			if (!user) throw new Error("You must sign in first"); // TODO: I18N
+export async function login(accountId: string, password: string): Promise<void> {
+	try {
+		loginProcessState.set("AUTHENTICATING");
+		// TODO: Also salt the password hash
+		// Salt using the user's account ID
+		const { user } = await signInWithAccountIdAndPassword(
+			auth,
+			accountId,
+			await hashed(password) // FIXME: Should use OPAQUE or SRP instead
+		);
+		await updateUserStats();
 
-			const material = await getAuthMaterial(user.uid);
-			if (!material) throw new Error("You must create an accout first"); // TODO: I18N
-			return material;
-		},
-		createAccountId(this: void): string {
-			return uuid().replace(/\W+/gu, "");
-		},
-		async createVault(accountId: string, password: string) {
-			try {
-				this.loginProcessState = "AUTHENTICATING";
-				const { user } = await createUserWithAccountIdAndPassword(
-					auth,
-					accountId,
-					await hashed(password)
-				);
+		// Get the salt and dek material from server
+		loginProcessState.set("FETCHING_KEYS");
+		const material = await getDekMaterial();
 
-				this.loginProcessState = "GENERATING_KEYS";
-				const material = await newDataEncryptionKeyMaterial(password);
-				await setAuthMaterial(user.uid, material);
-				await updateUserStats();
+		// Derive a pKey from the password, and remember it
+		loginProcessState.set("DERIVING_PKEY");
+		pKey.set(await derivePKey(password, material.passSalt));
+		onSignedIn(user);
+	} finally {
+		// In any event, error or not:
+		loginProcessState.set(null);
+	}
+}
 
-				this.loginProcessState = "DERIVING_PKEY";
-				this.pKey = await derivePKey(password, material.passSalt);
-				this.isNewLogin = true;
-				this.onSignedIn(user);
-			} finally {
-				// In any event, error or not:
-				this.loginProcessState = null;
-			}
-		},
-		clearNewLoginStatus() {
-			this.isNewLogin = false;
-		},
-		async destroyVault(password: string) {
-			if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
+export async function getDekMaterial(this: void): Promise<KeyMaterial> {
+	const user = auth.currentUser;
+	if (!user) throw new Error("You must sign in first"); // TODO: I18N
 
-			const { accounts, attachments, locations } = await stores();
-			const { deleteAllTags } = await import("./tagsStore");
-			const { deleteAllTransactions } = await import("./transactionsStore");
-			await attachments.deleteAllAttachments();
-			await deleteAllTransactions();
-			await deleteAllTags();
-			await accounts.deleteAllAccounts();
-			await locations.deleteAllLocation();
-			await deleteUserPreferences(auth.currentUser.uid);
-			await deleteAuthMaterial(auth.currentUser.uid);
+	const material = await getAuthMaterial(user.uid);
+	if (!material) throw new Error("You must create an accout first"); // TODO: I18N
+	return material;
+}
 
-			await deleteUser(auth, auth.currentUser, await hashed(password));
-			await this.onSignedOut();
-		},
-		async updateUserPreferences(prefs: Partial<UserPreferences>) {
-			const uid = this.uid;
-			const pKey = this.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+export function createAccountId(this: void): string {
+	return uuid().replace(/\W+/gu, "");
+}
 
-			const { dekMaterial } = await this.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
-			await setUserPreferences(uid, prefs, dek);
-			await updateUserStats();
-		},
-		async regenerateAccountId(currentPassword: string) {
-			const user = auth.currentUser;
-			if (user === null) {
-				throw new Error("Not logged in"); // TODO: I18N
-			}
+export async function createVault(accountId: string, password: string): Promise<void> {
+	try {
+		loginProcessState.set("AUTHENTICATING");
+		const { user } = await createUserWithAccountIdAndPassword(
+			auth,
+			accountId,
+			await hashed(password)
+		);
 
-			const newAccountId = this.createAccountId();
-			await updateAccountId(user, newAccountId, await hashed(currentPassword));
-			this.accountId = newAccountId;
-			this.isNewLogin = true;
-		},
-		async updatePassword(oldPassword: string, newPassword: string) {
-			const user = auth.currentUser;
-			if (user === null) {
-				throw new Error("Not logged in"); // TODO: I18N
-			}
+		loginProcessState.set("GENERATING_KEYS");
+		const material = await newDataEncryptionKeyMaterial(password);
+		await setAuthMaterial(user.uid, material);
+		await updateUserStats();
 
-			// Get old DEK material
-			const oldMaterial = await getAuthMaterial(user.uid);
-			if (!oldMaterial) {
-				throw new Error("Create an account first"); // TODO: I18N
-			}
+		loginProcessState.set("DERIVING_PKEY");
+		pKey.set(await derivePKey(password, material.passSalt));
+		isNewLogin.set(true);
+		onSignedIn(user);
+	} finally {
+		// In any event, error or not:
+		loginProcessState.set(null);
+	}
+}
 
-			// Generate new pKey
-			const newMaterial = await newMaterialFromOldKey(oldPassword, newPassword, oldMaterial);
+export function clearNewLoginStatus(): void {
+	isNewLogin.set(false);
+}
 
-			// Store new pKey
-			await setAuthMaterial(user.uid, newMaterial);
-			this.pKey = await derivePKey(newPassword, newMaterial.passSalt);
-			delete newMaterial.oldDekMaterial;
-			delete newMaterial.oldPassSalt;
+export async function destroyVault(password: string): Promise<void> {
+	if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
-			// Update auth password
-			try {
-				await updatePassword(auth, user, await hashed(oldPassword), await hashed(newPassword));
-			} catch (error) {
-				// Overwrite the new key with the old key, and have user try again
-				await setAuthMaterial(user.uid, oldMaterial);
-				this.pKey = await derivePKey(oldPassword, oldMaterial.passSalt);
-				throw error;
-			}
+	const { accounts, attachments } = await stores();
+	const { deleteAllLocation } = await import("./locationsStore");
+	const { deleteAllTags } = await import("./tagsStore");
+	const { deleteAllTransactions } = await import("./transactionsStore");
+	await attachments.deleteAllAttachments();
+	await deleteAllTransactions();
+	await deleteAllTags();
+	await accounts.deleteAllAccounts();
+	await deleteAllLocation();
+	await deleteUserPreferences(auth.currentUser.uid);
+	await deleteAuthMaterial(auth.currentUser.uid);
 
-			// Erase the old key
-			await setAuthMaterial(user.uid, newMaterial);
-			await updateUserStats();
-		},
-		async logout() {
-			await signOut(auth);
-			await this.onSignedOut();
-		},
-		async getAllUserDataAsJson(): Promise<DatabaseSchema> {
-			const uid = this.uid;
-			const pKey = this.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+	await deleteUser(auth, auth.currentUser, await hashed(password));
+	await onSignedOut();
+}
 
-			const {
-				accounts: accountsStore,
-				attachments: attachmentsStore,
-				locations: locationsStore,
-			} = await stores();
-			const { getAllTagsAsJson } = await import("./tagsStore");
+export async function updateUserPreferences(prefs: Partial<UserPreferences>): Promise<void> {
+	const userId = get(uid);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-			const { dekMaterial } = await this.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
+	await setUserPreferences(userId, prefs, dek);
+	await updateUserStats();
+}
 
-			const userDoc = userRef(uid);
-			const snap = await getDoc(userDoc);
+export async function regenerateAccountId(currentPassword: string): Promise<void> {
+	const user = auth.currentUser;
+	if (user === null) {
+		throw new Error("Not logged in"); // TODO: I18N
+	}
 
-			const [accounts, attachments, locations, tags] = await Promise.all([
-				accountsStore.getAllAccountsAsJson(),
-				attachmentsStore.getAllAttachmentsAsJson(),
-				locationsStore.getAllLocationsAsJson(),
-				getAllTagsAsJson(),
-			]);
+	const newAccountId = createAccountId();
+	await updateAccountId(user, newAccountId, await hashed(currentPassword));
+	accountId.set(newAccountId);
+	isNewLogin.set(true);
+}
 
-			const prefs = snap.exists() //
-				? userPreferencesFromSnapshot(snap, dek)
-				: defaultPrefs();
+export async function updatePassword(oldPassword: string, newPassword: string): Promise<void> {
+	const user = auth.currentUser;
+	if (user === null) {
+		throw new Error("Not logged in"); // TODO: I18N
+	}
 
-			// JS seems to put these in the order we lay them. Do prefs first, since they're smol
-			return {
-				uid,
-				...prefs,
-				accounts,
-				attachments,
-				locations,
-				tags,
-			};
-		},
-	},
-});
+	// Get old DEK material
+	const oldMaterial = await getAuthMaterial(user.uid);
+	if (!oldMaterial) {
+		throw new Error("Create an account first"); // TODO: I18N
+	}
+
+	// Generate new pKey
+	const newMaterial = await newMaterialFromOldKey(oldPassword, newPassword, oldMaterial);
+
+	// Store new pKey
+	await setAuthMaterial(user.uid, newMaterial);
+	pKey.set(await derivePKey(newPassword, newMaterial.passSalt));
+	delete newMaterial.oldDekMaterial;
+	delete newMaterial.oldPassSalt;
+
+	// Update auth password
+	try {
+		await _updatePassword(auth, user, await hashed(oldPassword), await hashed(newPassword));
+	} catch (error) {
+		// Overwrite the new key with the old key, and have user try again
+		await setAuthMaterial(user.uid, oldMaterial);
+		pKey.set(await derivePKey(oldPassword, oldMaterial.passSalt));
+		throw error;
+	}
+
+	// Erase the old key
+	await setAuthMaterial(user.uid, newMaterial);
+	await updateUserStats();
+}
+
+export async function logout(): Promise<void> {
+	await signOut(auth);
+	await onSignedOut();
+}
+
+export async function getAllUserDataAsJson(): Promise<DatabaseSchema> {
+	const userId = get(uid);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	if (userId === null) throw new Error("Sign in first"); // TODO: I18N
+
+	const {
+		accounts: accountsStore, //
+		attachments: attachmentsStore,
+	} = await stores();
+	const { getAllLocationsAsJson } = await import("./locationsStore");
+	const { getAllTagsAsJson } = await import("./tagsStore");
+
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
+
+	const userDoc = userRef(userId);
+	const snap = await getDoc(userDoc);
+
+	const [accounts, attachments, locations, tags] = await Promise.all([
+		accountsStore.getAllAccountsAsJson(),
+		attachmentsStore.getAllAttachmentsAsJson(),
+		getAllLocationsAsJson(),
+		getAllTagsAsJson(),
+	]);
+
+	const prefs = snap.exists() //
+		? userPreferencesFromSnapshot(snap, dek)
+		: defaultPrefs();
+
+	// JS seems to put these in the order we lay them. Do prefs first, since they're smol
+	return {
+		uid: userId,
+		...prefs,
+		accounts,
+		attachments,
+		locations,
+		tags,
+	};
+}

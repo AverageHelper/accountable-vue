@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { aboutPath, signupPath } from "./router";
-	import { useAuthStore } from "./store";
+	import { isSignupEnabled } from "./store";
 	import ActionButton from "./components/buttons/ActionButton.svelte";
 	import EncryptionIcon from "./icons/Lock.svelte";
 	import Footer from "./Footer.svelte";
@@ -11,10 +11,6 @@
 
 	const aboutRoute = aboutPath();
 	const signupRoute = signupPath();
-
-	const auth = useAuthStore();
-
-	const isSignupEnabled = auth.isSignupEnabled;
 </script>
 
 <main class="content">

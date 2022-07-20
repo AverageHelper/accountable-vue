@@ -1,10 +1,10 @@
 import type { Tag, TagRecordParams } from "../model/Tag";
-import type { HashStore, TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
+import type { TagRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TagSchema } from "../model/DatabaseSchema";
 import { derived, get, writable } from "svelte/store";
+import { getDekMaterial, pKey } from "./authStore";
 import { recordFromTag, tag } from "../model/Tag";
 import { updateUserStats } from "./uiStore";
-import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	addTagToTransaction,
@@ -51,11 +51,10 @@ export async function watchTags(force: boolean = false): Promise<void> {
 		tagsWatcher.set(null);
 	}
 
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = tagsCollection();
 	tagsLoadError.set(null);
@@ -101,12 +100,11 @@ export async function createTag(record: TagRecordParams, batch?: WriteBatch): Pr
 	if (extantTag) return extantTag;
 
 	// Otherwise, go ahead and make one
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key");
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key");
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	const newTag = await _createTag(record, dek, batch);
 	tags.update(tags => {
 		const copy = { ...tags };
@@ -118,12 +116,11 @@ export async function createTag(record: TagRecordParams, batch?: WriteBatch): Pr
 }
 
 export async function updateTag(tag: Tag, batch?: WriteBatch): Promise<void> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	await _updateTag(tag, dek, batch);
 	tags.update(tags => {
 		const copy = { ...tags };
@@ -152,12 +149,11 @@ export async function deleteAllTags(): Promise<void> {
 }
 
 export async function getAllTagsAsJson(): Promise<Array<TagSchema>> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = tagsCollection();
 	const snap = await getDocs<TagRecordPackage>(collection);

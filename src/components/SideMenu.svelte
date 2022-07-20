@@ -4,7 +4,7 @@
 	import { appTabs, iconForTab, labelIdForTab, routeForTab } from "../model/ui/tabs";
 	import { lockPath, logoutPath, settingsPath } from "../router";
 	import { onDestroy, onMount } from "svelte";
-	import { useAuthStore } from "../store";
+	import { pKey, uid } from "../store";
 	import ActionButton from "./buttons/ActionButton.svelte";
 	import AppVersion from "./AppVersion.svelte";
 	import DiskUsage from "./DiskUsage.svelte";
@@ -22,11 +22,9 @@
 		icon?: ComponentType | null;
 	}
 
-	const auth = useAuthStore();
-
 	let isMenuOpen = false;
-	$: isLoggedIn = auth.uid !== null;
-	$: isUnlocked = auth.pKey !== null;
+	$: isLoggedIn = $uid !== null;
+	$: isUnlocked = $pKey !== null;
 	$: hasItems = isLoggedIn;
 
 	let windowWidth = window.innerWidth;

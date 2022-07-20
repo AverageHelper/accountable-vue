@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
 	import type { IPLocateResult } from "../../transport";
-	import { allLocations, handleError, locations, useAuthStore } from "../../store";
+	import { allLocations, handleError, locations, preferences } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { fetchLocationData } from "../../transport";
 	import { location as newLocation } from "../../model/Location";
@@ -33,14 +33,11 @@
 
 	export let value: (LocationRecordParams & { id: string | null }) | null = null;
 
-	const auth = useAuthStore();
-
-	let root: HTMLLabelElement | undefined;
 	let titleField: TextField | undefined;
 	let recentsList: List | undefined;
 	let hasFocus = false;
 
-	$: locationPreference = auth.preferences.locationSensitivity;
+	$: locationPreference = $preferences.locationSensitivity;
 	$: mayGetLocation = locationPreference !== "none";
 
 	$: searchClient = new Fuse($allLocations, { keys: ["title", "subtitle"] });
@@ -150,7 +147,7 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label bind:this={root} on:focusin={updateFocusState} on:focusout={updateFocusState}>
+<label on:focusin={updateFocusState} on:focusout={updateFocusState}>
 	<div class="container">
 		<div class="fields">
 			<!-- TODO: I18N -->

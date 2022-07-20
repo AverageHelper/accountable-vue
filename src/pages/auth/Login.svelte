@@ -1,23 +1,25 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { accountsPath, loginPath, signupPath } from "../../router";
-	import { bootstrap, handleError } from "../../store";
 	import { onMount } from "svelte";
 	import { useRoute, useRouter } from "vue-router";
-	import { useAuthStore } from "../../store/authStore";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
+	import {
+		bootstrap,
+		bootstrapError,
+		handleError,
+		isSignupEnabled,
+		loginProcessState,
+		uid,
+	} from "../../store";
 
-	const auth = useAuthStore();
 	const router = useRouter();
 	const route = useRoute();
 
-	const isSignupEnabled = auth.isSignupEnabled;
-
-	$: isLoggedIn = auth.uid !== null;
-	$: bootstrapError = ui.bootstrapError;
+	$: isLoggedIn = $uid !== null;
 	let accountId = "";
 	let password = "";
 	let passwordRepeat = "";
@@ -29,7 +31,6 @@
 		: "login";
 	$: isSignupMode = mode === "signup";
 	$: isLoginMode = mode === "login";
-	$: loginProcessState = auth.loginProcessState;
 
 	let accountIdField: TextField | undefined;
 	let passwordField: TextField | undefined;
@@ -109,9 +110,9 @@
 	}
 </script>
 
-{#if bootstrapError}
+{#if $bootstrapError}
 	<main class="content">
-		<ErrorNotice error={bootstrapError} />
+		<ErrorNotice error={$bootstrapError} />
 		<Footer />
 	</main>
 {:else}
@@ -166,19 +167,19 @@
 				>{$_(isSignupMode ? "login.create-account" : "login.log-in")}</ActionButton
 			>
 
-			{#if !loginProcessState}
+			{#if !$loginProcessState}
 				<p>{$_("login.cookie-disclaimer")}</p>
 			{/if}
-			{#if loginProcessState === "AUTHENTICATING"}
+			{#if $loginProcessState === "AUTHENTICATING"}
 				<span>{$_("login.process.authenticating")}</span>
 			{/if}
-			{#if loginProcessState === "GENERATING_KEYS"}
+			{#if $loginProcessState === "GENERATING_KEYS"}
 				<span>{$_("login.process.generating-keys")}</span>
 			{/if}
-			{#if loginProcessState === "FETCHING_KEYS"}
+			{#if $loginProcessState === "FETCHING_KEYS"}
 				<span>{$_("login.process.fetching-keys")}</span>
 			{/if}
-			{#if loginProcessState === "DERIVING_PKEY"}
+			{#if $loginProcessState === "DERIVING_PKEY"}
 				<span>{$_("login.process.deriving-pkey")}</span>
 			{/if}
 

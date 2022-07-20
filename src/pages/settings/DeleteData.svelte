@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { handleError, useAuthStore } from "../../store";
+	import { accountId, handleError } from "../../store";
 	import { logoutPath } from "../../router";
 	import { useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ConfirmDeleteEverything from "./ConfirmDeleteEverything.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
-	const auth = useAuthStore();
 	const router = useRouter();
 
-	$: accountId = auth.accountId;
 	let password = "";
 	let isAskingToDelete = false;
 	let isDeleting = false;
@@ -52,7 +50,7 @@
 	<p>You have the option to delete all of your data on Accountable.</p>
 
 	<TextField
-		value={accountId ?? "b4dcb93bc0c04251a930541e1a3c9a80"}
+		value={$accountId ?? "b4dcb93bc0c04251a930541e1a3c9a80"}
 		type="text"
 		label="account ID"
 		disabled

@@ -5,16 +5,14 @@
 	import SideMenu from "./SideMenu.svelte";
 	import TabBar from "./TabBar.svelte";
 	import { APP_ROOTS } from "../router";
-	import { useAuthStore } from "../store";
+	import { pKey, uid } from "../store";
 	import { useRouter, useRoute } from "vue-router";
-
-	const auth = useAuthStore();
 
 	const router = useRouter();
 	const route = useRoute();
 	$: isRoute = APP_ROOTS.includes(route.path);
-	$: isLoggedIn = auth.uid !== null;
-	$: isUnlocked = auth.pKey !== null;
+	$: isLoggedIn = $uid !== null;
+	$: isUnlocked = $pKey !== null;
 
 	function goBack() {
 		router.back();

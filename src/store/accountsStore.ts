@@ -1,13 +1,13 @@
 import type { Account, AccountRecordParams } from "../model/Account";
+import type { AccountRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { AccountSchema } from "../model/DatabaseSchema";
 import type { Dinero } from "dinero.js";
-import type { AccountRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
 import { _ } from "svelte-i18n";
 import { account, recordFromAccount } from "../model/Account";
 import { defineStore } from "pinia";
 import { get } from "svelte/store";
+import { getDekMaterial, pKey } from "./authStore";
 import { updateUserStats } from "./uiStore";
-import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	asyncMap,
@@ -58,11 +58,10 @@ export const useAccountsStore = defineStore("accounts", {
 				this.accountsWatcher = null;
 			}
 
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const key = get(pKey);
+			if (key === null) throw new Error(t("error.cryption.missing-pek"));
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 
 			const collection = accountsCollection();
 			this.loadError = null;
@@ -91,23 +90,21 @@ export const useAccountsStore = defineStore("accounts", {
 			);
 		},
 		async createAccount(record: AccountRecordParams, batch?: WriteBatch): Promise<Account> {
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
+			const key = get(pKey);
+			if (key === null) throw new Error(t("error.cryption.missing-pek"));
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 			const account = await createAccount(record, dek, batch);
 			if (!batch) await updateUserStats();
 			return account;
 		},
 		async updateAccount(account: Account, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
+			const key = get(pKey);
+			if (key === null) throw new Error(t("error.cryption.missing-pek"));
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 			await updateAccount(account, dek, batch);
 			if (!batch) await updateUserStats();
 		},
@@ -135,14 +132,13 @@ export const useAccountsStore = defineStore("accounts", {
 			}
 		},
 		async getAllAccountsAsJson(): Promise<Array<AccountSchema>> {
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error(t("error.cryption.missing-pek"));
+			const key = get(pKey);
+			if (key === null) throw new Error(t("error.cryption.missing-pek"));
 
 			const { getAllTransactionsAsJson } = await import("./transactionsStore");
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 
 			const collection = accountsCollection();
 			const snap = await getDocs<AccountRecordPackage>(collection);

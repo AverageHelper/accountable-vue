@@ -4,10 +4,9 @@
 	import { attachment as newAttachment } from "../../model/Attachment";
 	import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 	import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
-	import { handleError, useAttachmentsStore, useAuthStore } from "../../store";
+	import { getAllUserDataAsJson, handleError, useAttachmentsStore } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 
-	const auth = useAuthStore();
 	const attachments = useAttachmentsStore();
 
 	let isLoading = false;
@@ -27,7 +26,7 @@
 
 			// ** Prepare database
 			console.debug("Getting user data");
-			const rawData = await auth.getAllUserDataAsJson();
+			const rawData = await getAllUserDataAsJson();
 			console.debug("Got user data");
 			console.debug("Encoding user data");
 			const data = JSON.stringify(rawData, undefined, shouldMinify ? undefined : "\t");

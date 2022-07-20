@@ -3,16 +3,14 @@
 	import { handleError } from "../../store";
 	import { locationPrefs as sensitivityOptions } from "../../transport";
 	import { onMount } from "svelte";
+	import { preferences, updateUserPreferences } from "../../store/authStore";
 	import { toast } from "@zerodevx/svelte-toast";
-	import { useAuthStore } from "../../store/authStore";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Checkmark from "../../icons/Checkmark.svelte";
 	import OutLink from "../../components/OutLink.svelte";
 
-	const auth = useAuthStore();
-
 	let isLoading = false;
-	$: currentSensitivity = auth.preferences.locationSensitivity;
+	$: currentSensitivity = $preferences.locationSensitivity;
 	let selectedSensitivity: LocationPref = "none";
 
 	$: hasChanges = selectedSensitivity !== currentSensitivity;
@@ -39,7 +37,7 @@
 
 			isLoading = true;
 
-			await auth.updateUserPreferences({
+			await updateUserPreferences({
 				locationSensitivity: selectedSensitivity,
 			});
 			toast.push("Your preferences have been updated!", { classes: ["toast-success"] }); // TODO: I18N

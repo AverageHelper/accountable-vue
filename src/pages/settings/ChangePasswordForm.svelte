@@ -2,11 +2,9 @@
 	import { _ } from "svelte-i18n";
 	import { handleError } from "../../store";
 	import { toast } from "@zerodevx/svelte-toast";
-	import { useAuthStore } from "../../store/authStore";
+	import { updatePassword } from "../../store/authStore";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
-
-	const auth = useAuthStore();
 
 	let isLoading = false;
 	let currentPassword = "";
@@ -33,7 +31,7 @@
 
 			isLoading = true;
 
-			await auth.updatePassword(currentPassword, newPassword);
+			await updatePassword(currentPassword, newPassword);
 			toast.push("Your passphrase has been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {

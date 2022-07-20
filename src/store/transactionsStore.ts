@@ -1,18 +1,18 @@
 import type { Account } from "../model/Account";
 import type { Dinero } from "dinero.js";
-import type { HashStore, TransactionRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { Location } from "../model/Location";
 import type { Transaction, TransactionRecordParams } from "../model/Transaction";
+import type { TransactionRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { TransactionSchema } from "../model/DatabaseSchema";
 import type { Tag } from "../model/Tag";
 import { add, subtract } from "dinero.js";
 import { chronologically, reverseChronologically } from "../model/utility/sort";
 import { derived, get, writable } from "svelte/store";
+import { getDekMaterial, pKey } from "./authStore";
 import { getDocs } from "../transport/index.js";
 import { handleError, updateUserStats } from "./uiStore";
 import { stores } from "./stores";
 import { useAccountsStore } from "./accountsStore";
-import { useAuthStore } from "./authStore";
 import { zeroDinero } from "../helpers/dineroHelpers";
 import chunk from "lodash/chunk";
 import groupBy from "lodash/groupBy";
@@ -120,11 +120,10 @@ export async function watchTransactions(account: Account, force: boolean = false
 	delete accounts.currentBalance[account.id];
 
 	// Get decryption key ready
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key");
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key");
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	// Watch the collection
 	const collection = transactionsCollection();
@@ -246,13 +245,12 @@ export async function watchTransactions(account: Account, force: boolean = false
 }
 
 export async function getTransactionsForAccount(account: Account): Promise<void> {
-	const authStore = useAuthStore();
 	const accounts = useAccountsStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	const transactions = await _getTransactionsForAccount(account, dek);
 	const totalBalance: Dinero<number> = Object.values(transactions).reduce(
 		(balance, transaction) => {
@@ -328,12 +326,11 @@ export async function createTransaction(
 	record: TransactionRecordParams,
 	batch?: WriteBatch
 ): Promise<Transaction> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	const transaction = await _createTransaction(record, dek, batch);
 	if (!batch) await updateUserStats();
 	return transaction;
@@ -343,12 +340,11 @@ export async function updateTransaction(
 	transaction: Transaction,
 	batch?: WriteBatch
 ): Promise<void> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 	await _updateTransaction(transaction, dek, batch);
 	if (!batch) await updateUserStats();
 }
@@ -419,12 +415,11 @@ export async function deleteLocationIfUnreferenced(
 export async function getAllTransactionsAsJson(
 	account: Account
 ): Promise<Array<TransactionSchema>> {
-	const authStore = useAuthStore();
-	const pKey = authStore.pKey as HashStore | null;
-	if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+	const key = get(pKey);
+	if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-	const { dekMaterial } = await authStore.getDekMaterial();
-	const dek = deriveDEK(pKey, dekMaterial);
+	const { dekMaterial } = await getDekMaterial();
+	const dek = deriveDEK(key, dekMaterial);
 
 	const collection = transactionsCollection();
 	const snap = await getDocs<TransactionRecordPackage>(collection);

@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { accountId, regenerateAccountId as _regenerateAccountId } from "../../store/authStore";
 	import { handleError } from "../../store";
 	import { toast } from "@zerodevx/svelte-toast";
-	import { useAuthStore } from "../../store/authStore";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import NewLoginModal from "../../components/NewLoginModal.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
-	const auth = useAuthStore();
-
 	let isLoading = false;
-	$: currentAccountId = auth.accountId;
 	let currentPassword = "";
 
 	$: hasChanges = currentPassword !== "";
@@ -28,7 +25,7 @@
 
 			isLoading = true;
 
-			await auth.regenerateAccountId(currentPassword);
+			await _regenerateAccountId(currentPassword);
 			toast.push("Your account ID has been updated!", { classes: ["toast-success"] }); // TODO: I18N
 			reset();
 		} catch (error) {
@@ -43,7 +40,7 @@
 	<h3>Change Account ID</h3>
 	<p>Somebody bothering you with your account ID? You can change it with one click:</p>
 	<TextField
-		value={currentAccountId ?? "b4dcb93bc0c04251a930541e1a3c9a80"}
+		value={$accountId ?? "b4dcb93bc0c04251a930541e1a3c9a80"}
 		type="text"
 		label="current account ID"
 		disabled

@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
+	import { isLoginEnabled } from "./store";
 	import { loginPath } from "./router";
-	import { useAuthStore } from "./store";
 	import Footer from "./Footer.svelte";
 	import I18N from "./components/I18N.svelte";
 	import OutLink from "./components/OutLink.svelte";
 
-	const auth = useAuthStore();
-
-	const loginEnabled = auth.isLoginEnabled;
 	const loginRoute = loginPath();
 </script>
 
 <main class="content">
-	{#if loginEnabled}
+	{#if isLoginEnabled}
 		<h1>{$_("install.service.heading")}</h1>
 		<I18N keypath="install.service.p1" tag="p">
 			<router-link slot="login" to={loginRoute}>{$_("home.nav.log-in")}</router-link>
@@ -27,7 +24,7 @@
 				>{$_("install.self.readme")}</OutLink
 			>
 		</I18N>
-		{#if !loginEnabled}&nbsp;{$_("install.self.planning")}{/if}
+		{#if !isLoginEnabled}&nbsp;{$_("install.self.planning")}{/if}
 	</p>
 	<p>{$_("install.self.p2")}</p>
 

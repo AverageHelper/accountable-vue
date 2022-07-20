@@ -1,13 +1,13 @@
 import type { Attachment, AttachmentRecordParams } from "../model/Attachment";
 import type { AttachmentSchema } from "../model/DatabaseSchema";
-import type { AttachmentRecordPackage, HashStore, Unsubscribe, WriteBatch } from "../transport";
+import type { AttachmentRecordPackage, Unsubscribe, WriteBatch } from "../transport";
 import type { Entry as ZipEntry } from "@zip.js/zip.js";
 import { attachment, recordFromAttachment } from "../model/Attachment";
 import { BlobWriter } from "@zip.js/zip.js";
 import { defineStore } from "pinia";
 import { get } from "svelte/store";
+import { getDekMaterial, pKey, uid } from "./authStore";
 import { updateUserStats } from "./uiStore";
-import { useAuthStore } from "./authStore";
 import chunk from "lodash/chunk";
 import {
 	addAttachmentToTransaction,
@@ -57,11 +57,10 @@ export const useAttachmentsStore = defineStore("attachments", {
 				this.attachmentsWatcher = null;
 			}
 
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const key = get(pKey);
+			if (key === null) throw new Error("No decryption key"); // TODO: I18N
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 
 			const collection = attachmentsCollection();
 			this.loadError = null;
@@ -102,36 +101,33 @@ export const useAttachmentsStore = defineStore("attachments", {
 			record: Omit<AttachmentRecordParams, "storagePath">,
 			file: File
 		): Promise<Attachment> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+			const userId = get(uid);
+			const key = get(pKey);
+			if (key === null) throw new Error("No decryption key"); // TODO: I18N
+			if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
-			const newAttachment = await createAttachment(uid, file, record, dek);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
+			const newAttachment = await createAttachment(userId, file, record, dek);
 			await updateUserStats();
 			this.items[newAttachment.id] = newAttachment;
 			return newAttachment;
 		},
 		async updateAttachment(attachment: Attachment, file?: File): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+			const userId = get(uid);
+			const key = get(pKey);
+			if (key === null) throw new Error("No decryption key"); // TODO: I18N
+			if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
-			await updateAttachment(uid, file ?? null, attachment, dek);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
+			await updateAttachment(userId, file ?? null, attachment, dek);
 			await updateUserStats();
 			this.items[attachment.id] = attachment;
 		},
 		async deleteAttachment(attachment: Attachment, batch?: WriteBatch): Promise<void> {
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+			const userId = get(uid);
+			if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
 			const { allTransactions, removeAttachmentFromTransaction } = await import(
 				"./transactionsStore"
@@ -147,7 +143,7 @@ export const useAttachmentsStore = defineStore("attachments", {
 				await tBatch.commit();
 			}
 
-			await deleteAttachment(uid, attachment, batch);
+			await deleteAttachment(userId, attachment, batch);
 			delete this.items[attachment.id];
 			await updateUserStats();
 		},
@@ -163,14 +159,13 @@ export const useAttachmentsStore = defineStore("attachments", {
 			const extantData = this.files[file.id];
 			if (extantData !== undefined && extantData) return extantData;
 
-			const authStore = useAuthStore();
-			const uid = authStore.uid;
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
-			if (uid === null) throw new Error("Sign in first"); // TODO: I18N
+			const userId = get(uid);
+			const key = get(pKey);
+			if (key === null) throw new Error("No decryption key"); // TODO: I18N
+			if (userId === null) throw new Error("Sign in first"); // TODO: I18N
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 			const imageData = await embeddableDataForFile(dek, file);
 
 			if (shouldCache) {
@@ -181,12 +176,11 @@ export const useAttachmentsStore = defineStore("attachments", {
 			return imageData;
 		},
 		async getAllAttachmentsAsJson(): Promise<Array<AttachmentSchema>> {
-			const authStore = useAuthStore();
-			const pKey = authStore.pKey as HashStore | null;
-			if (pKey === null) throw new Error("No decryption key"); // TODO: I18N
+			const key = get(pKey);
+			if (key === null) throw new Error("No decryption key"); // TODO: I18N
 
-			const { dekMaterial } = await authStore.getDekMaterial();
-			const dek = deriveDEK(pKey, dekMaterial);
+			const { dekMaterial } = await getDekMaterial();
+			const dek = deriveDEK(key, dekMaterial);
 
 			const collection = attachmentsCollection();
 			const snap = await getDocs<AttachmentRecordPackage>(collection);
