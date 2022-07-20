@@ -2,15 +2,13 @@
 	import type { Attachment } from "../../model/Attachment";
 	import { _ } from "svelte-i18n";
 	import { downloadFileAtUrl } from "../../transport";
-	import { useAttachmentsStore } from "../../store";
+	import { files } from "../../store";
 	import ActionButton from "./ActionButton.svelte";
 	import DownloadIcon from "../../icons/Download.svelte";
 
 	export let file: Attachment;
 
-	const attachments = useAttachmentsStore();
-
-	$: imgUrl = attachments.files[file.id] ?? null;
+	$: imgUrl = $files[file.id] ?? null;
 	$: disabled = imgUrl === null;
 
 	function startDownload(event: Event) {

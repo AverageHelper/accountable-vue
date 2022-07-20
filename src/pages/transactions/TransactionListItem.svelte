@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Transaction } from "../../model/Transaction";
-	import { allBalances, handleError, updateTransaction, useAttachmentsStore } from "../../store";
+	import { allBalances, attachments, handleError, updateTransaction } from "../../store";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { onMount } from "svelte";
@@ -12,8 +12,6 @@
 	import PaperclipIcon from "../../icons/Paperclip.svelte";
 
 	export let transaction: Transaction;
-
-	const attachments = useAttachmentsStore();
 
 	let isChangingReconciled = false;
 	$: isNegative = isDineroNegative(transaction.amount);
@@ -33,7 +31,7 @@
 
 		// Check if an attachment is broken
 		for (const id of attachmentIds) {
-			const file = attachments.items[id];
+			const file = $attachments[id];
 			if (!file) {
 				isAttachmentBroken = true;
 				return;

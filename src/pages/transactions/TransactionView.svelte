@@ -21,7 +21,9 @@
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
 	import {
+		createAttachmentFromFile,
 		createTag as _createTag,
+		deleteAttachment,
 		deleteTagIfUnreferenced,
 		handleError,
 		locations,
@@ -30,7 +32,6 @@
 		transactionsForAccount,
 		updateTransaction,
 		useAccountsStore,
-		useAttachmentsStore,
 	} from "../../store";
 
 	export let accountId: string;
@@ -38,7 +39,6 @@
 
 	const router = useRouter();
 	const accounts = useAccountsStore();
-	const attachments = useAttachmentsStore();
 
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
@@ -86,7 +86,7 @@
 	async function confirmDeleteFile(file: CustomEvent<Attachment>) {
 		if (!transaction) return;
 		try {
-			await attachments.deleteAttachment(file.detail);
+			await deleteAttachment(file.detail);
 		} catch (error) {
 			handleError(error);
 		} finally {
@@ -121,7 +121,7 @@
 		if (!transaction) return;
 
 		try {
-			const attachment = await attachments.createAttachmentFromFile(file.detail);
+			const attachment = await createAttachmentFromFile(file.detail);
 			addAttachmentToTransaction(transaction, attachment);
 			await updateTransaction(transaction);
 		} catch (error) {

@@ -2,7 +2,6 @@
 	import type { Attachment } from "../../model/Attachment";
 	import type { Transaction } from "../../model/Transaction";
 	import { createEventDispatcher } from "svelte";
-	import { handleError, updateTransaction, useAttachmentsStore } from "../../store";
 	import FileInput from "./FileInput.svelte";
 	import FileListItem from "./FileListItem.svelte";
 	import List from "../../components/List.svelte";
@@ -12,6 +11,12 @@
 		transaction as copy,
 		removeAttachmentIdFromTransaction,
 	} from "../../model/Transaction";
+	import {
+		allAttachments,
+		createAttachmentFromFile,
+		handleError,
+		updateTransaction,
+	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
 		close: void;
@@ -20,10 +25,7 @@
 	export let transaction: Transaction;
 	export let fileId: string;
 
-	const attachments = useAttachmentsStore();
-
-	$: files = attachments.allAttachments;
-	$: numberOfFiles = files.length;
+	$: numberOfFiles = $allAttachments.length;
 
 	async function selectNewFile(attachment: Attachment) {
 		const newTransaction = copy(transaction);
@@ -38,7 +40,7 @@
 		if (!file) return;
 
 		try {
-			const attachment = await attachments.createAttachmentFromFile(file);
+			const attachment = await createAttachmentFromFile(file);
 			await selectNewFile(attachment);
 		} catch (error) {
 			handleError(error);
@@ -67,7 +69,7 @@
 				/>
 			</FileInput>
 		</li>
-		{#each files as file (file.id)}
+		{#each $allAttachments as file (file.id)}
 			<li>
 				<FileListItem
 					fileId={file.id}

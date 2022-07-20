@@ -100,12 +100,13 @@ export function onSignedIn(user: User): void {
 export async function onSignedOut(): Promise<void> {
 	clearAuthCache();
 
-	const { accounts, attachments } = await stores();
+	const { accounts } = await stores();
+	const { clearAttachmentsCache } = await import("./attachmentsStore");
 	const { clearLocationsCache } = await import("./locationsStore");
 	const { clearTagsCache } = await import("./tagsStore");
 	const { clearTransactionsCache } = await import("./transactionsStore");
 	accounts.clearCache();
-	attachments.clearCache();
+	clearAttachmentsCache();
 	clearLocationsCache();
 	clearTagsCache();
 	clearTransactionsCache();
@@ -206,11 +207,14 @@ export function clearNewLoginStatus(): void {
 export async function destroyVault(password: string): Promise<void> {
 	if (!auth.currentUser) throw new Error("Not signed in to any account."); // TODO: I18N
 
-	const { accounts, attachments } = await stores();
+	const { accounts } = await stores();
+	const { deleteAllAttachments } = await import("./attachmentsStore");
 	const { deleteAllLocation } = await import("./locationsStore");
 	const { deleteAllTags } = await import("./tagsStore");
 	const { deleteAllTransactions } = await import("./transactionsStore");
-	await attachments.deleteAllAttachments();
+
+	// The execution order is important here:
+	await deleteAllAttachments();
 	await deleteAllTransactions();
 	await deleteAllTags();
 	await accounts.deleteAllAccounts();
@@ -295,8 +299,8 @@ export async function getAllUserDataAsJson(): Promise<DatabaseSchema> {
 
 	const {
 		accounts: accountsStore, //
-		attachments: attachmentsStore,
 	} = await stores();
+	const { getAllAttachmentsAsJson } = await import("./attachmentsStore");
 	const { getAllLocationsAsJson } = await import("./locationsStore");
 	const { getAllTagsAsJson } = await import("./tagsStore");
 
@@ -308,7 +312,7 @@ export async function getAllUserDataAsJson(): Promise<DatabaseSchema> {
 
 	const [accounts, attachments, locations, tags] = await Promise.all([
 		accountsStore.getAllAccountsAsJson(),
-		attachmentsStore.getAllAttachmentsAsJson(),
+		getAllAttachmentsAsJson(),
 		getAllLocationsAsJson(),
 		getAllTagsAsJson(),
 	]);

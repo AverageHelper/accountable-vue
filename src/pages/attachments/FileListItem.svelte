@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "../../model/Attachment";
+	import { attachments } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { toTimestamp } from "../../transformers";
-	import { useAttachmentsStore } from "../../store";
 	import FileView from "./FileView.svelte";
 	import ListItem from "../../components/ListItem.svelte";
 	import Modal from "../../components/Modal.svelte";
@@ -15,9 +15,7 @@
 
 	export let fileId: string;
 
-	const attachments = useAttachmentsStore();
-
-	$: file = attachments.items[fileId];
+	$: file = $attachments[fileId];
 	$: title = file?.title ?? fileId;
 	$: timestamp = toTimestamp(file.createdAt);
 	$: subtitle = !file

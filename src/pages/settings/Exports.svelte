@@ -4,10 +4,8 @@
 	import { attachment as newAttachment } from "../../model/Attachment";
 	import { asyncMap, dataUriToBlob, downloadFileAtUrl } from "../../transport";
 	import { BlobReader, Data64URIWriter, TextReader, ZipWriter } from "@zip.js/zip.js";
-	import { getAllUserDataAsJson, handleError, useAttachmentsStore } from "../../store";
+	import { getAllUserDataAsJson, handleError, imageDataFromFile } from "../../store";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
-
-	const attachments = useAttachmentsStore();
 
 	let isLoading = false;
 
@@ -49,7 +47,7 @@
 			console.debug("Downloading attachments");
 			const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
 				const file = newAttachment({ ...a, notes: a.notes ?? null, type: a.type ?? "" });
-				const data = await attachments.imageDataFromFile(file, false);
+				const data = await imageDataFromFile(file, false);
 				return [file, data];
 			});
 			console.debug("Downloaded attachments");

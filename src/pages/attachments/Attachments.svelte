@@ -1,14 +1,11 @@
 <script lang="ts">
 	import type { Attachment } from "../../model/Attachment";
-	import { handleError, useAttachmentsStore } from "../../store";
+	import { allAttachments, deleteAttachment, handleError } from "../../store";
 	import ConfirmDestroyFile from "./ConfirmDestroyFile.svelte";
 	import FileListItem from "./FileListItem.svelte";
 	import List from "../../components/List.svelte";
 
-	const attachments = useAttachmentsStore();
-
-	$: files = attachments.allAttachments;
-	$: numberOfFiles = files.length;
+	$: numberOfFiles = $allAttachments.length;
 
 	let fileToDelete: Attachment | null = null;
 
@@ -18,7 +15,7 @@
 
 	async function confirmDeleteFile(file: CustomEvent<Attachment>) {
 		try {
-			await attachments.deleteAttachment(file.detail);
+			await deleteAttachment(file.detail);
 		} catch (error) {
 			handleError(error);
 		} finally {
@@ -39,7 +36,7 @@
 	</div>
 
 	<List>
-		{#each files as file (file.id)}
+		{#each $allAttachments as file (file.id)}
 			<li>
 				<FileListItem fileId={file.id} on:delete={askToDeleteFile} />
 			</li>

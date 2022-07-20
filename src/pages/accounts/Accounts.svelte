@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { onMount } from "svelte";
-	import { useAccountsStore, useAttachmentsStore, watchLocations, watchTags } from "../../store";
+	import { useAccountsStore, watchAttachments, watchLocations, watchTags } from "../../store";
 	import AccountEdit from "./AccountEdit.svelte";
 	import AccountListItem from "./AccountListItem.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -13,7 +13,6 @@
 	import ReloadIcon from "../../icons/Reload.svelte";
 
 	const accounts = useAccountsStore();
-	const attachments = useAttachmentsStore();
 
 	$: allAccounts = accounts.allAccounts;
 	$: numberOfAccounts = accounts.numberOfAccounts;
@@ -24,7 +23,7 @@
 		console.debug("Starting watchers...");
 		await Promise.all([
 			accounts.watchAccounts(),
-			attachments.watchAttachments(),
+			watchAttachments(),
 			watchLocations(),
 			watchTags(),
 		]);

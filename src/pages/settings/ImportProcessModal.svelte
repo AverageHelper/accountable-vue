@@ -12,10 +12,10 @@
 	import Modal from "../../components/Modal.svelte";
 	import {
 		handleError,
+		importAttachments,
 		importLocations,
 		importTags,
 		useAccountsStore,
-		useAttachmentsStore,
 	} from "../../store";
 
 	const dispatch = createEventDispatcher<{
@@ -27,7 +27,6 @@
 	export let db: DatabaseSchema | null = null;
 
 	const accounts = useAccountsStore();
-	const attachments = useAttachmentsStore();
 
 	let accountIdsToImport = new Set<string>();
 	$: numberOfAttachmentsToImport = db?.attachments?.length ?? 0;
@@ -123,7 +122,7 @@
 			itemsImported += numberOfTagsToImport;
 			await tick();
 
-			await attachments.importAttachments(db.attachments ?? [], zip);
+			await importAttachments(db.attachments ?? [], zip);
 			itemsImported += numberOfAttachmentsToImport;
 			await tick();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Attachment } from "../../model/Attachment";
-	import { allTransactions, useAttachmentsStore } from "../../store";
+	import { allTransactions, imageDataFromFile } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { toTimestamp } from "../../transformers";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -17,8 +17,6 @@
 		"delete-reference": void;
 	}>();
 
-	const attachments = useAttachmentsStore();
-
 	let imageUrl: string | null = null;
 	let imageLoadError: Error | null = null;
 	$: linkedTransactions = $allTransactions.filter(
@@ -29,7 +27,7 @@
 
 	async function loadNewData(file: Attachment) {
 		try {
-			imageUrl = await attachments.imageDataFromFile(file);
+			imageUrl = await imageDataFromFile(file);
 		} catch (error) {
 			imageLoadError = error as Error;
 		}
