@@ -1,5 +1,5 @@
 import type { LocaleCode } from "../i18n";
-import { currentLocale } from "../i18n";
+import { getLocaleFromNavigator } from "svelte-i18n";
 
 /**
  * Creates a human-readable string from a given byte count.
@@ -44,7 +44,7 @@ export function simplifiedByteCount(num: number, locale?: LocaleCode): string {
 	// ASSUMPTION: The `units` array is never empty
 
 	// Set up a unit formatter for the selected locale
-	const formatter = Intl.NumberFormat(locale ?? currentLocale.value.code, {
+	const formatter = Intl.NumberFormat(locale ?? getLocaleFromNavigator() ?? undefined, {
 		style: "unit",
 		unit,
 		maximumFractionDigits: 2,

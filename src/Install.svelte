@@ -13,7 +13,7 @@
 	{#if isLoginEnabled}
 		<h1>{$_("install.service.heading")}</h1>
 		<I18N keypath="install.service.p1" tag="p">
-			<router-link slot="login" to={loginRoute}>{$_("home.nav.log-in")}</router-link>
+			<a slot="login" href={loginRoute}>{$_("home.nav.log-in")}</a>
 		</I18N>
 	{/if}
 

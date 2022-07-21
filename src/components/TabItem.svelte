@@ -6,13 +6,11 @@
 	export let tab: Tab;
 	export let isSelected: boolean = false;
 
-	$: to = routeForTab(tab);
+	$: href = routeForTab(tab);
 	$: labelId = labelIdForTab(tab);
 </script>
 
-<router-link class="item-container {isSelected ? 'selected' : ''} {$$props.class}" {to}
-	>{$_(labelId)}</router-link
->
+<a class="item-container {isSelected ? 'selected' : ''} {$$props.class}" {href}>{$_(labelId)}</a>
 
 <style type="text/scss">
 	@use "styles/colors" as *;

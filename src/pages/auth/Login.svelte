@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { _ } from "svelte-i18n";
 	import { accountsPath, loginPath, signupPath } from "../../router";
+	import { navigateTo } from "svelte-router-spa";
 	import { onMount } from "svelte";
-	import { useRoute, useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
@@ -10,14 +11,16 @@
 	import {
 		bootstrap,
 		bootstrapError,
+		createAccountId,
+		createVault,
 		handleError,
 		isSignupEnabled,
+		login,
 		loginProcessState,
 		uid,
 	} from "../../store";
 
-	const router = useRouter();
-	const route = useRoute();
+	export let currentRoute: CurrentRoute;
 
 	$: isLoggedIn = $uid !== null;
 	let accountId = "";
@@ -26,7 +29,7 @@
 	let isLoading = false;
 	$: mode = !isSignupEnabled
 		? "login" // can't sign up? log in instead.
-		: route.path === signupPath()
+		: currentRoute.path === signupPath()
 		? "signup"
 		: "login";
 	$: isSignupMode = mode === "signup";
@@ -50,26 +53,26 @@
 	}
 
 	$: if (isLoggedIn) {
-		void router.push(accountsPath());
-	} else if (route.path !== loginPath() && route.path !== signupPath()) {
+		navigateTo(accountsPath());
+	} else if (currentRoute.path !== loginPath() && currentRoute.path !== signupPath()) {
 		switch (mode) {
 			case "login":
-				void router.push(loginPath());
+				navigateTo(loginPath());
 				break;
 			case "signup":
-				void router.push(signupPath());
+				navigateTo(signupPath());
 				break;
 		}
 	}
 
 	function enterSignupMode() {
 		accountId = "";
-		void router.replace(signupPath());
+		navigateTo(signupPath(), undefined, true);
 	}
 
 	function enterLoginMode() {
 		accountId = "";
-		void router.replace(loginPath());
+		navigateTo(loginPath(), undefined, true);
 	}
 
 	function onUpdateAccountId(newId: string) {
@@ -83,7 +86,7 @@
 			isLoading = true;
 			if (isSignupMode) {
 				// Don't let the user pick their own account ID
-				accountId = auth.createAccountId();
+				accountId = createAccountId();
 			}
 
 			if (!accountId || !password || (isSignupMode && !passwordRepeat))
@@ -93,15 +96,15 @@
 
 			switch (mode) {
 				case "signup":
-					await auth.createVault(accountId, password);
+					await createVault(accountId, password);
 					break;
 
 				case "login":
-					await auth.login(accountId, password);
+					await login(accountId, password);
 					break;
 			}
 
-			await router.replace(accountsPath());
+			navigateTo(accountsPath(), undefined, true);
 		} catch (error) {
 			handleError(error);
 		} finally {

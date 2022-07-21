@@ -219,7 +219,7 @@
 	{#if !mayGetLocation}
 		<p class="disclaimer" on:click|stopPropagation|preventDefault
 			>To get your current location, you'll need to enable the location service in
-			<router-link to={settingsRoute}>Settings</router-link>.</p
+			<a href={settingsRoute}>Settings</a>.</p
 		>
 	{/if}
 </label>

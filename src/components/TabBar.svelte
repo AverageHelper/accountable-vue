@@ -1,12 +1,12 @@
 <script lang="ts">
-	import TabItem from "./TabItem.svelte";
+	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { isAppTab, appTabs as tabs } from "../model/ui/tabs";
 	import { onDestroy, onMount } from "svelte";
-	import { useRoute } from "vue-router";
+	import TabItem from "./TabItem.svelte";
 
-	const route = useRoute();
+	export let currentRoute: CurrentRoute;
 
-	let currentTab: string | undefined = route.path
+	let currentTab: string | undefined = currentRoute.path
 		.split("/") // split path by delimiters
 		.find(s => s !== ""); // get first nonempty path segment
 

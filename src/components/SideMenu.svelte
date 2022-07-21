@@ -99,12 +99,12 @@
 			{#each settingsItems as item (item.id)}
 				{#if !item.requiresLogin || isLoggedIn}
 					<li>
-						<router-link to={item.path} on:click={close}>
+						<a href={item.path} on:click={close}>
 							{#if item.icon}
 								<svelte:component this={item.icon} />
 							{/if}
 							<span>{$_(item.id)}</span>
-						</router-link>
+						</a>
 					</li>
 				{/if}
 			{/each}

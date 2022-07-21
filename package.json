@@ -38,6 +38,7 @@
 		"superstruct": "^0.15.3",
 		"svelte-i18n": "3.4.0",
 		"svelte-portal": "2.2.0",
+		"svelte-router-spa": "^6.0.3",
 		"uuid": "^8.3.2"
 	},
 	"devDependencies": {

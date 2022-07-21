@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { accountId, handleError } from "../../store";
+	import { accountId, destroyVault, handleError } from "../../store";
 	import { logoutPath } from "../../router";
-	import { useRouter } from "vue-router";
+	import { navigateTo } from "svelte-router-spa";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ConfirmDeleteEverything from "./ConfirmDeleteEverything.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
-
-	const router = useRouter();
 
 	let password = "";
 	let isAskingToDelete = false;
@@ -30,9 +28,9 @@
 
 		try {
 			if (!password) throw new Error($_("error.form.missing-required-fields"));
-			await auth.destroyVault(password);
+			await destroyVault(password);
 
-			await router.push(logoutPath());
+			navigateTo(logoutPath());
 		} catch (error) {
 			handleError(error);
 			isDeleting = false;

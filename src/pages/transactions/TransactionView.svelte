@@ -6,7 +6,6 @@
 	import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { isNegative } from "dinero.js";
-	import { useRouter } from "vue-router";
 	import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.svelte";
 	import EditButton from "../../components/buttons/EditButton.svelte";
 	import FileInput from "../attachments/FileInput.svelte";
@@ -38,8 +37,6 @@
 	export let accountId: string;
 	export let transactionId: string;
 
-	const router = useRouter();
-
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
 	let brokenReferenceToFix: string | null = null;
@@ -59,7 +56,7 @@
 	$: accountRoute = accountPath(accountId);
 
 	function goBack() {
-		router.back();
+		window.history.back();
 	}
 
 	async function createTag(params: CustomEvent<TagRecordParams>) {
@@ -79,11 +76,11 @@
 		await deleteTagIfUnreferenced(tag.detail); // removing the tag won't automatically do this, for efficiency's sake, so we do it here
 	}
 
-	function askToDeleteFile(file: CustomEvent<Attachment>) {
+	function askToDeleteFile(file: CustomEvent<Attachment>): void {
 		fileToDelete = file.detail;
 	}
 
-	async function confirmDeleteFile(file: CustomEvent<Attachment>) {
+	async function confirmDeleteFile(file: CustomEvent<Attachment>): Promise<void> {
 		if (!transaction) return;
 		try {
 			await deleteAttachment(file.detail);
@@ -94,15 +91,15 @@
 		}
 	}
 
-	function openReferenceFixer(fileId: string) {
+	function openReferenceFixer(fileId: string): void {
 		brokenReferenceToFix = fileId;
 	}
 
-	function closeReferenceFixer() {
+	function closeReferenceFixer(): void {
 		brokenReferenceToFix = null;
 	}
 
-	async function deleteFileReference({ detail: fileId }: CustomEvent<string>) {
+	async function deleteFileReference({ detail: fileId }: CustomEvent<string>): Promise<void> {
 		if (!transaction) return;
 		try {
 			await removeAttachmentFromTransaction(fileId, transaction);
@@ -113,11 +110,11 @@
 		}
 	}
 
-	function cancelDeleteFile() {
+	function cancelDeleteFile(): void {
 		fileToDelete = null;
 	}
 
-	async function onFileReceived(file: CustomEvent<File>) {
+	async function onFileReceived(file: CustomEvent<File>): Promise<void> {
 		if (!transaction) return;
 
 		try {
@@ -177,7 +174,7 @@
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>
-			<router-link :to="accountRoute" class="value">{account?.title ?? accountId}</router-link>
+			<a href={accountRoute} class="value">{account?.title ?? accountId}</a>
 		</div>
 		<!-- Notes -->
 		{#if transaction.notes}

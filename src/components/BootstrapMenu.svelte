@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { _ } from "svelte-i18n";
 	import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 	import { isLoginEnabled } from "../store";
-	import { useRoute } from "vue-router";
 
 	interface Page {
 		path: string;
@@ -24,8 +24,8 @@
 		pages.push({ path: loginPath(), titleKey: "home.nav.log-in" });
 	}
 
-	const route = useRoute();
-	$: currentPath = route.path;
+	export let currentRoute: CurrentRoute;
+	$: currentPath = currentRoute.path;
 
 	function toggle() {
 		isNavButtonOpen = !isNavButtonOpen;
@@ -38,9 +38,7 @@
 
 <nav class="navbar navbar-expand-sm navbar-dark">
 	<!-- TODO: I18N -->
-	<router-link to={homeRoute} class="navbar-brand" role="text" aria-label="Accountable"
-		>A&cent;countable</router-link
-	>
+	<a href={homeRoute} class="navbar-brand" role="text" aria-label="Accountable">A&cent;countable</a>
 	<button
 		class="navbar-toggler {!isNavButtonOpen ? 'collapsed' : ''}"
 		type="button"
@@ -62,15 +60,15 @@
 			</li> -->
 			{#each pages as page (page.path)}
 				<li class="nav-item {currentPath === page.path ? 'active' : ''}">
-					<router-link
+					<a
 						class="nav-link {currentPath === page.path ? 'active' : ''}"
-						:to="page.path"
+						href={page.path}
 						on:click={close}
 						>{$_(page.titleKey)}
 						{#if currentPath === page.path}
 							<span class="visually-hidden">{$_("common.current-aside")}</span>
 						{/if}
-					</router-link>
+					</a>
 				</li>
 			{/each}
 		</ul>

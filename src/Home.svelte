@@ -18,13 +18,13 @@
 
 	<!-- Get started now -->
 	<section id="get-started">
-		<router-link to={aboutRoute}>
+		<a href={aboutRoute}>
 			<ActionButton kind="bordered-secondary">{$_("common.learn-more")}</ActionButton>
-		</router-link>
+		</a>
 		{#if isSignupEnabled}
-			<router-link to={signupRoute}>
+			<a href={signupRoute}>
 				<ActionButton kind="bordered-primary-green">{$_("home.sign-up-now")}</ActionButton>
-			</router-link>
+			</a>
 		{:else}
 			<a href="#" on:click|preventDefault>
 				<ActionButton kind="bordered-primary-green">{$_("home.coming-soon")}</ActionButton>
@@ -37,7 +37,7 @@
 		<LedgerIcon class="section-icon" />
 		<h3>{$_("home.accountability.heading")}</h3>
 		<I18N keypath="home.accountability.p1" tag="p">
-			<router-link slot="tool" to={aboutRoute}>{$_("home.accountability.tool")}</router-link>
+			<a slot="tool" href={aboutRoute}>{$_("home.accountability.tool")}</a>
 		</I18N>
 	</section>
 

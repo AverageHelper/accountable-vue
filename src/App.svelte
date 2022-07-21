@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { SvelteToastOptions } from "@zerodevx/svelte-toast";
 	import { onMount } from "svelte";
+	import { Router } from "svelte-router-spa";
+	import { routes } from "./router";
 	import { SvelteToast } from "@zerodevx/svelte-toast";
 	import { watchColorScheme } from "./store/uiStore";
 	import Navbar from "./components/Navbar.svelte";
@@ -11,9 +13,7 @@
 </script>
 
 <Navbar />
-<keep-alive>
-	<router-view />
-</keep-alive>
+<Router {routes} />
 <div id="modal" />
 <SvelteToast {options} />
 

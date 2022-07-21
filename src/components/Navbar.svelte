@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import ActionButton from "./buttons/ActionButton.svelte";
 	import BootstrapMenu from "./BootstrapMenu.svelte";
 	import Lock from "../icons/Lock.svelte";
@@ -6,16 +7,15 @@
 	import TabBar from "./TabBar.svelte";
 	import { APP_ROOTS } from "../router";
 	import { pKey, uid } from "../store";
-	import { useRouter, useRoute } from "vue-router";
 
-	const router = useRouter();
-	const route = useRoute();
-	$: isRoute = APP_ROOTS.includes(route.path);
+	export let currentRoute: CurrentRoute;
+
+	$: isRoute = APP_ROOTS.includes(currentRoute.path);
 	$: isLoggedIn = $uid !== null;
 	$: isUnlocked = $pKey !== null;
 
 	function goBack() {
-		router.back();
+		window.history.back();
 	}
 </script>
 
@@ -32,9 +32,9 @@
 	{/if}
 
 	{#if isUnlocked}
-		<TabBar class="tab-bar" />
+		<TabBar class="tab-bar" {currentRoute} />
 	{:else if !isLoggedIn}
-		<BootstrapMenu />
+		<BootstrapMenu {currentRoute} />
 	{:else}
 		<Lock />
 	{/if}

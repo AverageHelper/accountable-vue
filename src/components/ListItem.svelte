@@ -9,11 +9,7 @@
 	export let negative: boolean = false;
 </script>
 
-<svelte:element
-	this={to === null ? "div" : "router-link"}
-	class="list-item {$$props.class}"
-	to={to ?? "#"}
->
+<svelte:element this={to === null ? "div" : "a"} class="list-item {$$props.class}" href={to ?? "#"}>
 	<slot name="icon" />
 
 	<div class="content">

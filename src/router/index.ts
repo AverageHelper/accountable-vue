@@ -1,23 +1,22 @@
-import type { NavigationGuard, RouteRecordRaw } from "vue-router";
-import About from "../About.vue";
-import Accounts from "../pages/accounts/Accounts.vue";
-import AccountView from "../pages/accounts/AccountView.vue";
-import Attachments from "../pages/attachments/Attachments.vue";
-import EmptyRoute from "../pages/EmptyRoute.vue";
-import Home from "../Home.vue";
-import Install from "../Install.vue";
-import Locations from "../pages/locations/Locations.vue";
-import Locked from "../pages/auth/Locked.vue";
-import Login from "../pages/auth/Login.vue";
-import MonthView from "../pages/transactions/MonthView.vue";
-import NotFound from "../pages/NotFound.vue";
-import Security from "../Security.vue";
-import Settings from "../pages/settings/Settings.vue";
-import Tags from "../pages/tags/Tags.vue";
-import TransactionView from "../pages/transactions/TransactionView.vue";
+import type { Route } from "svelte-router-spa/types/components/router";
 import { appTabs } from "../model/ui/tabs";
-import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "../store/authStore";
+import { fetchSession, lockVault, logout, pKey, uid } from "../store/authStore";
+import { get } from "svelte/store";
+import About from "../About.svelte";
+import Accounts from "../pages/accounts/Accounts.svelte";
+import AccountView from "../pages/accounts/AccountView.svelte";
+import Attachments from "../pages/attachments/Attachments.svelte";
+import Home from "../Home.svelte";
+import Install from "../Install.svelte";
+import Locations from "../pages/locations/Locations.svelte";
+import Locked from "../pages/auth/Locked.svelte";
+import Login from "../pages/auth/Login.svelte";
+import MonthView from "../pages/transactions/MonthView.svelte";
+import NotFound from "../pages/NotFound.svelte";
+import Security from "../Security.svelte";
+import Settings from "../pages/settings/Settings.svelte";
+import Tags from "../pages/tags/Tags.svelte";
+import TransactionView from "../pages/transactions/TransactionView.svelte";
 import {
 	aboutPath,
 	accountsPath,
@@ -36,16 +35,7 @@ import {
 
 export * from "./routes";
 
-// See https://next.router.vuejs.org/guide/advanced/meta.html#typescript about adding types to the `meta` field
-
-// type RouteTitleGetter = () => string;
-// type RouteTitle = string | RouteTitleGetter;
-
-// declare module "vue-router" {
-// 	interface RouteMeta {
-// 		title?: RouteTitle;
-// 	}
-// }
+type RouteAssertion = Route["onlyIf"];
 
 export const APP_ROOTS = appTabs
 	.map(tab => `/${tab}`)
@@ -59,161 +49,134 @@ export const APP_ROOTS = appTabs
 		signupPath(),
 	]);
 
-const onlyIfLoggedIn: NavigationGuard = async (from, to, next) => {
-	const auth = useAuthStore();
-	if (auth.uid === null) await auth.fetchSession();
-	if (auth.pKey !== null) {
-		console.debug("[onlyIfLoggedIn] We have a pKey");
-		next();
-	} else if (auth.uid !== null) {
-		console.debug("[onlyIfLoggedIn] We have no pKey, but a uid");
-		next(lockPath());
-	} else {
-		console.debug("[onlyIfLoggedIn] We have no pKey or uid");
-		next(loginPath());
-	}
+async function isVaultUnlocked(): Promise<boolean> {
+	if (get(uid) === null) await fetchSession();
+	return get(uid) !== null && get(pKey) !== null; // we have a uid and a pKey
+}
+
+async function isVaultLoggedInLocked(): Promise<boolean> {
+	if (get(uid) === null) await fetchSession();
+	return get(uid) !== null && !get(pKey); // we have a uid but no pKey
+}
+
+async function isVaultLoggedOut(): Promise<boolean> {
+	if (get(uid) === null) await fetchSession();
+	return get(uid) === null;
+}
+
+const vaultIsUnlocked: RouteAssertion = {
+	guard: isVaultUnlocked,
+	redirect: lockPath(), // if vault is locked or logged out, go to lockPath
 };
 
-const accounts: RouteRecordRaw = {
-	path: accountsPath(),
-	beforeEnter: onlyIfLoggedIn,
-	component: EmptyRoute,
-	children: [
+const vaultIsLoggedOut: RouteAssertion = {
+	guard: isVaultLoggedOut,
+	redirect: accountsPath(), // if the vault is logged in, go home
+};
+
+const accounts: Route = {
+	name: accountsPath(),
+	onlyIf: vaultIsUnlocked,
+	component: Accounts,
+	nestedRoutes: [
 		{
-			path: "",
-			component: Accounts,
-		},
-		{
-			path: ":accountId",
-			component: EmptyRoute,
-			children: [
+			name: ":accountId",
+			component: AccountView,
+			nestedRoutes: [
 				{
-					path: "",
-					component: AccountView,
-					props: true,
-				},
-				{
-					path: "months/:rawMonth",
+					name: "months/:rawMonth",
 					component: MonthView,
-					props: true,
 				},
 				{
-					path: "transactions/:transactionId",
+					name: "transactions/:transactionId",
 					component: TransactionView,
-					props: true,
 				},
 			],
 		},
 	],
 };
 
-const attachments: RouteRecordRaw = {
-	path: attachmentsPath(),
-	beforeEnter: onlyIfLoggedIn,
+const attachments: Route = {
+	name: attachmentsPath(),
+	onlyIf: vaultIsUnlocked,
 	component: Attachments,
 };
 
-const locations: RouteRecordRaw = {
-	path: locationsPath(),
-	beforeEnter: onlyIfLoggedIn,
+const locations: Route = {
+	name: locationsPath(),
+	onlyIf: vaultIsUnlocked,
 	component: Locations,
 };
 
-const tags: RouteRecordRaw = {
-	path: tagsPath(),
-	beforeEnter: onlyIfLoggedIn,
+const tags: Route = {
+	name: tagsPath(),
+	onlyIf: vaultIsUnlocked,
 	component: Tags,
 };
 
-const settings: RouteRecordRaw = {
-	path: settingsPath(),
-	beforeEnter: onlyIfLoggedIn,
+const settings: Route = {
+	name: settingsPath(),
+	onlyIf: vaultIsUnlocked,
 	component: Settings,
 };
 
-export const router = createRouter({
-	history: createWebHistory(),
-	routes: [
-		{
-			path: homePath(),
-			component: Home,
-		},
-		{
-			path: aboutPath(),
-			component: About,
-		},
-		{
-			path: securityPath(),
-			component: Security,
-		},
-		{
-			path: installPath(),
-			component: Install,
-		},
-		{
-			path: logoutPath(),
-			component: EmptyRoute,
-			async beforeEnter(to, from, next): Promise<void> {
-				const auth = useAuthStore();
-				console.debug("Logging out...");
-				await auth.logout();
-				next(loginPath());
+export const routes: Array<Route> = [
+	{
+		name: homePath(),
+		component: Home,
+	},
+	{
+		name: aboutPath(),
+		component: About,
+	},
+	{
+		name: securityPath(),
+		component: Security,
+	},
+	{
+		name: installPath(),
+		component: Install,
+	},
+	{
+		name: logoutPath(),
+		onlyIf: {
+			async guard(): Promise<boolean> {
+				await logout(); // make sure to log out before routing here
+				return true;
 			},
+			redirect: loginPath(),
 		},
-		{
-			path: loginPath(),
-			component: Login,
-			async beforeEnter(from, to, next): Promise<void> {
-				const auth = useAuthStore();
-				if (auth.uid === null) await auth.fetchSession();
-				if (auth.pKey !== null) {
-					console.debug(`[${loginPath()}] We have a pKey`);
-					next(accountsPath()); // vault is unlocked; go home
-				} else if (auth.uid !== null) {
-					console.debug(`[${loginPath()}] We have no pKey, but a uid`);
-					next(lockPath()); // vault is locked
-				} else {
-					console.debug(`[${loginPath()}] We have no pKey or uid`);
-					next(); // go to login
-				}
+		redirectTo: loginPath(),
+	},
+	{
+		name: loginPath(),
+		onlyIf: vaultIsLoggedOut,
+		component: Login,
+	},
+	{
+		name: lockPath(),
+		onlyIf: {
+			async guard(): Promise<boolean> {
+				lockVault();
+				// if vault is logged out, go to loginPath
+				return await isVaultLoggedInLocked();
 			},
+			redirect: loginPath(),
 		},
-		{
-			path: lockPath(),
-			component: Locked,
-			async beforeEnter(from, to, next): Promise<void> {
-				const auth = useAuthStore();
-				if (auth.uid === null) await auth.fetchSession();
-				if (auth.pKey !== null) {
-					console.debug(`[${lockPath()}] We have a pKey`);
-					auth.lockVault(); // lock vault
-					next();
-				} else if (auth.uid === null) {
-					console.debug(`[${lockPath()}] We have no pKey or uid`);
-					next(loginPath()); // nothing to unlock
-				} else {
-					console.debug(`[${lockPath()}] We have no pKey, but a uid`);
-					next(); // already locked
-				}
-			},
-		},
-		{
-			path: signupPath(),
-			component: Login,
-			beforeEnter(from, to, next): void {
-				const auth = useAuthStore();
-				if (auth.uid !== null) {
-					next(accountsPath());
-				} else {
-					next();
-				}
-			},
-		},
-		accounts,
-		attachments,
-		locations,
-		tags,
-		settings,
-		{ path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
-	],
-});
+		component: Locked,
+	},
+	{
+		name: signupPath(),
+		onlyIf: vaultIsLoggedOut,
+		component: Login,
+	},
+	accounts,
+	attachments,
+	locations,
+	tags,
+	settings,
+	{
+		name: "404",
+		component: NotFound,
+	},
+];

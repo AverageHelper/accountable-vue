@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { accountsPath } from "../../router";
+	import { navigateTo } from "svelte-router-spa";
 	import { onMount } from "svelte";
-	import { useRouter } from "vue-router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
@@ -15,8 +15,6 @@
 		loginProcessState,
 		unlockVault,
 	} from "../../store";
-
-	const router = useRouter();
 
 	$: accountId = $_accountId ?? "";
 	let password = "";
@@ -37,7 +35,7 @@
 
 			await unlockVault(password);
 
-			await router.replace(accountsPath());
+			navigateTo(accountsPath(), undefined, true);
 		} catch (error) {
 			handleError(error);
 		} finally {
