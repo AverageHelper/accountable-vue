@@ -7,6 +7,7 @@
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
+	import NopLink from "../../components/NopLink.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 	import {
 		bootstrap,
@@ -193,15 +194,15 @@
 					{:else if isLoginMode}
 						<p
 							>{$_("login.new-account-prompt.create.question")}
-							<a href="#" on:click|preventDefault={enterSignupMode}
-								>{$_("login.new-account-prompt.create.action")}</a
+							<NopLink on:click={enterSignupMode}
+								>{$_("login.new-account-prompt.create.action")}</NopLink
 							>
 						</p>
 					{:else if isSignupMode}
 						<p
 							>{$_("login.new-account-prompt.already-have.question")}
-							<a href="#" on:click|preventDefault={enterLoginMode}
-								>{$_("login.new-account-prompt.already-have.action")}</a
+							<NopLink on:click={enterLoginMode}
+								>{$_("login.new-account-prompt.already-have.action")}</NopLink
 							>
 						</p>
 					{/if}

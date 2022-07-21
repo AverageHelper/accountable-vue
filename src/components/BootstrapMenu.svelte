@@ -38,7 +38,9 @@
 
 <nav class="navbar navbar-expand-sm navbar-dark">
 	<!-- TODO: I18N -->
-	<a href={homeRoute} class="navbar-brand" role="text" aria-label="Accountable">A&cent;countable</a>
+	<a href={homeRoute} class="navbar-brand" role="heading" aria-label="Accountable"
+		>A&cent;countable</a
+	>
 	<button
 		class="navbar-toggler {!isNavButtonOpen ? 'collapsed' : ''}"
 		type="button"

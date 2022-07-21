@@ -4,6 +4,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { tag as newTag } from "../../model/Tag";
 	import Modal from "../../components/Modal.svelte";
+	import NopLink from "../../components/NopLink.svelte";
 	import Tag from "./Tag.svelte";
 	import TagEdit from "./TagEdit.svelte";
 
@@ -67,7 +68,7 @@
 		{/each}
 		<li>
 			<!-- TODO: I18N -->
-			<a href="#" on:click|preventDefault={addTag}>Add tag</a>
+			<NopLink on:click={addTag}>Add tag</NopLink>
 		</li>
 	</ul>
 </div>

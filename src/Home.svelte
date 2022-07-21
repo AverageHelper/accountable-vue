@@ -7,6 +7,7 @@
 	import Footer from "./Footer.svelte";
 	import I18N from "./components/I18N.svelte";
 	import LedgerIcon from "./icons/MoneyTower.svelte";
+	import NopLink from "./components/NopLink.svelte";
 	import OpenSourceIcon from "./icons/IdeaBox.svelte";
 
 	const aboutRoute = aboutPath();
@@ -26,9 +27,9 @@
 				<ActionButton kind="bordered-primary-green">{$_("home.sign-up-now")}</ActionButton>
 			</a>
 		{:else}
-			<a href="#" on:click|preventDefault>
+			<NopLink>
 				<ActionButton kind="bordered-primary-green">{$_("home.coming-soon")}</ActionButton>
-			</a>
+			</NopLink>
 		{/if}
 	</section>
 

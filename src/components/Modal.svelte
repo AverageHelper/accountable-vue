@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { fly } from "svelte/transition";
+	import NopLink from "./NopLink.svelte";
 	import Portal from "svelte-portal";
 	import XIcon from "../icons/X.svelte";
 
@@ -23,9 +24,9 @@
 	{#if open}
 		<div transition:fly class="modal__wrapper" on:click|self={onClose}>
 			{#if closeModal}
-				<a href="#" class="modal__close-button" on:click|preventDefault={closeModal}>
+				<NopLink class="modal__close-button" on:click={closeModal}>
 					<XIcon />
-				</a>
+				</NopLink>
 			{/if}
 			<div class="modal">
 				<slot />

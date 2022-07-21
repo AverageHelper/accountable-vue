@@ -16,6 +16,7 @@
 	import LocationIcon from "../../icons/Location.svelte";
 	import LocationView from "../locations/LocationView.svelte";
 	import Modal from "../../components/Modal.svelte";
+	import NopLink from "../../components/NopLink.svelte";
 	import NavAction from "../../components/NavAction.svelte";
 	import TagList from "../../pages/tags/TagList.svelte";
 	import TransactionEdit from "./TransactionEdit.svelte";
@@ -188,10 +189,10 @@
 			<div class="key-value-pair" aria-label="Transaction Location">
 				<span class="key">Location</span>
 				{#if location?.coordinate ?? location?.subtitle}
-					<a href="#" class="value" on:click|preventDefault={() => (isViewingLocation = true)}
+					<NopLink class="value" on:click={() => (isViewingLocation = true)}
 						>{location?.title ?? locationId}
 						{#if location?.coordinate}<LocationIcon />{/if}
-					</a>
+					</NopLink>
 				{:else}
 					<span class="value">&quot;{location?.title ?? locationId}&quot;</span>
 				{/if}
