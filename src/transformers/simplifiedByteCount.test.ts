@@ -18,7 +18,7 @@ describe("Human-readable byte count formatter", () => {
 		${1000000000001000} | ${"1 PB"}
 		${9007199254740991} | ${"9.01 PB"}
 	`("formats $num to '$result'", ({ num, result }: { num: number; result: string }) => {
-		expect(simplifiedByteCount(num, "en-US")).toBe(result);
+		expect(simplifiedByteCount(num)).toBe(result);
 	});
 
 	// ** Negative numbers
@@ -37,6 +37,6 @@ describe("Human-readable byte count formatter", () => {
 		${-1000000000001000} | ${"-1 PB"}
 		${-9007199254740991} | ${"-9.01 PB"}
 	`("formats $num to '$result'", ({ num, result }: { num: number; result: string }) => {
-		expect(simplifiedByteCount(num, "en-US")).toBe(result);
+		expect(simplifiedByteCount(num)).toBe(result);
 	});
 });

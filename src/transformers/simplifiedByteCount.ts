@@ -1,5 +1,4 @@
-import type { LocaleCode } from "../i18n";
-import { getLocaleFromNavigator } from "svelte-i18n";
+import { getNumberFormatter } from "svelte-i18n";
 
 /**
  * Creates a human-readable string from a given byte count.
@@ -12,11 +11,10 @@ import { getLocaleFromNavigator } from "svelte-i18n";
  * ```
  *
  * @param num The number of bytes to represent.
- * @param locale The locale for which to format the result.
  *
  * @returns A user-readable string representing the byte count.
  */
-export function simplifiedByteCount(num: number, locale?: LocaleCode): string {
+export function simplifiedByteCount(num: number): string {
 	if (typeof num !== "number" || Number.isNaN(num)) {
 		throw new TypeError("Expected a non-NaN number");
 	}
@@ -44,7 +42,7 @@ export function simplifiedByteCount(num: number, locale?: LocaleCode): string {
 	// ASSUMPTION: The `units` array is never empty
 
 	// Set up a unit formatter for the selected locale
-	const formatter = Intl.NumberFormat(locale ?? getLocaleFromNavigator() ?? undefined, {
+	const formatter = getNumberFormatter({
 		style: "unit",
 		unit,
 		maximumFractionDigits: 2,

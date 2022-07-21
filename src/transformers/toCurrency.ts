@@ -1,5 +1,5 @@
 import type { Dinero } from "dinero.js";
-import { getLocaleFromNavigator } from "svelte-i18n";
+import { getNumberFormatter } from "svelte-i18n";
 import { toFormat } from "dinero.js";
 
 type NegativeStyle = "accounting" | "standard";
@@ -9,8 +9,7 @@ export function intlFormat(
 	negativeStyle: NegativeStyle = "accounting"
 ): string {
 	return toFormat(dinero, ({ amount, currency }) => {
-		const locale = getLocaleFromNavigator();
-		const formatter = new Intl.NumberFormat(locale ?? undefined, {
+		const formatter = getNumberFormatter({
 			style: "currency",
 			currency: currency.code,
 			currencySign: negativeStyle,
