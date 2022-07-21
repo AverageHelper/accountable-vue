@@ -237,7 +237,9 @@
 			<em slot="id">{transactionId}</em>
 		</I18N>
 		<p class="disclaimer"
-			>{$_c("debug.count-all-transactions", numberOfTransactions, { n: numberOfTransactions })}</p
+			>{numberOfTransactions === 1
+				? $_("debug.count-one-transaction")
+				: $_("debug.count-all-transactions", { values: { n: numberOfTransactions } })}</p
 		>
 		<ul>
 			{#each Object.entries(theseTransactions) as [id, txn] (id)}

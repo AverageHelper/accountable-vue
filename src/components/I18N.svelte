@@ -53,7 +53,7 @@
 
 	onMount(() => {
 		const testString = $_(keypath); // get the locale text
-		const reBrackets = /\{(.*?)\}/g; // find variable declarations
+		const reBrackets = /\{(.*?)\}/gu; // find variable declarations
 		const listOfText: Array<string> = [];
 		let found: RegExpExecArray;
 		while ((found = reBrackets.exec(testString))) {

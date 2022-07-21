@@ -68,7 +68,9 @@
 			{#if $numberOfAccounts > 0}
 				<li>
 					<p class="footer"
-						>{$_c("common.count.account", $numberOfAccounts, { n: $numberOfAccounts })}</p
+						>{$numberOfAccounts === 1
+							? $_("common.count.account")
+							: $_("common.count.accounts", { values: { n: $numberOfAccounts } })}</p
 					>
 				</li>
 			{/if}

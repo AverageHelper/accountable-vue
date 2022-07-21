@@ -6,7 +6,8 @@
 	},
 	"common": {
 		"count": {
-			"account": "{n} accounts | {n} account | {n} accounts"
+			"account": "1 account",
+			"accounts": "{n} accounts"
 		},
 		"accountable": "Accountable",
 		"client": "Client",
@@ -53,7 +54,8 @@
 		"something-is-wrong": "Something's wrong",
 		"account-but-no-transaction": "We have an account, but no transaction.",
 		"transaction-id": "The transaction ID is {id}.",
-		"count-all-transactions": "There are {n} transactions in the cache. | There is {n} transaction in the cache. | There are {n} transactions in the cache."
+		"count-one-transaction": "There is 1 transaction in the cache.",
+		"count-all-transactions": "There are {n} transactions in the cache."
 	},
 	"app": {
 		"nav": {
