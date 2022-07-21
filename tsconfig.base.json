@@ -1,7 +1,12 @@
 {
-	"extends": "@tsconfig/svelte/tsconfig.json",
 	"compilerOptions": {
-		"target": "esnext",
+		/**
+      TypeScript doesn't know about import usages in the template because it only sees the
+      script of a Svelte file. Therefore preserve all value imports. Requires TS 4.5 or higher.
+     */
+		"preserveValueImports": true,
+
+		"target": "es2017",
 		"lib": ["esnext", "dom"],
 		"module": "esnext",
 		"moduleResolution": "node",
@@ -21,6 +26,7 @@
 		"noPropertyAccessFromIndexSignature": true,
 		"noUncheckedIndexedAccess": true,
 		"useUnknownInCatchVariables": true,
+		"importsNotUsedAsValues": "error",
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,

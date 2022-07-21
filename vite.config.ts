@@ -2,14 +2,19 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import analyze from "rollup-plugin-analyzer";
 import autoprefixer from "autoprefixer";
-import path from "path";
+import path from "node:path";
 import sveltePreprocess from "svelte-preprocess";
 import tsconfigPaths from "vite-tsconfig-paths";
+import typescript from "@rollup/plugin-typescript";
 
 export default defineConfig({
 	plugins: [
 		svelte({
-			preprocess: sveltePreprocess(),
+			preprocess: sveltePreprocess({
+				typescript: {
+					tsconfigFile: "./tsconfig.prod.json",
+				},
+			}),
 			onwarn(warning, handler) {
 				// Skip "Unused CSS selector" warnings.
 				// We specify the same in settings and svelte-check CLI using "--compiler-warnings 'css-unused-selector:ignore'"
@@ -24,6 +29,9 @@ export default defineConfig({
 				// Handle all other warnings
 				if (handler) handler(warning);
 			},
+		}),
+		typescript({
+			tsconfig: path.resolve(__dirname, "./tsconfig.prod.json"),
 		}),
 		tsconfigPaths({ projects: ["./tsconfig.prod.json"] }),
 		analyze({

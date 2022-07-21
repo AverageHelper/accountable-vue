@@ -11,5 +11,6 @@
 		"css-unused-selector": "ignore",
 		"a11y-label-has-associated-control": "ignore"
 	},
-	"svelte.enable-ts-plugin": true
+	"svelte.enable-ts-plugin": true,
+	"svelte.plugin.svelte.useNewTransformation": true
 }
