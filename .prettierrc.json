@@ -6,5 +6,9 @@
 	"semi": true,
 	"singleQuote": false,
 	"trailingComma": "es5",
-	"useTabs": true
+	"useTabs": true,
+	"svelteAllowShorthand": true,
+	"svelteIndentScriptAndStyle": true,
+	"svelteSortOrder": "options-scripts-markup-styles",
+	"svelteBracketNewLine": false
 }

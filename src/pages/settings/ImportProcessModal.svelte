@@ -39,7 +39,7 @@
 	function numberOfTransactionsToImport(): number {
 		let count = 0;
 		accountIdsToImport.forEach(a => {
-			count += transactionCounts.value[a] ?? 0;
+			count += transactionCounts[a] ?? 0;
 		});
 		return count;
 	}
@@ -108,7 +108,7 @@
 				if (!accountToImport) continue;
 				await importAccount(accountToImport);
 
-				itemsImported += transactionCounts.value[accountToImport.id] ?? 0;
+				itemsImported += transactionCounts[accountToImport.id] ?? 0;
 				itemsImported += 1;
 				await tick();
 			}

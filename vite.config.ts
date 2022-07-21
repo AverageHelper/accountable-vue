@@ -10,6 +10,20 @@ export default defineConfig({
 	plugins: [
 		svelte({
 			preprocess: sveltePreprocess(),
+			onwarn(warning, handler) {
+				// Skip "Unused CSS selector" warnings.
+				// We specify the same in settings and svelte-check CLI using "--compiler-warnings 'css-unused-selector:ignore'"
+				if (warning.code === "css-unused-selector") return;
+
+				// Skip "A form label must be associated with a control" warnings.
+				// We specify the same in settings and svelte-check CLI using "--compiler-warnings 'a11y-label-has-associated-control:ignore'"
+				// These are usually unnecessary when the control is a custom component, which isn't on the "list" of control elements.
+				// See also https://github.com/sveltejs/svelte/issues/6469
+				if (warning.code === "a11y-label-has-associated-control") return;
+
+				// Handle all other warnings
+				if (handler) handler(warning);
+			},
 		}),
 		tsconfigPaths({ projects: ["./tsconfig.prod.json"] }),
 		analyze({

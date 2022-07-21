@@ -15,7 +15,7 @@
 		"build:server": "cd ./server && npm run build",
 		"build:client": "rm -rf ./dist && npm run lint && npm run svelte-check && npm run vite:build",
 		"build:client:quick": "rm -rf ./dist && npm run export-version && npm run vite:build",
-		"svelte-check": "./node_modules/.bin/svelte-check --tsconfig tsconfig.prod.json",
+		"svelte-check": "./node_modules/.bin/svelte-check --tsconfig tsconfig.prod.json --compiler-warnings 'css-unused-selector:ignore,a11y-label-has-associated-control:ignore'",
 		"vite:build": "./node_modules/.bin/vite build",
 		"lint": "npm run export-version && npm run lintonly",
 		"lint:fix": "npm run export-version && npm run lintonly -- --fix",
