@@ -132,8 +132,15 @@
 <!-- FIXME: Make this match the account view, with the button beside the title -->
 {#if account && transaction}
 	<NavAction>
-		<EditButton slot="modal" let:onFinished>
-			<TransactionEdit {account} {transaction} on:deleted={goBack} on:finished={onFinished} />
+		<EditButton>
+			<TransactionEdit
+				slot="modal"
+				let:onFinished
+				{account}
+				{transaction}
+				on:deleted={goBack}
+				on:finished={onFinished}
+			/>
 		</EditButton>
 	</NavAction>
 {/if}

@@ -10,7 +10,8 @@ export interface I18NProps {
 export interface I18NEvents {}
 
 // Any slot name is valid
-export interface I18NSlots extends Record<string, undefined> {}
+// eslint-disable-next-line @typescript-eslint/ban-types
+export interface I18NSlots extends Record<string, {}> {}
 
 declare class I18NComponent extends SvelteComponentTyped<I18NProps, I18NEvents, I18NSlots> {}
 
