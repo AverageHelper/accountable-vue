@@ -71,6 +71,9 @@
 			"processor": "svelte3/svelte3",
 			"settings": {
 				"disable/plugins": ["prettier"]
+			},
+			"rules": {
+				"@typescript-eslint/explicit-function-return-type": "off" // not useful in template expressions
 			}
 		},
 		{

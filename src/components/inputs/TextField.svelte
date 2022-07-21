@@ -90,7 +90,7 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label bind:this={root} class="text-input__container {$$props.class}">
+<label bind:this={root} class="text-input__container {$$props['class']}">
 	<div class="text-input__label" on:click={focus}>
 		{label}
 		{#if required && showsRequired}

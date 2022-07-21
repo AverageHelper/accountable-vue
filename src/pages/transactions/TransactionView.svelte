@@ -187,7 +187,7 @@
 		{#if locationId}
 			<div class="key-value-pair" aria-label="Transaction Location">
 				<span class="key">Location</span>
-				{#if location?.coordinate || location?.subtitle}
+				{#if location?.coordinate ?? location?.subtitle}
 					<a href="#" class="value" on:click|preventDefault={() => (isViewingLocation = true)}
 						>{location?.title ?? locationId}
 						{#if location?.coordinate}<LocationIcon />{/if}

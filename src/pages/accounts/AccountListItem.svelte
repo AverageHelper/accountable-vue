@@ -43,6 +43,6 @@
 	{subtitle}
 	count={remainingBalance ? intlFormat(remainingBalance) : "--"}
 	negative={isBalanceNegative}
-	class={$$props.class}
+	class={$$props["class"]}
 	on:click
 />

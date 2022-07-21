@@ -19,7 +19,7 @@
 	}
 </script>
 
-<ActionButton class={$$props.class} kind="bordered-primary" {disabled} on:click={startDownload}>
+<ActionButton class={$$props["class"]} kind="bordered-primary" {disabled} on:click={startDownload}>
 	<DownloadIcon class="icon" />
 	<span>{$_("common.download-action")}</span>
 </ActionButton>

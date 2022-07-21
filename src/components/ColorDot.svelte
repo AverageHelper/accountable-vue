@@ -4,7 +4,7 @@
 	export let colorId: ColorID = "blue";
 </script>
 
-<div class={`dot dot--${colorId} ${$$props.class}`}>
+<div class={`dot dot--${colorId} ${$$props["class"]}`}>
 	<slot />
 </div>
 

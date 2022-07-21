@@ -10,7 +10,7 @@
 	$: labelId = labelIdForTab(tab);
 </script>
 
-<a class="item-container {isSelected ? 'selected' : ''} {$$props.class}" {href}>{$_(labelId)}</a>
+<a class="item-container {isSelected ? 'selected' : ''} {$$props['class']}" {href}>{$_(labelId)}</a>
 
 <style type="text/scss">
 	@use "styles/colors" as *;

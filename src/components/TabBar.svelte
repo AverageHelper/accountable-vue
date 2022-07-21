@@ -29,7 +29,7 @@
 </script>
 
 {#if !tooSmall}
-	<nav class={$$props.class}>
+	<nav class={$$props["class"]}>
 		{#each tabs as tab}
 			<TabItem class="item" {tab} isSelected={currentTab === tab} />
 		{/each}

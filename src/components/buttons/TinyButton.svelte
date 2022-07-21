@@ -2,7 +2,7 @@
 	import ActionButton from "./ActionButton.svelte";
 </script>
 
-<ActionButton class="tiny {$$props.class}">
+<ActionButton class="tiny {$$props['class']}">
 	<slot />
 </ActionButton>
 

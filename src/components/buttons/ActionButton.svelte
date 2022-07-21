@@ -34,7 +34,7 @@
 </script>
 
 <button
-	class={`kind--${kind} ${$$props.class}`}
+	class={`kind--${kind} ${$$props["class"]}`}
 	{type}
 	{disabled}
 	on:focus={onFocus}

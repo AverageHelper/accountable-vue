@@ -36,7 +36,7 @@
 	}
 </script>
 
-<div class="search {$$props.class}">
+<div class="search {$$props['class']}">
 	<TextField
 		bind:value={searchQuery}
 		type="search"
