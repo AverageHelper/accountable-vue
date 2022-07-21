@@ -197,7 +197,7 @@
 				{:else}
 					<span class="value">&quot;{location?.title ?? locationId}&quot;</span>
 				{/if}
-				<Modal open={isViewingLocation} close-modal={() => (isViewingLocation = false)}>
+				<Modal open={isViewingLocation} closeModal={() => (isViewingLocation = false)}>
 					{#if location}
 						<LocationView {location} />
 					{/if}
@@ -253,7 +253,7 @@
 	</main>
 {/if}
 
-<Modal open={brokenReferenceToFix !== null && !!transaction} close-modal={closeReferenceFixer}>
+<Modal open={brokenReferenceToFix !== null && !!transaction} closeModal={closeReferenceFixer}>
 	{#if brokenReferenceToFix !== null && !!transaction}
 		<FileReattach {transaction} fileId={brokenReferenceToFix} on:close={closeReferenceFixer} />
 	{/if}
