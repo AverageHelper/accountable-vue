@@ -49,7 +49,7 @@
 <label class="currency-input__container {$$props['class']}">
 	<TextField
 		class="currency-input"
-		{label}
+		label={label ?? undefined}
 		value={presentableValue}
 		maxlength={18}
 		placeholder={zeroValue}

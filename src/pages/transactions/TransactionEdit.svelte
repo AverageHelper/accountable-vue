@@ -78,7 +78,7 @@
 		  (locationData?.coordinate?.lat ?? null) !== null ||
 		  (locationData?.coordinate?.lng ?? null) !== null;
 
-	createdAt.setSeconds(0, 0);
+	$: createdAt.setSeconds(0, 0);
 
 	onMount(() => {
 		// Modal invocations call this. This is good.

@@ -1,7 +1,8 @@
 <!-- 
-	
+	@component
 	Usage:
 	
+	en-US.json:
 	```json
 	"place": {
 		"invitation": "Let's go to the {place}!",
@@ -9,13 +10,17 @@
 	}
 	```
 
+	MyComponent.svelte:
+	```svelte
 	<script>
 		import { _ } from "svelte-i18n";
+		import I18N from "path/to/I18N.svelte";
 	</script>
 	
 	<I18N keypath="place.invitation">
 		<em slot="place">{$_("place.beach")}</em>
 	</I18N>
+	```
 	
  -->
 <script lang="ts">
@@ -33,19 +38,23 @@
 		text?: string;
 	}
 
+	function isDefined<T>(tbd: T | undefined): tbd is T {
+		return tbd !== undefined;
+	}
+
 	let cutted: Array<Item> = [];
 	let _slots: Array<HTMLSpanElement | undefined> = [];
-	$: slots = _slots.filter(Boolean); // clean up dirty refs
+	$: slots = _slots.filter(isDefined); // clean up dirty refs
 
 	function processSlots() {
 		slots.forEach(slot => {
-			const slotName = slot.dataset.i18nKey;
+			const slotName = slot.dataset["i18nKey"];
 			const children = Array.from(slot.children) as Array<HTMLElement>;
 			children.forEach(c => {
-				if (c.dataset.i18nKey !== slotName) {
+				if (c.dataset["i18nKey"] !== slotName) {
 					c.remove();
 				}
-				delete c.dataset.i18nKey;
+				delete c.dataset["i18nKey"];
 			});
 			slot.replaceWith(...slot.children);
 		});
@@ -55,9 +64,9 @@
 		const testString = $_(keypath); // get the locale text
 		const reBrackets = /\{(.*?)\}/gu; // find variable declarations
 		const listOfText: Array<string> = [];
-		let found: RegExpExecArray;
+		let found: RegExpExecArray | null;
 		while ((found = reBrackets.exec(testString))) {
-			listOfText.push(found[1]);
+			if (found[1]) listOfText.push(found[1]);
 		}
 		cutted = [];
 
@@ -68,9 +77,9 @@
 				cutted.push({ isVar: false, text: testString.split(`{${text}}`)[1] });
 			} else {
 				const toCut = cutted[cutted.length - 1];
-				cutted[cutted.length - 1] = { isVar: false, text: toCut!.text!.split(`{${text}}`)[0] };
+				cutted[cutted.length - 1] = { isVar: false, text: toCut?.text?.split(`{${text}}`)[0] };
 				cutted.push({ isVar: true, name: text });
-				cutted.push({ isVar: false, text: toCut!.text!.split(`{${text}}`)[1] });
+				cutted.push({ isVar: false, text: toCut?.text?.split(`{${text}}`)[1] });
 			}
 		});
 		cutted = cutted.filter(f => f);

@@ -115,11 +115,12 @@
 		fileToDelete = null;
 	}
 
-	async function onFileReceived(file: CustomEvent<File>): Promise<void> {
-		if (!transaction) return;
+	async function onFileReceived(event: CustomEvent<File | null>): Promise<void> {
+		const file = event.detail;
+		if (!transaction || !file) return;
 
 		try {
-			const attachment = await createAttachmentFromFile(file.detail);
+			const attachment = await createAttachmentFromFile(file);
 			addAttachmentToTransaction(transaction, attachment);
 			await updateTransaction(transaction);
 		} catch (error) {
@@ -131,7 +132,7 @@
 <!-- FIXME: Make this match the account view, with the button beside the title -->
 {#if account && transaction}
 	<NavAction>
-		<EditButton let:onFinished>
+		<EditButton slot="modal" let:onFinished>
 			<TransactionEdit {account} {transaction} on:deleted={goBack} on:finished={onFinished} />
 		</EditButton>
 	</NavAction>

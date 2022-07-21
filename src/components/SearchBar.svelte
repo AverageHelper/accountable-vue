@@ -16,10 +16,9 @@
 	function commit(event: Event) {
 		event.preventDefault();
 		const q = searchQuery.trim();
-		const query = q ? { q } : {};
-		const params = new URLSearchParams(query);
+		const query = q ? new URLSearchParams({ q }) : new URLSearchParams();
 
-		navigateTo(`${currentRoute.path}?${params.toString()}`, undefined, true);
+		navigateTo(`${currentRoute.path}?${query.toString()}`, undefined, true);
 	}
 
 	function onKeyup(event: CustomEvent<KeyboardEvent>) {

@@ -10,5 +10,5 @@
 	"svelteAllowShorthand": true,
 	"svelteIndentScriptAndStyle": true,
 	"svelteSortOrder": "options-scripts-markup-styles",
-	"svelteBracketNewLine": false
+	"svelteBracketNewLine": true
 }

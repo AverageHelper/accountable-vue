@@ -66,7 +66,7 @@
 	$: remainingBalance = $currentBalance[accountId] ?? null;
 	$: isNegative = isDineroNegative(remainingBalance ?? zeroDinero);
 
-	$: void watchTransactions(account);
+	$: account && void watchTransactions(account);
 
 	function goBack() {
 		window.history.back();

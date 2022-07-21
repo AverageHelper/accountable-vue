@@ -10,7 +10,7 @@
 		.split("/") // split path by delimiters
 		.find(s => s !== ""); // get first nonempty path segment
 
-	if (!isAppTab(currentTab)) currentTab = null;
+	if (!isAppTab(currentTab)) currentTab = undefined;
 
 	let windowWidth = window.innerWidth;
 	$: tooSmall = windowWidth < 768;

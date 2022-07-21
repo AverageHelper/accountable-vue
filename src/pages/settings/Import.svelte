@@ -17,8 +17,9 @@
 	let dbName = "";
 	let db: DatabaseSchema | null = null;
 
-	async function onFileReceived(event: CustomEvent<File>) {
+	async function onFileReceived(event: CustomEvent<File | null>) {
 		const file = event.detail;
+		if (!file) return;
 		archive = null;
 		dbName = "";
 		db = null;

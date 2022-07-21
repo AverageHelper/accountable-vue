@@ -31,7 +31,7 @@
 	function onDateUpdated(event: Event) {
 		const target = event.target as HTMLInputElement | null;
 		const date = !target ? null : new Date(target.value);
-		dispatch("input", date);
+		if (date) dispatch("input", date);
 	}
 </script>
 

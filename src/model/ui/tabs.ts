@@ -9,7 +9,8 @@ export const appTabs = ["accounts", "attachments", "locations", "tags"] as const
 
 export type Tab = typeof appTabs[number];
 
-export function isAppTab(tbd: string): tbd is Tab {
+export function isAppTab(tbd: string | null | undefined): tbd is Tab {
+	if (!(tbd ?? "")) return false; // nullish values don't count as `Tab` values lol
 	return appTabs.includes(tbd as Tab);
 }
 

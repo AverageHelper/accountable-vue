@@ -7,7 +7,7 @@
 		"preserveValueImports": true,
 
 		"target": "es2017",
-		"lib": ["esnext", "dom"],
+		"lib": ["esnext", "dom", "DOM.Iterable"],
 		"module": "esnext",
 		"moduleResolution": "node",
 		"jsx": "preserve",
@@ -20,7 +20,7 @@
 		"baseUrl": "./src",
 		"outDir": "./dist",
 		"isolatedModules": true,
-		"strict": true,
+		"strict": true, // FIXME: Svelte files ignore this bit
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitReturns": true,
 		"noPropertyAccessFromIndexSignature": true,

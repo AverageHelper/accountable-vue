@@ -5,7 +5,7 @@
 	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher<{
-		input: File;
+		input: File | null;
 	}>();
 
 	let inputElement: HTMLInputElement | undefined;

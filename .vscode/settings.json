@@ -12,5 +12,8 @@
 		"a11y-label-has-associated-control": "ignore"
 	},
 	"svelte.enable-ts-plugin": true,
-	"svelte.plugin.svelte.useNewTransformation": true
+	"svelte.plugin.svelte.useNewTransformation": true,
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	}
 }

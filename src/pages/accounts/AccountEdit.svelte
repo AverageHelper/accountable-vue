@@ -59,7 +59,7 @@
 					newAccount({
 						id: account.id,
 						title: title.trim(),
-						notes: notes.trim() || account.notes.trim(),
+						notes: notes.trim() || (account.notes?.trim() ?? null),
 						createdAt: account.createdAt,
 					})
 				);

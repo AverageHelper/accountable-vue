@@ -1,8 +1,17 @@
 {
-	"files": [],
-	"references": [
-		{ "path": "./tsconfig.prod.json" },
-		{ "path": "./tsconfig.test.json" },
-		{ "path": "./server/tsconfig.json" }
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"declaration": true,
+		"noEmit": false,
+		"types": ["vite/client", "svelte"]
+	},
+	"include": ["src/**/*"],
+	"exclude": [
+		"node_modules/*",
+		"__sapper__/*",
+		"public/*",
+		"**/*.test.ts",
+		"**/__mocks__/**/*.ts",
+		"./server/**"
 	]
 }

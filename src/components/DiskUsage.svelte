@@ -3,8 +3,8 @@
 	import { simplifiedByteCount } from "../transformers";
 	import { totalSpace, usedSpace } from "../store";
 
-	$: total = totalSpace !== null ? simplifiedByteCount($totalSpace) : "--";
-	$: used = usedSpace !== null ? simplifiedByteCount($usedSpace) : "--";
+	$: total = $totalSpace !== null ? simplifiedByteCount($totalSpace) : "--";
+	$: used = $usedSpace !== null ? simplifiedByteCount($usedSpace) : "--";
 </script>
 
 <p class="storage">{$_("common.disk-usage", { values: { used, total } })}</p>

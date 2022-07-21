@@ -17,7 +17,7 @@
 
 	$: file = $attachments[fileId];
 	$: title = file?.title ?? fileId;
-	$: timestamp = toTimestamp(file.createdAt);
+	$: timestamp = file ? toTimestamp(file.createdAt) : "--";
 	$: subtitle = !file
 		? "Broken reference" // TODO: I18N
 		: file.notes === null || !file.notes
