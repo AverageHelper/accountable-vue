@@ -6,6 +6,5 @@
 	"i18n-ally.displayLanguage": "en-US",
 	"i18n-ally.keystyle": "nested",
 	"i18n-ally.localesPaths": ["src/locales"],
-	"i18n-ally.sourceLanguage": "en-US",
-	"eslint.validate": ["javascript", "javascriptreact", "svelte"]
+	"i18n-ally.sourceLanguage": "en-US"
 }
