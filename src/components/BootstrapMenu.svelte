@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { _ } from "svelte-i18n";
 	import { aboutPath, homePath, installPath, loginPath, securityPath } from "../router";
 	import { isLoginEnabled } from "../store";
+	import { useLocation } from "svelte-navigator";
 
 	interface Page {
 		path: string;
@@ -24,8 +24,8 @@
 		pages.push({ path: loginPath(), titleKey: "home.nav.log-in" });
 	}
 
-	export let currentRoute: CurrentRoute;
-	$: currentPath = currentRoute.path;
+	const location = useLocation();
+	$: currentPath = $location.pathname;
 
 	function toggle() {
 		isNavButtonOpen = !isNavButtonOpen;

@@ -1,14 +1,16 @@
 <script lang="ts">
-	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
-	import { navigateTo } from "svelte-router-spa";
+	import { useLocation, useNavigate } from "svelte-navigator";
 	import ActionButton from "./buttons/ActionButton.svelte";
 	import SearchIcon from "../icons/Search.svelte";
 	import XIcon from "../icons/X.svelte";
 	import TextField from "./inputs/TextField.svelte";
 
-	export let currentRoute: CurrentRoute;
+	const location = useLocation();
+	const navigate = useNavigate();
 
-	const initialSearchQuery = (currentRoute.queryParams["q"] ?? "").toString();
+	$: queryParams = new URLSearchParams($location.search);
+
+	const initialSearchQuery = (queryParams.get("q") ?? "").toString();
 
 	let searchQuery = initialSearchQuery.trim();
 	$: needsCommitSearch = searchQuery.trim() !== initialSearchQuery.trim();
@@ -18,7 +20,7 @@
 		const q = searchQuery.trim();
 		const query = q ? new URLSearchParams({ q }) : new URLSearchParams();
 
-		navigateTo(`${currentRoute.path}?${query.toString()}`, undefined, true);
+		navigate(`${$location.pathname}?${query.toString()}`, { replace: true });
 	}
 
 	function onKeyup(event: CustomEvent<KeyboardEvent>) {
@@ -31,7 +33,7 @@
 	function clear(event: Event) {
 		event.preventDefault();
 		searchQuery = "";
-		navigateTo(currentRoute.path, undefined, true);
+		navigate($location.pathname, { replace: true });
 	}
 </script>
 

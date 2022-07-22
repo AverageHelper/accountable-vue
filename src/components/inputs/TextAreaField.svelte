@@ -8,9 +8,9 @@
 	}>();
 
 	export let value: string = "";
-	export let dataTest: string | null = null;
+	export let dataTest: string | undefined = undefined;
 	export let type: string = "text";
-	export let maxlength: number | null = null;
+	export let maxlength: number | undefined = undefined;
 	export let label: string = "";
 	export let disabled: boolean = false;
 	export let placeholder: string = "";

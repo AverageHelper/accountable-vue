@@ -49,6 +49,8 @@ export default defineConfig({
 			},
 		}),
 	],
+	// See https://www.npmjs.com/package/svelte-navigator#faq
+	optimizeDeps: { exclude: ["svelte-navigator"] },
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "/src"),

@@ -37,8 +37,8 @@
 		"source-map-support": "0.5.21",
 		"superstruct": "^0.15.3",
 		"svelte-i18n": "3.4.0",
+		"svelte-navigator": "^3.1.6",
 		"svelte-portal": "2.2.0",
-		"svelte-router-spa": "6.0.3",
 		"uuid": "8.3.2"
 	},
 	"devDependencies": {

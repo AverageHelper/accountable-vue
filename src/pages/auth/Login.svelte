@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { _ } from "svelte-i18n";
 	import { accountsPath, loginPath, signupPath } from "../../router";
-	import { navigateTo } from "svelte-router-spa";
 	import { onMount } from "svelte";
+	import { useLocation, useNavigate } from "svelte-navigator";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ErrorNotice from "../../components/ErrorNotice.svelte";
 	import Footer from "../../Footer.svelte";
@@ -21,7 +20,8 @@
 		uid,
 	} from "../../store";
 
-	export let currentRoute: CurrentRoute;
+	const location = useLocation();
+	const navigate = useNavigate();
 
 	$: isLoggedIn = $uid !== null;
 	let accountId = "";
@@ -30,7 +30,7 @@
 	let isLoading = false;
 	$: mode = !isSignupEnabled
 		? "login" // can't sign up? log in instead.
-		: currentRoute.path === signupPath()
+		: $location.pathname === signupPath()
 		? "signup"
 		: "login";
 	$: isSignupMode = mode === "signup";
@@ -54,26 +54,26 @@
 	}
 
 	$: if (isLoggedIn) {
-		navigateTo(accountsPath());
-	} else if (currentRoute.path !== loginPath() && currentRoute.path !== signupPath()) {
+		navigate(accountsPath());
+	} else if ($location.pathname !== loginPath() && $location.pathname !== signupPath()) {
 		switch (mode) {
 			case "login":
-				navigateTo(loginPath());
+				navigate(loginPath());
 				break;
 			case "signup":
-				navigateTo(signupPath());
+				navigate(signupPath());
 				break;
 		}
 	}
 
 	function enterSignupMode() {
 		accountId = "";
-		navigateTo(signupPath(), undefined, true);
+		navigate(signupPath(), { replace: true });
 	}
 
 	function enterLoginMode() {
 		accountId = "";
-		navigateTo(loginPath(), undefined, true);
+		navigate(loginPath(), { replace: true });
 	}
 
 	function onUpdateAccountId(newId: string) {
@@ -105,7 +105,7 @@
 					break;
 			}
 
-			navigateTo(accountsPath(), undefined, true);
+			navigate(accountsPath(), { replace: true });
 		} catch (error) {
 			handleError(error);
 		} finally {

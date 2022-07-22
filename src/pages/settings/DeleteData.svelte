@@ -2,10 +2,12 @@
 	import { _ } from "svelte-i18n";
 	import { accountId, destroyVault, handleError } from "../../store";
 	import { logoutPath } from "../../router";
-	import { navigateTo } from "svelte-router-spa";
+	import { useNavigate } from "svelte-navigator";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ConfirmDeleteEverything from "./ConfirmDeleteEverything.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
+
+	const navigate = useNavigate();
 
 	let password = "";
 	let isAskingToDelete = false;
@@ -30,7 +32,7 @@
 			if (!password) throw new Error($_("error.form.missing-required-fields"));
 			await destroyVault(password);
 
-			navigateTo(logoutPath());
+			navigate(logoutPath());
 		} catch (error) {
 			handleError(error);
 			isDeleting = false;

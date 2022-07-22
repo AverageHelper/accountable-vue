@@ -5,12 +5,14 @@
 	import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 	import { create } from "superstruct";
 	import { handleError } from "../../store";
-	import { navigateTo } from "svelte-router-spa";
 	import { schema } from "../../model/DatabaseSchema";
 	import { toast } from "@zerodevx/svelte-toast";
+	import { useNavigate } from "svelte-navigator";
 	import FileInput from "../attachments/FileInput.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import ImportProcessModal from "./ImportProcessModal.svelte";
+
+	const navigate = useNavigate();
 
 	let isLoading = false;
 	let archive: Array<Entry> | null = null;
@@ -64,7 +66,7 @@
 	function forgetFile() {
 		db = null;
 		dbName = "";
-		navigateTo(accountsPath());
+		navigate(accountsPath());
 	}
 </script>
 

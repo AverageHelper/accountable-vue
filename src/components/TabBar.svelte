@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import { isAppTab, appTabs as tabs } from "../model/ui/tabs";
 	import { onDestroy, onMount } from "svelte";
+	import { useLocation } from "svelte-navigator";
 	import TabItem from "./TabItem.svelte";
 
-	export let currentRoute: CurrentRoute;
+	const location = useLocation();
 
-	let currentTab: string | undefined = currentRoute.path
+	let currentTab: string | undefined = $location.pathname
 		.split("/") // split path by delimiters
 		.find(s => s !== ""); // get first nonempty path segment
 

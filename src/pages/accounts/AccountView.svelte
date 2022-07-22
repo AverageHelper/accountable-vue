@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { CurrentRoute } from "svelte-router-spa/types/components/route";
 	import type { Transaction } from "../../model/Transaction";
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { reverseChronologically } from "../../model/utility/sort";
+	import { useLocation } from "svelte-navigator";
 	import { zeroDinero } from "../../helpers/dineroHelpers";
 	import AccountEdit from "./AccountEdit.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -27,7 +27,7 @@
 
 	export let accountId: string;
 
-	export let currentRoute: CurrentRoute;
+	const location = useLocation();
 
 	let isEditingAccount = false;
 	let isEditingTransaction = false;
@@ -57,7 +57,8 @@
 	}
 
 	$: searchClient = new Fuse(theseTransactions, { keys: ["title", "notes"] });
-	$: searchQuery = (currentRoute.queryParams["q"] ?? "").toString();
+	$: queryParams = new URLSearchParams($location.search);
+	$: searchQuery = (queryParams.get("q") ?? "").toString();
 	$: filteredTransactions =
 		searchQuery !== "" //
 			? searchClient.search(searchQuery).map(r => r.item)
@@ -106,7 +107,7 @@
 		{/if}
 	</div>
 
-	<SearchBar class="search" {currentRoute} />
+	<SearchBar class="search" />
 
 	<!-- Search Results -->
 	{#if searchQuery}
