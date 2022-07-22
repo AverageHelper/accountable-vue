@@ -13,6 +13,7 @@
 	import Login from "../pages/auth/Login.svelte";
 	import Logout from "./guards/Logout.svelte";
 	import MonthView from "../pages/transactions/MonthView.svelte";
+	import Navbar from "../components/Navbar.svelte";
 	import NotFound from "../pages/NotFound.svelte";
 	import Security from "../Security.svelte";
 	import Settings from "../pages/settings/Settings.svelte";
@@ -42,6 +43,8 @@
 </script>
 
 <Router>
+	<Navbar />
+
 	<!-- Root -->
 	<Route path={homePath()}>
 		<Home />

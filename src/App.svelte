@@ -1,17 +1,16 @@
 <script lang="ts">
 	import type { SvelteToastOptions } from "@zerodevx/svelte-toast";
+	import "./i18n";
 	import { onMount } from "svelte";
 	import { Router } from "./router";
 	import { SvelteToast } from "@zerodevx/svelte-toast";
 	import { watchColorScheme } from "./store/uiStore";
-	import Navbar from "./components/Navbar.svelte";
 
 	const options: SvelteToastOptions = {};
 
 	onMount(watchColorScheme);
 </script>
 
-<Navbar />
 <Router />
 <div id="modal" />
 <SvelteToast {options} />
