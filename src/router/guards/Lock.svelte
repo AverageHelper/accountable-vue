@@ -2,7 +2,7 @@
 	import { fetchSession, lockVault, pKey, uid } from "../../store/authStore";
 	import { loginPath } from "router/routes";
 	import { navigate } from "svelte-navigator";
-	import { onMount } from "svelte/types/runtime/internal/lifecycle";
+	import { onMount } from "svelte";
 
 	let isChecking = true;
 	$: isVaultLocked = $uid !== null && !$pKey; // we have a uid but no pKey
