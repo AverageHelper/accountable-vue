@@ -336,7 +336,7 @@ export function onSnapshot<T>(
 	ws.addEventListener("message", res => {
 		let message: unknown;
 		try {
-			message = JSON.parse((res.data as Buffer).toString()) as unknown;
+			message = JSON.parse((res.data as { toString: () => string }).toString()) as unknown;
 		} catch (error) {
 			throw new UnexpectedResponseError(
 				`The message could not be parsed as JSON: ${JSON.stringify(error)}`
