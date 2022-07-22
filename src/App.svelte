@@ -15,20 +15,21 @@
 <div id="modal" />
 <SvelteToast {options} />
 
-<style type="text/scss">
+<style type="text/scss" global>
 	@use "styles/colors" as *;
 	@import "styles/setup";
 
-	:global(#app *) {
+	#app * {
 		box-sizing: border-box;
 	}
 
-	:global(html, body) {
+	html,
+	body {
 		padding: 0;
 		margin: 0;
 	}
 
-	:global(main.content) {
+	main.content {
 		margin: 0;
 		padding: 16pt 24pt;
 		overflow-y: scroll;
@@ -40,17 +41,17 @@
 		}
 	}
 
-	:global(a) {
+	a {
 		color: color($link);
 	}
 
 	// Toasts
-	:global(.toast-success) {
+	.toast-success {
 		--toastBackground: color($alert-success);
 		--toastBarBackground: color($green);
 	}
 
-	:global(.toast-error) {
+	.toast-error {
 		--toastBackground: color($alert-failure);
 		--toastBarBackground: color($red);
 	}

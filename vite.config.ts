@@ -7,9 +7,12 @@ import sveltePreprocess from "svelte-preprocess";
 import tsconfigPaths from "vite-tsconfig-paths";
 import typescript from "@rollup/plugin-typescript";
 
+console.warn(`process.env.NODE_ENV: ${process.env.NODE_ENV ?? "undefined"}`);
+
 export default defineConfig({
 	plugins: [
 		svelte({
+			emitCss: true,
 			preprocess: sveltePreprocess({
 				typescript: {
 					tsconfigFile: "./tsconfig.prod.json",
