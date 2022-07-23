@@ -21,13 +21,10 @@
 			>{$_("footer.issue")}</OutLink
 		>
 		<!-- github -->
-		<OutLink href="https://github.com/AverageHelper/accountable-vue">{$_("footer.github")}</OutLink>
+		<OutLink to="https://github.com/AverageHelper/accountable-vue">{$_("footer.github")}</OutLink>
 	</I18N>
 	<p>
-		<OutLink
-			href="https://github.com/AverageHelper/accountable-vue"
-			title={$_("footer.view-source")}
-		>
+		<OutLink to="https://github.com/AverageHelper/accountable-vue" title={$_("footer.view-source")}>
 			<GitHubIcon alt={$_("footer.view-github")} title={$_("footer.view-github")} />
 		</OutLink>
 	</p>
