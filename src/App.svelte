@@ -46,13 +46,16 @@
 	}
 
 	// Toasts
-	.toast-success {
-		--toastBackground: color($alert-success);
-		--toastBarBackground: color($green);
-	}
+	:root {
+		.toast-success {
+			--toastBackground: var(--alert-success);
+			--toastBarBackground: var(--green);
+		}
 
-	.toast-error {
-		--toastBackground: color($alert-failure);
-		--toastBarBackground: color($red);
+		.toast-error {
+			// FIXME: Should use color() here but didn't work before
+			--toastBackground: var(--alert-failure);
+			--toastBarBackground: var(--white);
+		}
 	}
 </style>
