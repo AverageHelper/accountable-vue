@@ -21,7 +21,7 @@
 	<DeleteData />
 </main>
 
-<style type="text/scss">
+<style lang="scss">
 	.heading {
 		max-width: 36em;
 		margin: 1em auto;

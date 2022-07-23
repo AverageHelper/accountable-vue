@@ -16,7 +16,7 @@
 	}
 </script>
 
-<ActionButton {disabled} on:click={toggle}>
+<ActionButton class="edit-button-13639ef4" {disabled} on:click={toggle}>
 	<slot name="icon">
 		<EditIcon class="icon" />
 	</slot>
@@ -26,11 +26,13 @@
 	<slot name="modal" onFinished={closeModal} />
 </Modal>
 
-<style type="text/scss">
-	.icon {
-		position: relative;
-		top: -2pt;
-		width: 20pt;
-		height: 20pt;
+<style lang="scss" global>
+	.edit-button-13639ef4 {
+		.icon {
+			position: relative;
+			top: -2pt;
+			width: 20pt;
+			height: 20pt;
+		}
 	}
 </style>

@@ -93,7 +93,7 @@
 	}
 </script>
 
-<form on:submit|preventDefault={submit}>
+<form class="form-d8a5e2ee" on:submit|preventDefault={submit}>
 	<!-- TODO: I18N -->
 	{#if isCreatingAccount}
 		<h1>Create Account</h1>
@@ -127,8 +127,8 @@
 	{/if}
 </form>
 
-<style type="text/scss">
-	form {
+<style lang="scss" global>
+	.form-d8a5e2ee {
 		align-items: center;
 
 		> label {

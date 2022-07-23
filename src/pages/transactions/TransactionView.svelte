@@ -274,7 +274,7 @@
 	on:no={cancelDeleteFile}
 />
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.content {

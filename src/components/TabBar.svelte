@@ -36,7 +36,7 @@
 	</nav>
 {/if}
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	nav {

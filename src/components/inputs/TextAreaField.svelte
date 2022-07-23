@@ -36,12 +36,12 @@
 	}
 </script>
 
-<label class="text-area__container" data-test={dataTest}>
-	<span class="text-area__label" on:click={focus}>{label}</span>
+<label class="text-area-b9986ff2__container" data-test={dataTest}>
+	<span class="text-area-b9986ff2__label" on:click={focus}>{label}</span>
 	{#if disabled}
 		<textarea
 			bind:this={input}
-			class="text-area text-area--has-value"
+			class="text-area-b9986ff2 text-area-b9986ff2--has-value"
 			type="text"
 			{maxlength}
 			value={value || "--"}
@@ -51,7 +51,7 @@
 	{:else}
 		<textarea
 			bind:this={input}
-			class="text-area {value !== '' ? 'text-area--has-value' : ''}"
+			class="text-area-b9986ff2 {value !== '' ? 'text-area-b9986ff2--has-value' : ''}"
 			{value}
 			{type}
 			{maxlength}
@@ -63,10 +63,10 @@
 	{/if}
 </label>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.text-area {
+	.text-area-b9986ff2 {
 		border: 0;
 		border-bottom: 2px solid color($gray5);
 		background-color: color($input-background);
@@ -102,7 +102,7 @@
 		}
 
 		&:focus,
-		&.text-area--has-value {
+		&.text-area-b9986ff2--has-value {
 			outline: none;
 		}
 		&:focus {
@@ -112,7 +112,7 @@
 		&:disabled {
 			opacity: 0.7;
 
-			& ~ .text-area__label {
+			& ~ .text-area-b9986ff2__label {
 				opacity: 0.7;
 			}
 		}

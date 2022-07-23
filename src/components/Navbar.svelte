@@ -19,7 +19,7 @@
 	}
 </script>
 
-<nav class="navbar">
+<nav class="navbar-a41cfe5a">
 	{#if isLoggedIn}
 		<aside class="leading-actions actions-container">
 			{#if !isRoute}
@@ -47,10 +47,10 @@
 	{/if}
 </nav>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.navbar {
+	.navbar-a41cfe5a {
 		display: flex;
 		align-items: center;
 		justify-content: center;

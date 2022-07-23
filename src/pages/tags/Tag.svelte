@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class={`tag tag--${tag.colorId} ${onSelect ? "selectable" : ""}`}
+	class={`tag-e076a556 tag-e076a556--${tag.colorId} ${onSelect ? "selectable" : ""}`}
 	title={tag.id}
 	on:click={() => onSelect && onSelect(tag)}
 >
@@ -28,10 +28,10 @@
 	{/if}
 </div>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.tag {
+	.tag-e076a556 {
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;

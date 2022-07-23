@@ -57,7 +57,7 @@
 		prefill transaction location fields, you'll need to select a different option below.</p
 	>
 
-	<div class="options">
+	<div class="options-b0a38164">
 		{#each sensitivityOptions as option}
 			<ActionButton
 				class="option"
@@ -111,10 +111,10 @@
 	</div>
 </form>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.options {
+	.options-b0a38164 {
 		.option {
 			display: flex;
 			flex-flow: row nowrap;

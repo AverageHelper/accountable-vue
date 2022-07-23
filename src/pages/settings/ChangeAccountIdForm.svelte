@@ -55,7 +55,7 @@
 		showsRequired={false}
 		required
 	/>
-	<div class="buttons">
+	<div class="buttons-2cbb2942">
 		<ActionButton type="submit" kind="bordered-primary" disabled={!hasChanges || isLoading}
 			>Regenerate account ID</ActionButton
 		>
@@ -67,8 +67,8 @@
 
 <NewLoginModal />
 
-<style type="text/scss">
-	.buttons {
+<style lang="scss" global>
+	.buttons-2cbb2942 {
 		display: flex;
 		flex-flow: row nowrap;
 

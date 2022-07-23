@@ -8,7 +8,6 @@
 	"i18n-ally.localesPaths": ["src/locales"],
 	"i18n-ally.sourceLanguage": "en-US",
 	"svelte.plugin.svelte.compilerWarnings": {
-		"css-unused-selector": "ignore",
 		"a11y-label-has-associated-control": "ignore"
 	},
 	"svelte.enable-ts-plugin": true,

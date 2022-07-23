@@ -92,10 +92,10 @@
 
 <Portal target="body">
 	{#if isMenuOpen}
-		<div class="side-menu__backdrop" on:click={close} />
+		<div class="side-menu-cb187fca__backdrop" on:click={close} />
 	{/if}
 	{#if isMenuOpen}
-		<List class="side-menu">
+		<List class="side-menu-cb187fca">
 			{#each settingsItems as item (item.id)}
 				{#if !item.requiresLogin || isLoggedIn}
 					<li>
@@ -118,10 +118,10 @@
 	{/if}
 </Portal>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.side-menu {
+	.side-menu-cb187fca {
 		position: absolute; // assumes our portal target is positioned
 		top: 4.5em;
 		right: 0;

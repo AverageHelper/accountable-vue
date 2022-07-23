@@ -92,7 +92,7 @@
 			small as we can make it.</p
 		>
 	{/if}
-	<div class="buttons">
+	<div class="buttons-6933f502">
 		<ActionButton kind="bordered" disabled={isLoading} on:click={e => downloadStuff(e, false)}
 			>Export Everything</ActionButton
 		>
@@ -107,12 +107,12 @@
 	</div>
 </form>
 
-<style type="text/scss">
+<style lang="scss" global>
 	p {
 		margin-bottom: 0;
 	}
 
-	.buttons {
+	.buttons-6933f502 {
 		display: flex;
 		flex-flow: row wrap;
 

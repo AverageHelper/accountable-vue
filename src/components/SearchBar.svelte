@@ -37,7 +37,7 @@
 	}
 </script>
 
-<div class="search {$$props['class']}">
+<div class="search-bef4d73e {$$props['class']}">
 	<TextField
 		bind:value={searchQuery}
 		type="search"
@@ -57,8 +57,8 @@
 	{/if}
 </div>
 
-<style type="text/scss">
-	.search {
+<style lang="scss" global>
+	.search-bef4d73e {
 		display: flex;
 		flex-flow: row nowrap;
 

@@ -6,34 +6,38 @@
 	import OutLink from "./components/OutLink.svelte";
 </script>
 
-<footer>
+<footer class="footer-0696aa0e">
 	<p><AppVersion /></p>
-	<I18N keypath="footer.license" tag="p">
-		<!-- name -->
-		<OutLink
-			to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
-			title={$_("footer.view-license")}>{$_("footer.license-name")}</OutLink
-		>
-	</I18N>
-	<I18N keypath="footer.pr" tag="p">
-		<!-- issue -->
-		<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
-			>{$_("footer.issue")}</OutLink
-		>
-		<!-- github -->
-		<OutLink to="https://github.com/AverageHelper/accountable-vue">{$_("footer.github")}</OutLink>
-	</I18N>
+	<p>
+		<I18N keypath="footer.license">
+			<!-- name -->
+			<OutLink
+				to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
+				title={$_("footer.view-license")}>{$_("footer.license-name")}</OutLink
+			>
+		</I18N>
+	</p>
+	<p>
+		<I18N keypath="footer.pr">
+			<!-- issue -->
+			<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
+				>{$_("footer.issue")}</OutLink
+			>
+			<!-- github -->
+			<OutLink to="https://github.com/AverageHelper/accountable-vue">{$_("footer.github")}</OutLink>
+		</I18N>
+	</p>
 	<p>
 		<OutLink to="https://github.com/AverageHelper/accountable-vue" title={$_("footer.view-source")}>
-			<GitHubIcon alt={$_("footer.view-github")} title={$_("footer.view-github")} />
+			<GitHubIcon class="icon" alt={$_("footer.view-github")} title={$_("footer.view-github")} />
 		</OutLink>
 	</p>
 </footer>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	footer {
+	.footer-0696aa0e {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -47,7 +51,7 @@
 			a {
 				font-weight: bold;
 
-				> .icon {
+				.icon {
 					color: color($label);
 				}
 			}

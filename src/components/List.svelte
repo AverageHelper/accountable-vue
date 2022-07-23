@@ -10,9 +10,10 @@
 	<slot />
 </ul>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
+	// FIXME: This shouldn't be the global style
 	ul {
 		list-style: none;
 		padding: 0;

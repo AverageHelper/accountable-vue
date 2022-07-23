@@ -84,7 +84,7 @@
 	<AccountEdit on:finished={finishCreatingAccount} />
 </Modal>
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.heading {

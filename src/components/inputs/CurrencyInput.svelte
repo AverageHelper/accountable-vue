@@ -46,9 +46,9 @@
 	$: (true || isIncome) && updateValue(presentableValue);
 </script>
 
-<label class="currency-input__container {$$props['class']}">
+<label class="currency-input-85aa6a92__container {$$props['class']}">
 	<TextField
-		class="currency-input"
+		class="currency-input-85aa6a92"
 		label={label ?? undefined}
 		value={presentableValue}
 		maxlength={18}
@@ -60,10 +60,10 @@
 	>
 </label>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.currency-input {
+	.currency-input-85aa6a92 {
 		&__container {
 			position: relative;
 

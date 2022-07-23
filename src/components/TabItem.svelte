@@ -12,7 +12,7 @@
 
 <a class="item-container {isSelected ? 'selected' : ''} {$$props['class']}" {href}>{$_(labelId)}</a>
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.item-container {

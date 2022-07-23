@@ -33,7 +33,7 @@
 	</span>
 </label>
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.file-input {

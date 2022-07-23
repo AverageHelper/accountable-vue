@@ -28,7 +28,7 @@
 	}
 </script>
 
-<label class="checkbox {$$props['class']}" tabindex="0" on:keyup={onKeyup} on:click>
+<label class="checkbox-3145cece {$$props['class']}" tabindex="0" on:keyup={onKeyup} on:click>
 	<input type="checkbox" checked={value} {disabled} on:change={onChange} />
 	<label class="mark {disabled ? 'disabled' : ''}" on:click={toggle} />
 	{#if label}
@@ -36,10 +36,10 @@
 	{/if}
 </label>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.checkbox {
+	.checkbox-3145cece {
 		position: relative;
 		display: flex;
 		align-items: center;

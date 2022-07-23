@@ -15,7 +15,7 @@
 <div id="modal" />
 <SvelteToast {options} />
 
-<style type="text/scss" global>
+<style lang="scss" global>
 	@use "styles/colors" as *;
 	@import "styles/setup";
 

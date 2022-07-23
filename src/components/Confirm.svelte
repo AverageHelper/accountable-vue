@@ -25,7 +25,7 @@
 	</div>
 </Modal>
 
-<style type="text/scss">
+<style lang="scss">
 	p {
 		text-align: left;
 	}

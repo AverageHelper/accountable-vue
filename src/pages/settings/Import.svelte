@@ -74,7 +74,7 @@
 	<!-- TODO: I18N -->
 	<h3>Import</h3>
 	<p>Import a JSON file describing one or more accounts.</p>
-	<div class="buttons">
+	<div class="buttons-79507e92">
 		<FileInput accept="application/zip" disabled={isLoading} on:input={onFileReceived} let:click>
 			<ActionButton
 				kind="bordered"
@@ -90,12 +90,12 @@
 
 <ImportProcessModal fileName={dbName} {db} zip={archive} on:finished={forgetFile} />
 
-<style type="text/scss">
+<style lang="scss" global>
 	p {
 		margin-bottom: 0;
 	}
 
-	.buttons {
+	.buttons-79507e92 {
 		display: flex;
 		flex-flow: row wrap;
 

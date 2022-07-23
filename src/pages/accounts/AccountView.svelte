@@ -92,7 +92,7 @@
 
 <main class="content">
 	<div class="heading">
-		<div class="account-title">
+		<div class="account-title-1dfc4112">
 			<!-- TODO: I18N -->
 			<h1>{account?.title || "Account"}</h1>
 			<ActionButton class="edit" on:click={startEditingAccount}>
@@ -156,7 +156,7 @@
 	</Modal>
 {/if}
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
 	.heading {
@@ -166,7 +166,7 @@
 		max-width: 36em;
 		margin: 1em auto;
 
-		> .account-title {
+		> .account-title-1dfc4112 {
 			display: flex;
 			flex-flow: row nowrap;
 			align-items: center;

@@ -9,7 +9,7 @@
 
 <p class="storage">{$_("common.disk-usage", { values: { used, total } })}</p>
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.storage {

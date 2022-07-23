@@ -6,7 +6,7 @@
 	export let location: Location;
 </script>
 
-<div class="location">
+<div class="location-ea9cfb80">
 	{#if location.coordinate}
 		<LocationIcon />
 	{:else}
@@ -15,10 +15,10 @@
 	<span>{location.title}</span>
 </div>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.location {
+	.location-ea9cfb80 {
 		background-color: color($secondary-fill);
 		padding: 4pt;
 		cursor: pointer;

@@ -12,15 +12,17 @@
 <main class="content">
 	{#if isLoginEnabled}
 		<h1>{$_("install.service.heading")}</h1>
-		<I18N keypath="install.service.p1" tag="p">
-			<!-- login -->
-			<a href={loginRoute}>{$_("home.nav.log-in")}</a>
-		</I18N>
+		<p>
+			<I18N keypath="install.service.p1">
+				<!-- login -->
+				<a href={loginRoute}>{$_("home.nav.log-in")}</a>
+			</I18N>
+		</p>
 	{/if}
 
 	<h1>{$_("install.self.heading")}</h1>
 	<p>
-		<I18N keypath="install.self.p1" tag="span">
+		<I18N keypath="install.self.p1">
 			<!-- readme -->
 			<OutLink to="https://github.com/AverageHelper/accountable-vue/tree/main#setup"
 				>{$_("install.self.readme")}</OutLink
@@ -32,24 +34,3 @@
 
 	<Footer />
 </main>
-
-<style type="text/scss">
-	@use "styles/colors" as *;
-
-	section {
-		border: 1pt solid color($separator);
-		border-radius: 4pt;
-		margin: 0 auto;
-		padding: 8pt 16pt;
-		width: fit-content;
-
-		h2 {
-			margin: 0;
-			text-align: center;
-		}
-
-		ul {
-			margin: 0;
-		}
-	}
-</style>

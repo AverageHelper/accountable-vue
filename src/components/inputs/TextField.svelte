@@ -90,17 +90,19 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label bind:this={root} class="text-input__container {$$props['class']}">
-	<div class="text-input__label" on:click={focus}>
+<label bind:this={root} class="text-input-c8d2e7c2__container {$$props['class']}">
+	<div class="text-input-c8d2e7c2__label" on:click={focus}>
 		{label}
 		{#if required && showsRequired}
-			<span class="text-input__required">{$_("text-input.required")}</span>
+			<span class="text-input-c8d2e7c2__required">{$_("text-input-c8d2e7c2.required")}</span>
 		{/if}
 	</div>
 	{#if disabled}
 		<input
 			bind:this={input}
-			class="text-input text-input--has-value {accentColor ? `accent-color-${accentColor}` : ''}"
+			class="text-input-c8d2e7c2 text-input-c8d2e7c2--has-value {accentColor
+				? `accent-color-${accentColor}`
+				: ''}"
 			{value}
 			placeholder={placeholder ?? undefined}
 			{type}
@@ -114,8 +116,8 @@
 		<!-- svelte-ignore a11y-autofocus -->
 		<input
 			bind:this={input}
-			class="text-input {accentColor ? `accent-color-${accentColor}` : ''} {value !== ''
-				? 'text-input--has-value'
+			class="text-input-c8d2e7c2 {accentColor ? `accent-color-${accentColor}` : ''} {value !== ''
+				? 'text-input-c8d2e7c2--has-value'
 				: ''}"
 			{type}
 			{size}
@@ -143,10 +145,10 @@
 	<slot />
 </label>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.text-input {
+	.text-input-c8d2e7c2 {
 		display: block;
 		border: 0;
 		border-bottom: 2px solid color($gray5);
@@ -185,7 +187,7 @@
 
 		&:focus,
 		&:focus-within,
-		&.text-input--has-value {
+		&.text-input-c8d2e7c2--has-value {
 			outline: none;
 		}
 		&:focus,
@@ -218,7 +220,7 @@
 			background-color: inherit;
 			opacity: 0.7;
 
-			& ~ .text-input__label {
+			& ~ .text-input-c8d2e7c2__label {
 				opacity: 0.7;
 			}
 		}

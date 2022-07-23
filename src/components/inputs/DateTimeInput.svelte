@@ -35,7 +35,7 @@
 	}
 </script>
 
-<div class="date-input">
+<div class="date-input-9992f6dc">
 	<label class="text-input__container">
 		<div class="text-input__label">{label}</div>
 		<input
@@ -51,10 +51,10 @@
 	<ActionButton kind="bordered" on:click={reset}>{$_("date-time.now")}</ActionButton>
 </div>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.date-input {
+	.date-input-9992f6dc {
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: flex-end;
@@ -66,55 +66,55 @@
 			width: -moz-fit-content;
 			width: fit-content;
 		}
-	}
 
-	.text-input {
-		display: block;
-		border: 0;
-		border-bottom: 2px solid color($gray5);
-		background-color: color($input-background);
-		padding: 0.5em;
-		width: 100%;
-		font-size: 1em;
-		text-overflow: ellipsis;
-		transition: all 0.2s ease;
-		box-sizing: border-box;
-
-		&::placeholder {
-			color: color($secondary-label);
-		}
-
-		&__container {
+		.text-input {
 			display: block;
-			padding: 0.6em 0;
+			border: 0;
+			border-bottom: 2px solid color($gray5);
+			background-color: color($input-background);
+			padding: 0.5em;
 			width: 100%;
-		}
+			font-size: 1em;
+			text-overflow: ellipsis;
+			transition: all 0.2s ease;
+			box-sizing: border-box;
 
-		&__label {
-			display: block;
-			color: color($blue);
-			user-select: none;
-			font-weight: 700;
-			font-size: 0.9em;
-			width: 100%;
-		}
+			&::placeholder {
+				color: color($secondary-label);
+			}
 
-		&:focus,
-		&:focus-within,
-		&.text-input--has-value {
-			outline: none;
-		}
-		&:focus,
-		&:focus-within {
-			border-bottom-color: color($blue);
-		}
+			&__container {
+				display: block;
+				padding: 0.6em 0;
+				width: 100%;
+			}
 
-		&:disabled {
-			background-color: inherit;
-			opacity: 0.7;
+			&__label {
+				display: block;
+				color: color($blue);
+				user-select: none;
+				font-weight: 700;
+				font-size: 0.9em;
+				width: 100%;
+			}
 
-			& ~ .text-input__label {
+			&:focus,
+			&:focus-within,
+			&.text-input--has-value {
+				outline: none;
+			}
+			&:focus,
+			&:focus-within {
+				border-bottom-color: color($blue);
+			}
+
+			&:disabled {
+				background-color: inherit;
 				opacity: 0.7;
+
+				& ~ .text-input__label {
+					opacity: 0.7;
+				}
 			}
 		}
 	}

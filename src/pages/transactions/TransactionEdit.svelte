@@ -186,7 +186,7 @@
 	}
 </script>
 
-<form class={isExpense ? "expense" : ""} on:submit|preventDefault={submit}>
+<form class="form-74f64236 {isExpense ? 'expense' : ''}" on:submit|preventDefault={submit}>
 	<!-- TODO: I18N -->
 	{#if isCreatingTransaction}
 		<h1>Create {isExpense ? "Expense" : "Income"}</h1>
@@ -257,10 +257,10 @@
 	{/if}
 </form>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	form {
+	.form-74f64236 {
 		align-items: center;
 
 		> label:not(.reconciliation) {
@@ -287,15 +287,15 @@
 				margin-left: 8pt;
 			}
 		}
-	}
 
-	.buttons {
-		display: flex;
-		flex-flow: row nowrap;
-		width: 80%;
+		.buttons {
+			display: flex;
+			flex-flow: row nowrap;
+			width: 80%;
 
-		:first-child {
-			margin-right: auto;
+			:first-child {
+				margin-right: auto;
+			}
 		}
 	}
 </style>

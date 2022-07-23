@@ -66,7 +66,7 @@
 	/>
 {/if}
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/colors" as *;
 
 	.heading {
@@ -83,18 +83,6 @@
 
 			> h1 {
 				margin: 0;
-			}
-		}
-
-		.account-balance {
-			margin: 0;
-			margin-left: auto;
-			text-align: right;
-			font-weight: bold;
-			padding-right: 0.7em;
-
-			&.negative {
-				color: color($red);
 			}
 		}
 	}

@@ -148,7 +148,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label on:focusin={updateFocusState} on:focusout={updateFocusState}>
-	<div class="container">
+	<div class="container-d1881526">
 		<div class="fields">
 			<!-- TODO: I18N -->
 			<TextField
@@ -224,10 +224,10 @@
 	{/if}
 </label>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.container {
+	.container-d1881526 {
 		position: relative;
 		display: flex;
 		flex-flow: row nowrap;

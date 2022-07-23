@@ -74,7 +74,7 @@
 		showsRequired={false}
 		required
 	/>
-	<div class="buttons">
+	<div class="buttons-47e1be0c">
 		<ActionButton type="submit" kind="bordered-primary" disabled={!hasChanges || isLoading}
 			>Change passphrase</ActionButton
 		>
@@ -84,8 +84,8 @@
 	</div>
 </form>
 
-<style type="text/scss">
-	.buttons {
+<style lang="scss" global>
+	.buttons-47e1be0c {
 		display: flex;
 		flex-flow: row nowrap;
 

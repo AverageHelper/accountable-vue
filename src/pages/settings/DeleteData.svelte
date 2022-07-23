@@ -66,7 +66,7 @@
 		required
 	/>
 
-	<div class="buttons">
+	<div class="buttons-5655e1fc">
 		<ActionButton type="submit" kind="bordered-destructive" disabled={!hasChanges || isDeleting}>
 			{#if isDeleting}
 				<span>Deleting...</span>
@@ -86,8 +86,8 @@
 	on:no={cancelDeleteEverything}
 />
 
-<style type="text/scss">
-	.buttons {
+<style lang="scss" global>
+	.buttons-5655e1fc {
 		display: flex;
 		flex-flow: row nowrap;
 

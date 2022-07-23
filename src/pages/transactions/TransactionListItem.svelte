@@ -68,7 +68,7 @@
 	subCount={accountBalanceSoFar ? intlFormat(accountBalanceSoFar) : "--"}
 	negative={isNegative}
 >
-	<div slot="icon" class="checkbox">
+	<div slot="icon" class="checkbox-b9eab07a">
 		<Checkbox
 			disabled={isChangingReconciled}
 			class={isChangingReconciled ? "isChanging" : ""}
@@ -84,7 +84,7 @@
 		{/if}
 	</div>
 
-	<div slot="aside" class="indicators">
+	<div slot="aside" class="indicators-b9eab07a">
 		{#if hasLocation}
 			<div title={transaction.locationId ?? ""}>
 				<LocationIcon />
@@ -106,10 +106,10 @@
 	</div>
 </ListItem>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.checkbox {
+	.checkbox-b9eab07a {
 		position: relative;
 
 		.isChanging {
@@ -124,7 +124,7 @@
 		}
 	}
 
-	.indicators {
+	.indicators-b9eab07a {
 		display: flex;
 		flex-flow: row wrap;
 		color: color($secondary-label);

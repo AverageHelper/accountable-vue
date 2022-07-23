@@ -59,7 +59,7 @@
 	}
 </script>
 
-<div class="tag-list">
+<div class="tag-list-e076a556">
 	<ul class="tags">
 		{#each referencedTags as tag (tag.id)}
 			<li>
@@ -77,10 +77,10 @@
 	<TagEdit bind:this={tagEdit} on:selected={useTag} on:finished={commitTag} />
 </Modal>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.tag-list {
+	.tag-list-e076a556 {
 		display: flex;
 		flex-flow: row wrap;
 		align-items: baseline;

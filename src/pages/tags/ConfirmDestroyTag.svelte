@@ -39,7 +39,7 @@
 	<!-- <ActionButton slot="cancel-action" kind="bordered-secondary" on:click={no}>Cancel</ActionButton> -->
 </Confirm>
 
-<style type="text/scss">
+<style lang="scss">
 	.tag-name {
 		&::before {
 			content: "#";

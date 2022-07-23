@@ -144,7 +144,7 @@
 			<h4>New Accounts</h4>
 			<List>
 				{#each newAccounts as account (account.id)}
-					<li class="importable">
+					<li class="importable-9d959f76">
 						<AccountListItem
 							class="account"
 							{account}
@@ -170,7 +170,7 @@
 			>
 			<List>
 				{#each duplicateAccounts as account (account.id)}
-					<li class="importable">
+					<li class="importable-9d959f76">
 						<AccountListItem
 							class="account"
 							{account}
@@ -190,9 +190,9 @@
 	<div>
 		<h4>Everything Else</h4>
 		<List>
-			<li class="importable">{numberOfLocationsToImport} locations <Checkmark /></li>
-			<li class="importable">{numberOfTagsToImport} tags <Checkmark /></li>
-			<li class="importable">{numberOfAttachmentsToImport} attachments <Checkmark /></li>
+			<li class="importable-9d959f76">{numberOfLocationsToImport} locations <Checkmark /></li>
+			<li class="importable-9d959f76">{numberOfTagsToImport} tags <Checkmark /></li>
+			<li class="importable-9d959f76">{numberOfAttachmentsToImport} attachments <Checkmark /></li>
 		</List>
 	</div>
 
@@ -212,10 +212,10 @@
 	</div>
 </Modal>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.importable {
+	.importable-9d959f76 {
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;

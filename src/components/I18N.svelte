@@ -26,21 +26,23 @@
 		import I18N from "path/to/I18N.svelte";
 	</script>
 
-	<I18N keypath="place.invitation" tag="p">
-		<em>{$_("place.beach")}</em>
-	</I18N>
+	<p>
+		<I18N keypath="place.invitation">
+			<em>{$_("place.beach")}</em>
+		</I18N>
+	</p>
 	```
 
 	The above renders the following:
 	```html
-	<p>Let's go to the <em>beach</em>!</p>
+	<p><span>Let's go to the <em>beach</em>!</span></p>
 	```
  -->
 <script lang="ts">
 	import { _ } from "svelte-i18n";
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 
-	export let tag: keyof HTMLElementTagNameMap;
+	export let tag: keyof HTMLElementTagNameMap = "span";
 	export let keypath: string;
 	export let debug: boolean = false;
 
@@ -68,56 +70,58 @@
 
 	let items: Array<Item> = [];
 
-	$: {
-		// TODO: Unit test this
-		// Parse out text and variable names
-		const newItems: Array<Item> = [];
+	onMount(async () => {
+		{
+			// TODO: Unit test this
+			// Parse out text and variable names
+			const newItems: Array<Item> = [];
 
-		let mode: "discovery" | "text" | "slot" = "discovery";
-		let text = "";
-		for (const char of rawText) {
-			if (char === "{" && mode !== "slot") {
+			let mode: "discovery" | "text" | "slot" = "discovery";
+			let text = "";
+			for (const char of rawText) {
+				if (char === "{" && mode !== "slot") {
+					if (mode === "text") {
+						// Finish text node
+						newItems.push({ isVar: false, text });
+					}
+					// Start variable name
+					text = "";
+					mode = "slot";
+				} else if (char === "}" && mode === "slot") {
+					// We've hit the end of a variable name
+					if (text === "") {
+						// but the brackets were empty. Treat that as a text node
+						newItems.push({ isVar: false, text: "{}" });
+					} else {
+						newItems.push({ isVar: true, name: text });
+					}
+					text = "";
+					mode = "discovery";
+				} else if (mode === "slot") {
+					// Continue variable name
+					text += char;
+				} else {
+					// Continue text
+					text += char;
+					mode = "text";
+				}
+			}
+			if (text !== "") {
 				if (mode === "text") {
-					// Finish text node
+					// Finished, but there's some string left
+					newItems.push({ isVar: false, text });
+				} else if (mode === "slot") {
+					// Finished, but we ended with an incomplete variable. Push it as text
+					text = `{${text}`; // make sure to include the variable starter
 					newItems.push({ isVar: false, text });
 				}
-				// Start variable name
-				text = "";
-				mode = "slot";
-			} else if (char === "}" && mode === "slot") {
-				// We've hit the end of a variable name
-				if (text === "") {
-					// but the brackets were empty. Treat that as a text node
-					newItems.push({ isVar: false, text: "{}" });
-				} else {
-					newItems.push({ isVar: true, name: text });
-				}
-				text = "";
-				mode = "discovery";
-			} else if (mode === "slot") {
-				// Continue variable name
-				text += char;
-			} else {
-				// Continue text
-				text += char;
-				mode = "text";
 			}
-		}
-		if (text !== "") {
-			if (mode === "text") {
-				// Finished, but there's some string left
-				newItems.push({ isVar: false, text });
-			} else if (mode === "slot") {
-				// Finished, but we ended with an incomplete variable. Push it as text
-				text = `{${text}`; // make sure to include the variable starter
-				newItems.push({ isVar: false, text });
-			}
-		}
 
-		items = newItems;
-		if (debug) console.debug("Items:", items);
-		void processSlots();
-	}
+			items = newItems;
+			if (debug) console.debug("Items:", items);
+			await processSlots();
+		}
+	});
 
 	function hasDataset(tbd: Element): tbd is HTMLElement {
 		return (tbd as HTMLElement).dataset["i18nKey"] !== undefined;

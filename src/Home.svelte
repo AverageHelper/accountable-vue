@@ -14,7 +14,7 @@
 	const signupRoute = signupPath();
 </script>
 
-<main class="content">
+<main class="content main-a0571b9a">
 	<h1 class="tagline">{$_("home.tagline")}</h1>
 
 	<!-- Get started now -->
@@ -37,23 +37,29 @@
 	<section id="ledger">
 		<LedgerIcon class="section-icon" />
 		<h3>{$_("home.accountability.heading")}</h3>
-		<I18N keypath="home.accountability.p1" tag="p">
-			<!-- tool -->
-			<a href={aboutRoute}>{$_("home.accountability.tool")}</a>
-		</I18N>
+		<p>
+			<I18N keypath="home.accountability.p1">
+				<!-- tool -->
+				<a href={aboutRoute}>{$_("home.accountability.tool")}</a>
+			</I18N>
+		</p>
 	</section>
 
 	<!-- E2E Encrypted -->
 	<section id="encrypted">
 		<EncryptionIcon class="section-icon" />
 		<h3>{$_("home.encrypted.heading")}</h3>
-		<I18N keypath="home.encrypted.p1" tag="p">
-			<!-- legal -->
-			<I18N keypath="home.encrypted.legal" tag="small">
-				<!-- not -->
-				<em>{$_("home.encrypted.not")}</em>
+		<p>
+			<I18N keypath="home.encrypted.p1">
+				<!-- legal -->
+				<small>
+					<I18N keypath="home.encrypted.legal">
+						<!-- not -->
+						<em>{$_("home.encrypted.not")}</em>
+					</I18N>
+				</small>
 			</I18N>
-		</I18N>
+		</p>
 	</section>
 
 	<!-- Open-source and Free -->
@@ -70,45 +76,47 @@
 	<Footer />
 </main>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/setup" as *;
 
-	.tagline {
-		text-align: center;
-	}
-
-	p {
-		text-align: left;
-	}
-
-	section {
-		margin-top: 36pt;
-
-		.section-icon {
-			float: right;
-			margin-left: 24pt;
-			margin-bottom: 24pt;
+	.main-a0571b9a {
+		.tagline {
+			text-align: center;
 		}
 
-		@include mq($until: mobile) {
-			.section-icon {
-				float: initial;
-				margin: 24pt auto;
-				margin-top: 0;
+		p {
+			text-align: left;
+		}
+
+		section {
+			margin-top: 36pt;
+
+			> .section-icon {
+				float: right;
+				margin-left: 24pt;
+				margin-bottom: 24pt;
 			}
-		}
 
-		&#get-started {
-			display: flex;
-			flex-flow: row nowrap;
-			width: fit-content;
-			margin: 0 auto;
+			@include mq($until: mobile) {
+				> .section-icon {
+					float: initial;
+					margin: 24pt auto;
+					margin-top: 0;
+				}
+			}
 
-			a {
-				text-decoration: none;
+			&#get-started {
+				display: flex;
+				flex-flow: row nowrap;
+				width: fit-content;
+				margin: 0 auto;
 
-				&:not(:first-of-type) {
-					margin-left: 8pt;
+				> a {
+					text-decoration: none;
+
+					&:first-of-type {
+						margin-right: 8pt;
+					}
 				}
 			}
 		}

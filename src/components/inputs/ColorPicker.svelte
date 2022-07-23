@@ -20,7 +20,7 @@
 	}
 </script>
 
-<List>
+<List class="color-picker-632e7c4c">
 	{#each colors as colorId}
 		<li>
 			<ColorDot
@@ -36,10 +36,10 @@
 	{/each}
 </List>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	ul {
+	.color-picker-632e7c4c {
 		display: flex;
 		flex-flow: row wrap;
 		align-items: center;

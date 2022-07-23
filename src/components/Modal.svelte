@@ -22,24 +22,24 @@
 
 <Portal target="#modal">
 	{#if open}
-		<div transition:fly class="modal__wrapper" on:click|self={onClose}>
+		<div transition:fly class="modal-6ca181ee__wrapper" on:click|self={onClose}>
 			{#if closeModal}
-				<NopLink class="modal__close-button" on:click={closeModal}>
+				<NopLink class="modal-6ca181ee__close-button" on:click={closeModal}>
 					<XIcon />
 				</NopLink>
 			{/if}
-			<div class="modal">
+			<div class="modal-6ca181ee">
 				<slot />
 			</div>
 		</div>
 	{/if}
 </Portal>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/setup" as *;
 	@use "styles/colors" as *;
 
-	.modal {
+	.modal-6ca181ee {
 		font-size: 16px;
 		transition: opacity 0.3s ease-out 0.1s, transform 0.3s ease-out 0.1s;
 		background: color($background);

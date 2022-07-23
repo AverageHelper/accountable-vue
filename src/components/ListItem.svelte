@@ -11,7 +11,7 @@
 
 <svelte:element
 	this={to === null ? "div" : "a"}
-	class="list-item {$$props['class']}"
+	class="list-item-503a10fc {$$props['class']}"
 	href={to ?? "#"}
 >
 	<slot name="icon" />
@@ -38,10 +38,10 @@
 	<Chevron class="chevron" />
 </svelte:element>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.list-item {
+	.list-item-503a10fc {
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;
