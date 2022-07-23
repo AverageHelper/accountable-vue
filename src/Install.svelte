@@ -13,14 +13,16 @@
 	{#if isLoginEnabled}
 		<h1>{$_("install.service.heading")}</h1>
 		<I18N keypath="install.service.p1" tag="p">
-			<a slot="login" href={loginRoute}>{$_("home.nav.log-in")}</a>
+			<!-- login -->
+			<a href={loginRoute}>{$_("home.nav.log-in")}</a>
 		</I18N>
 	{/if}
 
 	<h1>{$_("install.self.heading")}</h1>
 	<p>
 		<I18N keypath="install.self.p1" tag="span">
-			<OutLink slot="readme" to="https://github.com/AverageHelper/accountable-vue/tree/main#setup"
+			<!-- readme -->
+			<OutLink to="https://github.com/AverageHelper/accountable-vue/tree/main#setup"
 				>{$_("install.self.readme")}</OutLink
 			>
 		</I18N>

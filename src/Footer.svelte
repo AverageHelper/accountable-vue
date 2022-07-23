@@ -9,19 +9,19 @@
 <footer>
 	<p><AppVersion /></p>
 	<I18N keypath="footer.license" tag="p">
+		<!-- name -->
 		<OutLink
-			slot="name"
 			to="https://github.com/AverageHelper/accountable-vue/blob/main/LICENSE"
 			title={$_("footer.view-license")}>{$_("footer.license-name")}</OutLink
 		>
 	</I18N>
 	<I18N keypath="footer.pr" tag="p">
-		<OutLink slot="issue" to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
+		<!-- issue -->
+		<OutLink to="https://github.com/AverageHelper/accountable-vue/issues/new/choose"
 			>{$_("footer.issue")}</OutLink
 		>
-		<OutLink slot="github" href="https://github.com/AverageHelper/accountable-vue"
-			>{$_("footer.github")}</OutLink
-		>
+		<!-- github -->
+		<OutLink href="https://github.com/AverageHelper/accountable-vue">{$_("footer.github")}</OutLink>
 	</I18N>
 	<p>
 		<OutLink

@@ -24,7 +24,8 @@
 
 <Confirm {isOpen} closeModal={no}>
 	<I18N slot="message" keypath="login.new-account.is-account-id-safe" tag="span">
-		<code slot="accountId">{$accountId}</code>
+		<!-- accountId -->
+		<code>{$accountId}</code>
 	</I18N>
 
 	<ActionButton slot="primary-action" kind="bordered-primary" on:click={yes}

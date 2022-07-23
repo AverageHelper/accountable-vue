@@ -28,14 +28,16 @@
 	<h1>{$_("login.new-account.heading")}</h1>
 	<p>{$_("login.new-account.p1")}</p>
 	<I18N keypath="login.new-account.remember-this" tag="p">
-		<span slot="accountId">
+		<!-- accountId -->
+		<span>
 			{#if $isNewLogin}
 				<code>{$accountId}</code>
 			{/if}
 		</span>
 	</I18N>
 	<I18N keypath="login.new-account.write-it-down" tag="p">
-		<OutLink slot="manager" to="https://bitwarden.com">{$_("login.new-account.manager")}</OutLink>
+		<!-- manager -->
+		<OutLink to="https://bitwarden.com">{$_("login.new-account.manager")}</OutLink>
 	</I18N>
 	<p>{$_("login.new-account.no-recovery")}</p>
 

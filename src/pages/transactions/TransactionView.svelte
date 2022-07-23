@@ -242,7 +242,8 @@
 		<h1>{$_("debug.something-is-wrong")}</h1>
 		<p>{$_("debug.account-but-no-transaction")}</p>
 		<I18N keypath="debug.transaction-id" tag="p" class="disclaimer">
-			<em slot="id">{transactionId}</em>
+			<!-- id -->
+			<em>{transactionId}</em>
 		</I18N>
 		<p class="disclaimer"
 			>{numberOfTransactions === 1

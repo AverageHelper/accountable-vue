@@ -38,7 +38,8 @@
 		<LedgerIcon class="section-icon" />
 		<h3>{$_("home.accountability.heading")}</h3>
 		<I18N keypath="home.accountability.p1" tag="p">
-			<a slot="tool" href={aboutRoute}>{$_("home.accountability.tool")}</a>
+			<!-- tool -->
+			<a href={aboutRoute}>{$_("home.accountability.tool")}</a>
 		</I18N>
 	</section>
 
@@ -47,8 +48,10 @@
 		<EncryptionIcon class="section-icon" />
 		<h3>{$_("home.encrypted.heading")}</h3>
 		<I18N keypath="home.encrypted.p1" tag="p">
-			<I18N slot="legal" keypath="home.encrypted.legal" tag="small">
-				<em slot="not">{$_("home.encrypted.not")}</em>
+			<!-- legal -->
+			<I18N keypath="home.encrypted.legal" tag="small">
+				<!-- not -->
+				<em>{$_("home.encrypted.not")}</em>
 			</I18N>
 		</I18N>
 	</section>

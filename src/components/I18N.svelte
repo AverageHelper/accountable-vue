@@ -1,7 +1,16 @@
 <!-- 
 	@component
+	Renders an element with internationalized content, and elements injected
+	into the i18n variables. The default slot may contain any number of elements,
+	which are rendered in the place of the variables in order.
+
+	The I18N component does some work to dynamically inject elements in the
+	right spot. If you do not need to inject components or HTML into the
+	translation, avoid using the I18N component, and instead use the proper
+	formatting store from `svelte-i18n`.
+
 	Usage:
-	
+
 	en-US.json:
 	```json
 	"place": {
@@ -16,87 +25,132 @@
 		import { _ } from "svelte-i18n";
 		import I18N from "path/to/I18N.svelte";
 	</script>
-	
-	<I18N keypath="place.invitation">
-		<em slot="place">{$_("place.beach")}</em>
+
+	<I18N keypath="place.invitation" tag="p">
+		<em>{$_("place.beach")}</em>
 	</I18N>
 	```
-	
+
+	The above renders the following:
+	```html
+	<p>Let's go to the <em>beach</em>!</p>
+	```
  -->
 <script lang="ts">
-	// Based on https://www.npmjs.com/package/@neiwad/svelte-i18n-slots
-
 	import { _ } from "svelte-i18n";
-	import { onMount } from "svelte";
+	import { tick } from "svelte";
 
-	export let keypath: string;
 	export let tag: keyof HTMLElementTagNameMap;
+	export let keypath: string;
+	export let debug: boolean = false;
 
-	interface Item {
-		isVar: boolean;
-		name?: string;
-		text?: string;
+	interface SlotItem {
+		/** `true` if the item should render some slotted data. */
+		isVar: true;
+		/** The name of the variable. */
+		name: string;
 	}
 
-	function isDefined<T>(tbd: T | undefined): tbd is T {
-		return tbd !== undefined;
+	interface TextItem {
+		/** `true` if the item should render some slotted data. */
+		isVar: false;
+		/** Text to render. */
+		text: string;
 	}
 
-	let cutted: Array<Item> = [];
-	let _slots: Array<HTMLSpanElement | undefined> = [];
-	$: slots = _slots.filter(isDefined); // clean up dirty refs
+	type Item = SlotItem | TextItem;
 
-	function processSlots() {
-		slots.forEach(slot => {
-			const slotName = slot.dataset["i18nKey"];
-			const children = Array.from(slot.children) as Array<HTMLElement>;
-			children.forEach(c => {
-				if (c.dataset["i18nKey"] !== slotName) {
-					c.remove();
+	let root: HTMLElement | undefined;
+	let leftovers: HTMLSpanElement | undefined;
+
+	$: rawText = $_(keypath);
+	$: if (debug) console.debug(`text for keypath ${keypath}: "${rawText}"`);
+
+	let items: Array<Item> = [];
+
+	$: {
+		// TODO: Unit test this
+		// Parse out text and variable names
+		const newItems: Array<Item> = [];
+
+		let mode: "discovery" | "text" | "slot" = "discovery";
+		let text = "";
+		for (const char of rawText) {
+			if (char === "{" && mode !== "slot") {
+				if (mode === "text") {
+					// Finish text node
+					newItems.push({ isVar: false, text });
 				}
-				delete c.dataset["i18nKey"];
-			});
-			slot.replaceWith(...slot.children);
-		});
+				// Start variable name
+				text = "";
+				mode = "slot";
+			} else if (char === "}" && mode === "slot") {
+				// We've hit the end of a variable name
+				if (text === "") {
+					// but the brackets were empty. Treat that as a text node
+					newItems.push({ isVar: false, text: "{}" });
+				} else {
+					newItems.push({ isVar: true, name: text });
+				}
+				text = "";
+				mode = "discovery";
+			} else if (mode === "slot") {
+				// Continue variable name
+				text += char;
+			} else {
+				// Continue text
+				text += char;
+				mode = "text";
+			}
+		}
+		if (text !== "") {
+			if (mode === "text") {
+				// Finished, but there's some string left
+				newItems.push({ isVar: false, text });
+			} else if (mode === "slot") {
+				// Finished, but we ended with an incomplete variable. Push it as text
+				text = `{${text}`; // make sure to include the variable starter
+				newItems.push({ isVar: false, text });
+			}
+		}
+
+		items = newItems;
+		if (debug) console.debug("Items:", items);
+		void processSlots();
 	}
 
-	onMount(() => {
-		const testString = $_(keypath); // get the locale text
-		const reBrackets = /\{(.*?)\}/gu; // find variable declarations
-		const listOfText: Array<string> = [];
-		let found: RegExpExecArray | null;
-		while ((found = reBrackets.exec(testString))) {
-			if (found[1]) listOfText.push(found[1]);
-		}
-		cutted = [];
+	function hasDataset(tbd: Element): tbd is HTMLElement {
+		return (tbd as HTMLElement).dataset["i18nKey"] !== undefined;
+	}
 
-		listOfText.forEach((text, index) => {
-			if (index === 0) {
-				cutted.push({ isVar: false, text: testString.split(`{${text}}`)[0] });
-				cutted.push({ isVar: true, name: text });
-				cutted.push({ isVar: false, text: testString.split(`{${text}}`)[1] });
-			} else {
-				const toCut = cutted[cutted.length - 1];
-				cutted[cutted.length - 1] = { isVar: false, text: toCut?.text?.split(`{${text}}`)[0] };
-				cutted.push({ isVar: true, name: text });
-				cutted.push({ isVar: false, text: toCut?.text?.split(`{${text}}`)[1] });
-			}
+	async function processSlots() {
+		await tick();
+		if (!leftovers || !root) return;
+
+		const slots = Array.from(leftovers.children);
+		const targets = Array.from(root.children).filter(hasDataset);
+
+		if (debug) console.debug(`targets: ${targets.length}`, targets);
+		slots.forEach((stuff, idx) => {
+			// Move this slot to the one at index `idx`
+			const slotName = stuff.slot;
+			if (debug) console.debug(`slotName: ${slotName}`);
+			const target = targets[idx];
+			if (debug) console.debug("target:", target);
+			if (!target) return; // Ignore this item if we don't know where it goes
+			stuff.remove();
+			target.appendChild(stuff);
 		});
-		cutted = cutted.filter(f => f);
-		setTimeout(() => {
-			processSlots();
-		});
-	});
+	}
 </script>
 
-<svelte:element this={tag} class={$$props["class"]}>
-	{#each cutted as cut, i}
-		{#if cut.isVar}
-			<span bind:this={_slots[i]} data-i18n-key={cut.name}>
-				<slot />
-			</span>
-		{:else}
-			{cut.text}
-		{/if}
+<svelte:element this={tag} bind:this={root} class={$$props["class"]}>
+	{#each items as item, i}
+		{#if item.isVar}{#if debug}&lbrace;begin: {item.name}&rbrace;{/if}<span
+				data-i18n-key={item.name}
+			/>{#if debug}&lbrace;end: {item.name}&rbrace;{/if}{:else}{item.text}{/if}
 	{/each}
+	<span bind:this={leftovers}>
+		<slot />
+	</span>
 </svelte:element>
