@@ -69,7 +69,7 @@
 <!-- TODO: I18N -->
 <h2>Choose a Tag</h2>
 <form on:submit|preventDefault={save}>
-	<div class="name-input">
+	<div class="name-input-72aa686e">
 		<TextField
 			bind:this={nameField}
 			bind:value={name}
@@ -102,10 +102,10 @@
 	{/each}
 </List>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.name-input {
+	.name-input-72aa686e {
 		display: flex;
 		flex-flow: row nowrap;
 

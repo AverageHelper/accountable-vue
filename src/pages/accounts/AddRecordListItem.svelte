@@ -16,21 +16,21 @@
 </script>
 
 <!-- TODO: I18N -->
-<ListItem class="add" title={`Add a new ${noun}`} to="" on:click={onClick}>
+<ListItem class="add-35efc25c" title={`Add a new ${noun}`} to="" on:click={onClick}>
 	<PlusWithCircle slot="icon" class="icon" />
 </ListItem>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.add {
+	.add-35efc25c {
 		color: color($green);
 		min-height: 44pt;
-	}
 
-	.icon {
-		margin-right: 7pt;
-		margin-left: 4pt;
-		color: color($green);
+		.icon {
+			margin-right: 7pt;
+			margin-left: 4pt;
+			color: color($green);
+		}
 	}
 </style>

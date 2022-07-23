@@ -11,18 +11,23 @@
 </script>
 
 <!-- TODO: I18N -->
-<ListItem to={monthRoute} title={monthName} subtitle={`${count} transactions`}>
+<ListItem
+	class="list-item-82cb4812"
+	to={monthRoute}
+	title={monthName}
+	subtitle={`${count} transactions`}
+>
 	<MonthIcon slot="icon" />
 </ListItem>
 
-<style type="text/scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.icon {
-		margin: 4pt;
-	}
-
-	.list-item {
+	.list-item-82cb4812 {
 		cursor: pointer;
+
+		.icon {
+			margin: 4pt;
+		}
 	}
 </style>

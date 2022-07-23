@@ -53,7 +53,7 @@
 
 <!-- TODO: I18N -->
 
-<div class="main">
+<div class="main-5978c5a2">
 	{#if !file}
 		<p>This file does not exist. Sorry.</p>
 	{:else if imageLoadError}
@@ -76,7 +76,7 @@
 {#if transactionCount > 0}
 	<div>
 		<h3>Linked Transaction{transactionCount !== 1 ? "s" : ""}</h3>
-		<List class="files">
+		<List class="files-5978c5a2">
 			{#each linkedTransactions as transaction (transaction.id)}
 				<li>
 					<TransactionListItem {transaction} />
@@ -87,7 +87,7 @@
 {/if}
 
 <h3>Actions</h3>
-<div class="buttons">
+<div class="buttons-5978c5a2">
 	{#if file}
 		<DownloadButton class="download" {file} />
 	{/if}
@@ -103,8 +103,8 @@
 	{/if}
 </div>
 
-<style type="text/scss">
-	.main {
+<style lang="scss" global>
+	.main-5978c5a2 {
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;
@@ -116,14 +116,14 @@
 		}
 	}
 
-	.files {
+	.files-5978c5a2 {
 		> li {
 			overflow: hidden;
 			border-radius: 4pt;
 		}
 	}
 
-	.buttons {
+	.buttons-5978c5a2 {
 		display: flex;
 		flex-flow: row nowrap;
 

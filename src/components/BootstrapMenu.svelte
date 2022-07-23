@@ -82,7 +82,7 @@
 	</div>
 </nav>
 
-<style type="text/scss">
+<style lang="scss">
 	@use "styles/setup" as *;
 	@use "styles/colors" as *;
 
