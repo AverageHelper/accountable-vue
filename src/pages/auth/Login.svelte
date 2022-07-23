@@ -23,11 +23,12 @@
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	$: isLoggedIn = $uid !== null;
 	let accountId = "";
 	let password = "";
 	let passwordRepeat = "";
 	let isLoading = false;
+
+	$: isLoggedIn = $uid !== null;
 	$: mode = !isSignupEnabled
 		? "login" // can't sign up? log in instead.
 		: $location.pathname === signupPath()
@@ -76,10 +77,23 @@
 		navigate(loginPath(), { replace: true });
 	}
 
-	function onUpdateAccountId(newId: string) {
+	function onUpdateAccountId(event: CustomEvent<string>) {
+		const newId = event.detail;
 		if (!isSignupMode || isLoading) {
 			accountId = newId;
+		} else {
+			accountId = accountId;
 		}
+	}
+
+	function onUpdatePassphrase(event: CustomEvent<string>) {
+		const newPassphrase = event.detail;
+		password = newPassphrase;
+	}
+
+	function onUpdateRepeatPassphrase(event: CustomEvent<string>) {
+		const newPassphrase = event.detail;
+		passwordRepeat = newPassphrase;
 	}
 
 	async function submit() {
@@ -133,19 +147,20 @@
 			{:else}
 				<TextField
 					bind:this={accountIdField}
-					bind:value={accountId}
+					value={accountId}
+					on:input={onUpdateAccountId}
 					disabled={isSignupMode && !isLoading}
 					label={$_("login.account-id")}
 					placeholder="b4dcb93bc0c04251a930541e1a3c9a80"
 					autocomplete="username"
 					showsRequired={false}
 					required
-					on:input={e => onUpdateAccountId(e.detail)}
 				/>
 			{/if}
 			<TextField
 				bind:this={passwordField}
-				bind:value={password}
+				value={password}
+				on:input={onUpdatePassphrase}
 				type="password"
 				label={$_(isSignupMode ? "login.new-passphrase" : "login.current-passphrase")}
 				placeholder="********"
@@ -155,7 +170,8 @@
 			/>
 			{#if isSignupMode}
 				<TextField
-					bind:value={passwordRepeat}
+					value={passwordRepeat}
+					on:input={onUpdateRepeatPassphrase}
 					type="password"
 					label={$_("login.repeat-passphrase")}
 					placeholder="********"

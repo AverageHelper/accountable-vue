@@ -35,6 +35,14 @@
 		? searchClient.search(name).map(r => r.item)
 		: allTags;
 
+	function onTagNameInput(event: CustomEvent<string>) {
+		name = event.detail;
+	}
+
+	function onColorChange(event: CustomEvent<ColorID>) {
+		colorId = event.detail;
+	}
+
 	function save() {
 		const newTagParams: TagRecordParams = {
 			name: name.trim(),
@@ -72,7 +80,8 @@
 	<div class="name-input-72aa686e">
 		<TextField
 			bind:this={nameField}
-			bind:value={name}
+			value={name}
+			on:input={onTagNameInput}
 			placeholder={params?.name ?? "new tag"}
 			accentColor={name ? colorId : ""}
 		/>
@@ -84,7 +93,7 @@
 	</div>
 
 	{#if name}
-		<ColorPicker bind:value={colorId} />
+		<ColorPicker value={colorId} on:change={onColorChange} />
 	{/if}
 </form>
 

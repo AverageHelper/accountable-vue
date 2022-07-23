@@ -29,6 +29,10 @@
 		bootstrap();
 	});
 
+	function onPasswordInput(event: CustomEvent<string>) {
+		password = event.detail;
+	}
+
 	async function submit() {
 		try {
 			isLoading = true;
@@ -66,7 +70,8 @@
 			/>
 			<TextField
 				bind:this={passwordField}
-				bind:value={password}
+				value={password}
+				on:input={onPasswordInput}
 				type="password"
 				label={$_("login.current-passphrase")}
 				placeholder="********"

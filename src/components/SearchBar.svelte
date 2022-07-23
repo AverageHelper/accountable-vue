@@ -15,6 +15,10 @@
 	let searchQuery = initialSearchQuery.trim();
 	$: needsCommitSearch = searchQuery.trim() !== initialSearchQuery.trim();
 
+	function onSearchQueryChange(event: CustomEvent<string>) {
+		searchQuery = event.detail;
+	}
+
 	function commit(event: Event) {
 		event.preventDefault();
 		const q = searchQuery.trim();
@@ -39,7 +43,8 @@
 
 <div class="search-bef4d73e {$$props['class']}">
 	<TextField
-		bind:value={searchQuery}
+		value={searchQuery}
+		on:input={onSearchQueryChange}
 		type="search"
 		placeholder="Search"
 		class="input"
