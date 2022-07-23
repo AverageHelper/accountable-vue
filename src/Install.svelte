@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { _ } from "svelte-i18n";
 	import { isLoginEnabled } from "./store";
+	import { Link } from "svelte-navigator";
 	import { loginPath } from "./router";
 	import Footer from "./Footer.svelte";
 	import I18N from "./components/I18N.svelte";
@@ -15,7 +16,7 @@
 		<p>
 			<I18N keypath="install.service.p1">
 				<!-- login -->
-				<a href={loginRoute}>{$_("home.nav.log-in")}</a>
+				<Link to={loginRoute}>{$_("home.nav.log-in")}</Link>
 			</I18N>
 		</p>
 	{/if}

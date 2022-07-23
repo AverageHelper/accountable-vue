@@ -40,9 +40,12 @@
 	function paramValue(params: RouteParams, key: string): string {
 		return params[key] as string;
 	}
+
+	// This has something to do with SSR
+	export let url = "";
 </script>
 
-<Router>
+<Router {url}>
 	<Navbar />
 
 	<!-- Root -->

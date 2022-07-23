@@ -2,6 +2,7 @@
 	import type { ComponentType } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { appTabs, iconForTab, labelIdForTab, routeForTab } from "../model/ui/tabs";
+	import { Link } from "svelte-navigator";
 	import { lockPath, logoutPath, settingsPath } from "../router";
 	import { onDestroy, onMount } from "svelte";
 	import { pKey, uid } from "../store";
@@ -99,12 +100,12 @@
 			{#each settingsItems as item (item.id)}
 				{#if !item.requiresLogin || isLoggedIn}
 					<li>
-						<a href={item.path} on:click={close}>
+						<Link to={item.path} on:click={close}>
 							{#if item.icon}
 								<svelte:component this={item.icon} />
 							{/if}
 							<span>{$_(item.id)}</span>
-						</a>
+						</Link>
 					</li>
 				{/if}
 			{/each}

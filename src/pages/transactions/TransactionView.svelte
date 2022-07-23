@@ -6,6 +6,7 @@
 	import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { isNegative } from "dinero.js";
+	import { Link, useNavigate } from "svelte-navigator";
 	import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.svelte";
 	import EditButton from "../../components/buttons/EditButton.svelte";
 	import FileInput from "../attachments/FileInput.svelte";
@@ -38,6 +39,8 @@
 	export let accountId: string;
 	export let transactionId: string;
 
+	const navigate = useNavigate();
+
 	let fileToDelete: Attachment | null = null;
 	let isViewingLocation = false;
 	let brokenReferenceToFix: string | null = null;
@@ -57,7 +60,7 @@
 	$: accountRoute = accountPath(accountId);
 
 	function goBack() {
-		window.history.back();
+		navigate(-1);
 	}
 
 	async function createTag(params: CustomEvent<TagRecordParams>) {
@@ -183,7 +186,7 @@
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>
-			<a href={accountRoute} class="value">{account?.title ?? accountId}</a>
+			<Link to={accountRoute} class="value">{account?.title ?? accountId}</Link>
 		</div>
 		<!-- Notes -->
 		{#if transaction.notes}

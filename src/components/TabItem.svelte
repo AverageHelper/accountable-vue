@@ -2,6 +2,7 @@
 	import type { Tab } from "../model/ui/tabs";
 	import { _ } from "svelte-i18n";
 	import { labelIdForTab, routeForTab } from "../model/ui/tabs";
+	import { link } from "svelte-navigator";
 
 	export let tab: Tab;
 	export let isSelected: boolean = false;
@@ -10,7 +11,9 @@
 	$: labelId = labelIdForTab(tab);
 </script>
 
-<a class="item-container {isSelected ? 'selected' : ''} {$$props['class']}" {href}>{$_(labelId)}</a>
+<a class="item-container {isSelected ? 'selected' : ''} {$$props['class']}" {href} use:link
+	>{$_(labelId)}</a
+>
 
 <style lang="scss">
 	@use "styles/colors" as *;

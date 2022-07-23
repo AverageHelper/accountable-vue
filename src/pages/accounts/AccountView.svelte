@@ -3,7 +3,7 @@
 	import { intlFormat } from "../../transformers";
 	import { isNegative as isDineroNegative } from "dinero.js";
 	import { reverseChronologically } from "../../model/utility/sort";
-	import { useLocation } from "svelte-navigator";
+	import { useLocation, useNavigate } from "svelte-navigator";
 	import { zeroDinero } from "../../helpers/dineroHelpers";
 	import AccountEdit from "./AccountEdit.svelte";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -28,6 +28,7 @@
 	export let accountId: string;
 
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	let isEditingAccount = false;
 	let isEditingTransaction = false;
@@ -70,7 +71,7 @@
 	$: account && void watchTransactions(account);
 
 	function goBack() {
-		window.history.back();
+		navigate(-1);
 	}
 
 	function startCreatingTransaction() {

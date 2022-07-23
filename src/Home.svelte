@@ -2,6 +2,7 @@
 	import { _ } from "svelte-i18n";
 	import { aboutPath, signupPath } from "./router";
 	import { isSignupEnabled } from "./store";
+	import { Link } from "svelte-navigator";
 	import ActionButton from "./components/buttons/ActionButton.svelte";
 	import EncryptionIcon from "./icons/Lock.svelte";
 	import Footer from "./Footer.svelte";
@@ -19,13 +20,13 @@
 
 	<!-- Get started now -->
 	<section id="get-started">
-		<a href={aboutRoute}>
+		<Link to={aboutRoute}>
 			<ActionButton kind="bordered-secondary">{$_("common.learn-more")}</ActionButton>
-		</a>
+		</Link>
 		{#if isSignupEnabled}
-			<a href={signupRoute}>
+			<Link to={signupRoute}>
 				<ActionButton kind="bordered-primary-green">{$_("home.sign-up-now")}</ActionButton>
-			</a>
+			</Link>
 		{:else}
 			<NopLink>
 				<ActionButton kind="bordered-primary-green">{$_("home.coming-soon")}</ActionButton>
@@ -40,7 +41,7 @@
 		<p>
 			<I18N keypath="home.accountability.p1">
 				<!-- tool -->
-				<a href={aboutRoute}>{$_("home.accountability.tool")}</a>
+				<Link to={aboutRoute}>{$_("home.accountability.tool")}</Link>
 			</I18N>
 		</p>
 	</section>

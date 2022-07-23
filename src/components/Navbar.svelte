@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { APP_ROOTS } from "../router";
 	import { pKey, uid } from "../store";
-	import { useLocation } from "svelte-navigator";
+	import { useLocation, useNavigate } from "svelte-navigator";
 	import ActionButton from "./buttons/ActionButton.svelte";
 	import BootstrapMenu from "./BootstrapMenu.svelte";
 	import Lock from "../icons/Lock.svelte";
@@ -9,13 +9,14 @@
 	import TabBar from "./TabBar.svelte";
 
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	$: isRoute = APP_ROOTS.includes($location.pathname);
 	$: isLoggedIn = $uid !== null;
 	$: isUnlocked = $pKey !== null;
 
 	function goBack() {
-		window.history.back();
+		navigate(-1);
 	}
 </script>
 

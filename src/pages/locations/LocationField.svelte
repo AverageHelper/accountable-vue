@@ -4,6 +4,7 @@
 	import { allLocations, handleError, locations, preferences } from "../../store";
 	import { createEventDispatcher } from "svelte";
 	import { fetchLocationData } from "../../transport";
+	import { Link } from "svelte-navigator";
 	import { location as newLocation } from "../../model/Location";
 	import { settingsPath } from "../../router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
@@ -219,7 +220,7 @@
 	{#if !mayGetLocation}
 		<p class="disclaimer" on:click|stopPropagation|preventDefault
 			>To get your current location, you'll need to enable the location service in
-			<a href={settingsRoute}>Settings</a>.</p
+			<Link to={settingsRoute}>Settings</Link>.</p
 		>
 	{/if}
 </label>
