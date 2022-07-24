@@ -1,6 +1,6 @@
 {
 	"name": "accountable-vue",
-	"version": "0.9.1",
+	"version": "0.10.0",
 	"license": "GPL-3.0",
 	"description": "A Svelte app for managing monetary assets.",
 	"scripts": {
