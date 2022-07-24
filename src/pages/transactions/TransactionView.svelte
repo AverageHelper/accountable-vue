@@ -53,9 +53,7 @@
 	$: locationId = transaction?.locationId ?? null;
 	$: location = locationId !== null ? $locations[locationId] ?? null : null;
 
-	$: timestamp = !transaction //
-		? ""
-		: toTimestamp(transaction.createdAt);
+	$: timestamp = transaction ? toTimestamp(transaction.createdAt) : "";
 
 	$: accountRoute = accountPath(accountId);
 

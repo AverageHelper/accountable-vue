@@ -15,6 +15,7 @@
 	import MonthView from "../pages/transactions/MonthView.svelte";
 	import Navbar from "../components/Navbar.svelte";
 	import NotFound from "../pages/NotFound.svelte";
+	import Redirect from "./guards/Redirect.svelte";
 	import Security from "../Security.svelte";
 	import Settings from "../pages/settings/Settings.svelte";
 	import Tags from "../pages/tags/Tags.svelte";
@@ -23,6 +24,7 @@
 	import VaultIsUnlocked from "./guards/VaultIsUnlocked.svelte";
 	import {
 		aboutPath,
+		accountPath,
 		accountsPath,
 		attachmentsPath,
 		homePath,
@@ -45,7 +47,8 @@
 	export let url = "";
 </script>
 
-<Router {url}>
+<!-- TODO: Router should probably manage focus. Set primary to true when we're prepared to let it -->
+<Router {url} primary={false}>
 	<Navbar />
 
 	<!-- Root -->
@@ -88,27 +91,41 @@
 			</VaultIsUnlocked>
 		</Route>
 
-		<Route path=":accountId" let:params>
-			<VaultIsUnlocked>
-				<AccountView accountId={paramValue(params, "accountId")} />
-			</VaultIsUnlocked>
-
-			<Route path="months/:rawMonth" let:params>
+		<Route path=":accountId/*" let:params={accountParams}>
+			<Route path="/">
 				<VaultIsUnlocked>
-					<MonthView
-						accountId={paramValue(params, "accountId")}
-						rawMonth={paramValue(params, "rawMonth")}
-					/>
+					<AccountView accountId={paramValue(accountParams, "accountId")} />
 				</VaultIsUnlocked>
 			</Route>
 
-			<Route path="transactions/:transactionId" let:params>
-				<VaultIsUnlocked>
-					<TransactionView
-						accountId={paramValue(params, "accountId")}
-						transactionId={paramValue(params, "transactionId")}
-					/>
-				</VaultIsUnlocked>
+			<Route path="months/*">
+				<Route path="/">
+					<Redirect to={accountPath(paramValue(accountParams, "accountId"))} />
+				</Route>
+
+				<Route path=":rawMonth" let:params={monthParams}>
+					<VaultIsUnlocked>
+						<MonthView
+							accountId={paramValue(accountParams, "accountId")}
+							rawMonth={paramValue(monthParams, "rawMonth")}
+						/>
+					</VaultIsUnlocked>
+				</Route>
+			</Route>
+
+			<Route path="transactions/*">
+				<Route path="/">
+					<Redirect to={accountPath(paramValue(accountParams, "accountId"))} />
+				</Route>
+
+				<Route path=":transactionId" let:params={transactionParams}>
+					<VaultIsUnlocked>
+						<TransactionView
+							accountId={paramValue(accountParams, "accountId")}
+							transactionId={paramValue(transactionParams, "transactionId")}
+						/>
+					</VaultIsUnlocked>
+				</Route>
 			</Route>
 		</Route>
 	</Route>
