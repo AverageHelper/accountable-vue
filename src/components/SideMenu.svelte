@@ -21,6 +21,7 @@
 		path: string;
 		requiresLogin?: boolean;
 		icon?: ComponentType | null;
+		isTab: boolean;
 	}
 
 	let isMenuOpen = false;
@@ -31,41 +32,54 @@
 	let windowWidth = window.innerWidth;
 	$: isTabletWidth = windowWidth < 768;
 
-	let settingsItems: Array<MenuItem> = [];
-
-	if (isUnlocked) {
-		settingsItems.push(
-			{
-				id: "app.nav.settings",
-				path: settingsPath(),
-				requiresLogin: true,
-				icon: Gear,
-			},
-			{
-				id: "app.nav.lock",
-				path: lockPath(),
-				requiresLogin: true,
-				icon: Lock,
-			}
-		);
+	function isNotNull<T>(tbd: T | null): tbd is T {
+		return tbd !== null;
 	}
 
-	settingsItems.push({
-		id: "app.nav.log-out",
-		path: logoutPath(),
-		requiresLogin: true,
-		icon: LogOut,
-	});
+	let settingsItems: Array<MenuItem>;
+	$: settingsItems = [
+		isUnlocked
+			? {
+					id: "app.nav.settings",
+					path: settingsPath(),
+					requiresLogin: true,
+					icon: Gear,
+					isTab: false,
+			  }
+			: null,
+		isUnlocked
+			? {
+					id: "app.nav.lock",
+					path: lockPath(),
+					requiresLogin: true,
+					icon: Lock,
+					isTab: false,
+			  }
+			: null,
+		{
+			id: "app.nav.log-out",
+			path: logoutPath(),
+			requiresLogin: true,
+			icon: LogOut,
+			isTab: false,
+		},
+	].filter(isNotNull);
 
-	if (isTabletWidth) {
-		settingsItems.unshift(
-			...appTabs.map<MenuItem>(tab => ({
+	$: if (isTabletWidth) {
+		// Clear and re-add tab items
+		settingsItems = settingsItems.filter(item => !item.isTab);
+		settingsItems = appTabs
+			.map<MenuItem>(tab => ({
 				id: labelIdForTab(tab),
 				path: routeForTab(tab),
 				requiresLogin: true,
 				icon: iconForTab(tab),
+				isTab: true,
 			}))
-		);
+			.concat(settingsItems);
+	} else {
+		// Clear tab items
+		settingsItems = settingsItems.filter(item => !item.isTab);
 	}
 
 	function close() {
