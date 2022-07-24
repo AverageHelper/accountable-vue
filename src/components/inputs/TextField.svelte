@@ -94,7 +94,7 @@
 	<div class="text-input-c8d2e7c2__label" on:click={focus}>
 		{label}
 		{#if required && showsRequired}
-			<span class="text-input-c8d2e7c2__required">{$_("text-input-c8d2e7c2.required")}</span>
+			<span class="text-input-c8d2e7c2__required">{$_("text-input.required")}</span>
 		{/if}
 	</div>
 	{#if disabled}
