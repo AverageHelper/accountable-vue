@@ -12,7 +12,7 @@
 
 <svelte:element
 	this={to === null ? "div" : "a"}
-	class="list-item-503a10fc {$$props['class']}"
+	class="list-item list-item-503a10fc {$$props['class']}"
 	href={to ?? "#"}
 	use:link
 	on:click
@@ -58,6 +58,7 @@
 		@media (hover: hover) {
 			&:hover {
 				background-color: color($gray4);
+				text-decoration: none;
 			}
 		}
 

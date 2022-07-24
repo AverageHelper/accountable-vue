@@ -17,7 +17,7 @@
 
 <!-- TODO: I18N -->
 <ListItem class="add-35efc25c" title={`Add a new ${noun}`} to="" on:click={onClick}>
-	<PlusWithCircle slot="icon" class="icon" />
+	<PlusWithCircle slot="icon" class="plus" />
 </ListItem>
 
 <style lang="scss" global>
@@ -25,9 +25,9 @@
 
 	.add-35efc25c {
 		color: color($green);
-		min-height: 44pt;
+		min-height: 44px;
 
-		.icon {
+		.plus {
 			margin-right: 7pt;
 			margin-left: 4pt;
 			color: color($green);
