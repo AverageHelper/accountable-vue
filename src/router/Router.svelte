@@ -81,10 +81,12 @@
 	</Route>
 
 	<!-- Accounts -->
-	<Route path={accountsPath()}>
-		<VaultIsUnlocked>
-			<Accounts />
-		</VaultIsUnlocked>
+	<Route path="{accountsPath()}/*">
+		<Route path="/">
+			<VaultIsUnlocked>
+				<Accounts />
+			</VaultIsUnlocked>
+		</Route>
 
 		<Route path=":accountId" let:params>
 			<VaultIsUnlocked>

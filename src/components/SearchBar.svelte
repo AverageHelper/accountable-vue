@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import { useLocation, useNavigate } from "svelte-navigator";
 	import ActionButton from "./buttons/ActionButton.svelte";
 	import SearchIcon from "../icons/Search.svelte";
@@ -9,10 +10,14 @@
 	const navigate = useNavigate();
 
 	$: queryParams = new URLSearchParams($location.search);
+	$: initialSearchQuery = (queryParams.get("q") ?? "").toString();
 
-	const initialSearchQuery = (queryParams.get("q") ?? "").toString();
+	let searchQuery = "";
 
-	let searchQuery = initialSearchQuery.trim();
+	onMount(() => {
+		searchQuery = initialSearchQuery.trim();
+	});
+
 	$: needsCommitSearch = searchQuery.trim() !== initialSearchQuery.trim();
 
 	function onSearchQueryChange(event: CustomEvent<string>) {

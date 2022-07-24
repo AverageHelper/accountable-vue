@@ -13,16 +13,17 @@
 
 	const homeRoute = homePath();
 
+	function isNotNull<T>(tbd: T | null): tbd is T {
+		return tbd !== null;
+	}
+
 	const pages: Array<Page> = [
 		{ path: homePath(), titleKey: "home.nav.home" },
 		{ path: aboutPath(), titleKey: "home.nav.about" },
 		{ path: securityPath(), titleKey: "home.nav.security" },
 		{ path: installPath(), titleKey: "home.nav.install" },
-	];
-
-	if (isLoginEnabled) {
-		pages.push({ path: loginPath(), titleKey: "home.nav.log-in" });
-	}
+		isLoginEnabled ? { path: loginPath(), titleKey: "home.nav.log-in" } : null,
+	].filter(isNotNull);
 
 	const location = useLocation();
 	$: currentPath = $location.pathname;
