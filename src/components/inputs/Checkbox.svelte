@@ -32,7 +32,7 @@
 	<input type="checkbox" checked={value} {disabled} on:change={onChange} />
 	<label class="mark {disabled ? 'disabled' : ''}" on:click={toggle} />
 	{#if label}
-		<span class="label {disabled ? 'disabled' : ''}">{{ label }}</span>
+		<span class="label {disabled ? 'disabled' : ''}">{label}</span>
 	{/if}
 </label>
 
