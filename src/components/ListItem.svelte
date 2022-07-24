@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { link } from "svelte-navigator";
 	import Chevron from "../icons/Chevron.svelte";
 
 	export let to: string | null = null;
@@ -13,6 +14,8 @@
 	this={to === null ? "div" : "a"}
 	class="list-item-503a10fc {$$props['class']}"
 	href={to ?? "#"}
+	use:link
+	on:click
 >
 	<slot name="icon" />
 
