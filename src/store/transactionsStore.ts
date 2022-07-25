@@ -262,7 +262,11 @@ export async function getTransactionsForAccount(account: Account): Promise<void>
 		copy[account.id] = transactions;
 		return copy;
 	});
-	get(currentBalance)[account.id] = totalBalance;
+	currentBalance.update(currentBalance => {
+		const copy = { ...currentBalance };
+		copy[account.id] = totalBalance;
+		return copy;
+	});
 }
 
 export async function getAllTransactions(): Promise<void> {
