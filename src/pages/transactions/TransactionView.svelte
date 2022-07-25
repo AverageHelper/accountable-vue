@@ -6,7 +6,7 @@
 	import { addTagToTransaction, addAttachmentToTransaction } from "../../model/Transaction";
 	import { intlFormat, toTimestamp } from "../../transformers";
 	import { isNegative } from "dinero.js";
-	import { Link, useNavigate } from "svelte-navigator";
+	import { link, useNavigate } from "svelte-navigator";
 	import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.svelte";
 	import EditButton from "../../components/buttons/EditButton.svelte";
 	import FileInput from "../attachments/FileInput.svelte";
@@ -147,7 +147,7 @@
 {/if}
 
 {#if transaction}
-	<main class="content">
+	<main class="content main-424352d2">
 		{#if transaction.title || location}
 			<div class="heading">
 				<h1>&quot;{transaction.title ?? location?.title}&quot;</h1>
@@ -184,7 +184,7 @@
 		<!-- Account -->
 		<div class="key-value-pair" aria-label="Transaction Account">
 			<span class="key">Account</span>
-			<Link to={accountRoute} class="value">{account?.title ?? accountId}</Link>
+			<a class="value" href={accountRoute} use:link>{account?.title ?? accountId}</a>
 		</div>
 		<!-- Notes -->
 		{#if transaction.notes}
@@ -238,7 +238,7 @@
 		<FileInput on:input={onFileReceived}>Attach a file</FileInput>
 	</main>
 {:else}
-	<main>
+	<main class="content main-424352d2">
 		<!-- We should never get here, but in case we do, for debugging: -->
 		<h1>{$_("debug.something-is-wrong")}</h1>
 		<p>{$_("debug.account-but-no-transaction")}</p>
@@ -275,10 +275,10 @@
 	on:no={cancelDeleteFile}
 />
 
-<style lang="scss">
+<style lang="scss" global>
 	@use "styles/colors" as *;
 
-	.content {
+	.content.main-424352d2 {
 		max-width: 400pt;
 		margin: 0 auto;
 
