@@ -4,6 +4,7 @@
 	import TextIcon from "../../icons/Text.svelte";
 
 	export let location: Location;
+	export let quote: boolean = false;
 </script>
 
 <div class="location-ea9cfb80">
@@ -12,7 +13,9 @@
 	{:else}
 		<TextIcon />
 	{/if}
-	<span>{location.title}</span>
+	<span
+		>{#if quote}&lsquo;{/if}{location.title}{#if quote}&rsquo;{/if}</span
+	>
 </div>
 
 <style lang="scss" global>

@@ -54,7 +54,7 @@
 
 	$: textLocationPreview = newLocation({
 		id: "sample",
-		title: `"${newLocationTitle}"`, // TODO: I18N (quotes)
+		title: newLocationTitle,
 		subtitle: null,
 		coordinate: null,
 		lastUsed: new Date(),
@@ -175,7 +175,7 @@
 			<List bind:this={recentsList} class="recent-location-select">
 				{#if newLocationTitle}
 					<li tabindex="0">
-						<LocationListItem location={textLocationPreview} />
+						<LocationListItem location={textLocationPreview} quote />
 					</li>
 				{/if}
 				{#if recentLocations.length > 0}
