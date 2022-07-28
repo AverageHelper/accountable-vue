@@ -282,6 +282,11 @@
 		max-width: 400pt;
 		margin: 0 auto;
 
+		.heading h1 {
+			margin-left: 0;
+			margin-right: 0;
+		}
+
 		.amount {
 			&.negative {
 				color: color($red);
