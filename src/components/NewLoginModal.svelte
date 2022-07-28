@@ -27,18 +27,22 @@
 <Modal open={$isNewLogin}>
 	<h1>{$_("login.new-account.heading")}</h1>
 	<p>{$_("login.new-account.p1")}</p>
-	<I18N keypath="login.new-account.remember-this" tag="p">
-		<!-- accountId -->
-		<span>
-			{#if $isNewLogin}
-				<code>{$accountId}</code>
-			{/if}
-		</span>
-	</I18N>
-	<I18N keypath="login.new-account.write-it-down" tag="p">
-		<!-- manager -->
-		<OutLink to="https://bitwarden.com">{$_("login.new-account.manager")}</OutLink>
-	</I18N>
+	<p>
+		<I18N keypath="login.new-account.remember-this">
+			<!-- accountId -->
+			<span>
+				{#if $isNewLogin}
+					<code>{$accountId}</code>
+				{/if}
+			</span>
+		</I18N>
+	</p>
+	<p>
+		<I18N keypath="login.new-account.write-it-down">
+			<!-- manager -->
+			<OutLink to="https://bitwarden.com">{$_("login.new-account.manager")}</OutLink>
+		</I18N>
+	</p>
 	<p>{$_("login.new-account.no-recovery")}</p>
 
 	<ActionButton kind="bordered-primary" on:click={askToClearNewLoginStatus}

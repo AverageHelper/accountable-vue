@@ -242,10 +242,12 @@
 		<!-- We should never get here, but in case we do, for debugging: -->
 		<h1>{$_("debug.something-is-wrong")}</h1>
 		<p>{$_("debug.account-but-no-transaction")}</p>
-		<I18N keypath="debug.transaction-id" tag="p" class="disclaimer">
-			<!-- id -->
-			<em>{transactionId}</em>
-		</I18N>
+		<p class="disclaimer">
+			<I18N keypath="debug.transaction-id">
+				<!-- id -->
+				<em>{transactionId}</em>
+			</I18N>
+		</p>
 		<p class="disclaimer"
 			>{numberOfTransactions === 1
 				? $_("debug.count-one-transaction")

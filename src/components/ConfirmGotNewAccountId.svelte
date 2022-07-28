@@ -23,7 +23,7 @@
 </script>
 
 <Confirm {isOpen} closeModal={no}>
-	<I18N slot="message" keypath="login.new-account.is-account-id-safe" tag="span">
+	<I18N slot="message" keypath="login.new-account.is-account-id-safe">
 		<!-- accountId -->
 		<code>{$accountId}</code>
 	</I18N>
