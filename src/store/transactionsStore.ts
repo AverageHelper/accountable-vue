@@ -62,7 +62,7 @@ export const allTransactions = derived(transactionsForAccount, $transactionsForA
 });
 
 // WARN: Does not care about accounts
-export const sortedTransactions = derived(allTransactions, $allTransactions => {
+const sortedTransactions = derived(allTransactions, $allTransactions => {
 	return $allTransactions //
 		.slice()
 		.sort(chronologically);
@@ -141,8 +141,8 @@ export async function watchTransactions(account: Account, force: boolean = false
 				});
 
 				// Update cache
+				const accountTransactions = get(transactionsForAccount)[account.id] ?? {};
 				snap.docChanges().forEach(change => {
-					const accountTransactions = get(transactionsForAccount)[account.id] ?? {};
 					let balance = get(currentBalance)[account.id] ?? zeroDinero;
 
 					try {
@@ -188,14 +188,14 @@ export async function watchTransactions(account: Account, force: boolean = false
 							copy[account.id] = balance;
 							return copy;
 						});
-						transactionsForAccount.update(transactionsForAccount => {
-							const copy = { ...transactionsForAccount };
-							copy[account.id] = accountTransactions;
-							return copy;
-						});
 					} catch (error) {
 						handleError(error);
 					}
+				});
+				transactionsForAccount.update(transactionsForAccount => {
+					const copy = { ...transactionsForAccount };
+					copy[account.id] = accountTransactions;
+					return copy;
 				});
 
 				// Derive cache
