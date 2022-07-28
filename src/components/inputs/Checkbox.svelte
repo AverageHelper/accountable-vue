@@ -54,7 +54,6 @@
 			margin-right: 0.4em;
 			width: 1.8em;
 			height: 1.8em;
-			float: left;
 			border-radius: 0.4em;
 			border: 2pt solid color($transparent-gray);
 			cursor: pointer;
@@ -71,8 +70,8 @@
 				width: 0.9em;
 				height: 0.35em;
 				position: absolute;
-				top: 0.35em;
-				left: 0.25em;
+				top: 0.45em;
+				left: 0.3em;
 				border: 0.3em solid color($label);
 				border-top: none;
 				border-right: none;
