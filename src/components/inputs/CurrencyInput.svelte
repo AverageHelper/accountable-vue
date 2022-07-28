@@ -16,12 +16,11 @@
 
 	let isIncome = false;
 
-	$: zeroValue = intlFormat(zeroDinero, "standard");
+	const zeroValue = intlFormat(zeroDinero, "standard");
 	$: presentableValue = intlFormat(value, "standard");
 
-	function onInput(event: Event) {
-		const input = event.target as HTMLInputElement | null;
-		const rawValue = input?.value ?? "";
+	function onInput(event: CustomEvent<string>) {
+		const rawValue = event.detail;
 		updateValue(rawValue);
 	}
 
@@ -41,9 +40,8 @@
 	function onClick(event: Event) {
 		event.preventDefault();
 		isIncome = !isIncome;
+		updateValue(presentableValue);
 	}
-
-	$: (true || isIncome) && updateValue(presentableValue);
 </script>
 
 <label class="currency-input-85aa6a92__container {$$props['class']}">
