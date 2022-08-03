@@ -135,13 +135,13 @@
 		dispatch("change", record);
 	}
 
-	function updateTitle({ detail }: CustomEvent<string>) {
-		newLocationTitle = detail;
+	function updateTitle(event: CustomEvent<string>) {
+		newLocationTitle = event.detail;
 		updateModelValue();
 	}
 
-	function updateSubtitle({ detail }: CustomEvent<string>) {
-		newLocationSubtitle = detail;
+	function updateSubtitle(event: CustomEvent<string>) {
+		newLocationSubtitle = event.detail;
 		updateModelValue();
 	}
 </script>
