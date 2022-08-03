@@ -14,7 +14,7 @@
 		<TextIcon />
 	{/if}
 	<span
-		>{#if quote}&lsquo;{/if}{location.title}{#if quote}&rsquo;{/if}</span
+		>{#if quote}&quot;{/if}{location.title}{#if quote}&quot;{/if}</span
 	>
 </div>
 

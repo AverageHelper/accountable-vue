@@ -2,7 +2,7 @@
 	import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
 	import type { IPLocateResult } from "../../transport";
 	import { allLocations, handleError, locations, preferences } from "../../store";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { fetchLocationData } from "../../transport";
 	import { Link } from "svelte-navigator";
 	import { location as newLocation } from "../../model/Location";
@@ -61,6 +61,7 @@
 	});
 
 	let selectedLocationId: string | null = null;
+	$: selectedLocationId = (value?.id ?? "") || null;
 	$: selectedLocation = selectedLocationId !== null ? $locations[selectedLocationId] ?? null : null;
 
 	$: title = selectedLocation?.title ?? newLocationTitle;
@@ -70,14 +71,11 @@
 	const settingsRoute = settingsPath();
 
 	async function updateFocusState() {
-		// Wait until new focus is resolved before we check again
-		await new Promise(resolve => setTimeout(resolve, 30));
+		await tick(); // Wait until new focus is resolved before we check again
 		hasFocus =
 			(titleField?.contains(document.activeElement) ?? false) ||
 			(recentsList?.contains(document.activeElement) ?? false);
 	}
-
-	$: selectedLocationId = value?.id ?? null;
 
 	function onLocationSelect(location: Location, event?: KeyboardEvent) {
 		// if event is given, make sure space or enter key
@@ -183,7 +181,7 @@
 						<strong>Recent Locations</strong>
 					</li>
 				{/if}
-				{#each recentLocations as location (location.id)}
+				{#each recentLocations as location}
 					<li
 						tabindex="0"
 						on:keydown|stopPropagation|preventDefault={e => onLocationSelect(location, e)}
