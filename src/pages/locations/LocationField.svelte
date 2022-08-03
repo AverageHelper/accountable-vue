@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
 	import type { IPLocateResult } from "../../transport";
+	import { _ } from "svelte-i18n";
 	import { allLocations, handleError, locations, preferences } from "../../store";
 	import { createEventDispatcher, tick } from "svelte";
 	import { fetchLocationData } from "../../transport";
@@ -9,6 +10,7 @@
 	import { settingsPath } from "../../router";
 	import ActionButton from "../../components/buttons/ActionButton.svelte";
 	import Fuse from "fuse.js";
+	import I18N from "../../components/I18N.svelte";
 	import List from "../../components/List.svelte";
 	import LocationIcon from "../../icons/Location.svelte";
 	import LocationListItem from "./LocationListItem.svelte";
@@ -60,13 +62,12 @@
 		lastUsed: new Date(),
 	});
 
-	let selectedLocationId: string | null = null;
 	$: selectedLocationId = (value?.id ?? "") || null;
 	$: selectedLocation = selectedLocationId !== null ? $locations[selectedLocationId] ?? null : null;
 
-	$: title = selectedLocation?.title ?? newLocationTitle;
-	$: subtitle = selectedLocation?.subtitle ?? newLocationSubtitle;
-	$: coordinate = selectedLocation?.coordinate ?? newLocationCoordinates ?? null;
+	$: title = newLocationTitle || selectedLocation?.title || "";
+	$: subtitle = newLocationSubtitle || selectedLocation?.subtitle || "";
+	$: coordinate = newLocationCoordinates ?? selectedLocation?.coordinate ?? null;
 
 	const settingsRoute = settingsPath();
 
@@ -81,18 +82,17 @@
 		// if event is given, make sure space or enter key
 		if (event && event.code !== "Enter" && event.code !== "Space") return;
 
-		// Fill fields with this location's details
-		selectedLocationId = location.id;
-		newLocationTitle = location.title;
-		newLocationSubtitle = location.subtitle ?? "";
-		newLocationCoordinates = location.coordinate !== null ? { ...location.coordinate } : null;
-		updateModelValue();
+		// Inform parent of our selection
+		newLocationTitle = "";
+		newLocationSubtitle = "";
+		newLocationCoordinates = null;
+		updateModelValue(location);
 
 		// Hide the recents list for now, since we just got this entry from there
 		hasFocus = false;
 	}
 
-	async function getLocation(event: Event) {
+	async function getLocation(event: CustomEvent<MouseEvent>) {
 		event.preventDefault();
 		if (!mayGetLocation) return;
 
@@ -109,7 +109,7 @@
 
 		const { city, country, latitude: lat, longitude: lng } = data;
 
-		newLocationTitle = city ?? "Unknown";
+		newLocationTitle = city ?? $_("input.location.unknown");
 		newLocationSubtitle = country ?? "";
 		newLocationCoordinates = lat === null || lng === null ? null : { lat, lng };
 		updateModelValue();
@@ -123,24 +123,25 @@
 		dispatch("change", null);
 	}
 
-	function updateModelValue() {
-		const record: LocationRecordParams & { id: string | null } = {
+	function updateModelValue(extantRecord?: Location) {
+		const record: LocationRecordParams & { id: string | null } = extantRecord ?? {
 			id: null,
 			title,
 			subtitle,
 			coordinate,
 			lastUsed: new Date(),
 		};
+		console.debug("updateModelValue", record);
 		dispatch("change", record);
 	}
 
-	function updateTitle({ detail: title }: CustomEvent<string>) {
-		newLocationTitle = title;
+	function updateTitle({ detail }: CustomEvent<string>) {
+		newLocationTitle = detail;
 		updateModelValue();
 	}
 
-	function updateSubtitle({ detail: subtitle }: CustomEvent<string>) {
-		newLocationSubtitle = subtitle;
+	function updateSubtitle({ detail }: CustomEvent<string>) {
+		newLocationSubtitle = detail;
 		updateModelValue();
 	}
 </script>
@@ -149,21 +150,20 @@
 <label on:focusin={updateFocusState} on:focusout={updateFocusState}>
 	<div class="container-d1881526">
 		<div class="fields">
-			<!-- TODO: I18N -->
 			<TextField
 				bind:this={titleField}
 				value={title}
 				class="title-field"
-				label={title ? "location title" : "location"}
-				placeholder="ACME Co."
+				label={title ? $_("input.location.title") : $_("input.location.self")}
+				placeholder={$_("example.business-name")}
 				on:input={updateTitle}
 			/>
-			{#if !!title || !!subtitle}
+			{#if title || subtitle}
 				<TextField
 					value={subtitle}
 					class="title-field"
-					label="location subtitle"
-					placeholder="Swahilli, New Guinnea"
+					label={$_("input.location.subtitle")}
+					placeholder={$_("example.city-country")}
 					on:input={updateSubtitle}
 				/>
 			{/if}
@@ -178,13 +178,13 @@
 				{/if}
 				{#if recentLocations.length > 0}
 					<li tabindex="-1">
-						<strong>Recent Locations</strong>
+						<strong>{$_("input.locations.recent")}</strong>
 					</li>
 				{/if}
 				{#each recentLocations as location}
 					<li
 						tabindex="0"
-						on:keydown|stopPropagation|preventDefault={e => onLocationSelect(location, e)}
+						on:keyup|stopPropagation|preventDefault={e => onLocationSelect(location, e)}
 						on:click|stopPropagation|preventDefault={() => onLocationSelect(location)}
 					>
 						<LocationListItem {location} />
@@ -197,7 +197,7 @@
 			<ActionButton
 				class="clear"
 				kind="bordered-destructive"
-				title="Clear location"
+				title={$_("actions.location.clear")}
 				on:click={clear}
 			>
 				<span>X</span>
@@ -207,7 +207,7 @@
 			<ActionButton
 				class="current-location"
 				kind="bordered"
-				title="Get current location"
+				title={$_("actions.location.get-current")}
 				on:click={getLocation}
 			>
 				<LocationIcon />
@@ -216,10 +216,12 @@
 	</div>
 
 	{#if !mayGetLocation}
-		<p class="disclaimer" on:click|stopPropagation|preventDefault
-			>To get your current location, you'll need to enable the location service in
-			<Link to={settingsRoute}>Settings</Link>.</p
-		>
+		<p class="disclaimer" on:click|stopPropagation|preventDefault>
+			<I18N keypath="input.locations.disclaimer">
+				<!-- settings -->
+				<Link to={settingsRoute}>{$_("app.nav.settings")}</Link>
+			</I18N>
+		</p>
 	{/if}
 </label>
 

@@ -19,6 +19,12 @@
 		"not-yet": "Not yet",
 		"server": "Server"
 	},
+	"actions": {
+		"location": {
+			"clear": "Clear location",
+			"get-current": "Get current location"
+		}
+	},
 	"currency": {
 		"positive-or-negative": "+/-"
 	},
@@ -67,6 +73,22 @@
 			"generic-page": "Page",
 			"settings": "Settings",
 			"tags": "Tags"
+		}
+	},
+	"example": {
+		"business-name": "ACME Co.",
+		"city-country": "Swahilli, New Guinnea"
+	},
+	"input": {
+		"location": {
+			"self": "location",
+			"title": "location title",
+			"unknown": "Unknown",
+			"subtitle": "location subtitle"
+		},
+		"locations": {
+			"recent": "Recent Locations",
+			"disclaimer": "To get your current location, you'll need to enable the location service in $settings."
 		}
 	},
 	"footer": {
