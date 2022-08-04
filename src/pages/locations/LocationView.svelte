@@ -4,7 +4,11 @@
 	export let location: Location;
 </script>
 
-<p>{location.title}</p>
-<p>{location.subtitle}</p>
-<p>{location.lastUsed}</p>
-<p>{location.coordinate}</p>
+<p>ID: {location.id}</p>
+<p>Title: {location.title}</p>
+<p>Subtitle: {location.subtitle}</p>
+<p>Last Used: {location.lastUsed}</p>
+{#if location.coordinate}
+	<p>Lat: {location.coordinate.lat}</p>
+	<p>Lng: {location.coordinate.lng}</p>
+{/if}

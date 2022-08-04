@@ -7,7 +7,7 @@
 	export let quote: boolean = false;
 </script>
 
-<div class="location-ea9cfb80">
+<div class="location-ea9cfb80" title="id: {location.id}" on:click>
 	{#if location.coordinate}
 		<LocationIcon />
 	{:else}

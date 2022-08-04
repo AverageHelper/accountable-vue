@@ -29,7 +29,7 @@ export function locationFromSnapshot(
 	dek: HashStore
 ): Location {
 	const { id, record } = recordFromSnapshot(doc, dek, isLocationRecord);
-	return location({ id, ...record });
+	return location({ ...record, id });
 }
 
 export async function createLocation(
@@ -45,7 +45,7 @@ export async function createLocation(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return location({ id: ref.id, ...record });
+	return location({ ...record, id: ref.id });
 }
 
 export async function updateLocation(

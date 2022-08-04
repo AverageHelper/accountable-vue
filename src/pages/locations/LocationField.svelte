@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Coordinate, Location, LocationRecordParams } from "../../model/Location";
+	import type { Coordinate, Location, PendingLocation } from "../../model/Location";
 	import type { IPLocateResult } from "../../transport";
 	import { _ } from "svelte-i18n";
 	import { allLocations, handleError, locations, preferences } from "../../store";
@@ -16,7 +16,7 @@
 	import LocationListItem from "./LocationListItem.svelte";
 	import TextField from "../../components/inputs/TextField.svelte";
 
-	/**
+	/*
 	 * Cases:
 	 * - No location (empty text field)
 	 * - Location selected (text in field, with an icon, creates an entry if doesn't exist already, updates transaction)
@@ -31,10 +31,10 @@
 	 */
 
 	const dispatch = createEventDispatcher<{
-		change: (LocationRecordParams & { id: string | null }) | null;
+		change: PendingLocation | null;
 	}>();
 
-	export let value: (LocationRecordParams & { id: string | null }) | null = null;
+	export let value: PendingLocation | null = null;
 
 	let titleField: TextField | undefined;
 	let recentsList: List | undefined;
@@ -78,7 +78,7 @@
 			(recentsList?.contains(document.activeElement) ?? false);
 	}
 
-	function onLocationSelect(location: Location, event?: KeyboardEvent) {
+	async function onLocationSelect(location: Location, event?: KeyboardEvent) {
 		// if event is given, make sure space or enter key
 		if (event && event.code !== "Enter" && event.code !== "Space") return;
 
@@ -86,6 +86,7 @@
 		newLocationTitle = "";
 		newLocationSubtitle = "";
 		newLocationCoordinates = null;
+		await tick();
 		updateModelValue(location);
 
 		// Hide the recents list for now, since we just got this entry from there
@@ -112,10 +113,11 @@
 		newLocationTitle = city ?? $_("input.location.unknown");
 		newLocationSubtitle = country ?? "";
 		newLocationCoordinates = lat === null || lng === null ? null : { lat, lng };
+		await tick();
 		updateModelValue();
 	}
 
-	function clear(event: Event) {
+	function clear(event: CustomEvent<MouseEvent>) {
 		event.preventDefault();
 		newLocationTitle = "";
 		newLocationSubtitle = "";
@@ -124,24 +126,25 @@
 	}
 
 	function updateModelValue(extantRecord?: Location) {
-		const record: LocationRecordParams & { id: string | null } = extantRecord ?? {
+		const record: PendingLocation = extantRecord ?? {
 			id: null,
 			title,
 			subtitle,
 			coordinate,
 			lastUsed: new Date(),
 		};
-		console.debug("updateModelValue", record);
 		dispatch("change", record);
 	}
 
-	function updateTitle(event: CustomEvent<string>) {
+	async function updateTitle(event: CustomEvent<string>) {
 		newLocationTitle = event.detail;
+		await tick();
 		updateModelValue();
 	}
 
-	function updateSubtitle(event: CustomEvent<string>) {
+	async function updateSubtitle(event: CustomEvent<string>) {
 		newLocationSubtitle = event.detail;
+		await tick();
 		updateModelValue();
 	}
 </script>
@@ -181,7 +184,7 @@
 						<strong>{$_("input.locations.recent")}</strong>
 					</li>
 				{/if}
-				{#each recentLocations as location}
+				{#each recentLocations as location (location.id)}
 					<li
 						tabindex="0"
 						on:keyup|stopPropagation|preventDefault={e => onLocationSelect(location, e)}

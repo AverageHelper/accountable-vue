@@ -63,7 +63,7 @@ export function attachmentFromSnapshot(
 	dek: HashStore
 ): Attachment {
 	const { id, record } = recordFromSnapshot(doc, dek, isAttachmentRecord);
-	return attachment({ id, ...record });
+	return attachment({ ...record, id });
 }
 
 export async function createAttachment(
@@ -86,7 +86,7 @@ export async function createAttachment(
 	const pkg = encrypt(recordToSave, "Attachment", dek);
 	await setDoc(docRef, pkg); // Save the record
 
-	return attachment({ id: docRef.id, ...recordToSave });
+	return attachment({ ...recordToSave, id: docRef.id });
 }
 
 export async function updateAttachment(

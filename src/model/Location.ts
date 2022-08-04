@@ -39,8 +39,10 @@ export interface Location extends Model<"Location"> {
 
 export type LocationRecordParams = Pick<Location, "coordinate" | "lastUsed" | "subtitle" | "title">;
 
+export type PendingLocation = LocationRecordParams & { id: string | null };
+
 export function location(params: Omit<Location, "objectType">): Location {
-	return {
+	const result: Location = {
 		coordinate: params.coordinate,
 		id: params.id,
 		lastUsed: new Date(params.lastUsed), // in case this is actually a string
@@ -48,6 +50,8 @@ export function location(params: Omit<Location, "objectType">): Location {
 		subtitle: (params.subtitle?.trim() ?? "") || null,
 		title: params.title.trim() || "Untitled",
 	};
+	if (!result.id) console.warn("Location has null ID:", result);
+	return result;
 }
 
 export function isLocationRecord(tbd: unknown): tbd is LocationRecordParams {

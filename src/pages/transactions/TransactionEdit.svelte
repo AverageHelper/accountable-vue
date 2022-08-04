@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Account } from "../../model/Account";
-	import type { Location, LocationRecordParams } from "../../model/Location";
+	import type { Location, PendingLocation } from "../../model/Location";
 	import type { Transaction, TransactionRecordParams } from "../../model/Transaction";
 	import { _ } from "svelte-i18n";
 	import { createEventDispatcher, onMount } from "svelte";
@@ -47,7 +47,7 @@
 	let isLoading = false;
 	let title = "";
 	let notes = "";
-	let locationData: (LocationRecordParams & { id: string | null }) | null = null;
+	let locationData: PendingLocation | null = null;
 	let createdAt = new Date();
 	let amount = zeroDinero;
 	let isReconciled = false;
@@ -96,6 +96,10 @@
 			locationData = ogRecord !== null ? { ...ogRecord, id: ogLocationId } : null;
 		}
 	});
+
+	function onLocationUpdate(event: CustomEvent<PendingLocation | null>) {
+		locationData = event.detail;
+	}
 
 	async function submit() {
 		isLoading = true;
@@ -218,7 +222,7 @@
 		required
 		on:input={e => (title = e.detail)}
 	/>
-	<LocationField value={locationData} on:change={e => (locationData = e.detail)} />
+	<LocationField value={locationData} on:change={onLocationUpdate} />
 	<TextAreaField
 		value={notes}
 		label="notes"
