@@ -29,7 +29,18 @@ export function locationFromSnapshot(
 	dek: HashStore
 ): Location {
 	const { id, record } = recordFromSnapshot(doc, dek, isLocationRecord);
-	return location({ ...record, id });
+	return location({
+		id,
+		coordinate: record.coordinate
+			? {
+					lat: record.coordinate.lat,
+					lng: record.coordinate.lng,
+			  }
+			: null,
+		lastUsed: record.lastUsed,
+		subtitle: record.subtitle,
+		title: record.title,
+	});
 }
 
 export async function createLocation(
@@ -45,7 +56,18 @@ export async function createLocation(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return location({ ...record, id: ref.id });
+	return location({
+		id: ref.id,
+		coordinate: record.coordinate
+			? {
+					lat: record.coordinate.lat,
+					lng: record.coordinate.lng,
+			  }
+			: null,
+		lastUsed: record.lastUsed,
+		subtitle: record.subtitle,
+		title: record.title,
+	});
 }
 
 export async function updateLocation(

@@ -22,7 +22,11 @@ function tagRef(tag: Tag): DocumentReference<TagRecordPackage> {
 
 export function tagFromSnapshot(doc: QueryDocumentSnapshot<TagRecordPackage>, dek: HashStore): Tag {
 	const { id, record } = recordFromSnapshot(doc, dek, isTagRecord);
-	return tag({ ...record, id });
+	return tag({
+		colorId: record.colorId,
+		name: record.name,
+		id,
+	});
 }
 
 export async function createTag(
@@ -37,7 +41,11 @@ export async function createTag(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return tag({ ...record, id: ref.id });
+	return tag({
+		colorId: record.colorId,
+		name: record.name,
+		id: ref.id,
+	});
 }
 
 export async function updateTag(tag: Tag, dek: HashStore, batch?: WriteBatch): Promise<void> {

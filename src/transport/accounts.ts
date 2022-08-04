@@ -25,7 +25,12 @@ export function accountFromSnapshot(
 	dek: HashStore
 ): Account {
 	const { id, record } = recordFromSnapshot(doc, dek, isAccountRecord);
-	return account({ ...record, id });
+	return account({
+		createdAt: record.createdAt,
+		notes: record.notes,
+		title: record.title,
+		id,
+	});
 }
 
 export async function createAccount(
@@ -40,7 +45,12 @@ export async function createAccount(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return account({ ...record, id: ref.id });
+	return account({
+		createdAt: record.createdAt,
+		notes: record.notes,
+		title: record.title,
+		id: ref.id,
+	});
 }
 
 export async function updateAccount(

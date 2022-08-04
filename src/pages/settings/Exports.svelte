@@ -46,7 +46,14 @@
 			// FIXME: We may run out of memory here. Test with many files totaling more than 1 GB. Maybe operate on the attachments a few at a time?
 			console.debug("Downloading attachments");
 			const filesGotten: Array<[Attachment, string]> = await asyncMap(filesToGet, async a => {
-				const file = newAttachment({ ...a, notes: a.notes ?? null, type: a.type ?? "" });
+				const file = newAttachment({
+					createdAt: a.createdAt,
+					id: a.id,
+					notes: a.notes?.trim() ?? null,
+					storagePath: a.storagePath,
+					title: a.title.trim(),
+					type: a.type ?? "",
+				});
 				const data = await imageDataFromFile(file, false);
 				return [file, data];
 			});

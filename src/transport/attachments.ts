@@ -63,7 +63,14 @@ export function attachmentFromSnapshot(
 	dek: HashStore
 ): Attachment {
 	const { id, record } = recordFromSnapshot(doc, dek, isAttachmentRecord);
-	return attachment({ ...record, id });
+	return attachment({
+		id,
+		createdAt: record.createdAt,
+		notes: record.notes,
+		storagePath: record.storagePath,
+		title: record.title,
+		type: record.type,
+	});
 }
 
 export async function createAttachment(
@@ -78,15 +85,27 @@ export async function createAttachment(
 	const docRef = doc(attachmentsCollection()); // generates unique document ID
 	const storageName = doc(attachmentsCollection()); // generates unique file name
 
-	const storagePath = `users/${uid}/attachments/${storageName.id}.json`;
 	const storageRef = ref(docRef.db, uid, docRef, storageName.id);
 	await uploadString(storageRef, fileToUpload); // Store the attachment
 
-	const recordToSave: AttachmentRecordParams = { ...record, storagePath };
+	const recordToSave: AttachmentRecordParams = {
+		createdAt: record.createdAt,
+		notes: record.notes,
+		storagePath: `users/${uid}/attachments/${storageName.id}.json`,
+		title: record.title,
+		type: record.type,
+	};
 	const pkg = encrypt(recordToSave, "Attachment", dek);
 	await setDoc(docRef, pkg); // Save the record
 
-	return attachment({ ...recordToSave, id: docRef.id });
+	return attachment({
+		id: docRef.id,
+		createdAt: recordToSave.createdAt,
+		notes: recordToSave.notes,
+		storagePath: recordToSave.storagePath,
+		title: recordToSave.title,
+		type: recordToSave.type,
+	});
 }
 
 export async function updateAttachment(

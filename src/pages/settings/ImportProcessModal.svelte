@@ -59,7 +59,14 @@
 
 	$: hasDb = db !== null;
 	$: importedAccounts = (db?.accounts ?? []) //
-		.map(acct => newAccount({ ...acct, notes: acct.notes ?? null }));
+		.map(acct =>
+			newAccount({
+				createdAt: acct.createdAt,
+				id: acct.id,
+				notes: acct.notes?.trim() ?? null,
+				title: acct.title.trim(),
+			})
+		);
 
 	$: duplicateAccounts = importedAccounts //
 		.filter(a1 => $storedAccounts.some(a2 => a2.id === a1.id));

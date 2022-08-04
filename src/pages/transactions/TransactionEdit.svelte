@@ -93,7 +93,21 @@
 		if (ogLocationId !== null && ogLocationId) {
 			const ogLocation = $locations[ogLocationId];
 			const ogRecord = ogLocation ? recordFromLocation(ogLocation) : null;
-			locationData = ogRecord !== null ? { ...ogRecord, id: ogLocationId } : null;
+			locationData =
+				ogRecord !== null
+					? {
+							coordinate: ogRecord.coordinate
+								? {
+										lat: ogRecord.coordinate.lat,
+										lng: ogRecord.coordinate.lng,
+								  }
+								: null,
+							id: ogLocationId,
+							lastUsed: ogRecord.lastUsed,
+							subtitle: ogRecord.subtitle,
+							title: ogRecord.title,
+					  }
+					: null;
 		}
 	});
 
@@ -151,7 +165,21 @@
 			if (ogTransaction === null) {
 				await createTransaction(params);
 			} else {
-				await updateTransaction(newTransaction({ ...params, id: ogTransaction.id }));
+				await updateTransaction(
+					newTransaction({
+						id: ogTransaction.id,
+						accountId: params.accountId,
+						amount: params.amount,
+						attachmentIds: params.attachmentIds.slice(),
+						createdAt: params.createdAt,
+						isReconciled: params.isReconciled,
+						locationId: params.locationId,
+						notes: params.notes,
+						objectType: "Transaction",
+						tagIds: params.tagIds.slice(),
+						title: params.title,
+					})
+				);
 			}
 
 			dispatch("finished");

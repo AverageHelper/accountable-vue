@@ -27,8 +27,9 @@ export interface LocaleDescriptor {
 /** The list of supported locales. */
 export const locales: ReadonlyArray<LocaleDescriptor> = Object.entries(messages) //
 	.map(([code, strings]) => ({
-		...strings.meta,
 		code: code as LocaleCode,
+		language: strings.meta.language,
+		flag: strings.meta.flag,
 	}));
 
 // **

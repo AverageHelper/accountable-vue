@@ -27,7 +27,19 @@ export function transactionFromSnapshot(
 	dek: HashStore
 ): Transaction {
 	const { id, record } = recordFromSnapshot(doc, dek, isTransactionRecord);
-	return transaction({ ...record, id });
+	return transaction({
+		id,
+		accountId: record.accountId,
+		amount: record.amount,
+		attachmentIds: record.attachmentIds.slice(),
+		createdAt: record.createdAt,
+		isReconciled: record.isReconciled,
+		locationId: record.locationId,
+		notes: record.notes,
+		objectType: "Transaction",
+		tagIds: record.tagIds.slice(),
+		title: record.title,
+	});
 }
 
 export async function getTransactionsForAccount(
@@ -58,7 +70,19 @@ export async function createTransaction(
 	} else {
 		await setDoc(ref, pkg);
 	}
-	return transaction({ ...record, id: ref.id });
+	return transaction({
+		id: ref.id,
+		accountId: record.accountId,
+		amount: record.amount,
+		attachmentIds: record.attachmentIds.slice(),
+		createdAt: record.createdAt,
+		isReconciled: record.isReconciled,
+		locationId: record.locationId,
+		notes: record.notes,
+		objectType: "Transaction",
+		tagIds: record.tagIds.slice(),
+		title: record.title,
+	});
 }
 
 export async function updateTransaction(

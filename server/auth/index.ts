@@ -23,6 +23,8 @@ import {
 	upsertUser,
 } from "../database/io.js";
 
+// TODO: Implement WebAuthn (and test passkey support!)
+
 interface ReqBody {
 	account?: unknown;
 	newaccount?: unknown;
@@ -235,7 +237,8 @@ export function auth(this: void): Router {
 				const passwordSalt = await generateSalt();
 				const passwordHash = await generateHash(newGivenPassword, passwordSalt);
 				await upsertUser({
-					...storedUser,
+					uid: storedUser.uid,
+					currentAccountId: storedUser.currentAccountId,
 					passwordHash,
 					passwordSalt,
 				});
@@ -277,7 +280,9 @@ export function auth(this: void): Router {
 
 				// ** Store new credentials
 				await upsertUser({
-					...storedUser,
+					uid: storedUser.uid,
+					passwordHash: storedUser.passwordHash,
+					passwordSalt: storedUser.passwordSalt,
 					currentAccountId: newGivenAccountId,
 				});
 

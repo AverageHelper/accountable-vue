@@ -228,7 +228,12 @@ export async function upsertUser(properties: User): Promise<void> {
 	// Upsert to index
 	await userIndexDb<void>((data, write) => {
 		const userIndex = data ?? {};
-		userIndex[uid] = { ...properties };
+		userIndex[uid] = {
+			uid: properties.uid,
+			currentAccountId: properties.currentAccountId,
+			passwordHash: properties.passwordHash,
+			passwordSalt: properties.passwordSalt,
+		};
 		write(userIndex);
 	});
 
