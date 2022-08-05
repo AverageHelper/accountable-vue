@@ -39,17 +39,17 @@
 			// }
 
 			// Round the first and last bordered list items
-			&:first-child {
-				// border-radius: 4pt 4pt 0 0;
-			}
+			// &:first-child {
+			// 	border-radius: 4pt 4pt 0 0;
+			// }
 
-			&:nth-last-child(2) {
-				// border-radius: 0 0 4pt 4pt;
+			// &:nth-last-child(2) {
+			// 	border-radius: 0 0 4pt 4pt;
 
-				// &::after {
-				// 	display: none;
-				// }
-			}
+			// 	&::after {
+			// 		display: none;
+			// 	}
+			// }
 		}
 	}
 </style>
