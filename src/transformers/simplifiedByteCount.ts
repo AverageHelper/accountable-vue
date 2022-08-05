@@ -1,4 +1,4 @@
-import { getNumberFormatter } from "svelte-i18n";
+import { getNumberFormatter } from "../i18n";
 
 /**
  * Creates a human-readable string from a given byte count.

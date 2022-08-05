@@ -1,6 +1,10 @@
 import { addMessages, init, getLocaleFromNavigator } from "svelte-i18n";
 import enUS from "./locales/en-US.json";
 
+// Formatter consumers should import from here, not svelte-i18n directly,
+// so that the formatter gets properly initialized in unit tests.
+export { getNumberFormatter } from "svelte-i18n";
+
 const messages = {
 	"en-US": enUS,
 } as const;

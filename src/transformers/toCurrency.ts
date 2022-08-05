@@ -1,5 +1,5 @@
 import type { Dinero } from "dinero.js";
-import { getNumberFormatter } from "svelte-i18n";
+import { getNumberFormatter } from "../i18n";
 import { toFormat } from "dinero.js";
 
 type NegativeStyle = "accounting" | "standard";
