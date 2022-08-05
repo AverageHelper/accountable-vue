@@ -54,7 +54,7 @@ Object.entries(messages).forEach(([locale, partials]) => {
 
 // Initialize Svelte I18N
 console.debug("Loading I18N module...");
-await init({
+void init({
 	fallbackLocale,
 	initialLocale,
 });
