@@ -36,6 +36,8 @@ export default defineConfig({
 			},
 		}),
 		typescript({
+			// VS Code uses `tsconfig.json` at dev time.
+			// Vite uses `tsconfig.prod.json` in production builds:
 			tsconfig: path.resolve(__dirname, "./tsconfig.prod.json"),
 		}),
 		tsconfigPaths({ projects: ["./tsconfig.prod.json"] }),
