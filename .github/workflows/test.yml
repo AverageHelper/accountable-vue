@@ -39,6 +39,10 @@ jobs:
         run: npm run build:server
 
       - name: Client Lint and Build
+        env:
+          VITE_ACCOUNTABLE_SERVER_URL: http://127.0.0.1:40850
+          VITE_ENABLE_LOGIN: true
+          VITE_ENABLE_SIGNUP: false
         run: npm run build:client
 
       - name: Unit Tests

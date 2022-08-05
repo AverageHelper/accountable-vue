@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Account } from "../../model/Account";
 import type { PropType } from "vue";
-import type { Transaction } from "../../model/Transaction";
 import ListItem from "../../components/ListItem.vue";
 import { accountPath } from "../../router";
 import { computed, toRefs, onMounted } from "vue";
@@ -20,9 +19,7 @@ const accounts = useAccountsStore();
 const transactions = useTransactionsStore();
 
 const accountRoute = computed(() => (link.value ? accountPath(account.value.id) : "#")); // TODO: I18N
-const theseTransactions = computed(
-	() => transactions.transactionsForAccount[account.value.id] as Dictionary<Transaction> | undefined
-);
+const theseTransactions = computed(() => transactions.transactionsForAccount[account.value.id]);
 
 const remainingBalance = computed(() => accounts.currentBalance[account.value.id] ?? null);
 const isBalanceNegative = computed(

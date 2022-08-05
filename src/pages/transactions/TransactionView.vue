@@ -2,7 +2,6 @@
 import type { Tag as TagObject, TagRecordParams } from "../../model/Tag";
 import type { Attachment } from "../../model/Attachment";
 import type { Location } from "../../model/Location";
-import type { Transaction } from "../../model/Transaction";
 import ConfirmDestroyFile from "../attachments/ConfirmDestroyFile.vue";
 import EditButton from "../../components/buttons/EditButton.vue";
 import FileInput from "../attachments/FileInput.vue";
@@ -49,7 +48,7 @@ const isViewingLocation = ref(false);
 const brokenReferenceToFix = ref<string | null>(null);
 
 const theseTransactions = computed(
-	() => (transactions.transactionsForAccount[accountId.value] ?? {}) as Dictionary<Transaction>
+	() => transactions.transactionsForAccount[accountId.value] ?? {}
 );
 const numberOfTransactions = computed(() => Object.keys(theseTransactions.value).length);
 const account = computed(() => accounts.items[accountId.value]);
