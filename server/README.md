@@ -2,7 +2,7 @@
 
 The machine that stores stuff.
 
-> This project is undergoing rapid development and should be considered experimental. Use it at your own risk. 🤙
+> This project is deprecated in favor of [Recorded Finance server](https://github.com/RecordedFinance/recorded-finance/tree/main/server).
 
 ## API
 
